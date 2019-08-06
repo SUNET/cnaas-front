@@ -48,20 +48,20 @@
       <tr>
 	<td> {{ device.id }} </td>
 	<td> {{ device.hostname }} </td>
-	<td> {{ device.site_id }} </td>
-	<td> {{ device.description }} </td>
-	<td> {{ device.management_ip }} </td>
-	<td> {{ device.dhcp_ip }} </td>
-	<td> {{ device.serial }} </td>
-	<td> {{ device.ztp_mac }} </td>
-	<td> {{ device.platform }} </td>
-	<td> {{ device.vendor }} </td>
-	<td> {{ device.model }} </td>
-	<td> {{ device.os_version }} </td>
-	<td> {{ device.synchronized }} </td>
-	<td> {{ device.state }} </td>
-	<td> {{ device.device_type }} </td>
-	<td> {{ device.last_seen }} </td>	
+	<td> {% if device.site_id is not None %} {{ device.site_id }} {% endif %}</td>
+	<td> {% if device.description is not None %}  {{ device.description }} {% endif %}</td>
+	<td> {% if device.management_ip is not None %} {{ device.management_ip }} {% endif %}</td>
+	<td> {% if device.dhcp_ip is not None %} {{ device.dhcp_ip }} {% endif %}</td>
+	<td> {% if device.serial is not None %} {{ device.serial }} {% endif %}</td>
+	<td> {% if device.ztp_mac is not None %} {{ device.ztp_mac }} {% endif %}</td>
+	<td> {% if device.platform is not None %} {{ device.platform }} {% endif %}</td>
+	<td> {% if device.vendor is not None %} {{ device.vendor }} {% endif %}</td>
+	<td> {% if device.model is not None %} {{ device.model }} {% endif %}</td>
+	<td> {% if device.os_version is not None %} {{ device.os_version }} {% endif %}</td>
+	<td> {% if device.synchronized is not None %} {{ device.synchronized }} {% endif %}</td>
+	<td> {% if device.state is not None %} {{ device.state }} {% endif %}</td>
+	<td> {% if device.device_type is not None %} {{ device.device_type }} {% endif %}</td>
+	<td> {% if device.last_seen is not None %} {{ device.last_seen }} <{% endif %}/td>	
       </tr>
       {% endfor %}
     </table>
