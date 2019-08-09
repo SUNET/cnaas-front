@@ -24,46 +24,98 @@
   </style>
 
   <body style="background-color:#d0d0d0;text-align:left">
-    <table id="users">
-      <tr>
-	<th>ID</th>
-	<th>Hostname</th>
-	<th>Site ID</th>
-	<th>Description</th>
-	<th>Management IP</th>
-	<th>DHCP IP</th>
-	<th>Serial #</th>
-	<th>ZTP MAC address</th>
-	<th>Platform</th>
-	<th>Vendor</th>
-	<th>Model</th>
-	<th>OS version</th>
-	<th>Synchronized</th>
-	<th>State</th>
-	<th>Device type</th>
-	<th>Last seen</th>
-      </tr>
-      
-      {% for device in devices %}
-      <tr>
-	<td> {{ device.id }} </td>
-	<td> {{ device.hostname }} </td>
-	<td> {% if device.site_id is not None %} {{ device.site_id }} {% endif %}</td>
-	<td> {% if device.description is not None %}  {{ device.description }} {% endif %}</td>
-	<td> {% if device.management_ip is not None %} {{ device.management_ip }} {% endif %}</td>
-	<td> {% if device.dhcp_ip is not None %} {{ device.dhcp_ip }} {% endif %}</td>
-	<td> {% if device.serial is not None %} {{ device.serial }} {% endif %}</td>
-	<td> {% if device.ztp_mac is not None %} {{ device.ztp_mac }} {% endif %}</td>
-	<td> {% if device.platform is not None %} {{ device.platform }} {% endif %}</td>
-	<td> {% if device.vendor is not None %} {{ device.vendor }} {% endif %}</td>
-	<td> {% if device.model is not None %} {{ device.model }} {% endif %}</td>
-	<td> {% if device.os_version is not None %} {{ device.os_version }} {% endif %}</td>
-	<td> {% if device.synchronized is not None %} {{ device.synchronized }} {% endif %}</td>
-	<td> {% if device.state is not None %} {{ device.state }} {% endif %}</td>
-	<td> {% if device.device_type is not None %} {{ device.device_type }} {% endif %}</td>
-	<td> {% if device.last_seen is not None %} {{ device.last_seen }} <{% endif %}/td>	
-      </tr>
-      {% endfor %}
-    </table>
+    {% if message is not None %}
+    <script>
+      alert("{{ message }}");
+    </script>
+    {% endif %}
+
+    <form action="/cnaas/devices/" method="post">
+      {% csrf_token %}
+      <table id="users">
+	<tr>
+	  <th>Sync</th>
+	  <th>ID</th>
+	  <th>Hostname</th>
+	  <th>Site ID</th>
+	  <th>Description</th>
+	  <th>Management IP</th>
+	  <th>DHCP IP</th>
+	  <th>Serial #</th>
+	  <th>ZTP MAC address</th>
+	  <th>Platform</th>
+	  <th>Vendor</th>
+	  <th>Model</th>
+	  <th>OS version</th>
+	  <th>Synchronized</th>
+	  <th>State</th>
+	  <th>Device type</th>
+	  <th>Last seen</th>
+	</tr>
+
+	{% for device in devices %}
+	<tr>
+	  <td>
+	    <input type="checkbox" name="device" value="{{device.hostname}},{{device.id}}"/>
+	  </td>
+	  <td>
+	    {{ device.id }}
+	  </td>
+	  <td>
+	    {{ device.hostname }}
+	  </td>
+	  <td>
+	    {% if device.site_id is not None %} {{ device.site_id }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.description is not None %}  {{ device.description }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.management_ip is not None %} {{ device.management_ip }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.dhcp_ip is not None %} {{ device.dhcp_ip }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.serial is not None %} {{ device.serial }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.ztp_mac is not None %} {{ device.ztp_mac }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.platform is not None %} {{ device.platform }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.vendor is not None %} {{ device.vendor }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.model is not None %} {{ device.model }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.os_version is not None %} {{ device.os_version }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.synchronized is not None %} {{ device.synchronized }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.state is not None %} {{ device.state }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.device_type is not None %} {{ device.device_type }} {% endif %}
+	  </td>
+	  <td>
+	    {% if device.last_seen is not None %} {{ device.last_seen }} {% endif %}
+	  </td>
+	</tr>
+	{% endfor %}
+      </table>
+      <br>
+      <input type="submit" name="refresh_templates" value="Refresh templates"/>
+      <input type="submit" name="refresh_settings" value="Refresh settings"/>
+      <input type="submit" name="sync" value="Sync"/>
+      <input type="submit" name="sync_all" value="Sync all devices"/>
+      <input type="submit" name="show_config" value="Show configuration"/>
+      <input type="submit" name="remove" value="Remove"/>
+    </form>
   </body>
 </html>

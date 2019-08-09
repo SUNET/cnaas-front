@@ -16,7 +16,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # CNaaS server, should not be static
-CNAAS_HOST = 'https://localhost/api/v1.0/'
+CNAAS_HOST = 'http://localhost:5000/api/v1.0'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
