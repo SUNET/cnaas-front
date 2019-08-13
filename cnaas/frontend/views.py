@@ -129,9 +129,13 @@ def devices(request):
         res = device_remove(devices_selected)
         data['message'] = res
     elif 'sync_dryrun' in request.POST:
+        if devices_selected == []:
+            return render(request, 'devices.html', context=data)
         data['dryrun'] = True
         return sync(request, job_id=device_sync(devices_selected), dryrun=True)
     elif 'sync' in request.POST:
+        if devices_selected == []:
+            return render(request, 'devices.html', context=data)
         data['dryrun'] = False
         return sync(request,
                     job_id=device_sync(devices_selected, dry_run=False),
