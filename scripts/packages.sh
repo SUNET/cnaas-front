@@ -20,6 +20,7 @@ pip3 install uwsgi
 # Create virtualenv
 virtualenv -p python3 /opt/cnaas
 cd /opt/cnaas
+git checkout develop
 source bin/activate
 
 # Install pip3
