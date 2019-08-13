@@ -45,7 +45,7 @@
 	{% for device in devices %}
 	<tr>
 	  {% if device.device_type != "DIST" %}
-	  <td><input type="checkbox" name="device" value="{{device.hostname}},{{device.id}}"/></td>
+	  <td><input type="checkbox" name="device" value="{{ device.hostname }},{{ device.id }}"/></td>
 	  {% else %}
 	  <td></td>
 	  {% endif %}
