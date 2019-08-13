@@ -1,55 +1,9 @@
 <html>
+  {% load static %}
   <head>
     <title>CNaaS</title>
+    <link rel="stylesheet" href="{% static "style.css" %}">
   </head>
-  <style>
-    #devices {
-	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-	border-collapse: collapse;
-	width: 100%;
-    }
-    #devices td, #devices th {
-	border: 1px solid #ddd;
-	padding: 8px;
-    }
-    #devices tr:nth-child(even){background-color: #f2f2f2;}
-    #devices tr:hover {background-color: #ddd;}
-    #devices th {
-	padding-top: 12px;
-	padding-bottom: 12px;
-	text-align: left;
-	background-color: #4CAF50;
-	color: white;
-    }
-
-    .topnav {
-	background-color: #333;
-	overflow: hidden;
-    }
-
-    .topnav input {
-	border: 0;
-	border-radius: 0;
-	float: left;
-	color: #f2f2f2;
-	background-color: #4CAF50;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-	font-size: 14px;
-    }
-
-    .topnav input:hover {
-	background-color: #ddd;
-	color: black;
-    }
-
-    .topnav input.active {
-	background-color: #4CAF50;
-	color: white;
-    }
-  </style>
-
   <body style="background-color:#d0d0d0;text-align:left">
     {% if message is not None %}
     <script>
@@ -60,9 +14,10 @@
       <div class="topnav">
 	<input type="submit" name="refresh_templates" value="Refresh templates"/>
 	<input type="submit" name="refresh_settings" value="Refresh settings"/>
-	<input type="submit" name="sync_dryrun" value="Sync - dry run"/>
-	<input type="submit" name="sync" value="Sync"/>
-	<input type="submit" name="remove" value="Remove"/>
+	<input type="submit" name="sync_dryrun" value="Sync devices - dry run"/>
+	<input type="submit" name="sync" value="Sync devices - push config"/>
+	<input type="submit" name="remove" value="Remove devices"/>
+	<input type="label" value="CNaaS 0.2.0.dev0" align="right" style="float: right"/>
       </div>
       <br>
       {% csrf_token %}
