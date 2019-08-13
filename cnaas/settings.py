@@ -15,8 +15,12 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# CNaaS server, should not be static
-CNAAS_HOST = 'http://localhost:5000/api/v1.0'
+# Try to get the CNaaS server URL from the environment variable
+# CNAAS_HOST, if that fails we fall back to localhost.
+if os.environ.get('CNAAS_HOST') is not None:
+    CNAAS_HOST = os.environ.get('CNAAS_HOST')
+else:
+    CNAAS_HOST = 'https://localhost/api/v1.0'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
