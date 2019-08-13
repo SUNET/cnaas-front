@@ -9,6 +9,8 @@ disabled: false
 
 extra_jobs:
   - name: cnaas-front
+    git:
+      branch: develop    
     builders:
       - docker
     docker_name: cnaas/front
