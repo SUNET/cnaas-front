@@ -1,6 +1,8 @@
 <html>
+  {% load static %}
   <head>
     <title>CNaaS</title>
+    <link rel="stylesheet" href="{% static "style.css" %}"/>
   </head>
   <style>
   #devices {
@@ -24,11 +26,17 @@
   </style>
 
   <body style="background-color:#d0d0d0;text-align:left">
-    {% if dryrun is False %}
-    <h2> Sync - Applied configuration </h2>
-    {% else %}
-    <h2> Sync - Dry-run </h2>
-    {% endif %}
+    <form action="/cnaas/devices/" method="post">
+      {% csrf_token %}
+      <div class="topnav">
+	<input type="submit" name="cancel" value="Back"/>
+	{% if dryrun is False %}
+	<input type="label" value="Device sync - configuration push" align="right" style="float: right"/>
+	{% else %}
+	<input type="label" value="Device sync - dry-run" align="right" style="float: right"/>
+	{% endif %}
+      </div>
+    </form>
     <table id="devices">
       {% for device in device_data %}
       <tr>
@@ -45,10 +53,5 @@
       </tr>
       {% endfor %}
     </table>
-    <br/><br/>
-    <form action="/cnaas/devices/" method="post">
-      {% csrf_token %}
-      <input type="submit" name="cancel" value="Back"/>
-    </form>
   </body>
 </html>
