@@ -1,1 +1,54 @@
-Foo
+<html>
+  <head>
+    <title>CNaaS</title>
+  </head>
+  <style>
+  #devices {
+      font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+  }
+  #devices td, #devices th {
+      border: 1px solid #ddd;
+      padding: 8px;
+  }
+  #devices tr:nth-child(even){background-color: #f2f2f2;}
+  #devices tr:hover {background-color: #ddd;}
+  #devices th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: left;
+      background-color: #4CAF50;
+      color: white;
+  }
+  </style>
+
+  <body style="background-color:#d0d0d0;text-align:left">
+    {% if dryrun is False %}
+    <h2> Sync - Applied configuration </h2>
+    {% else %}
+    <h2> Sync - Dry-run </h2>
+    {% endif %}
+    <table id="devices">
+      {% for device in device_data %}
+      <tr>
+	<th>{{ device.hostname }}: {{ device.name }}</th>
+      </tr>
+      <tr>
+	<td>
+	  {% if device.result is not None %}
+	  {{ device.result|linebreaks }}
+	  {% else %}
+	  {{ device.diff|linebreaks }}
+	  {% endif %}
+	</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <br/><br/>
+    <form action="/cnaas/devices/" method="post">
+      {% csrf_token %}
+      <input type="submit" name="cancel" value="Back"/>
+    </form>
+  </body>
+</html>
