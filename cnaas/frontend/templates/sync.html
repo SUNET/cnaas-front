@@ -4,27 +4,6 @@
     <title>CNaaS</title>
     <link rel="stylesheet" href="{% static "style.css" %}"/>
   </head>
-  <style>
-  #devices {
-      font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-      border-collapse: collapse;
-      width: 100%;
-  }
-  #devices td, #devices th {
-      border: 1px solid #ddd;
-      padding: 8px;
-  }
-  #devices tr:nth-child(even){background-color: #f2f2f2;}
-  #devices tr:hover {background-color: #ddd;}
-  #devices th {
-      padding-top: 12px;
-      padding-bottom: 12px;
-      text-align: left;
-      background-color: #4CAF50;
-      color: white;
-  }
-  </style>
-
   <body style="background-color:#d0d0d0;text-align:left">
     <form action="/cnaas/devices/" method="post">
       {% csrf_token %}
