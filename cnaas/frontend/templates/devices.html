@@ -2,7 +2,7 @@
   {% load static %}
   <head>
     <title>CNaaS</title>
-    <link rel="stylesheet" href="{% static "style.css" %}">
+    <link rel="stylesheet" href="{% static "style.css" %}"/>
   </head>
   <body style="background-color:#d0d0d0;text-align:left">
     {% if message is not None %}
@@ -46,8 +46,7 @@
 	<tr>
 	  <td><input type="checkbox" name="device" value="{{device.hostname}},{{device.id}}"/></td>
 	  <td>{{ device.id }}</td>
-	  <td>{{ device.hostname }}
-	  </td>
+	  <td>{{ device.hostname }}</td>
 	  <td>{% if device.site_id is not None %} {{ device.site_id }} {% endif %}</td>
 	  <td>{% if device.description is not None %}  {{ device.description }} {% endif %}</td>
 	  <td>{% if device.management_ip is not None %} {{ device.management_ip }} {% endif %}</td>
