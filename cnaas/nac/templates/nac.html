@@ -1,0 +1,19 @@
+<html>
+  {% load static %}
+  <head>
+    <title>CNaaS</title>
+    <link rel="stylesheet" href="{% static "style.css" %}"/>
+    <link rel="stylesheet" href="{% static "w3.css" %}"/>
+  </head>
+  <body style="background-color:#d0d0d0;text-align:left">
+    <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
+      <h3 class="w3-bar-item">Menu</h3>
+      <a href="/cnaas/devices" class="w3-bar-item w3-button">Device inventory</a>
+      <a href="/nac" class="w3-bar-item w3-button">Admission control</a>
+      <a href="/cnaas/jobs" class="w3-bar-item w3-button">Jobs</a>      
+    </div>
+    <div style="margin-left: 22%; position: fixed; width:70%;">
+      NAC
+    </div>
+  </body>
+</html>

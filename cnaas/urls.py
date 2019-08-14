@@ -19,4 +19,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('cnaas/', include('cnaas.frontend.urls')),
+    path('nac/', include('cnaas.nac.urls')),
 ]

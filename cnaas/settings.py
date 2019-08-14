@@ -61,7 +61,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            'cnaas/frontend/templates/'
+            'cnaas/frontend/templates/',
+            'cnaas/nac/templates/'
         ],
         'APP_DIRS': True,
         'OPTIONS': {
