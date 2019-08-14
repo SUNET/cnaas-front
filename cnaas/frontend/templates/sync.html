@@ -3,34 +3,44 @@
   <head>
     <title>CNaaS</title>
     <link rel="stylesheet" href="{% static "style.css" %}"/>
+    <link rel="stylesheet" href="{% static "w3.css" %}"/>        
   </head>
   <body style="background-color:#d0d0d0;text-align:left">
-    <form action="/cnaas/devices/" method="post">
-      {% csrf_token %}
-      <div class="topnav">
-	<input type="submit" name="cancel" value="Back"/>
-	{% if dryrun is False %}
-	<input type="label" value="Device sync - configuration push" align="right" style="float: right"/>
-	{% else %}
-	<input type="label" value="Device sync - dry-run" align="right" style="float: right"/>
-	{% endif %}
-      </div>
-    </form>
-    <table id="devices">
-      {% for device in device_data %}
-      <tr>
-	<th>{{ device.hostname }}: {{ device.name }}</th>
-      </tr>
-      <tr>
-	<td>
-	  {% if device.result is not None %}
-	  {{ device.result|linebreaks }}
+    <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
+      <h3 class="w3-bar-item">Menu</h3>
+      <a href="/cnaas/devices" class="w3-bar-item w3-button">Device inventory</a>
+      <a href="/cnaas/nac" class="w3-bar-item w3-button">Admission control</a>
+    </div>
+    <div style="margin-left: 22%; position: fixed;">
+      <form action="/cnaas/devices/" method="post">
+	{% csrf_token %}
+	<!--
+	<div class="topnav">
+	  <input type="submit" name="cancel" value="Back"/>
+	  {% if dryrun is False %}
+	  <input type="label" value="Device sync - configuration push" align="right" style="float: right"/>
 	  {% else %}
-	  {{ device.diff|linebreaks }}
+	  <input type="label" value="Device sync - dry-run" align="right" style="float: right"/>
 	  {% endif %}
-	</td>
-      </tr>
-      {% endfor %}
-    </table>
+	</div>
+	-->
+      </form>
+      <table id="devices">
+	{% for device in device_data %}
+	<tr>
+	  <th>{{ device.hostname }}: {{ device.name }}</th>
+	</tr>
+	<tr>
+	  <td>
+	    {% if device.result is not None %}
+	    {{ device.result|linebreaks }}
+	    {% else %}
+	    {{ device.diff|linebreaks }}
+	    {% endif %}
+	  </td>
+	</tr>
+	{% endfor %}
+      </table>
+    </div>
   </body>
 </html>

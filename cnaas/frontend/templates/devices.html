@@ -3,6 +3,7 @@
   <head>
     <title>CNaaS</title>
     <link rel="stylesheet" href="{% static "style.css" %}"/>
+    <link rel="stylesheet" href="{% static "w3.css" %}"/>    
   </head>
   <body style="background-color:#d0d0d0;text-align:left">
     {% if message is not None %}
@@ -10,65 +11,89 @@
       alert("{{ message }}");
     </script>
     {% endif %}
-    <form action="/cnaas/devices/" method="post">
-      <div class="topnav">
-	<input type="submit" name="refresh_templates" value="Refresh templates"/>
-	<input type="submit" name="refresh_settings" value="Refresh settings"/>
-	<input type="submit" name="sync_dryrun" value="Sync devices - dry run"/>
-	<input type="submit" name="sync" value="Sync devices - push config"/>
-	<input type="submit" name="remove" value="Remove devices"/>
-	<input type="label" value="CNaaS 0.2.0.dev0" align="right" style="float: right"/>
-      </div>
-      <br>
-      {% csrf_token %}
-      <table id="devices">
-	<tr>
-	  <th>Sync</th>
-	  <th>ID</th>
-	  <th>Hostname</th>
-	  <th>Site ID</th>
-	  <th>Description</th>
-	  <th>Management IP</th>
-	  <th>DHCP IP</th>
-	  <th>Serial #</th>
-	  <th>ZTP MAC address</th>
-	  <th>Platform</th>
-	  <th>Vendor</th>
-	  <th>Model</th>
-	  <th>OS version</th>
-	  <th>Synchronized</th>
-	  <th>State</th>
-	  <th>Device type</th>
-	  <th>Last seen</th>
-	</tr>
+    <script>
+      function toggle_it(itemID){ 
+	  if ((document.getElementById(itemID).style.display == 'none')) { 
+              document.getElementById(itemID).style.display = '' 
+              event.preventDefault()
+	  } else { 
+              document.getElementById(itemID).style.display = 'none'; 
+              event.preventDefault()
+	  }    
+      }
+    </script>
+    <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
+      <h3 class="w3-bar-item">Menu</h3>
+      <a href="/cnaas/devices" class="w3-bar-item w3-button">Device inventory</a>
+      <a href="/cnaas/nac" class="w3-bar-item w3-button">Admission control</a>
+    </div>
+    <div style="margin-left: 22%; position: fixed;">
+      <form action="/cnaas/devices/" method="post">
+	<div class="topnav">
+	  <input type="submit" name="refresh_templates" value="Refresh templates"/>
+	  <input type="submit" name="refresh_settings" value="Refresh settings"/>
+	  <input type="submit" name="sync_dryrun" value="Sync devices - dry run"/>
+	  <input type="submit" name="sync" value="Sync devices - push config"/>
+	  <input type="submit" name="remove" value="Remove devices"/>
+	  <input type="label" value="CNaaS 0.2.0.dev0" align="right" style="float: right"/>
+	</div>
+	<br>
+	{% csrf_token %}
+	<table id="devices">
+	  <tr>
+	    <th>Sync</th>
+	    <th>Hostname</th>
+	    <th>Description</th>
+	    <th>Management IP</th>
+	    <th>Synchronized</th>
+	    <th>State</th>
+	    <th>Device type</th>
+	  </tr>
 
-	{% for device in devices %}
-	<tr>
-	  {% if device.device_type != "DIST" %}
-	  <td><input type="checkbox" name="device" value="{{ device.hostname }},{{ device.id }}"/></td>
-	  {% else %}
-	  <td></td>
-	  {% endif %}
-	  <td>{{ device.id }}</td>
-	  <td>{{ device.hostname }}</td>
-	  <td>{% if device.site_id is not None %} {{ device.site_id }} {% endif %}</td>
-	  <td>{% if device.description is not None %}  {{ device.description }} {% endif %}</td>
-	  <td>{% if device.management_ip is not None %} {{ device.management_ip }} {% endif %}</td>
-	  <td>{% if device.dhcp_ip is not None %} {{ device.dhcp_ip }} {% endif %}</td>
-	  <td>{% if device.serial is not None %} {{ device.serial }} {% endif %}</td>
-	  <td>{% if device.ztp_mac is not None %} {{ device.ztp_mac }} {% endif %}</td>
-	  <td>{% if device.platform is not None %} {{ device.platform }} {% endif %}</td>
-	  <td>{% if device.vendor is not None %} {{ device.vendor }} {% endif %}</td>
-	  <td>{% if device.model is not None %} {{ device.model }} {% endif %}</td>
-	  <td>{% if device.os_version is not None %} {{ device.os_version }} {% endif %}</td>
-	  <td>{% if device.synchronized is not None %} {{ device.synchronized }} {% endif %}</td>
-	  <td>{% if device.state is not None %} {{ device.state }} {% endif %}</td>
-	  <td>{% if device.device_type is not None %} {{ device.device_type }} {% endif %}</td>
-	  <td>{% if device.last_seen is not None %} {{ device.last_seen }} {% endif %}</td>
-	</tr>
-	{% endfor %}
-      </table>
-      <br>
-    </form>
+	  {% for device in devices %}
+	  <tr>
+	    {% if device.device_type != "DIST" %}
+	    <td><input type="checkbox" name="device" value="{{ device.hostname }},{{ device.id }}"/></td>
+	    {% else %}
+	    <td></td>
+	    {% endif %}
+	    <td><a href="#" id="toggle" onClick="toggle_it('{{ device.id }}');">{{ device.hostname }}</a></td>
+	    <td>{% if device.description is not None %}  {{ device.description }} {% endif %}</td>
+	    <td>{% if device.management_ip is not None %} {{ device.management_ip }} {% endif %}</td>
+	    <td>{% if device.synchronized is not None %} {{ device.synchronized }} {% endif %}</td>
+	    <td>{% if device.state is not None %} {{ device.state }} {% endif %}</td>
+	    <td>{% if device.device_type is not None %} {{ device.device_type }} {% endif %}</td>
+	  </tr>
+	  <tr id="{{ device.id }}" bgcolor="white" style="display: none;">
+	    <td colspan="100%">
+	      <div class="device_info">
+		<div class="title-row">
+		  <div class="cell">Device ID</div>
+		  <div class="cell">DHCP IP</div>
+		  <div class="cell">Serial number</div>
+		  <div class="cell">ZTP MAC address</div>
+		  <div class="cell">Device platform</div>
+		  <div class="cell">Device vendor</div>
+		  <div class="cell">Device model</div>
+		  <div class="cell">OS version</div>
+		</div>
+		<div class="row">
+		  <div class="cell">{{ device.id }}</div>
+		  <div class="cell">{% if device.dhcp_ip is not None %} {{ device.dhcp_ip }} {% endif %}</div>
+		  <div class="cell">{% if device.serial is not None %} {{ device.serial }} {% endif %}</div>
+		  <div class="cell">{% if device.ztp_mac is not None %} {{ device.ztp_mac }} {% endif %}</div>
+		  <div class="cell">{% if device.platform is not None %} {{ device.platform }} {% endif %}</div>
+		  <div class="cell">{% if device.vendor is not None %} {{ device.vendor }} {% endif %}</div>
+		  <div class="cell">{% if device.model is not None %} {{ device.model }} {% endif %}</div>
+		  <div class="cell">{% if device.os_version is not None %} {{ device.os_version }} {% endif %}</div>
+		</div>
+	      </div>
+	    </td>
+	  </tr>
+	  {% endfor %}
+	</table>
+	<br>
+      </form>
+    </div>
   </body>
 </html>
