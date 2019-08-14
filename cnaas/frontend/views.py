@@ -54,6 +54,19 @@ def device_sync(devices=[], all_devices=False, dry_run=True):
     return job_id
 
 
+def device_interfaces(hostname):
+    """
+    Get device interfaces
+    """
+
+    try:
+        res = requests.get(settings.CNAAS_HOST + '/device/' + hostname + '/interfaces')
+    except Exception:
+        return None
+    interfaces = res.json()['data']['interfaces']
+    return interfaces
+
+
 def templates_refresh():
     """
     Refresh templates
@@ -118,6 +131,11 @@ def devices(request):
 
     data = {}
     data['devices'] = devices_get()
+    for _ in data['devices']:
+        interfaces = device_interfaces(_['hostname'])
+        if interfaces is []:
+            continue
+        _['interfaces'] = interfaces
 
     # If we don't get a POST, just render the page
     if not request.POST:

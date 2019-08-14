@@ -13,13 +13,14 @@
     padding-top: 12px;
     padding-bottom: 12px;
     text-align: left;
-    background-color: #4CAF50;
     color: white;
+    min-width:150px;
 }
 
 .topnav {
-    background-color: #333;
     overflow: hidden;
+    width: 100%;
+    background-color: darkgrey;
 }
 
 .topnav input {
@@ -27,11 +28,12 @@
     border-radius: 0;
     float: left;
     color: #f2f2f2;
-    background-color: #4CAF50;
+    background-color: darkgrey;
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
     font-size: 14px;
+    min-width:150px;
 }
 
 .topnav input:hover {
@@ -45,7 +47,7 @@
 }
 
 .device_info {
-    width: 100%;    
+    width: 100%;
     display: table;
     border-collapse: collapse;
     border: 0;
@@ -61,19 +63,21 @@
     border-radius: 0;
     float: left;
     color: #f2f2f2;
-    background-color: #4CAF50;
-    text-align: center;
+    background-color: darkgrey;
+    text-align: left;
     text-decoration: none;
     font-size: 14px;
+    min-width:100%;
 }
 
 .device_info .cell {
     display: table-cell;
     float: left;
     color: black;
-    text-align: center;
-    padding: 14px 16px;
+    text-align: left;
+    padding: 14px;
     text-decoration: none;
     font-size: 14px;
-    display: table-row;    
+    display: table-row;
+    min-width:130px;
 }
