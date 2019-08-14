@@ -1,6 +1,6 @@
 from django.urls import path
 
-from cnaas.frontend import views
+from cnaas.nms import views
 
 urlpatterns = [
     path('', views.devices, name='index'),
