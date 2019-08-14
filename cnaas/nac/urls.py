@@ -4,5 +4,5 @@ from cnaas.nac import views
 
 urlpatterns = [
     path('', views.nac, name='index'),
-    path('nac/', views.nac),
+    path('users/', views.nac),
 ]

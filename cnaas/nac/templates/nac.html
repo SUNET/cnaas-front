@@ -4,16 +4,60 @@
     <title>CNaaS</title>
     <link rel="stylesheet" href="{% static "style.css" %}"/>
     <link rel="stylesheet" href="{% static "w3.css" %}"/>
+    <script>
+      function toggle_it(itemID){
+	  if ((document.getElementById(itemID).style.display == 'none')) {
+	      document.getElementById(itemID).style.display = ''
+	      event.preventDefault()
+	  } else {
+	      document.getElementById(itemID).style.display = 'none';
+	      event.preventDefault()
+	  }
+      }
+    </script>
   </head>
   <body style="background-color:#d0d0d0;text-align:left">
     <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
       <h3 class="w3-bar-item">Menu</h3>
       <a href="/nms/devices" class="w3-bar-item w3-button">Device inventory</a>
-      <a href="/nac" class="w3-bar-item w3-button">Admission control</a>
+      <a href="/nac/users" class="w3-bar-item w3-button">Admission control</a>
       <a href="/nms/jobs" class="w3-bar-item w3-button">Jobs</a>
     </div>
     <div style="margin-left: 22%; position: fixed; width:70%;">
-      NAC
+      <form action="/nac/users/" method="post">
+	<div class="topnav">
+	  <a href="#" id="toggle" onClick="toggle_it('add_user');">Add user</a>
+	  <input type="submit" name="user_delete" value="Remove user"/>
+	</div>
+	<div id="add_user" style="display: none; background-color: #f2f2f2">
+	  Username: <input type="text" name="username"/>
+	  Password: <input type="text" name="password"/>
+	  VLAN: <input type="text" name="vlan"/>
+	  <input type="submit" name="user_add" value="Add"/>
+	</div>
+	{% csrf_token %}
+	<br>
+	<table class="w3-table w3-striped w3-border">
+	  <tr>
+	    <th>Select</th>
+	    <th>Username</th>
+	    <th>Attribute</th>
+	    <th>Type</th>
+	    <th>Value</th>
+	  </tr>
+	  {% for user in users %}
+	  <tr>
+	    <td><input type="checkbox" name="users" value="{{ user.username }}"/></td>
+	    <td>{{ user.username }}</td>
+	    {% for attr in user.reply %}
+	    <td>
+	      {{ attr.value }}
+	    </td>
+	    {% endfor %}
+	  </tr>
+	  {% endfor %}
+	</table>
+      </form>
     </div>
   </body>
 </html>

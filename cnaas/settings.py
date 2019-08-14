@@ -22,6 +22,14 @@ if os.environ.get('CNAAS_HOST') is not None:
 else:
     CNAAS_HOST = 'http://localhost:5000/api/v1.0'
 
+# Try to get the CNaaS NAC hostname, otherwise set it from environment
+# variable
+if os.environ.get('CNAAS_NAC_HOST') is not None:
+    CNAAS_NAC_HOST = os.environ.get('CNAAS_NAC_HOST')
+else:
+    CNAAS_NAC_HOST = 'http://localhost:5001/api/v1.0'
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 

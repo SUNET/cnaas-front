@@ -10,21 +10,9 @@
       <h3 class="w3-bar-item">Menu</h3>
       <a href="/nms/devices" class="w3-bar-item w3-button">Device inventory</a>
       <a href="/nac" class="w3-bar-item w3-button">Admission control</a>
+      <a href="/nms/jobs" class="w3-bar-item w3-button">Jobs</a>      
     </div>
     <div style="margin-left: 22%; position: fixed;">
-      <form action="/cnaas/devices/" method="post">
-	{% csrf_token %}
-	<!--
-	<div class="topnav">
-	  <input type="submit" name="cancel" value="Back"/>
-	  {% if dryrun is False %}
-	  <input type="label" value="Device sync - configuration push" align="right" style="float: right"/>
-	  {% else %}
-	  <input type="label" value="Device sync - dry-run" align="right" style="float: right"/>
-	  {% endif %}
-	</div>
-	-->
-      </form>
       <table id="devices">
 	{% for device in device_data %}
 	<tr>
