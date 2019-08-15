@@ -16,6 +16,7 @@ def devices_get():
     except Exception:
         devices = {}
 
+    print(devices)
     return devices
 
 
