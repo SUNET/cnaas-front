@@ -7,4 +7,6 @@ urlpatterns = [
     path('devices/', views.devices),
     path('sync/', views.sync),
     path('jobs/', views.jobs),
+    path('mgmtdomains/', views.mgmtdomains),
+    path('linknets/', views.linknets),
 ]
