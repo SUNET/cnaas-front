@@ -4,6 +4,7 @@
     <title>CNaaS</title>
     <link rel="stylesheet" href="{% static "style.css" %}"/>
     <link rel="stylesheet" href="{% static "w3.css" %}"/>
+    <script type="text/javascript" src={% static "cnaas.js" %}></script>
   </head>
   <body style="background-color:#d0d0d0;text-align:left">
     {% if message is not None %}
@@ -11,34 +12,24 @@
       alert("{{ message }}");
     </script>
     {% endif %}
-    <script>
-      function toggle_it(itemID){
-	  if ((document.getElementById(itemID).style.display == 'none')) {
-	      document.getElementById(itemID).style.display = ''
-	      event.preventDefault()
-	  } else {
-	      document.getElementById(itemID).style.display = 'none';
-	      event.preventDefault()
-	  }
-      }
-    </script>
     <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
       <h3 class="w3-bar-item">Menu</h3>
       <a href="/nms/devices" class="w3-bar-item w3-button">Device inventory</a>
       <a href="/nac" class="w3-bar-item w3-button">Admission control</a>
       <a href="/nms/jobs" class="w3-bar-item w3-button">Jobs</a>
+      <a href="/nms/mgmtdomains" class="w3-bar-item w3-button">Management domains</a>
+      <a href="/nms/linknets" class="w3-bar-item w3-button">Linknets</a>
     </div>
-    <div style="margin-left: 22%; position: fixed; width:70%;">
-      <form action="/nms/devices/" method="post">
-	<div class="topnav">
-	  <input type="submit" name="refresh_templates" value="Refresh templates"/>
-	  <input type="submit" name="refresh_settings" value="Refresh settings"/>
-	  <input type="submit" name="sync_dryrun" value="Sync devices - dry run"/>
-	  <input type="submit" name="sync" value="Sync devices - push config"/>
-	  <input type="submit" name="remove" value="Remove devices"/>
-	</div>
-	<br>
-	{% csrf_token %}
+    <form action="/nms/devices/" method="post">
+      {% csrf_token %}
+      <div class="topnav" style="margin-left: 20%; position: fixed; width:100%;">
+	<input type="submit" name="refresh_templates" value="Refresh templates"/>
+	<input type="submit" name="refresh_settings" value="Refresh settings"/>
+	<input type="submit" name="sync_dryrun" value="Sync devices - dry run"/>
+	<input type="submit" name="sync" value="Sync devices - push config"/>
+	<input type="submit" name="remove" value="Remove devices"/>
+      </div>
+      <div style="margin-left: 22%; margin-top: 75px; position: fixed; width:70%;">
 	<table class="w3-table w3-striped w3-border">
 	  <tr>
 	    <th>Select</th>
@@ -90,14 +81,14 @@
 	      </div>
 	      <div class="device_info">
 		<div class="title-row">
-		  <div class="cell">Interfaces</div>
+		  Interfaces
 		</div>
 		<div class="row">
 		  <div class="cell">Names:</div>
 		  <div class="cell">
-		  {% for interface in device.interfaces %}
-		  {{ interface.name }}
-		  {% endfor %}
+		    {% for interface in device.interfaces %}
+		    {{ interface.name }}
+		    {% endfor %}
 		  </div>
 		  <div class="cell">Type:</div>
 		  <div class="cell">
@@ -112,7 +103,7 @@
 	  {% endfor %}
 	</table>
 	<br>
-      </form>
+    </form>
     </div>
   </body>
 </html>
