@@ -207,3 +207,15 @@ def jobs(request):
     data['jobs'] = job_get()
 
     return render(request, 'jobs.html', context=data)
+
+
+def mgmtdomains(request):
+    data = {}
+
+    return render(request, 'mgmtdomains.html', context=data)
+
+
+def linknets(request):
+    data = {}
+
+    return render(request, 'linknets.html', context=data)

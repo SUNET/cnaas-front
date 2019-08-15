@@ -1,0 +1,24 @@
+<html>
+  {% load static %}
+  <head>
+    <title>CNaaS</title>
+    <link rel="stylesheet" href="{% static "style.css" %}"/>
+    <link rel="stylesheet" href="{% static "w3.css" %}"/>
+  </head>
+  <body style="background-color:#d0d0d0;text-align:left">
+    <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
+      <h3 class="w3-bar-item">Menu</h3>
+      <a href="/nms/devices" class="w3-bar-item w3-button">Device inventory</a>
+      <a href="/nac" class="w3-bar-item w3-button">Admission control</a>
+      <a href="/nms/jobs" class="w3-bar-item w3-button">Jobs</a>
+      <a href="/nms/mgmtdomains" class="w3-bar-item w3-button">Management domains</a>
+      <a href="/nms/linknets" class="w3-bar-item w3-button">Linknets</a>
+      <div class="w3-bar-item w3-button" style="position: absolute; bottom: 0;">
+	<a href="https://cnaas-nms.readthedocs.io/en/latest/" class="w3-bar-item w3-button">Help</a>
+      </div>
+    </div>
+    <div style="margin-left: 22%; margin-top: 75px; position: fixed;">
+    </div>
+  </body>
+</html>
+
