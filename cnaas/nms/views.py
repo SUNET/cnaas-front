@@ -11,7 +11,7 @@ def devices_get():
     """
 
     try:
-        res = requests.get(settings.CNAAS_HOST + '/device')
+        res = requests.get(settings.CNAAS_HOST + '/device', verify=False)
         devices = res.json()['data']['devices']
     except Exception:
         devices = {}
@@ -29,7 +29,8 @@ def device_remove(devices):
     for _ in devices:
         hostname, device_id = _.split(',')
         try:
-            res = requests.delete(settings.CNAAS_HOST + '/device/%s' % device_id)
+            res = requests.delete(settings.CNAAS_HOST + '/device/%s' % device_id,
+                                  verify=False)
         except Exception:
             retval = -1
         if res.status_code != 200:
@@ -60,7 +61,8 @@ def device_interfaces(hostname):
     """
 
     try:
-        res = requests.get(settings.CNAAS_HOST + '/device/' + hostname + '/interfaces')
+        res = requests.get(settings.CNAAS_HOST + '/device/' + hostname + '/interfaces',
+                           verify=False)
     except Exception:
         return None
     interfaces = res.json()['data']['interfaces']
@@ -74,7 +76,8 @@ def templates_refresh():
 
     jsondict = {'action': 'refresh'}
     res = requests.put(settings.CNAAS_HOST + '/repository/templates',
-                       json=jsondict)
+                       json=jsondict,
+                       verify=False)
     if res.status_code != 200:
         return 'Error: \\nFailed to refresh templates'
     return 'Update succeded: \\n' + res.json()['data'].rstrip()
@@ -87,7 +90,8 @@ def settings_refresh():
 
     jsondict = {'action': 'refresh'}
     res = requests.put(settings.CNAAS_HOST + '/repository/settings',
-                       json=jsondict)
+                       json=jsondict,
+                       verify=False)
     if res.status_code != 200:
         return 'Error: \\nFailed to refresh settings'
     return 'Update succeded: \\n' + res.json()['data'].rstrip()

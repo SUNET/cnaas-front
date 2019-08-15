@@ -6,7 +6,8 @@ import requests
 
 def users_get():
     try:
-        res = requests.get(settings.CNAAS_NAC_HOST + '/auth')
+        res = requests.get(settings.CNAAS_NAC_HOST + '/auth',
+                           verify=False)
         users = res.json()['data']['users']
     except Exception as e:
         users = {}
@@ -33,7 +34,8 @@ def user_remove(users):
 
     for user in users:
         try:
-            res = requests.delete(settings.CNAAS_NAC_HOST + '/auth/%s' % user)
+            res = requests.delete(settings.CNAAS_NAC_HOST + '/auth/%s' % user,
+                                  verify=False)
         except Exception:
             retval = -1
         if res.status_code != 200:
