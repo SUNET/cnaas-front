@@ -195,3 +195,10 @@ def sync(request, job_id=None, devices=None, dryrun=True):
             result['hostname'] = device
             data['device_data'].append(result)
     return render(request, 'sync.html', context=data)
+
+
+def jobs(request):
+    data = {}
+    data['jobs'] = job_get()
+
+    return render(request, 'jobs.html', context=data)

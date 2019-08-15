@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.devices, name='index'),
     path('devices/', views.devices),
     path('sync/', views.sync),
+    path('jobs/', views.jobs),
 ]
