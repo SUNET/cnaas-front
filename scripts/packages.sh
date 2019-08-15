@@ -12,7 +12,8 @@ apt-get -y install \
 	build-essential \
 	python3-dev \
 	python-virtualenv \
-	python3-pip
+	python3-pip \
+	git
 	
 apt-get clean
 pip3 install uwsgi
