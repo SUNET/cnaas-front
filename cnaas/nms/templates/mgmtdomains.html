@@ -4,20 +4,56 @@
     <title>CNaaS</title>
     <link rel="stylesheet" href="{% static "style.css" %}"/>
     <link rel="stylesheet" href="{% static "w3.css" %}"/>
+    <script type="text/javascript" src={% static "cnaas.js" %}></script>
   </head>
   <body style="background-color:#d0d0d0;text-align:left">
-    <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
-      <h3 class="w3-bar-item">Menu</h3>
-      <a href="/nms/devices" class="w3-bar-item w3-button">Device inventory</a>
-      <a href="/nac" class="w3-bar-item w3-button">Admission control</a>
-      <a href="/nms/jobs" class="w3-bar-item w3-button">Jobs</a>
-      <a href="/nms/mgmtdomains" class="w3-bar-item w3-button">Management domains</a>
-      <a href="/nms/linknets" class="w3-bar-item w3-button">Linknets</a>
-      <div class="w3-bar-item w3-button" style="position: absolute; bottom: 0;">
-	<a href="https://cnaas-nms.readthedocs.io/en/latest/" class="w3-bar-item w3-button">Help</a>
+    {% include "sidebar.html" %}
+    <form action="/nms/mgmtdomains/" method="post">
+      <div class="topnav" style="margin-left: 20%; position: fixed; width:100%;">
+	<a href="#" id="toggle" onClick="toggle_it('add_domain');">Add domain</a>
+	<input type="submit" name="domain_delete" value="Remove domain"/>
       </div>
-    </div>
-    <div style="margin-left: 22%; margin-top: 75px; position: fixed;">
-    </div>
+      {% csrf_token %}
+      <div style="margin-left: 22%; margin-top: 75px; position: fixed;">
+	<div id="add_domain" style="display: none; background-color: #f2f2f2;">
+	  IPv4 GW: <input type="text" name="ipv4_gw"/>
+	  Device A ID: <input type="text" name="a_id"/>
+	  Device A IP: <input type="text" name="a_ip"/>
+	  Device B ID: <input type="text" name="a_id"/>
+	  Device B IP: <input type="text" name="a_ip"/>
+	  VLAN: <input type="text" name="vlan"/>
+	  Description: <input type="text" name="descr"/>
+	  <input type="submit" name="user_add" value="Add"/>
+	  <br/>
+	</div>
+
+	<table class="w3-table w3-striped w3-border">
+	  <tr>
+	    <th>Selected</th>
+	    <th>ID</th>
+	    <th>IPv4 GW</th>
+	    <th>Device A</th>
+	    <th>Device A IP</th>
+	    <th>Device B</th>
+	    <th>Device B IP</th>
+	    <th>VLAN</th>
+	    <th>Description</th>
+	  </tr>
+	  {% for domain in mgmtdomains %}
+	  <tr>
+	    <td><input type="checkbox" name="users" value="{{ domain.id }}"/></td>
+	    <td>{{ domain.id }}</td>
+	    <td>{{ domain.ipv4_gw }}</td>
+	    <td>{{ domain.device_a_id }}</td>
+	    <td>{{ domain.device_a_ip }}</td>
+	    <td>{{ domain.device_b_id }}</td>
+	    <td>{{ domain.device_b_ip }}</td>
+	    <td>{{ domain.vlan }}</td>
+	    <td>{{ domain.description }}</td>
+	  </tr>
+	  {% endfor %}
+	</table>
+      </div>
+    </form>
   </body>
 </html>

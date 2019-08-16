@@ -16,7 +16,6 @@ def devices_get():
     except Exception:
         devices = {}
 
-    print(devices)
     return devices
 
 
@@ -121,6 +120,20 @@ def job_status(job_id):
     return res[0]['status']
 
 
+def mgmtdomains_get():
+    """
+    Get all management domains and return as a dict.
+    """
+
+    try:
+        res = requests.get(settings.CNAAS_HOST + '/mgmtdomain', verify=False)
+        domains = res.json()['data']['mgmtdomains']
+    except Exception:
+        domains = {}
+
+    return domains
+
+
 def index(request):
     """
     Index page
@@ -211,6 +224,18 @@ def jobs(request):
 
 def mgmtdomains(request):
     data = {}
+
+    if request.POST:
+        mgmtdomain = {}
+        mgmtdomain['ipv4_gw'] = None
+        mgmtdomain['device_a_id'] = None
+        mgmtdomain['device_a_ip'] = None
+        mgmtdomain['device_b_id'] = None
+        mgmtdomain['device_b_ip'] = None
+        mgmtdomain['vlan'] = None
+        mgmtdomain['description'] = None
+
+    data['mgmtdomains'] = mgmtdomains_get()
 
     return render(request, 'mgmtdomains.html', context=data)
 
