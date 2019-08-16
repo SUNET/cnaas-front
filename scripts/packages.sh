@@ -8,6 +8,7 @@ apt-get update
 apt-get -y dist-upgrade
 apt-get -y install \
 	nginx \
+	libnginx-mod-http-lua \
 	supervisor \
 	build-essential \
 	python3-dev \
