@@ -126,7 +126,7 @@ def mgmtdomains_get():
 	"""
 
 	try:
-		res = requests.get(settings.CNAAS_HOST + 'mgmtdomain', verify=False)
+		res = requests.get(settings.CNAAS_HOST + '/mgmtdomain', verify=False)
 		domains = res.json()['data']['mgmtdomains']
 	except Exception:
 		domains = {}
@@ -140,12 +140,60 @@ def linknets_get():
 	"""
 
 	try:
-		res = requests.get(settings.CNAAS_HOST + 'linknet', verify=False)
+		res = requests.get(settings.CNAAS_HOST + '/linknet', verify=False)
 		linknets = res.json()['data']['linknet']
 	except Exception:
 		linknets = {}
 
 	return linknets
+
+
+def mgmtdomain_add(mgmtdict):
+	res = requests.post(settings.CNAAS_HOST + '/mgmtdomain',
+						json=mgmtdict,
+						verify=False)
+	print(res.status_code)
+	if res.status_code != 200:
+		return -1
+	return 0
+
+
+def mgmtdomain_remove(domains):
+	retval = 0
+
+	for domain in domains:
+		try:
+			res = requests.delete(settings.CNAAS_HOST + '/mgmtdomain/%s' % domain,
+								  verify=False)
+		except Exception as e:
+			retval = -1
+		if res.status_code != 200:
+			retval = -1
+	return retval
+
+
+def linknet_add(linknetdict):
+	res = requests.post(settings.CNAAS_HOST + '/linknet',
+						json=mgmtdict,
+						verify=False)
+	print(res.status_code)
+	if res.status_code != 200:
+		return -1
+	return 0
+
+
+def linknet_remove(linknets):
+	retval = 0
+
+	for linknet in linknets:
+		try:
+			res = requests.delete(settings.CNAAS_HOST + '/linknet/%s' % linknet,
+								  verify=False)
+		except Exception as e:
+			retval = -1
+		if res.status_code != 200:
+			retval = -1
+	return retval
 
 
 def index(request):
@@ -234,53 +282,6 @@ def jobs(request):
 	data['jobs'] = job_get()
 
 	return render(request, 'jobs.html', context=data)
-
-def mgmtdomain_add(mgmtdict):
-	res = requests.post(settings.CNAAS_HOST + 'mgmtdomain',
-						json=mgmtdict,
-						verify=False)
-	print(res.status_code)
-	if res.status_code != 200:
-		return -1
-	return 0
-
-
-def mgmtdomain_remove(domains):
-	retval = 0
-
-	for domain in domains:
-		try:
-			res = requests.delete(settings.CNAAS_HOST + 'mgmtdomain/%s' % domain,
-								  verify=False)
-		except Exception as e:
-			retval = -1
-		if res.status_code != 200:
-			retval = -1
-	return retval
-
-
-def linknet_add(linknetdict):
-	res = requests.post(settings.CNAAS_HOST + 'linknet',
-						json=mgmtdict,
-						verify=False)
-	print(res.status_code)
-	if res.status_code != 200:
-		return -1
-	return 0
-
-
-def linknet_remove(linknets):
-	retval = 0
-
-	for linknet in linknets:
-		try:
-			res = requests.delete(settings.CNAAS_HOST + 'mgmtdomain/%s' % linknet,
-								  verify=False)
-		except Exception as e:
-			retval = -1
-		if res.status_code != 200:
-			retval = -1
-	return retval
 
 
 def mgmtdomains(request):
