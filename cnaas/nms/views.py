@@ -134,6 +134,20 @@ def mgmtdomains_get():
 	return domains
 
 
+def linknets_get():
+	"""
+	Get all linknets and return as a dict.
+	"""
+
+	try:
+		res = requests.get(settings.CNAAS_HOST + 'linknet', verify=False)
+		linknets = res.json()['data']['linknet']
+	except Exception:
+		linknets = {}
+
+	return linknets
+
+
 def index(request):
 	"""
 	Index page
@@ -245,6 +259,30 @@ def mgmtdomain_remove(domains):
 	return retval
 
 
+def linknet_add(linknetdict):
+	res = requests.post(settings.CNAAS_HOST + 'linknet',
+						json=mgmtdict,
+						verify=False)
+	print(res.status_code)
+	if res.status_code != 200:
+		return -1
+	return 0
+
+
+def linknet_remove(linknets):
+	retval = 0
+
+	for linknet in linknets:
+		try:
+			res = requests.delete(settings.CNAAS_HOST + 'mgmtdomain/%s' % linknet,
+								  verify=False)
+		except Exception as e:
+			retval = -1
+		if res.status_code != 200:
+			retval = -1
+	return retval
+
+
 def mgmtdomains(request):
 	data = {}
 
@@ -280,5 +318,36 @@ def mgmtdomains(request):
 
 def linknets(request):
 	data = {}
+
+	if not request.POST:
+		data['linknets'] = linknets_get()
+		print(data)
+		return render(request, 'linknets.html', context=data)
+
+	if 'linknet_add' in request.POST:
+		linknet = {}
+		if 'ipv4_gw' in request.POST:
+			linknet['ipv4_gw'] = request.POST['ipv4_gw']
+		if 'device_a_id' in request.POST:
+			linknet['device_a_id'] = int(request.POST['device_a_id'])
+		if 'device_a_ip' in request.POST:
+			linknet['device_a_ip'] = request.POST['device_a_ip']
+		if 'device_a_port' in request.POST:
+			linknet['device_a_ip'] = request.POST['device_a_port']
+		if 'device_b_id' in request.POST:
+			linknet['device_b_id'] = int(request.POST['device_b_id'])
+		if 'device_b_ip' in request.POST:
+			linknet['device_b_ip'] = request.POST['device_b_ip']
+		if 'device_b_port' in request.POST:
+			linknet['device_b_ip'] = request.POST['device_b_port']
+		if 'vlan' in request.POST:
+			linknet['vlan'] = int(request.POST['vlan'])
+		if 'description' in request.POST:
+			linknet['description'] = request.POST['description']
+		linknet_add(linknet)
+	elif 'linknet_delete' in request.POST:
+		linknet_remove(request.POST.getlist('selected'))
+
+	data['linknets'] = linknets_get()
 
 	return render(request, 'linknets.html', context=data)
