@@ -17,13 +17,13 @@
       <div style="margin-left: 22%; margin-top: 75px; position: fixed;">
 	<div id="add_domain" style="display: none; background-color: #f2f2f2;">
 	  IPv4 GW: <input type="text" name="ipv4_gw"/>
-	  Device A ID: <input type="text" name="a_id"/>
-	  Device A IP: <input type="text" name="a_ip"/>
-	  Device B ID: <input type="text" name="a_id"/>
-	  Device B IP: <input type="text" name="a_ip"/>
+	  Device A ID: <input type="text" name="device_a_id"/>
+	  Device A IP: <input type="text" name="device_a_ip"/>
+	  Device B ID: <input type="text" name="device_b_id"/>
+	  Device B IP: <input type="text" name="device_b_ip"/>
 	  VLAN: <input type="text" name="vlan"/>
-	  Description: <input type="text" name="descr"/>
-	  <input type="submit" name="user_add" value="Add"/>
+	  Description: <input type="text" name="description"/>
+	  <input type="submit" name="domain_add" value="Add"/>
 	  <br/>
 	</div>
 
@@ -41,7 +41,7 @@
 	  </tr>
 	  {% for domain in mgmtdomains %}
 	  <tr>
-	    <td><input type="checkbox" name="users" value="{{ domain.id }}"/></td>
+	    <td><input type="checkbox" name="selected" value="{{ domain.id }}"/></td>
 	    <td>{{ domain.id }}</td>
 	    <td>{{ domain.ipv4_gw }}</td>
 	    <td>{{ domain.device_a_id }}</td>
