@@ -20,14 +20,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if os.environ.get('CNAAS_HOST') is not None:
     CNAAS_HOST = os.environ.get('CNAAS_HOST')
 else:
-    CNAAS_HOST = 'https://cnaas_api/api/v1.0/'
+    CNAAS_HOST = 'https://cnaas_api/api/v1.0'
 
 # Try to get the CNaaS NAC hostname, otherwise set it from environment
 # variable
 if os.environ.get('CNAAS_NAC_HOST') is not None:
     CNAAS_NAC_HOST = os.environ.get('CNAAS_NAC_HOST')
 else:
-    CNAAS_NAC_HOST = 'https://cnaas_nac/api/v1.0/'
+    CNAAS_NAC_HOST = 'https://cnaas_nac/api/v1.0'
 
 
 # Quick-start development settings - unsuitable for production
