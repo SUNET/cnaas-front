@@ -45,7 +45,7 @@ def device_sync(devices=[], all_devices=False, dry_run=True):
 
 	for _ in devices:
 		hostname, device_id = _.split(',')
-		jsondict = {'hostname': hostname, 'dry_run': dry_run}
+		jsondict = {'hostname': hostname, 'dry_run': dry_run, "force": True}
 		res = requests.post(settings.CNAAS_HOST + '/device_syncto',
 							json=jsondict,
 							verify=False)
