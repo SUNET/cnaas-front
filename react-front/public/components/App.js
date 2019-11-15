@@ -3,15 +3,11 @@ import Header from "./Header";
 import Panel from "./Panel";
 import Footer from "./Footer";
 
-
 class App extends React.Component {
   // here we set the initial state of the component
   state = {
-    // this code is prepared to hold json webtoken (jwt) here
     // token: "",
-    // we want to update the state with our API data here when we have it
-    devicesData: [],
-    // this code is prepared to hold appropriate error messages here - see checkStatus()
+    devicesData: []
     // errorMessage: ""
   };
 
@@ -32,47 +28,40 @@ class App extends React.Component {
     }
   };
 
-  // here we request the data at the URL at teh click of the button
   getDeviceData = () => {
     // check that button click works
+    const credentials =
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
     console.log("you clicked the button");
     fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device/9", {
       method: "GET",
       headers: {
-        //"Content-Type": "application/json",
-        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw"
-        // once jwt has been added token goes here
-        // Authorization: `Bearer ${credentials}`
-        // "Content-Type": "application/x-www-form-urlencoded"
+        Authorization: `Bearer ${credentials}`
       }
     })
       .then(response => this.checkStatus(response))
-      .then(response => {
-      // here we shold eb able to convert response into json, but is coming black blank (and resulting in a json parsing error)
-        console.log("this is response:", response.json());
+      .then(response => response.json())
+      .then(data => {
+        console.log("this should be data", data);
+        {
+          this.setState(
+            {
+              devicesData: data.data.devices
+            },
+            () => {
+              console.log("this is new state", this.state.devicesData);
+            }
+          );
+        }
       });
-    // here we should get the final data in json format
-    // .then(data => console.log("this is data:", data));
-        // when we have the data we need to update the state (setState) above to take on the data we want to display
-    //   // {
-    //   // this.setState({
-    //   //   devicesDat: data,
-    //   // });
-    //   // }
-    // );
   };
 
-  // here we render the App page - this code is written in jsx, an extension of js syntax that's HTML-like and easier to read and write
-  // App is the parent of 3 child components: Header, Panel and Footer
-    // The button that triggers the API request lives in the Panel, so the API request functionality (above) needs to be passed down to the Panel
-    // The API request is passed down from the App.js parent as a property (props) to the Panel child via "request.Prop"
-    // When App recieved data that too needs to be passed down to the Panel to be furtehr handled
-  //
   render() {
     return (
       <div className="container">
         <Header />
         <Panel
+          responseData={this.state.devicesData}
           requestData={this.getDeviceData}
         />
         <Footer />
