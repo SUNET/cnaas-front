@@ -108,6 +108,37 @@ p {
   background: lightgray;
 }
 
+table,
+thead,
+tbody {
+  display: flex;
+  flex-direction: column;
+}
+
+tr {
+  display: flex;
+  border-bottom: solid white 1px;
+}
+
+thead {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background-color: lightgray;
+}
+
+tbody {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+th,
+td {
+  display: flex;
+  flex: 1;
+  padding: 16px;
+}
+
 footer {
   border-top: #ff4500 solid 1px;
   display: flex;
