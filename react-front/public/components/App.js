@@ -36,10 +36,11 @@ class App extends React.Component {
   getDeviceData = () => {
     // check that button click works
     console.log("you clicked the button");
-    fetch("https://127.0.0.1:8080/api/v1.0/device/9", {
+    fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device/9", {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
+        //"Content-Type": "application/json",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw"
         // once jwt has been added token goes here
         // Authorization: `Bearer ${credentials}`
         // "Content-Type": "application/x-www-form-urlencoded"
