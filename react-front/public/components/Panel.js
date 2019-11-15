@@ -4,8 +4,11 @@ class Panel extends React.Component {
   render() {
     console.log("this is device data (in panel)", this.props.responseData);
     let deviceInfo = "";
+    // put the response data in a variable
     const responseData = this.props.responseData;
+    // .map() through the array of response data
     deviceInfo = responseData.map((items, index) => {
+      // the final component to be rendered from request data
       return (
         <ul key={index}>
           <li key="0">{items.id}</li>
