@@ -1,7 +1,6 @@
 import React from "react";
 
 class Panel extends React.Component {
-  // the <button> comes with an onClick event that I have set to the requestProp functionality
   render() {
     return (
       <div id="panel">
