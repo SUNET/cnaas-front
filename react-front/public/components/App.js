@@ -43,6 +43,16 @@ class App extends React.Component {
       .then(response => response.json())
       .then(data => {
         console.log("this should be data", data);
+        {
+          this.setState(
+            {
+              devicesData: data.data.devices
+            },
+            () => {
+              console.log("this is new state", this.state.devicesData);
+            }
+          );
+        }
       });
   };
 
