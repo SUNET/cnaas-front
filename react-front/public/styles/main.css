@@ -1,7 +1,6 @@
 body {
   height: calc(100vh - 4px);
   background: #fff;
-  /* border: black solid 2px; */
 
   font-family: "Karla", sans-serif;
   font-size: 14px;
@@ -12,12 +11,10 @@ body {
 
 #root {
   height: calc(100% - 4px);
-  /* border: blue solid 2px; */
 }
 
 .container {
   height: calc(100% - 4px);
-  /* border: red solid 2px; */
   display: flex;
   flex-direction: column;
 }
@@ -29,14 +26,12 @@ header {
 
 nav {
   flex: 1;
-  /* background: lightgray; */
   margin: 16px;
 }
 
 nav ul {
   display: flex;
   justify-content: flex-end;
-  /* background: gray; */
 }
 
 nav li {
@@ -75,22 +70,15 @@ button:hover {
   color: #ff4500;
 }
 
-p {
-  /* font-family: "Montserrat", sans-serif; */
-}
-
 #panel {
   display: flex;
   flex: 1;
   flex-direction: column;
-  /* align-items: center; */
   margin: 32px 16px;
-  /* background: lightgreen; */
 }
 
 #request {
   padding: 16px 0;
-  /* background: lightyellow; */
 }
 
 #response {
@@ -98,7 +86,6 @@ p {
   flex-direction: column;
   flex: 1;
   padding: 16px 0;
-  /* background: lightseagreen; */
 }
 
 #data {
