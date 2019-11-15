@@ -2,6 +2,7 @@ import React from "react";
 
 class Panel extends React.Component {
   render() {
+    console.log("this is device data (in panel)", this.props.responseData);
     return (
       <div id="panel">
         <h1> This is the panel</h1>
