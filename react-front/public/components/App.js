@@ -60,7 +60,10 @@ class App extends React.Component {
     return (
       <div className="container">
         <Header />
-        <Panel requestData={this.getDeviceData} />
+        <Panel
+          responseData={this.state.devicesData}
+          requestData={this.getDeviceData}
+        />
         <Footer />
       </div>
     );
