@@ -89,7 +89,6 @@ button:hover {
 }
 
 #data {
-  display: flex;
   height: 100%;
   margin: 16px 0;
   background: lightgray;
