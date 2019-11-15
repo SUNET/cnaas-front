@@ -33,13 +33,13 @@ nav {
   margin: 16px;
 }
 
-ul {
+nav ul {
   display: flex;
   justify-content: flex-end;
   /* background: gray; */
 }
 
-li {
+nav li {
   margin-right: 16px;
 }
 
