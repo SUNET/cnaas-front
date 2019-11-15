@@ -8,12 +8,19 @@ class Panel extends React.Component {
     const responseData = this.props.responseData;
     // .map() through the array of response data
     deviceInfo = responseData.map((items, index) => {
+      // deal with renedering domething for the synchronised boolean
+      let syncStatus = "";
+      if (items.synchronized === true) {
+        syncStatus = <td key="2">true</td>;
+      } else {
+        syncStatus = <td key="2">false</td>;
+      }
       // the final component to be rendered from request data
       return (
         <tr key={index}>
           <td key="0"> {items.hostname}</td>
           <td key="1">{items.device_type}</td>
-          <td key="2">{items.synchronized}</td>
+          {syncStatus}
           <td key="3">{items.id}</td>
         </tr>
       );
@@ -41,10 +48,9 @@ class Panel extends React.Component {
                 </tr>
               </thead>
               {/* the dynamic part of the table rendering the response data */}
-              <tbody>
-                {deviceInfo}
-              </tbody>
-            </table></div>
+              <tbody>{deviceInfo}</tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
