@@ -86,6 +86,20 @@ button:hover {
   margin-top: 16px;
 }
 
+footer {
+  border-top: #ff4500 solid 1px;
+  display: flex;
+  padding: 16px;
+}
+
+/* Workflow styles */
+.workflow-container {
+  background-color: hotpink;
+  border: solid white 3px;
+}
+
+/* DeviceList styles */
+
 #request {
   padding: 16px 0;
 }
@@ -131,11 +145,5 @@ th,
 td {
   display: flex;
   flex: 1;
-  padding: 16px;
-}
-
-footer {
-  border-top: #ff4500 solid 1px;
-  display: flex;
   padding: 16px;
 }

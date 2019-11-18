@@ -7,6 +7,10 @@ class Workflow extends React.Component {
     return (
       <div id="component">
         <h1>this is workflow</h1>
+        <div className="workflow-container">this is box1 </div>
+        <div className="workflow-container">this is box2 </div>
+        <div className="workflow-container">this is box3 </div>
+        <div className="workflow-container">this is box4 </div>
       </div>
     );
   }
