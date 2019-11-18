@@ -4,6 +4,7 @@ import Workflow from "./Workflow";
 
 class Panel extends React.Component {
   render() {
+    console.log("this is props (in panel)", this.props);
     console.log("this is device data (in panel)", this.props.devicesData);
     return (
       <div id="panel">

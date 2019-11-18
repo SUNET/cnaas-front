@@ -2,7 +2,8 @@ import React from "react";
 
 class DeviceList extends React.Component {
   render() {
-    console.log("this is device data (in panel)", this.props.devicesData);
+    console.log("these are props (in DeviceList)", this.props);
+    console.log("this is device data (in DeviceList)", this.props.devicesData);
     let deviceInfo = "";
     // put the response data in a variable
     const devicesData = this.props.devicesData;
@@ -30,7 +31,7 @@ class DeviceList extends React.Component {
       <section>
         <div id="request">
           {/* <h2> Make a request </h2> */}
-          <button onClick={this.props.requestData}> API request </button>
+          <button onClick={this.props.getDevicesData}> API request </button>
         </div>
         <div id="response">
           <h2> Get the response</h2>
