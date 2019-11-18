@@ -63,7 +63,7 @@ button {
   font-family: "Montserrat", sans-serif;
   font-size: 16px;
   font-weight: 700;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   color: #fff;
   letter-spacing: 1px;
 
@@ -71,7 +71,7 @@ button {
   border-radius: 20px;
 
   padding: 16px 32px;
-  margin: 16px 0;
+  margin: 16px;
 }
 
 button:hover {
@@ -89,7 +89,7 @@ section {
 /* long-term maybe panel can be removed */
 #panel {
   /* border: solid black 2px; */
-  margin: 32px 16px;
+  /* margin: 32px 16px; */
   padding: 16px;
   display: flex;
   flex: 1;
@@ -113,36 +113,37 @@ footer {
   padding: 0 16px;
 }
 
+.workflow-container p {
+  padding: 0 16px;
+  font-size: 20px;
+  font-weight: 400;
+}
+
 .workflow-container__header {
   display: flex;
   justify-content: space-between;
   background-color: #f4f4f4;
 }
 
-.workflow-container__button {
+.workflow-container__button--hide {
   background: transparent;
   border: none;
   text-transform: capitalize;
   color: #ff4500;
 }
 
-.workflow-container__button:hover {
+.workflow-container__button--hide:hover {
   background-color: transparent;
   border: none;
   border-radius: 0;
   text-decoration: underline;
 }
 
-/* .workflow-container__button-link {
-  border-bottom: solid transparent 2px;
-  padding-bottom: 2px;
-  color: #ff4500;
+.workflow-collapsable__button-result {
+  display: flex;
+  align-items: baseline;
 }
 
-.workflow-container__button-link:hover {
-  border-bottom: solid #ff4500 2px;
-  padding-bottom: 2px;
-} */
 
 /* DeviceList styles */
 
