@@ -70,11 +70,20 @@ button:hover {
   color: #ff4500;
 }
 
+#panel,
 #component {
   display: flex;
   flex: 1;
   flex-direction: column;
+}
+
+#panel {
   margin: 32px 16px;
+}
+
+#component {
+  background: yellow;
+  margin-top: 16px;
 }
 
 #request {
