@@ -27,7 +27,7 @@ class DeviceList extends React.Component {
     });
 
     return (
-      <div id="component">
+      <section>
         <div id="request">
           {/* <h2> Make a request </h2> */}
           <button onClick={this.props.requestData}> API request </button>
@@ -50,7 +50,7 @@ class DeviceList extends React.Component {
             </table>
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 }

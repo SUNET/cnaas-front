@@ -5,7 +5,7 @@ class Workflow extends React.Component {
     console.log("hello! this is the workflow component");
 
     return (
-      <div id="component">
+      <section>
         <h1>Commit changes workflow</h1>
         <div className="workflow-container__primary">
           <h2>Refresh repositories (1/4)</h2>
@@ -34,7 +34,7 @@ class Workflow extends React.Component {
             <p>this is box4</p>
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 }
