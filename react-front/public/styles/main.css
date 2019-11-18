@@ -44,8 +44,17 @@ a {
   text-decoration: none;
 }
 
-h1 {
+h1,
+h2 {
   font-size: 24px;
+  margin: 32px 0;
+  line-height: 1.2;
+}
+
+p {
+  font-size: 16px;
+  margin: 16px 0;
+  line-height: 1.2;
 }
 
 button {
@@ -78,12 +87,13 @@ button:hover {
 }
 
 #panel {
+  border: solid black 2px;
   margin: 32px 16px;
 }
 
 #component {
-  background: yellow;
-  margin-top: 16px;
+  /* background: yellow; */
+  /* margin-top: 16px; */
 }
 
 footer {
@@ -93,9 +103,13 @@ footer {
 }
 
 /* Workflow styles */
-.workflow-container {
+.workflow-container__primary {
   background-color: hotpink;
-  border: solid white 3px;
+  border-bottom: solid white 1px;
+}
+
+.workflow-container__secondary {
+  background-color: lightpink;
 }
 
 /* DeviceList styles */
