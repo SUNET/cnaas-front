@@ -28,12 +28,17 @@ class App extends React.Component {
     }
   };
 
-  getDevicesData = () => {
+  getDevicesData = (sortField = "id", filterField, filterValue) => {
     // check that button click works
     const credentials =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
+    let filterParams = "";
     console.log("you clicked the button");
-    fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices", {
+    if (filterField != null && filterValue != null) {
+      filterParams = "&filter["+filterField+"][contains]="+filterValue;
+    }
+
+    fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort="+sortField+filterParams, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${credentials}`
