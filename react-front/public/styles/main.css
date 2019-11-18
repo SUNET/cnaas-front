@@ -55,6 +55,7 @@ p {
   font-size: 16px;
   margin: 16px 0;
   line-height: 1.2;
+  font-weight: 400;
 }
 
 button {
@@ -79,21 +80,20 @@ button:hover {
   color: #ff4500;
 }
 
-#panel,
-#component {
+section {
   display: flex;
   flex: 1;
   flex-direction: column;
 }
 
+/* long-term maybe panel can be removed */
 #panel {
   border: solid black 2px;
   margin: 32px 16px;
-}
-
-#component {
-  /* background: yellow; */
-  /* margin-top: 16px; */
+  padding: 16px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 footer {
