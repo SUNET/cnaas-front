@@ -8,7 +8,7 @@ class Panel extends React.Component {
     return (
       <div id="component">
         <h1> This is the panel</h1>
-        <DeviceList devicesData={this.props.devicesData} />
+        {/* <DeviceList devicesData={this.props.devicesData} /> */}
         <Workflow />
       </div>
     );
