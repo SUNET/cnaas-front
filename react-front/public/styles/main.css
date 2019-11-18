@@ -104,12 +104,42 @@ footer {
 
 /* Workflow styles */
 .workflow-container__primary {
-  background-color: hotpink;
-  border-bottom: solid white 1px;
+  border: solid gray 1px;
+  margin: 16px 0;
+  padding: 0 16px;
 }
 
 .workflow-container__secondary {
-  background-color: lightpink;
+  /* background-color: lightpink; */
+}
+
+.workflow-container__header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.workflow-container__button {
+  background: transparent;
+  border: none;
+
+  text-transform: capitalize;
+}
+
+.workflow-container__button:hover {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.workflow-container__button-link {
+  border-bottom: solid transparent 2px;
+  padding-bottom: 2px;
+  color: #ff4500;
+}
+
+.workflow-container__button-link:hover {
+  border-bottom: solid #ff4500 2px;
+  padding-bottom: 2px;
 }
 
 /* DeviceList styles */

@@ -8,7 +8,14 @@ class Workflow extends React.Component {
       <section>
         <h1>Commit changes workflow</h1>
         <div className="workflow-container__primary">
-          <h2>Refresh repositories (1/4)</h2>
+          <div className="workflow-container__header">
+            <h2>Refresh repositories (1/4)</h2>
+            <button className="workflow-container__button">
+              <a className="workflow-container__button-link" href="#">
+                Close
+              </a>
+            </button>
+          </div>
           <div className="workflow-container__secondary">
             <p>this is box1 and it will hold 2 buttons</p>
           </div>
