@@ -4,17 +4,25 @@ class Panel extends React.Component {
   render() {
     console.log("this is device data (in panel)", this.props.responseData);
     let deviceInfo = "";
+    // put the response data in a variable
     const responseData = this.props.responseData;
+    // .map() through the array of response data
     deviceInfo = responseData.map((items, index) => {
+      // deal with renedering domething for the synchronised boolean
+      let syncStatus = "";
+      if (items.synchronized === true) {
+        syncStatus = <td key="2">true</td>;
+      } else {
+        syncStatus = <td key="2">false</td>;
+      }
+      // the final component to be rendered from request data
       return (
-        <ul key={index}>
-          <li key="0">{items.id}</li>
-          <li key="1"> {items.hostname}</li>
-          <li key="2">{items.description}</li>
-          <li key="3">{items.device_type}</li>
-          <li key="4">{items.last_seen}</li>
-          <li key="5">{items.management_ip}</li>
-        </ul>
+        <tr key={index}>
+          <td key="0"> {items.hostname}</td>
+          <td key="1">{items.device_type}</td>
+          {syncStatus}
+          <td key="3">{items.id}</td>
+        </tr>
       );
     });
 
@@ -28,7 +36,21 @@ class Panel extends React.Component {
         </div>
         <div id="response">
           <h2> Get the response</h2>
-          <div id="data">{deviceInfo}</div>
+          <div id="data">
+            {/* the static part of the table that will hold the response data */}
+            <table>
+              <thead>
+                <tr>
+                  <th>Hostname</th>
+                  <th>Device type</th>
+                  <th>Sync. status</th>
+                  <th>id</th>
+                </tr>
+              </thead>
+              {/* the dynamic part of the table rendering the response data */}
+              <tbody>{deviceInfo}</tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
