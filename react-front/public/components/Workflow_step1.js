@@ -1,7 +1,6 @@
 import React from "react";
-import Workflow_step1 from "./Workflow_step1";
 
-class Workflow extends React.Component {
+class Workflow_step1 extends React.Component {
   state = {
     // token: "",
     commitInfo: [],
@@ -90,50 +89,29 @@ class Workflow extends React.Component {
     let commitInfo = this.state.commitInfo;
     let refreshedCommitInfo = this.state.latestCommitInfo;
     return (
-      <section>
-        <h1>Commit changes workflow</h1>
-        <Workflow_step1 />
-        <div className="workflow-container">
-          <div className="workflow-container__header">
-            <h2>Dry run (2/4)</h2>
-            <a href="#">
-              <button className="workflow-container__button">Close</button>
-            </a>
-          </div>
-          <div className="workflow-collapsable">
-            <p>
-              this is box2 and it will hold text, button to get progressbar
-              data, display final response, three buttons
-            </p>
-          </div>
+      <div className="workflow-container">
+        <div className="workflow-container__header">
+          <h2>Refresh repositories (1/4)</h2>
+          <a href="#">
+            <button className="workflow-container__button--hide">Close</button>
+          </a>
         </div>
-        <div className="workflow-container">
-          <div className="workflow-container__header">
-            <h2>Verify difference (3/4)</h2>
-            <a href="#">
-              <button className="workflow-container__button">Close</button>
-            </a>
+        <div className="workflow-collapsable">
+          <div className="workflow-collapsable__button-result">
+            <button onClick={this.getCommitInfo}> See latest commit </button>
+            <p>{commitInfo}</p>
           </div>
-          <div className="workflow-collapsable">
-            <p>
-              this is box3 this will display results from step 2 and 2 buttons
-            </p>
+          <div className="workflow-collapsable__button-result">
+            <button onClick={this.refreshCommitInfo}>
+              Refresh commit info
+            </button>
+            <p>{refreshedCommitInfo}</p>
           </div>
+          {/* <p>this is box1 and it will hold 2 buttons</p> */}
         </div>
-        <div className="workflow-container">
-          <div className="workflow-container__header">
-            <h2>Commit configuration (4/4)</h2>
-            <a href="#">
-              <button className="workflow-container__button">Close</button>
-            </a>
-          </div>
-          <div className="workflow-collapsable">
-            <p>this is box4 </p>
-          </div>
-        </div>
-      </section>
+      </div>
     );
   }
 }
 
-export default Workflow;
+export default Workflow_step1;
