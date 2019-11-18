@@ -61,7 +61,7 @@ class App extends React.Component {
       <div className="container">
         <Header />
         <Panel
-          responseData={this.state.devicesData}
+          devicesData={this.state.devicesData}
           requestData={this.getDeviceData}
         />
         <Footer />
