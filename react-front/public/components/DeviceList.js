@@ -47,6 +47,10 @@ class DeviceList extends React.Component {
     this.getDevicesData({ sortField: sortField });
   };
 
+  componentDidMount() {
+    this.getDevicesData();
+  }
+
   render() {
     console.log("these are props (in DeviceList)", this.props);
     console.log("this is device data (in DeviceList)", this.props.devicesData);
