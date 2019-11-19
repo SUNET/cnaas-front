@@ -44,8 +44,18 @@ a {
   text-decoration: none;
 }
 
-h1 {
+h1,
+h2 {
   font-size: 24px;
+  margin: 32px 0;
+  line-height: 1.2;
+}
+
+p {
+  font-size: 16px;
+  margin: 16px 0;
+  line-height: 1.2;
+  font-weight: 400;
 }
 
 button {
@@ -53,7 +63,6 @@ button {
   font-family: "Montserrat", sans-serif;
   font-size: 16px;
   font-weight: 700;
-  text-transform: uppercase;
   color: #fff;
   letter-spacing: 1px;
 
@@ -61,7 +70,7 @@ button {
   border-radius: 20px;
 
   padding: 16px 32px;
-  margin: 16px 0;
+  margin: 16px;
 }
 
 button:hover {
@@ -70,12 +79,74 @@ button:hover {
   color: #ff4500;
 }
 
-#component {
+section {
   display: flex;
   flex: 1;
   flex-direction: column;
-  margin: 32px 16px;
 }
+
+/* long-term maybe panel can be removed */
+#panel {
+  padding: 16px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+footer {
+  border-top: #ff4500 solid 1px;
+  display: flex;
+  padding: 16px;
+}
+
+/* Workflow styles */
+.workflow-container {
+  border: solid gray 1px;
+  margin: 16px 0;
+}
+
+.workflow-container h2,
+.workflow-container p {
+  padding: 0 16px;
+}
+
+.workflow-container p {
+  padding: 0 16px;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.workflow-container__header {
+  display: flex;
+  justify-content: space-between;
+  background-color: #f4f4f4;
+}
+
+.workflow-container__button--hide {
+  background: transparent;
+  border: none;
+  text-transform: capitalize;
+  color: #ff4500;
+}
+
+.workflow-container__button--hide:hover {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  text-decoration: underline;
+}
+
+.workflow-collapsable__button-result {
+  display: flex;
+  align-items: baseline;
+}
+
+.active {
+  color: #ff4500;
+  text-decoration: underline;
+}
+
+/* DeviceList styles */
 
 #request {
   padding: 16px 0;
@@ -122,11 +193,5 @@ th,
 td {
   display: flex;
   flex: 1;
-  padding: 16px;
-}
-
-footer {
-  border-top: #ff4500 solid 1px;
-  display: flex;
   padding: 16px;
 }
