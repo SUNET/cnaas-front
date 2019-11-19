@@ -1,10 +1,14 @@
 import React from "react";
+import { Dropdown } from 'semantic-ui-react';
 
 class DeviceList extends React.Component {
   state = {
     sortField: "id",
     filterField: null,
-    filterValue: null
+    filterValue: null,
+    hostname_sort: "",
+    device_type_sort: "",
+    synchronized_sort: "",
   };
 
   getDevicesData = (options) => {
@@ -23,6 +27,24 @@ class DeviceList extends React.Component {
       newState['filterField'],
       newState['filterValue']
     );
+  };
+
+  sortHeader = (header) => {
+    let newState = this.state;
+    let sortField = "id";
+    const oldValue = this.state[header+'_sort'];
+    newState['hostname_sort'] = '';
+    newState['device_type_sort'] = '';
+    newState['synchronized_sort'] = '';
+    if (oldValue == '' || oldValue == '↓') {
+      newState[header+'_sort'] = "↑";
+      sortField = header;
+    } else if (oldValue == '↑') {
+      newState[header+'_sort'] = "↓";
+      sortField = "-"+header;
+    }
+    this.setState(newState);
+    this.getDevicesData({ sortField: sortField });
   };
 
   render() {
@@ -66,9 +88,9 @@ class DeviceList extends React.Component {
             <table>
               <thead>
                 <tr>
-                  <th onClick={()=>this.getDevicesData({ sortField: "hostname" })}>Hostname</th>
-                  <th onClick={()=>this.getDevicesData({ sortField: "device_type" })}>Device type</th>
-                  <th onClick={()=>this.getDevicesData({ sortField: "synchronized" })}>Sync. status</th>
+                  <th onClick={()=>this.sortHeader("hostname")}>Hostname <div className="hostname_sort">{this.state.hostname_sort}</div></th>
+                  <th onClick={()=>this.sortHeader("device_type")}>Device type<div className="device_type_sort">{this.state.device_type_sort}</div></th>
+                  <th onClick={()=>this.sortHeader("synchronized")}>Sync. status<div className="sync_status_sort">{this.state.synchronized_sort}</div></th>
                   <th>id</th>
                 </tr>
               </thead>
