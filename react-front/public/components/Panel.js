@@ -8,7 +8,7 @@ class Panel extends React.Component {
     console.log("this is props (in panel)", this.props);
     return (
       <div id="panel">
-        <Route exact path="/" render={props => <DeviceList {...props} />} />
+        <Route exact path="/" component={DeviceList} />
         <Route exact path="/workflow" component={Workflow} />
       </div>
     );
