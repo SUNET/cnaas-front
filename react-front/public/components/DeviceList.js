@@ -1,5 +1,6 @@
 import React from "react";
-import { Dropdown } from 'semantic-ui-react';
+import PropTypes from 'prop-types'
+import DeviceSearchForm from "./DeviceSearchForm";
 
 class DeviceList extends React.Component {
   state = {
@@ -36,11 +37,11 @@ class DeviceList extends React.Component {
     newState['hostname_sort'] = '';
     newState['device_type_sort'] = '';
     newState['synchronized_sort'] = '';
-    if (oldValue == '' || oldValue == '↓') {
-      newState[header+'_sort'] = "↑";
-      sortField = header;
-    } else if (oldValue == '↑') {
+    if (oldValue == '' || oldValue == '↑') {
       newState[header+'_sort'] = "↓";
+      sortField = header;
+    } else if (oldValue == '↓') {
+      newState[header+'_sort'] = "↑";
       sortField = "-"+header;
     }
     this.setState(newState);
@@ -79,14 +80,12 @@ class DeviceList extends React.Component {
 
     return (
       <div id="component">
-        <div id="request">
+        <div id="search">
           {/* <h2> Make a request </h2> */}
-          <button onClick={()=>this.getDevicesData()}> API request </button>
-          <button onClick={()=>this.getDevicesData({ filterField: "hostname", filterValue: "arista" })}> Filter </button>
-          <button onClick={()=>this.getDevicesData({ filterField: null, filterValue: null })}> Clear filter </button>
+          <DeviceSearchForm searchAction={this.getDevicesData} />
         </div>
-        <div id="response">
-          <h2> Get the response</h2>
+        <div id="device_list">
+          <h2>Device list</h2>
           <div id="data">
             {/* the static part of the table that will hold the response data */}
             <table>
@@ -106,6 +105,11 @@ class DeviceList extends React.Component {
       </div>
     );
   }
+}
+
+DeviceList.propTypes = {
+  getDevicesData: PropTypes.func.isRequired,
+  devicesData: PropTypes.array.isRequired
 }
 
 export default DeviceList;
