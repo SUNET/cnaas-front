@@ -61,7 +61,8 @@ class Workflow_step1 extends React.Component {
     // console.log("these are props (in Workflow)", this.props);
     let syncMessage = this.state.deviceSync;
     let syncStatus = this.state.deviceSyncStatus;
-    let syncJobId = this.state.deviceSyncJobId;
+    // use this info for next api call 
+    let syncJobId = this.state.deviceSyncJobId; 
     return (
       <div className="workflow-container">
         <div className="workflow-container__header">
@@ -71,6 +72,10 @@ class Workflow_step1 extends React.Component {
           </a>
         </div>
         <div className="workflow-collapsable">
+          <p>
+            Step 2 of 4: Sending generated configuration to devices to calculate
+            diff and check sanity
+          </p>
           <div className="workflow-collapsable__button-result">
             <button onClick={this.deviceSyncTo}> Start sync </button>
             <p>{syncMessage}</p>
