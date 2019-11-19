@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from 'prop-types'
 import DeviceSearchForm from "./DeviceSearchForm";
 
 class DeviceList extends React.Component {
@@ -148,11 +147,6 @@ class DeviceList extends React.Component {
       </section>
     );
   }
-}
-
-DeviceList.propTypes = {
-  getDevicesData: PropTypes.func.isRequired,
-  devicesData: PropTypes.array.isRequired
 }
 
 export default DeviceList;
