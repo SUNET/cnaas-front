@@ -7,10 +7,10 @@ class Header extends React.Component {
         <nav>
           <ul>
             <li>
-              <a href="#">Item 1</a>
+              <a href="#">Devices</a>
             </li>
             <li>
-              <a href="#">Item 2</a>
+              <a href="#">Workflow</a>
             </li>
             <li>
               <a href="#">Item 3</a>
