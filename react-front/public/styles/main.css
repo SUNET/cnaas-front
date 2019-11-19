@@ -63,7 +63,6 @@ button {
   font-family: "Montserrat", sans-serif;
   font-size: 16px;
   font-weight: 700;
-  /* text-transform: uppercase; */
   color: #fff;
   letter-spacing: 1px;
 
@@ -88,8 +87,6 @@ section {
 
 /* long-term maybe panel can be removed */
 #panel {
-  /* border: solid black 2px; */
-  /* margin: 32px 16px; */
   padding: 16px;
   display: flex;
   flex: 1;

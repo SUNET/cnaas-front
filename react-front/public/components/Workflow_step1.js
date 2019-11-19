@@ -8,7 +8,6 @@ class Workflow_step1 extends React.Component {
     // errorMessage: ""
   };
 
-  // here we check the status of the response and only process the result if status is 200
   checkStatus = response => {
     console.log("we have response");
     console.log("response status:", response.status);
@@ -84,9 +83,6 @@ class Workflow_step1 extends React.Component {
   };
 
   render() {
-    // console.log("hello! this is the workflow component");
-    // console.log("these are props (in Workflow)", this.props);
-    console.log("this is repo data (in Workflow)", this.state.commitInfo);
     let commitInfo = this.state.commitInfo;
     let refreshedCommitInfo = this.state.latestCommitInfo;
     return (
@@ -108,7 +104,6 @@ class Workflow_step1 extends React.Component {
             </button>
             <p>{refreshedCommitInfo}</p>
           </div>
-          {/* <p>this is box1 and it will hold 2 buttons</p> */}
         </div>
       </div>
     );
