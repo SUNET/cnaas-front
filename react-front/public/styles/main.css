@@ -144,6 +144,10 @@ footer {
   align-items: baseline;
 }
 
+.active {
+  color: #ff4500;
+  text-decoration: underline;
+}
 
 /* DeviceList styles */
 
