@@ -1,4 +1,5 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 
 class Header extends React.Component {
   render() {
@@ -6,18 +7,20 @@ class Header extends React.Component {
       <header>
         <nav>
           <ul>
-            <li>
-              <a href="#">Devices</a>
-            </li>
-            <li>
-              <a href="#">Workflow</a>
-            </li>
-            <li>
-              <a href="#">Item 3</a>
-            </li>
-            <li>
-              <a href="#">Item 4</a>
-            </li>
+            <NavLink
+              exact
+              activeClassName="active"
+              to={`/`}
+            >
+              <li>Devices</li>
+            </NavLink>
+            <NavLink
+              exact
+              activeClassName="active"
+              to={`/workflow`}
+            >
+              <li>Workflow</li>
+            </NavLink>
           </ul>
         </nav>
       </header>
