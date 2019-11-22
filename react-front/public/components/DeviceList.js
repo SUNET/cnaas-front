@@ -47,6 +47,11 @@ class DeviceList extends React.Component {
     }
     this.setState(newState);
     this.getDevicesData({ sortField: sortField });
+    // Close all expanded table rows when resorting the table
+    var deviceDetails = document.getElementsByClassName("device_details_row");
+    for(var i = 0; i < deviceDetails.length; i++) {
+      deviceDetails[i].hidden = true;
+    }
   };
 
   componentDidMount() {
@@ -126,9 +131,9 @@ class DeviceList extends React.Component {
           {syncStatus}
           <td key="3">{items.id}</td>
         </tr>,
-        <tr key={index+"_content"} colSpan="4" className="device_details" hidden>
+        <tr key={index+"_content"} colSpan="4" className="device_details_row" hidden>
           <td>
-            <table className="device_details">
+            <table className="device_details_table">
               <tbody>
                 <tr><td>Description</td><td>{items.description}</td></tr>
                 <tr><td>Management IP</td><td>{items.management_ip}</td></tr>
