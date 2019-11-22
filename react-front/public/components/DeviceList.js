@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Select, Input, Icon } from 'semantic-ui-react'
 import DeviceSearchForm from "./DeviceSearchForm";
+import DeviceInitForm from "./DeviceInitForm";
 
 class DeviceList extends React.Component {
   state = {
@@ -124,6 +125,10 @@ class DeviceList extends React.Component {
       } else {
         syncStatus = <td key="2"><Icon name='delete' color='red' /></td>;
       }
+      let deviceStateExtra = "";
+      if (items.state == "DISCOVERED" || items.state == "DHCP_BOOT") {
+        deviceStateExtra = <DeviceInitForm deviceId={items.id} />;
+      }
       return ([
         <tr key={index} onClick={this.clickRow.bind(this)}>
           <td key="0"><Icon name='angle down' />{items.hostname}</td>
@@ -146,6 +151,7 @@ class DeviceList extends React.Component {
                 <tr><td>State</td><td>{items.state}</td></tr>
               </tbody>
             </table>
+            {deviceStateExtra}
           </td>
         </tr>
       ]);

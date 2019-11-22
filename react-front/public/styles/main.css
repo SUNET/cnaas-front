@@ -200,6 +200,11 @@ td {
   background: white;
 }
 
+#data .device_details_row td {
+  display: flex;
+  flex-direction: column;
+}
+
 #data .device_details_table {
   width: 100%;
   table-layout: fixed;
