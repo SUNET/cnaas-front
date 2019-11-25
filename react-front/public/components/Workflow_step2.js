@@ -81,8 +81,26 @@ class Workflow_step2 extends React.Component {
     // console.log("these are props (in Workflow)", this.props);
     let syncMessage = this.state.deviceSync;
     let syncStatus = this.state.deviceSyncStatus;
-    // use this info for next api call 
-    let syncJobId = this.state.deviceSyncJobId; 
+    let syncJobId = this.state.deviceSyncJobId;
+    let jobsData = this.state.jobsData;
+
+    let jobsProgress = jobsData.map((job, i) => {
+      let totalDevices = job.result._totals.selected_devices;
+      let jobStatus = job.status;
+      let finishedDevices = job.finished_devices.length;
+      if (finishedDevices === 0) {
+        return <p key="0">none of {totalDevices} devices</p>;
+      }
+      if (jobStatus === "FINISHED") {
+        return <p key="0">Done</p>;
+      } else {
+        return (
+          <p key="0">
+            {finishedDevices}/{totalDevices}
+          </p>
+        );
+      }
+    });
     return (
       <div className="workflow-container">
         <div className="workflow-container__header">
@@ -96,8 +114,7 @@ class Workflow_step2 extends React.Component {
             Step 2 of 4: Sending generated configuration to devices to calculate
             diff and check sanity
           </p>
-          <div 
-          className="workflow-collapsable__button-result">
+          <div className="workflow-collapsable__button-result">
             <button key="0" onClick={this.deviceSyncTo}>
               Start sync
             </button>
@@ -105,6 +122,7 @@ class Workflow_step2 extends React.Component {
             <p>{syncStatus}</p>
             <p>{syncJobId}</p>
           </div>
+          <div>{jobsProgress}</div>
         </div>
       </div>
     );
