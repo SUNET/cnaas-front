@@ -2,6 +2,7 @@ import React from "react";
 import { Button, Select, Input, Icon, Pagination } from 'semantic-ui-react'
 import DeviceSearchForm from "./DeviceSearchForm";
 import DeviceInitForm from "./DeviceInitForm";
+import checkResponseStatus from "../utils/checkResponseStatus";
 
 class DeviceList extends React.Component {
   state = {
@@ -68,20 +69,6 @@ class DeviceList extends React.Component {
     this.getDevicesData();
   }
 
-  checkStatus = response => {
-    if (response.status === 200) {
-      console.log("response 200");
-      return Promise.resolve(response);
-    } else if (response.status === 400 || response.status === 401) {
-      this.setState({
-        errorMessage: "Your details were not recognised. Try again!"
-      });
-    } else if (response.staus === 500) {
-      this.setState({
-        errorMessage: "Something went wrong on our end. Try again later."
-      });
-    }
-  };
 
   readHeaders = response => {
     const totalCountHeader = response.headers.get('X-Total-Count');
@@ -110,13 +97,19 @@ class DeviceList extends React.Component {
       filterParams = "&filter["+filterField+"]"+filterFieldOperator+"="+filterValue;
     }
 
-    fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort="+sortField+filterParams+"&page="+pageNum+"&per_page=10", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${credentials}`
+    fetch(
+      "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort=" +
+        sortField +
+        filterParams + 
+        "&page="+pageNum+"&per_page=10",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${credentials}`
+        }
       }
-    })
-      .then(response => this.checkStatus(response))
+    )
+      .then(response => checkResponseStatus(response))
       .then(response => this.readHeaders(response))
       .then(response => response.json())
       .then(data => {
