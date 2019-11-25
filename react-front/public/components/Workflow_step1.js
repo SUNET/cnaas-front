@@ -1,4 +1,5 @@
 import React from "react";
+import checkResponseStatus from "../utils/checkResponseStatus";
 
 class Workflow_step1 extends React.Component {
   state = {
@@ -6,23 +7,6 @@ class Workflow_step1 extends React.Component {
     commitInfo: [],
     latestCommitInfo: []
     // errorMessage: ""
-  };
-
-  checkStatus = response => {
-    console.log("we have response");
-    console.log("response status:", response.status);
-    if (response.status === 200) {
-      console.log("response 200");
-      return Promise.resolve(response);
-    } else if (response.status === 400 || response.status === 401) {
-      this.setState({
-        errorMessage: "Your details were not recognised. Try again!"
-      });
-    } else if (response.staus === 500) {
-      this.setState({
-        errorMessage: "Something went wrong on our end. Try again later."
-      });
-    }
   };
 
   getCommitInfo = () => {
@@ -35,7 +19,7 @@ class Workflow_step1 extends React.Component {
         Authorization: `Bearer ${credentials}`
       }
     })
-      .then(response => this.checkStatus(response))
+      .then(response => checkRequestStatus(response))
       .then(response => response.json())
       .then(data => {
         console.log("this should be data", data);
@@ -65,7 +49,7 @@ class Workflow_step1 extends React.Component {
       },
       body: JSON.stringify({ action: "REFRESH" })
     })
-      .then(response => this.checkStatus(response))
+      .then(response => checkRequestStatus(response))
       .then(response => response.json())
       .then(data => {
         console.log("this should be data", data);

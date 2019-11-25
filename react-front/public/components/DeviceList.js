@@ -1,5 +1,6 @@
 import React from "react";
 import DeviceSearchForm from "./DeviceSearchForm";
+import checkResponseStatus from "../utils/checkResponseStatus";
 
 class DeviceList extends React.Component {
   state = {
@@ -52,22 +53,6 @@ class DeviceList extends React.Component {
     this.getDevicesData();
   }
 
-  checkStatus = response => {
-    console.log("we have response");
-    if (response.status === 200) {
-      console.log("response 200");
-      return Promise.resolve(response);
-    } else if (response.status === 400 || response.status === 401) {
-      this.setState({
-        errorMessage: "Your details were not recognised. Try again!"
-      });
-    } else if (response.staus === 500) {
-      this.setState({
-        errorMessage: "Something went wrong on our end. Try again later."
-      });
-    }
-  };
-
   getDevicesAPIData = (sortField = "id", filterField, filterValue) => {
     // check that button click works
     const credentials =
@@ -78,13 +63,18 @@ class DeviceList extends React.Component {
       filterParams = "&filter["+filterField+"][contains]="+filterValue;
     }
 
-    fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort="+sortField+filterParams, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${credentials}`
+    fetch(
+      "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort=" +
+        sortField +
+        filterParams,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${credentials}`
+        }
       }
-    })
-      .then(response => this.checkStatus(response))
+    )
+      .then(response => checkResponseStatus(response))
       .then(response => response.json())
       .then(data => {
         console.log("this should be data", data);
