@@ -1,5 +1,4 @@
 const checkResponseStatus = response => {
-  console.log("we have response");
   console.log("response status:", response.status);
   if (response.status === 200) {
     console.log("response 200");
