@@ -4,15 +4,12 @@ import PropTypes from 'prop-types'
 import { Button, Select, Input, Icon } from 'semantic-ui-react'
 
 class DeviceInitForm extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
+  state = {
       hostname: "",
       submitDisabled: false,
       submitIcon: "play",
       submitText: "Initialize"
-    };
-  }
+  };
 
   updateHostname(e) {
     const val = e.target.value;
