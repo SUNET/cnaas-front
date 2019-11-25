@@ -11,23 +11,6 @@ class Workflow_step2 extends React.Component {
     // errorMessage: ""
   };
 
-  checkStatus = response => {
-    console.log("we have response");
-    console.log("response status:", response.status);
-    if (response.status === 200) {
-      console.log("response 200");
-      return Promise.resolve(response);
-    } else if (response.status === 400 || response.status === 401) {
-      this.setState({
-        errorMessage: "Your details were not recognised. Try again!"
-      });
-    } else if (response.staus === 500) {
-      this.setState({
-        errorMessage: "Something went wrong on our end. Try again later."
-      });
-    }
-  };
-
   deviceSyncTo = () => {
     const credentials =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
@@ -40,7 +23,7 @@ class Workflow_step2 extends React.Component {
       },
       body: JSON.stringify({ dry_run: true, all: true })
     })
-      .then(response => this.checkStatus(response))
+      .then(response => checkResponseStatus(response))
       .then(response => response.json())
       .then(data => {
         console.log("this should be data", data);
