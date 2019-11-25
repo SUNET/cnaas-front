@@ -7,7 +7,8 @@ class Workflow_step2 extends React.Component {
     // token: "",
     deviceSync: [],
     deviceSyncStatus: [],
-    deviceSyncJobId: []
+    deviceSyncJobId: [],
+    jobsData: []
     // errorMessage: ""
   };
 
@@ -35,7 +36,41 @@ class Workflow_step2 extends React.Component {
               deviceSyncJobId: data.job_id
             },
             () => {
+              this.syncStatus();
+            },
+            () => {
               console.log("this is new state", this.state.deviceSync);
+            }
+          );
+        }
+      });
+  };
+
+  syncStatus = () => {
+    // let jobId = this.state.deviceSyncJobId;
+    let jobId = "5ddbe1548b2d390c963b97d8";
+    const credentials =
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
+    console.log("this API call should be automatic");
+    fetch(`https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`, {
+      method: "GET",
+      headers: {
+        // "Content-Type": "application/json",
+        Authorization: `Bearer ${credentials}`
+      }
+      // body: JSON.stringify({ dry_run: true, all: true })
+    })
+      .then(response => checkResponseStatus(response))
+      .then(response => response.json())
+      .then(data => {
+        console.log("this should be data.data.jobs", data.data.jobs);
+        {
+          this.setState(
+            {
+              jobsData: data.data.jobs
+            },
+            () => {
+              console.log("this is jobs data", this.state.jobsData);
             }
           );
         }
@@ -61,8 +96,11 @@ class Workflow_step2 extends React.Component {
             Step 2 of 4: Sending generated configuration to devices to calculate
             diff and check sanity
           </p>
-          <div className="workflow-collapsable__button-result">
-            <button onClick={this.deviceSyncTo}> Start sync </button>
+          <div 
+          className="workflow-collapsable__button-result">
+            <button key="0" onClick={this.deviceSyncTo}>
+              Start sync
+            </button>
             <p>{syncMessage}</p>
             <p>{syncStatus}</p>
             <p>{syncJobId}</p>
