@@ -32,6 +32,9 @@ class DeviceList extends React.Component {
     );
   };
 
+  /**
+   * Handle sorting on different columns when clicking the header fields
+   */
   sortHeader = (header) => {
     let newState = this.state;
     let sortField = "id";
@@ -75,9 +78,10 @@ class DeviceList extends React.Component {
   };
 
   getDevicesAPIData = (sortField = "id", filterField, filterValue) => {
-    // check that button click works
     const credentials =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
+    // Build filter part of the URL to only return specific devices from the API
+    // TODO: filterValue should probably be urlencoded?
     let filterParams = "";
     if (filterField != null && filterValue != null) {
       filterParams = "&filter["+filterField+"][contains]="+filterValue;
@@ -106,6 +110,9 @@ class DeviceList extends React.Component {
       });
   };
 
+  /**
+   * Handle expand/collapse of device details when clicking a row in the table
+   */
   clickRow(e) {
     const curState = e.target.closest("tr").nextElementSibling.hidden;
     if (curState) {
@@ -160,7 +167,6 @@ class DeviceList extends React.Component {
     return (
       <section>
         <div id="search">
-          {/* <h2> Make a request </h2> */}
           <DeviceSearchForm searchAction={this.getDevicesData} />
         </div>
         <div id="device_list">
