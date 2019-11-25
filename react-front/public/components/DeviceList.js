@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Select, Input, Icon } from 'semantic-ui-react'
+import { Button, Select, Input, Icon, Pagination } from 'semantic-ui-react'
 import DeviceSearchForm from "./DeviceSearchForm";
 import DeviceInitForm from "./DeviceInitForm";
 
@@ -11,7 +11,9 @@ class DeviceList extends React.Component {
     hostname_sort: "",
     device_type_sort: "",
     synchronized_sort: "",
-    devicesData: []
+    devicesData: [],
+    activePage: 1,
+    totalPages: 1
   };
 
   getDevicesData = (options) => {
@@ -24,11 +26,15 @@ class DeviceList extends React.Component {
       newState['filterField'] = options.filterField;
       newState['filterValue'] = options.filterValue;
     }
+    if (options.pageNum !== undefined) {
+      newState['activePage'] = options.pageNum;
+    }
     this.setState(newState);
     return this.getDevicesAPIData(
       newState['sortField'],
       newState['filterField'],
-      newState['filterValue']
+      newState['filterValue'],
+      newState['activePage']
     );
   };
 
@@ -77,7 +83,19 @@ class DeviceList extends React.Component {
     }
   };
 
-  getDevicesAPIData = (sortField = "id", filterField, filterValue) => {
+  readHeaders = response => {
+    const totalCountHeader = response.headers.get('X-Total-Count');
+    if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
+      console.log("total: "+totalCountHeader);
+      const totalPages = Math.ceil( totalCountHeader / 10 );
+      this.setState({totalPages: totalPages})
+    } else {
+      console.log("Could not find X-Total-Count header, only showing one page")
+    }
+    return response;
+  };
+
+  getDevicesAPIData = (sortField = "id", filterField, filterValue, pageNum) => {
     const credentials =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
     // Build filter part of the URL to only return specific devices from the API
@@ -92,13 +110,14 @@ class DeviceList extends React.Component {
       filterParams = "&filter["+filterField+"]"+filterFieldOperator+"="+filterValue;
     }
 
-    fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort="+sortField+filterParams, {
+    fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort="+sortField+filterParams+"&page="+pageNum+"&per_page=10", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${credentials}`
       }
     })
       .then(response => this.checkStatus(response))
+      .then(response => this.readHeaders(response))
       .then(response => response.json())
       .then(data => {
         console.log("this should be data", data);
@@ -125,6 +144,13 @@ class DeviceList extends React.Component {
     } else {
       e.target.closest("tr").nextElementSibling.hidden = true;
     }
+  }
+
+  pageChange(e, data) {
+    // Update active page and then reload data
+    this.setState({ activePage: data.activePage }, () => 
+      this.getDevicesData({ numPage: data.activePage })
+    );
   }
 
   render() {
@@ -188,6 +214,9 @@ class DeviceList extends React.Component {
               </thead>
               <tbody>{deviceInfo}</tbody>
             </table>
+          </div>
+          <div>
+            <Pagination defaultActivePage={1} totalPages={this.state.totalPages} onPageChange={this.pageChange.bind(this)} />
           </div>
         </div>
       </section>
