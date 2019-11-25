@@ -83,8 +83,13 @@ class DeviceList extends React.Component {
     // Build filter part of the URL to only return specific devices from the API
     // TODO: filterValue should probably be urlencoded?
     let filterParams = "";
+    let filterFieldOperator = "";
+    const stringFields = ["hostname", "management_ip", "serial", "ztp_mac", "platform", "vendor", "model", "os_version"];
     if (filterField != null && filterValue != null) {
-      filterParams = "&filter["+filterField+"][contains]="+filterValue;
+      if (stringFields.indexOf(filterField) !== -1) {
+        filterFieldOperator = "[contains]";
+      }
+      filterParams = "&filter["+filterField+"]"+filterFieldOperator+"="+filterValue;
     }
 
     fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort="+sortField+filterParams, {
