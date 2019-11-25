@@ -3,14 +3,10 @@ import PropTypes from 'prop-types'
 import { Button, Select, Input, Icon } from 'semantic-ui-react'
 
 class DeviceSearchForm extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
+  state = {
       searchText: "",
       searchField: "hostname"
-    };
-  }
+  };
 
   updateSearchText(e) {
     const val = e.target.value;
