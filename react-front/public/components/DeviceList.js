@@ -1,5 +1,7 @@
 import React from "react";
+import { Button, Select, Input, Icon, Pagination } from 'semantic-ui-react'
 import DeviceSearchForm from "./DeviceSearchForm";
+import DeviceInitForm from "./DeviceInitForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
 
 class DeviceList extends React.Component {
@@ -10,7 +12,9 @@ class DeviceList extends React.Component {
     hostname_sort: "",
     device_type_sort: "",
     synchronized_sort: "",
-    devicesData: []
+    devicesData: [],
+    activePage: 1,
+    totalPages: 1
   };
 
   getDevicesData = (options) => {
@@ -23,14 +27,21 @@ class DeviceList extends React.Component {
       newState['filterField'] = options.filterField;
       newState['filterValue'] = options.filterValue;
     }
+    if (options.pageNum !== undefined) {
+      newState['activePage'] = options.pageNum;
+    }
     this.setState(newState);
     return this.getDevicesAPIData(
       newState['sortField'],
       newState['filterField'],
-      newState['filterValue']
+      newState['filterValue'],
+      newState['activePage']
     );
   };
 
+  /**
+   * Handle sorting on different columns when clicking the header fields
+   */
   sortHeader = (header) => {
     let newState = this.state;
     let sortField = "id";
@@ -47,26 +58,50 @@ class DeviceList extends React.Component {
     }
     this.setState(newState);
     this.getDevicesData({ sortField: sortField });
+    // Close all expanded table rows when resorting the table
+    var deviceDetails = document.getElementsByClassName("device_details_row");
+    for(var i = 0; i < deviceDetails.length; i++) {
+      deviceDetails[i].hidden = true;
+    }
   };
 
   componentDidMount() {
     this.getDevicesData();
   }
 
-  getDevicesAPIData = (sortField = "id", filterField, filterValue) => {
-    // check that button click works
+
+  readHeaders = response => {
+    const totalCountHeader = response.headers.get('X-Total-Count');
+    if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
+      console.log("total: "+totalCountHeader);
+      const totalPages = Math.ceil( totalCountHeader / 10 );
+      this.setState({totalPages: totalPages})
+    } else {
+      console.log("Could not find X-Total-Count header, only showing one page")
+    }
+    return response;
+  };
+
+  getDevicesAPIData = (sortField = "id", filterField, filterValue, pageNum) => {
     const credentials =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
+    // Build filter part of the URL to only return specific devices from the API
+    // TODO: filterValue should probably be urlencoded?
     let filterParams = "";
-    console.log("you clicked the button");
+    let filterFieldOperator = "";
+    const stringFields = ["hostname", "management_ip", "serial", "ztp_mac", "platform", "vendor", "model", "os_version"];
     if (filterField != null && filterValue != null) {
-      filterParams = "&filter["+filterField+"][contains]="+filterValue;
+      if (stringFields.indexOf(filterField) !== -1) {
+        filterFieldOperator = "[contains]";
+      }
+      filterParams = "&filter["+filterField+"]"+filterFieldOperator+"="+filterValue;
     }
 
     fetch(
       "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort=" +
         sortField +
-        filterParams,
+        filterParams + 
+        "&page="+pageNum+"&per_page=10",
       {
         method: "GET",
         headers: {
@@ -75,6 +110,7 @@ class DeviceList extends React.Component {
       }
     )
       .then(response => checkResponseStatus(response))
+      .then(response => this.readHeaders(response))
       .then(response => response.json())
       .then(data => {
         console.log("this should be data", data);
@@ -91,31 +127,70 @@ class DeviceList extends React.Component {
       });
   };
 
+  /**
+   * Handle expand/collapse of device details when clicking a row in the table
+   */
+  clickRow(e) {
+    const curState = e.target.closest("tr").nextElementSibling.hidden;
+    if (curState) {
+      e.target.closest("tr").nextElementSibling.hidden = false;
+    } else {
+      e.target.closest("tr").nextElementSibling.hidden = true;
+    }
+  }
+
+  pageChange(e, data) {
+    // Update active page and then reload data
+    this.setState({ activePage: data.activePage }, () => 
+      this.getDevicesData({ numPage: data.activePage })
+    );
+  }
+
   render() {
-    console.log("these are props (in DeviceList)", this.props);
     let deviceInfo = "";
     const devicesData = this.state.devicesData;
     deviceInfo = devicesData.map((items, index) => {
       let syncStatus = "";
       if (items.synchronized === true) {
-        syncStatus = <td key="2">true</td>;
+        syncStatus = <td key="2"><Icon name='check' color='green' /></td>;
       } else {
-        syncStatus = <td key="2">false</td>;
+        syncStatus = <td key="2"><Icon name='delete' color='red' /></td>;
       }
-      return (
-        <tr key={index}>
-          <td key="0"> {items.hostname}</td>
+      let deviceStateExtra = "";
+      if (items.state == "DISCOVERED" || items.state == "DHCP_BOOT") {
+        deviceStateExtra = <DeviceInitForm deviceId={items.id} />;
+      }
+      return ([
+        <tr key={index} onClick={this.clickRow.bind(this)}>
+          <td key="0"><Icon name='angle down' />{items.hostname}</td>
           <td key="1">{items.device_type}</td>
           {syncStatus}
           <td key="3">{items.id}</td>
+        </tr>,
+        <tr key={index+"_content"} colSpan="4" className="device_details_row" hidden>
+          <td>
+            <table className="device_details_table">
+              <tbody>
+                <tr><td>Description</td><td>{items.description}</td></tr>
+                <tr><td>Management IP</td><td>{items.management_ip}</td></tr>
+                <tr><td>Infra IP</td><td>{items.infra_ip}</td></tr>
+                <tr><td>MAC</td><td>{items.ztp_mac}</td></tr>
+                <tr><td>Vendor</td><td>{items.vendor}</td></tr>
+                <tr><td>Model</td><td>{items.model}</td></tr>
+                <tr><td>OS Version</td><td>{items.os_version}</td></tr>
+                <tr><td>Serial</td><td>{items.serial}</td></tr>
+                <tr><td>State</td><td>{items.state}</td></tr>
+              </tbody>
+            </table>
+            {deviceStateExtra}
+          </td>
         </tr>
-      );
+      ]);
     });
 
     return (
       <section>
         <div id="search">
-          {/* <h2> Make a request </h2> */}
           <DeviceSearchForm searchAction={this.getDevicesData} />
         </div>
         <div id="device_list">
@@ -124,14 +199,17 @@ class DeviceList extends React.Component {
             <table>
               <thead>
                 <tr>
-                  <th onClick={()=>this.sortHeader("hostname")}>Hostname <div className="hostname_sort">{this.state.hostname_sort}</div></th>
-                  <th onClick={()=>this.sortHeader("device_type")}>Device type<div className="device_type_sort">{this.state.device_type_sort}</div></th>
-                  <th onClick={()=>this.sortHeader("synchronized")}>Sync. status<div className="sync_status_sort">{this.state.synchronized_sort}</div></th>
+                  <th onClick={()=>this.sortHeader("hostname")}>Hostname <Icon name='sort' /> <div className="hostname_sort">{this.state.hostname_sort}</div></th>
+                  <th onClick={()=>this.sortHeader("device_type")}>Device type <Icon name='sort' /> <div className="device_type_sort">{this.state.device_type_sort}</div></th>
+                  <th onClick={()=>this.sortHeader("synchronized")}>Sync. status <Icon name='sort' /> <div className="sync_status_sort">{this.state.synchronized_sort}</div></th>
                   <th>id</th>
                 </tr>
               </thead>
               <tbody>{deviceInfo}</tbody>
             </table>
+          </div>
+          <div>
+            <Pagination defaultActivePage={1} totalPages={this.state.totalPages} onPageChange={this.pageChange.bind(this)} />
           </div>
         </div>
       </section>
