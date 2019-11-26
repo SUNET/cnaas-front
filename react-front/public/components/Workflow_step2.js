@@ -71,22 +71,29 @@ class Workflow_step2 extends React.Component {
     let syncJobId = this.state.deviceSyncJobId;
     let jobsData = this.state.jobsData;
 
+    function randomIntFromInterval(min, max) {
+      return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
     let jobsProgress = jobsData.map((job, i) => {
-      let totalDevices = job.result._totals.selected_devices;
-      let jobStatus = job.status;
-      let finishedDevices = job.finished_devices.length;
-      if (finishedDevices === 0) {
-        return <p key="0">none of {totalDevices} devices</p>;
-      }
-      if (jobStatus === "FINISHED") {
-        return <p key="0">Done</p>;
-      } else {
-        return (
-          <p key="0">
-            {finishedDevices}/{totalDevices}
-          </p>
-        );
-      }
+      // let totalDevices = job.result._totals.selected_devices;
+      // let jobStatus = job.status;
+      // let finishedDevices = job.finished_devices.length;
+      let finishedDevices = randomIntFromInterval(0, 100);
+      console.log("this is finsihedDevices", finishedDevices);
+      let totalDevices = 100;
+      // if (finishedDevices === 0) {
+      // return <p key="0">none of {totalDevices} devices</p>;
+      // }
+      // if (jobStatus === "FINISHED") {
+      //   return <p key="0">Done</p>;
+      // } else {
+      return (
+        <p key="0">
+          {finishedDevices}/{totalDevices}
+        </p>
+      );
+      // }
     });
     return (
       <div className="workflow-container">
@@ -109,7 +116,10 @@ class Workflow_step2 extends React.Component {
             <p>{syncStatus}</p>
             <p>{syncJobId}</p>
           </div>
-          <div>{jobsProgress}</div>
+          <div>
+            <p>Progress bar</p>
+            {jobsProgress}
+          </div>
         </div>
       </div>
     );
