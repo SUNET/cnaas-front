@@ -155,25 +155,6 @@ footer {
   text-decoration: underline;
 }
 
-/* DeviceList styles */
-
-#request {
-  padding: 16px 0;
-}
-
-#response {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding: 16px 0;
-}
-
-#data {
-  /* height: 100%; */
-  margin: 16px 0;
-  background: lightgray;
-}
-
 table,
 thead,
 tbody {
@@ -194,7 +175,7 @@ thead {
 }
 
 tbody {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 400;
 }
 
@@ -203,4 +184,41 @@ td {
   display: flex;
   flex: 1;
   padding: 16px;
+}
+
+/* DeviceList styles */
+
+#search {
+  padding: 16px 0;
+}
+
+#device_list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 16px 0;
+}
+
+#data {
+  height: 100%;
+  margin: 16px 0;
+  background: lightgray;
+}
+
+#data .device_details_row {
+  background: white;
+}
+
+#data .device_details_row td {
+  display: flex;
+  flex-direction: column;
+}
+
+#data .device_details_table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#data .device_details_table td {
+  padding: 4px;
 }

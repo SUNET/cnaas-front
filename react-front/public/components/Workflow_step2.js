@@ -15,6 +15,7 @@ class Workflow_step2 extends React.Component {
   deviceSyncTo = () => {
     const credentials =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
+      
     console.log("you clicked the start sync info button");
     fetch("https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto", {
       method: "POST",
