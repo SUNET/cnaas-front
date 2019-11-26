@@ -13,14 +13,14 @@ const putData = (url, credentials, dataToSend) => {
     .then(response => response.json());
 };
 
-const postData = (url, credentials, data) => {
+const postData = (url, credentials, dataToSend) => {
   return fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials}`
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(dataToSend)
   })
     .then(response => checkRequestStatus(response))
     .then(response => response.json());
