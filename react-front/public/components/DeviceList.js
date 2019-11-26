@@ -1,6 +1,7 @@
 import React from "react";
 import DeviceSearchForm from "./DeviceSearchForm";
-import checkResponseStatus from "../utils/checkResponseStatus";
+import getData from "../utils/getData";
+// import checkResponseStatus from "../utils/checkResponseStatus";
 
 class DeviceList extends React.Component {
   state = {
@@ -13,37 +14,40 @@ class DeviceList extends React.Component {
     devicesData: []
   };
 
-  getDevicesData = (options) => {
+  getDevicesData = options => {
     if (options === undefined) options = {};
     let newState = this.state;
     if (options.sortField !== undefined) {
-      newState['sortField'] = options.sortField;
+      newState["sortField"] = options.sortField;
     }
-    if (options.filterField !== undefined && options.filterValue !== undefined) {
-      newState['filterField'] = options.filterField;
-      newState['filterValue'] = options.filterValue;
+    if (
+      options.filterField !== undefined &&
+      options.filterValue !== undefined
+    ) {
+      newState["filterField"] = options.filterField;
+      newState["filterValue"] = options.filterValue;
     }
     this.setState(newState);
     return this.getDevicesAPIData(
-      newState['sortField'],
-      newState['filterField'],
-      newState['filterValue']
+      newState["sortField"],
+      newState["filterField"],
+      newState["filterValue"]
     );
   };
 
-  sortHeader = (header) => {
+  sortHeader = header => {
     let newState = this.state;
     let sortField = "id";
-    const oldValue = this.state[header+'_sort'];
-    newState['hostname_sort'] = '';
-    newState['device_type_sort'] = '';
-    newState['synchronized_sort'] = '';
-    if (oldValue == '' || oldValue == '↑') {
-      newState[header+'_sort'] = "↓";
+    const oldValue = this.state[header + "_sort"];
+    newState["hostname_sort"] = "";
+    newState["device_type_sort"] = "";
+    newState["synchronized_sort"] = "";
+    if (oldValue == "" || oldValue == "↑") {
+      newState[header + "_sort"] = "↓";
       sortField = header;
-    } else if (oldValue == '↓') {
-      newState[header+'_sort'] = "↑";
-      sortField = "-"+header;
+    } else if (oldValue == "↓") {
+      newState[header + "_sort"] = "↑";
+      sortField = "-" + header;
     }
     this.setState(newState);
     this.getDevicesData({ sortField: sortField });
@@ -54,41 +58,30 @@ class DeviceList extends React.Component {
   }
 
   getDevicesAPIData = (sortField = "id", filterField, filterValue) => {
-    // check that button click works
     const credentials =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
     let filterParams = "";
     console.log("you clicked the button");
     if (filterField != null && filterValue != null) {
-      filterParams = "&filter["+filterField+"][contains]="+filterValue;
+      filterParams = "&filter[" + filterField + "][contains]=" + filterValue;
     }
-
-    fetch(
+    const url =
       "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort=" +
-        sortField +
-        filterParams,
+      sortField +
+      filterParams;
+    getData(url, credentials).then(data => {
+      console.log("this should be data", data);
       {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${credentials}`
-        }
+        this.setState(
+          {
+            devicesData: data.data.devices
+          },
+          () => {
+            console.log("this is new state", this.state.devicesData);
+          }
+        );
       }
-    )
-      .then(response => checkResponseStatus(response))
-      .then(response => response.json())
-      .then(data => {
-        console.log("this should be data", data);
-        {
-          this.setState(
-            {
-              devicesData: data.data.devices
-            },
-            () => {
-              console.log("this is new state", this.state.devicesData);
-            }
-          );
-        }
-      });
+    });
   };
 
   render() {
@@ -124,9 +117,24 @@ class DeviceList extends React.Component {
             <table>
               <thead>
                 <tr>
-                  <th onClick={()=>this.sortHeader("hostname")}>Hostname <div className="hostname_sort">{this.state.hostname_sort}</div></th>
-                  <th onClick={()=>this.sortHeader("device_type")}>Device type<div className="device_type_sort">{this.state.device_type_sort}</div></th>
-                  <th onClick={()=>this.sortHeader("synchronized")}>Sync. status<div className="sync_status_sort">{this.state.synchronized_sort}</div></th>
+                  <th onClick={() => this.sortHeader("hostname")}>
+                    Hostname{" "}
+                    <div className="hostname_sort">
+                      {this.state.hostname_sort}
+                    </div>
+                  </th>
+                  <th onClick={() => this.sortHeader("device_type")}>
+                    Device type
+                    <div className="device_type_sort">
+                      {this.state.device_type_sort}
+                    </div>
+                  </th>
+                  <th onClick={() => this.sortHeader("synchronized")}>
+                    Sync. status
+                    <div className="sync_status_sort">
+                      {this.state.synchronized_sort}
+                    </div>
+                  </th>
                   <th>id</th>
                 </tr>
               </thead>
