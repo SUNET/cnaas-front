@@ -12,6 +12,8 @@ class Workflow_step2 extends React.Component {
     deviceSyncStatus: [],
     deviceSyncJobId: [],
     jobsData: [],
+    jobStartTime: [],
+    jobFinishTime: []
     // finishedDevices: [],
     // totalDevices: []
     // errorMessage: ""
@@ -32,6 +34,9 @@ class Workflow_step2 extends React.Component {
             deviceSync: data.data,
             deviceSyncStatus: data.status,
             deviceSyncJobId: data.job_id
+            // jobStartTime: data.start_time,
+            // jobFinishTime: data.finish_time,
+            // exception: data.exception
           },
           () => {
             this.syncStatus();
@@ -82,11 +87,16 @@ class Workflow_step2 extends React.Component {
       // let totalDevices = job.result._totals.selected_devices;
       // let jobStatus = job.status;
       // let finishedDevices = job.finished_devices.length;
+      let jobStartTime = job.start_time;
+      let jobFinishTime = job.finish_time;
+      let exceptionText = job.exception;
+      
       let finishedDevices = randomIntFromInterval(0, 100);
       console.log("this is finsihedDevices", finishedDevices);
       let totalDevices = 100;
       return (
         <div id="progressbar">
+          <p>Progress bar</p>
           <progress
             min="0"
             max={totalDevices}
@@ -95,6 +105,10 @@ class Workflow_step2 extends React.Component {
           <label>
             {finishedDevices}/{totalDevices} devices finished
           </label>
+          <p>Other job info</p>
+          <p>status: {syncStatus}</p>
+          <p>start time: {jobStartTime}</p>
+          <p>finish time: {jobFinishTime}</p>
         </div>
       );
     });
@@ -119,8 +133,7 @@ class Workflow_step2 extends React.Component {
             <p>{syncStatus}</p>
             <p>{syncJobId}</p>
           </div>
-          <div>
-            <p>Progress bar</p>
+          <div>          
             {jobsProgress}
           </div>
         </div>
