@@ -186,6 +186,32 @@ td {
   padding: 16px;
 }
 
+/* progress bar styles */
+
+#progressbar {
+  margin: 16px;
+}
+
+progress {
+  width: calc(100% - 32px);
+  height: 28px;
+  border-radius: 10px;
+}
+
+progress::-webkit-progress-bar {
+  border-radius: 3px;
+  background-color: #ffe7dd;
+}
+progress::-webkit-progress-value {
+  border-radius: 3px;
+  background-color: #ff4500;
+}
+
+progress::-moz-progress-bar {
+  border-radius: 3px;
+  background-color: yellow;
+}
+
 /* DeviceList styles */
 
 #search {
