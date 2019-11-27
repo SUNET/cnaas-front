@@ -1,6 +1,6 @@
 import React from "react";
-// import getData from "../../utils/getData";
 import ConfigChangeProgressBar from "./ConfigChangeProgressBar";
+import getData from "../../utils/getData";
 import { postData } from "../../utils/sendData";
 //WORK IN PROGRESS
 
@@ -10,9 +10,9 @@ class ConfigChangeStep2 extends React.Component {
     deviceSync: [],
     deviceSyncStatus: [],
     deviceSyncJobId: [],
-    // jobsData: [],
-    jobStartTime: [],
-    jobFinishTime: []
+    jobsData: []
+    // jobStartTime: [],
+    // jobFinishTime: []
     // finishedDevices: [],
     // totalDevices: []
     // errorMessage: ""
@@ -35,88 +35,63 @@ class ConfigChangeStep2 extends React.Component {
             deviceSyncJobId: data.job_id
             // startJobIdSync: data.job_id
             // jobStartTime: data.start_time,
-            // jobFinishTime: data.finish_time,
+            // jobFinishTime: data.finish_time
             // exception: data.exception
           },
-          // () => {
-          //   this.syncStatus();
-          // },
           () => {
-            console.log("this is new state", this.state.deviceSync);
+            this.syncStatus();
+          },
+          () => {
+            console.log("this is new state", this.state.deviceSyncJobId);
           }
         );
       }
     });
   };
 
-  // syncStatus = () => {
-  //   // let jobId = this.state.deviceSyncJobId;
-  //   let jobId = "5ddbe1548b2d390c963b97d8";
-  //   const credentials =
-  //     "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
+  syncStatus = () => {
+    // let jobId = this.state.deviceSyncJobId;
+    // console.log("this is id", id);
+    let jobId = "5ddbe1548b2d390c963b97d8";
+    const credentials =
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
 
-  //   console.log("this API call is automatic");
-  //   let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
-  //   getData(url, credentials).then(data => {
-  //     console.log("this should be data.data.jobs", data.data.jobs);
-  //     {
-  //       this.setState(
-  //         {
-  //           jobsData: data.data.jobs
-  //         },
-  //         () => {
-  //           console.log("this is jobs data", this.state.jobsData);
-  //         }
-  //       );
-  //     }
-  //   });
-  // };
+    console.log("this API call is automatic");
+    let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
+    getData(url, credentials).then(data => {
+      console.log("this should be data.data.jobs", data.data.jobs);
+      {
+        this.setState(
+          {
+            jobsData: data.data.jobs
+          },
+          () => {
+            console.log("this is jobs data", this.state.jobsData);
+          }
+        );
+      }
+    });
+  };
 
   render() {
     // console.log("these are props (in Workflow)", this.props);
     let syncMessage = this.state.deviceSync;
     let syncStatus = this.state.deviceSyncStatus;
     let syncJobId = this.state.deviceSyncJobId;
-    let jobStartTime = "today, 09:34";
-    let jobFinishTime = "today, 09:44";
+    let jobsData = this.state.jobsData;
     // let exceptionText = job.exception;
+    let jobStatus = "";
+    let jobStartTime = "";
+    let jobFinishTime = "";
 
-    console.log("this is job_id send from parent to progressbar:", syncJobId);
-    // let jobsData = this.state.jobsData;
+    jobsData.map((job, i) => {
+      jobStatus = job.status;
+      jobStartTime = job.start_time;
+      jobFinishTime = job.finish_time;
 
-    // function randomIntFromInterval(min, max) {
-    //   return Math.floor(Math.random() * (max - min + 1) + min);
-    // }
+      return jobStatus, syncStatus, jobStartTime, jobFinishTime;
+    });
 
-    // let jobsProgress = jobsData.map((job, i) => {
-    //   // let totalDevices = job.result._totals.selected_devices;
-    //   // let jobStatus = job.status;
-    //   // let finishedDevices = job.finished_devices.length;
-    //   let jobStartTime = job.start_time;
-    //   let jobFinishTime = job.finish_time;
-    //   let exceptionText = job.exception;
-
-    //   let finishedDevices = randomIntFromInterval(0, 100);
-    //   console.log("this is finsihedDevices", finishedDevices);
-    //   let totalDevices = 100;
-    //   return (
-    //     <div id="progressbar">
-    //       <p>Progress bar</p>
-    //       <progress
-    //         min="0"
-    //         max={totalDevices}
-    //         value={finishedDevices}
-    //       ></progress>
-    //       <label>
-    //         {finishedDevices}/{totalDevices} devices finished
-    //       </label>
-    //       <p>Other job info</p>
-    //       <p>status: {syncStatus}</p>
-    //       <p>start time: {jobStartTime}</p>
-    //       <p>finish time: {jobFinishTime}</p>
-    //     </div>
-    //   );
-    // });
     return (
       <div className="workflow-container">
         <div className="workflow-container__header">
@@ -139,13 +114,15 @@ class ConfigChangeStep2 extends React.Component {
             <p>{syncJobId}</p>
           </div>
           <div>
-            <ConfigChangeProgressBar jobId={this.state.deviceSyncJobId} />
-            {/* {jobsProgress} */}
+            <ConfigChangeProgressBar jobData={this.state.jobsData} />
           </div>
-          <p>Other job info</p>
-          <p>status: {syncStatus}</p>
-          <p>start time: {jobStartTime}</p>
-          <p>finish time: {jobFinishTime}</p>
+          <div>
+            <p>Other job info</p>
+            <p>job status: {jobStatus}</p>
+            <p>status: {syncStatus}</p>
+            <p>start time: {jobStartTime}</p>
+            <p>finish time: {jobFinishTime}</p>
+          </div>
         </div>
       </div>
     );
