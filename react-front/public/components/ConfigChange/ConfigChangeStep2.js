@@ -2,26 +2,19 @@ import React from "react";
 import ConfigChangeProgressBar from "./ConfigChangeProgressBar";
 import getData from "../../utils/getData";
 import { postData } from "../../utils/sendData";
-//WORK IN PROGRESS
 
 class ConfigChangeStep2 extends React.Component {
   state = {
-    // token: "",
-    deviceSync: [],
-    deviceSyncStatus: [],
-    deviceSyncJobId: [],
-    jobsData: []
-    // jobStartTime: [],
-    // jobFinishTime: []
-    // finishedDevices: [],
-    // totalDevices: []
+    token:
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw",
+    syncData: [],
+    jobsData: [],
+    repeatingData: []
     // errorMessage: ""
   };
 
   deviceSyncTo = () => {
-    const credentials =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
-
+    const credentials = this.state.token;
     console.log("you clicked the start sync info button");
     let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
     let dataToSend = { dry_run: true, all: true };
@@ -30,19 +23,13 @@ class ConfigChangeStep2 extends React.Component {
       {
         this.setState(
           {
-            deviceSync: data.data,
-            deviceSyncStatus: data.status,
-            deviceSyncJobId: data.job_id
-            // startJobIdSync: data.job_id
-            // jobStartTime: data.start_time,
-            // jobFinishTime: data.finish_time
-            // exception: data.exception
+            syncData: data
           },
           () => {
             this.syncStatus();
           },
           () => {
-            console.log("this is new state", this.state.deviceSyncJobId);
+            console.log("this is new state", this.state.syncData);
           }
         );
       }
@@ -53,43 +40,67 @@ class ConfigChangeStep2 extends React.Component {
     // let jobId = this.state.deviceSyncJobId;
     // console.log("this is id", id);
     let jobId = "5ddbe1548b2d390c963b97d8";
-    const credentials =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
-
+    const credentials = this.state.token;
     console.log("this API call is automatic");
     let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
-    getData(url, credentials).then(data => {
-      console.log("this should be data.data.jobs", data.data.jobs);
-      {
-        this.setState(
-          {
-            jobsData: data.data.jobs
-          },
-          () => {
-            console.log("this is jobs data", this.state.jobsData);
-          }
-        );
-      }
-    });
+
+    let repeatingData = setInterval(() => {
+      getData(url, credentials).then(data => {
+        console.log("this should be data.data.jobs", data.data.jobs);
+        {
+          this.setState(
+            {
+              jobsData: data.data.jobs,
+              repeatingData: repeatingData
+            },
+            () => {
+              console.log("this is jobs data", this.state.jobsData);
+            }
+          );
+        }
+      });
+    }, 500);
   };
 
+  randomIntFromInterval(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
   render() {
-    // console.log("these are props (in Workflow)", this.props);
-    let syncMessage = this.state.deviceSync;
-    let syncStatus = this.state.deviceSyncStatus;
-    let syncJobId = this.state.deviceSyncJobId;
-    let jobsData = this.state.jobsData;
-    // let exceptionText = job.exception;
+    // extract collect sync data
+    let syncData = this.state.syncData;
+    let syncMessage = syncData.data;
+    let syncStatus = syncData.status;
+    let syncJobId = syncData.job_id;
+
+    // iterate trhough the job data and extract relevant info
     let jobStatus = "";
     let jobStartTime = "";
     let jobFinishTime = "";
+    // totalDevices mocked at 100 for progress bar
+    let finishedDevices = 0;
+    let totalDevices = 100;
 
+    let jobsData = this.state.jobsData;
     jobsData.map((job, i) => {
       jobStatus = job.status;
       jobStartTime = job.start_time;
       jobFinishTime = job.finish_time;
 
-      return jobStatus, syncStatus, jobStartTime, jobFinishTime;
+      // generating random data to mock value in progress bar
+      finishedDevices = this.randomIntFromInterval(0, 100);
+      console.log("this is finsihedDevices", finishedDevices);
+      // extracting actual data when API populated
+      // let finishedDevices = job.finished_devices.length;
+      // let totalDevices = job.result._totals.selected_devices;
+      // let exceptionText = job.exception;
+
+      // stop the setInterval when job status is finished
+      if (jobStatus === "FINISHED") {
+        console.log("jobStatus is finished");
+        clearInterval(this.state.repeatingData);
+      }
+      return jobStatus, jobStartTime, jobFinishTime, finishedDevices;
     });
 
     return (
@@ -114,11 +125,12 @@ class ConfigChangeStep2 extends React.Component {
             <p>{syncJobId}</p>
           </div>
           <div>
-            <ConfigChangeProgressBar jobData={this.state.jobsData} />
+            <ConfigChangeProgressBar
+              finishedDevices={finishedDevices}
+              totalDevices={totalDevices}
+            />
           </div>
           <div>
-            <p>Other job info</p>
-            <p>job status: {jobStatus}</p>
             <p>status: {syncStatus}</p>
             <p>start time: {jobStartTime}</p>
             <p>finish time: {jobFinishTime}</p>
