@@ -1,11 +1,9 @@
 import React from "react";
-import checkResponseStatus from "../utils/checkResponseStatus";
-import { Progress } from "semantic-ui-react";
-import getData from "../utils/getData";
-import { postData } from "../utils/sendData";
+import getData from "../../utils/getData";
+import { postData } from "../../utils/sendData";
 //WORK IN PROGRESS
 
-class Workflow_step2 extends React.Component {
+class ConfigChangeStep2 extends React.Component {
   state = {
     // token: "",
     deviceSync: [],
@@ -142,4 +140,4 @@ class Workflow_step2 extends React.Component {
   }
 }
 
-export default Workflow_step2;
+export default ConfigChangeStep2;

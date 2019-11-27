@@ -17,9 +17,9 @@ class Header extends React.Component {
             <NavLink
               exact
               activeClassName="active"
-              to={`/workflow`}
+              to={`/config-change`}
             >
-              <li>Workflow</li>
+              <li>Config change</li>
             </NavLink>
           </ul>
         </nav>

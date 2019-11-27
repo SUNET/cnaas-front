@@ -1,8 +1,8 @@
 import React from "react";
-import getData from "../utils/getData";
-import { putData } from "../utils/sendData";
+import getData from "../../utils/getData";
+import { putData } from "../../utils/sendData";
 
-class Workflow_step1 extends React.Component {
+class ConfigChangeStep1 extends React.Component {
   state = {
     // token: "",
     commitInfo: [],
@@ -83,4 +83,4 @@ class Workflow_step1 extends React.Component {
   }
 }
 
-export default Workflow_step1;
+export default ConfigChangeStep1;

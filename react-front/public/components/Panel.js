@@ -1,6 +1,6 @@
 import React from "react";
 import DeviceList from "./DeviceList";
-import Workflow from "./Workflow";
+import ConfigChange from "./ConfigChange/ConfigChange";
 import { Route } from "react-router-dom";
 
 class Panel extends React.Component {
@@ -9,7 +9,7 @@ class Panel extends React.Component {
     return (
       <div id="panel">
         <Route exact path="/" component={DeviceList} />
-        <Route exact path="/workflow" component={Workflow} />
+        <Route exact path="/config-change" component={ConfigChange} />
       </div>
     );
   }
