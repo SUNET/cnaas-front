@@ -51,11 +51,19 @@ h2 {
   line-height: 1.2;
 }
 
+h2:first-child {
+  margin-top: 32px;
+}
+
 p {
   font-size: 16px;
   margin: 16px 0;
   line-height: 1.2;
   font-weight: 400;
+}
+
+p:first-child {
+  margin-top: 16px;
 }
 
 button {
@@ -103,6 +111,7 @@ footer {
 .workflow-container {
   border: solid gray 1px;
   margin: 16px 0;
+  padding-bottom: 16px;
 }
 
 .workflow-container h2,
@@ -175,6 +184,32 @@ td {
   display: flex;
   flex: 1;
   padding: 16px;
+}
+
+/* progress bar styles */
+
+#progressbar {
+  margin: 16px;
+}
+
+progress {
+  width: calc(100% - 32px);
+  height: 28px;
+  border-radius: 10px;
+}
+
+progress::-webkit-progress-bar {
+  border-radius: 3px;
+  background-color: #ffe7dd;
+}
+progress::-webkit-progress-value {
+  border-radius: 3px;
+  background-color: #ff4500;
+}
+
+progress::-moz-progress-bar {
+  border-radius: 3px;
+  background-color: yellow;
 }
 
 /* DeviceList styles */
