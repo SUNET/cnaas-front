@@ -11,7 +11,9 @@ class Workflow_step2 extends React.Component {
     deviceSync: [],
     deviceSyncStatus: [],
     deviceSyncJobId: [],
-    jobsData: []
+    jobsData: [],
+    // finishedDevices: [],
+    // totalDevices: []
     // errorMessage: ""
   };
 
@@ -83,18 +85,18 @@ class Workflow_step2 extends React.Component {
       let finishedDevices = randomIntFromInterval(0, 100);
       console.log("this is finsihedDevices", finishedDevices);
       let totalDevices = 100;
-      // if (finishedDevices === 0) {
-      // return <p key="0">none of {totalDevices} devices</p>;
-      // }
-      // if (jobStatus === "FINISHED") {
-      //   return <p key="0">Done</p>;
-      // } else {
       return (
-        <p key="0">
-          {finishedDevices}/{totalDevices}
-        </p>
+        <div id="progressbar">
+          <progress
+            min="0"
+            max={totalDevices}
+            value={finishedDevices}
+          ></progress>
+          <label>
+            {finishedDevices}/{totalDevices}
+          </label>
+        </div>
       );
-      // }
     });
     return (
       <div className="workflow-container">
@@ -120,7 +122,6 @@ class Workflow_step2 extends React.Component {
           <div>
             <p>Progress bar</p>
             {jobsProgress}
-            <Progress />
           </div>
         </div>
       </div>
