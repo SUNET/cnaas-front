@@ -9,7 +9,7 @@ class ConfigChangeStep2 extends React.Component {
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw",
     syncData: [],
     jobsData: [],
-    repeatingData: []
+    repeatingData: [] // setInterval ID saved in state to be accessible to all class methods
     // errorMessage: ""
   };
 
@@ -37,8 +37,9 @@ class ConfigChangeStep2 extends React.Component {
   };
 
   syncStatus = () => {
+    // use jobId from API in url
     // let jobId = this.state.deviceSyncJobId;
-    // console.log("this is id", id);
+    // mock jobId that returns relevant data
     let jobId = "5ddbe1548b2d390c963b97d8";
     const credentials = this.state.token;
     console.log("this API call is automatic");
