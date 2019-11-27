@@ -93,7 +93,7 @@ class Workflow_step2 extends React.Component {
             value={finishedDevices}
           ></progress>
           <label>
-            {finishedDevices}/{totalDevices}
+            {finishedDevices}/{totalDevices} devices finished
           </label>
         </div>
       );
