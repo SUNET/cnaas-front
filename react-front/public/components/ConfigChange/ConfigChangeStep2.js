@@ -38,9 +38,9 @@ class ConfigChangeStep2 extends React.Component {
 
   syncStatus = () => {
     // use jobId from API in url
-    // let jobId = this.state.deviceSyncJobId;
+    // let jobId = this.state.syncData.job_id;
     // mock jobId that returns relevant data
-    let jobId = "5ddbe1548b2d390c963b97d8";
+    // let jobId = "5ddbe1548b2d390c963b97d8";
     const credentials = this.state.token;
     console.log("this API call is automatic");
     let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
