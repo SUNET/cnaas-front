@@ -68,7 +68,7 @@ class ConfigChangeStep2 extends React.Component {
   }
 
   render() {
-    // extract collect sync data
+    // extract sync data
     let syncData = this.state.syncData;
     let syncMessage = syncData.data;
     let syncStatus = syncData.status;
