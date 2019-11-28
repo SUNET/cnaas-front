@@ -97,8 +97,8 @@ class ConfigChangeStep2 extends React.Component {
       // let exceptionText = job.exception;
 
       // stop the setInterval when job status is finished
-      if (jobStatus === "FINISHED") {
-        console.log("jobStatus is finished");
+      if (jobStatus === "FINISHED" || jobStatus === "EXCEPTION" ) {
+        console.log("jobStatus is finished or errored");
         clearInterval(this.state.repeatingData);
       }
       return jobStatus, jobStartTime, jobFinishTime, finishedDevices;
