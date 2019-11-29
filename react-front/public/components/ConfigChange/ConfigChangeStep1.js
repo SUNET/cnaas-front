@@ -1,18 +1,17 @@
 import React from "react";
-import getData from "../utils/getData";
-import { putData } from "../utils/sendData";
+import getData from "../../utils/getData";
+import { putData } from "../../utils/sendData";
 
-class Workflow_step1 extends React.Component {
+class ConfigChangeStep1 extends React.Component {
   state = {
-    // token: "",
+    token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw",
     commitInfo: [],
     latestCommitInfo: []
     // errorMessage: ""
   };
 
   getCommitInfo = () => {
-    const credentials =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
+    const credentials = this.state.token;
     let url =
       "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/repository/settings";
   
@@ -33,8 +32,7 @@ class Workflow_step1 extends React.Component {
 
   // this request takes some time, perhaps work in a "loading..."
   refreshCommitInfo = () => {
-    const credentials =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw";
+    const credentials = this.state.token;
     let url =
       "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/repository/settings";
     let dataToSend = { action: "REFRESH" };
@@ -83,4 +81,4 @@ class Workflow_step1 extends React.Component {
   }
 }
 
-export default Workflow_step1;
+export default ConfigChangeStep1;
