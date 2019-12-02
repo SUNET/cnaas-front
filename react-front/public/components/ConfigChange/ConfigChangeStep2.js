@@ -21,17 +21,19 @@ class ConfigChangeStep2 extends React.Component {
       },
       () => {
         this.deviceSyncTo();
-      }
+      },
+      this.setState(prevState => ({
+        dataToSend: !prevState.dataToSend
+      }))
     );
   };
 
   deviceSyncTo = () => {
-    // let dataToSend = { dry_run: true, all: true };
+    const credentials = this.state.token;
+    let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
     let dataToSend = this.state.dataToSend;
     console.log("this is dataToSend", dataToSend);
-    const credentials = this.state.token;
     console.log("you clicked the start sync info button");
-    let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
     postData(url, credentials, dataToSend).then(data => {
       console.log("this should be data", data);
       {
@@ -120,7 +122,7 @@ class ConfigChangeStep2 extends React.Component {
     }
     // allow a force retry of dry run if it errored
     // jobStatus === "EXCEPTION"
-    if (true) {
+    if (jobStatus === "FINISHED") {
       console.log("jobStatus errored");
       error = [
         <div>
