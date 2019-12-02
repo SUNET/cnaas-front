@@ -126,11 +126,11 @@ class ConfigChangeStep2 extends React.Component {
       console.log("jobStatus errored");
       error = [
         <div>
-          <p>something went wrong</p>
-          <button key="0" onClick={this.deviceSyncTo}>
+          <p key="0">something went wrong</p>
+          <button key="1" onClick={this.deviceSyncTo}>
             Retry
           </button>
-          <button key="1" onClick={this.deviceSyncToWithForce}>
+          <button key="2" onClick={this.deviceSyncToWithForce}>
             Force retry
           </button>
         </div>
@@ -139,18 +139,18 @@ class ConfigChangeStep2 extends React.Component {
 
     return (
       <div className="workflow-container">
-        <div className="workflow-container__header">
+        <div key="0" className="workflow-container__header">
           <h2>Dry run (2/4)</h2>
           <a href="#">
             <button className="workflow-container__button--hide">Close</button>
           </a>
         </div>
-        <div className="workflow-collapsable">
+        <div key="1" className="workflow-collapsable">
           <p>
             Step 2 of 4: Sending generated configuration to devices to calculate
             diff and check sanity
           </p>
-          <div className="workflow-collapsable__button-result">
+          <div key="2" className="workflow-collapsable__button-result">
             <button key="0" onClick={this.deviceSyncTo}>
               Start sync
             </button>
@@ -158,19 +158,19 @@ class ConfigChangeStep2 extends React.Component {
             <p>{syncStatus}</p>
             <p>{syncJobId}</p>
           </div>
-          <div>
+          <div key="3">
             <ConfigChangeProgressBar
               finishedDevices={finishedDevices}
               totalDevices={totalDevices}
             />
           </div>
-          <div>
+          <div key="4">
             <p>status: {syncStatus}</p>
             <p>start time: {jobStartTime}</p>
             <p>finish time: {jobFinishTime}</p>
           </div>
 
-          <div>{error}</div>
+          <div key="5">{error}</div>
         </div>
       </div>
     );
