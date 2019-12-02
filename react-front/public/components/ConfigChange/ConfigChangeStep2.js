@@ -95,14 +95,20 @@ class ConfigChangeStep2 extends React.Component {
       // let finishedDevices = job.finished_devices.length;
       // let totalDevices = job.result._totals.selected_devices;
       // let exceptionText = job.exception;
-
-      // stop the setInterval when job status is finished
-      if (jobStatus === "FINISHED" || jobStatus === "EXCEPTION" ) {
-        console.log("jobStatus is finished or errored");
-        clearInterval(this.state.repeatingData);
-      }
       return jobStatus, jobStartTime, jobFinishTime, finishedDevices;
     });
+
+    // stop the setInterval when job status is finished
+    if (jobStatus === "FINISHED" || jobStatus === "EXCEPTION") {
+      console.log("jobStatus is finished or errored");
+      clearInterval(this.state.repeatingData);
+    }
+    // allow a force retry of dry run if it errored
+    // jobStatus === "EXCEPTION"
+    if (true) {
+      console.log("jobStatus errored");
+      
+    }
 
     return (
       <div className="workflow-container">
