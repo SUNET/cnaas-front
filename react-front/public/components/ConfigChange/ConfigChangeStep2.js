@@ -68,6 +68,7 @@ class ConfigChangeStep2 extends React.Component {
   }
 
   render() {
+    let error = "";
     // extract sync data
     let syncData = this.state.syncData;
     let syncMessage = syncData.data;
@@ -105,20 +106,30 @@ class ConfigChangeStep2 extends React.Component {
     }
     // allow a force retry of dry run if it errored
     // jobStatus === "EXCEPTION"
-    if (true) {
+    if (jobStatus === "FINISHED") {
       console.log("jobStatus errored");
-      
+      error = [
+        <div>
+          <p key="0">something went wrong</p>
+          <button key="1" onClick={this.syncStatus}>
+            Retry
+          </button>
+          <button key="2" onClick={this.syncStatus({force: true})}>
+            Force retry
+          </button>
+        </div>
+      ];
     }
 
     return (
       <div className="workflow-container">
-        <div className="workflow-container__header">
+        <div key="0" className="workflow-container__header">
           <h2>Dry run (2/4)</h2>
           <a href="#">
             <button className="workflow-container__button--hide">Close</button>
           </a>
         </div>
-        <div className="workflow-collapsable">
+        <div key="1" className="workflow-collapsable">
           <p>
             Step 2 of 4: Sending generated configuration to devices to calculate
             diff and check sanity
@@ -131,17 +142,18 @@ class ConfigChangeStep2 extends React.Component {
             <p>{syncStatus}</p>
             <p>{syncJobId}</p>
           </div>
-          <div>
+          <div key="2">
             <ConfigChangeProgressBar
               finishedDevices={finishedDevices}
               totalDevices={totalDevices}
             />
           </div>
-          <div>
+          <div key="3">
             <p>status: {syncStatus}</p>
             <p>start time: {jobStartTime}</p>
             <p>finish time: {jobFinishTime}</p>
           </div>
+          <div key="4">{error}</div>
         </div>
       </div>
     );
