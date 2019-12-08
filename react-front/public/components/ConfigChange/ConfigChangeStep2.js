@@ -61,7 +61,7 @@ class ConfigChangeStep2 extends React.Component {
     let failingDevices = "";
     if (dryRunJobStatus === "FINISHED") {
       finishedDevices = 100;
-      failingDevices = [<DeviceFailList devices={this.props.devices} />];
+      // failingDevices = [<DeviceFailList devices={this.props.devices} />];
     }
 
     return (
