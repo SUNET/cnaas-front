@@ -16,9 +16,10 @@ class DeviceFailList extends React.Component {
           return i;
         }
         return false;
-      });
-    
-      console.log("failedDeviceNameObj: ", failedDeviceNameObj);
+      })
+      .filter(status => status !== false);
+
+    console.log("failedDeviceNameObj: ", failedDeviceNameObj);
 
     return (
       <div>
