@@ -12,7 +12,7 @@ class ConfigChange extends React.Component {
     token:
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw",
     dryRunSyncData: [],
-    dryRunProgressData: [],
+    dryRunProgressData: []
     // errorMessage: ""
   };
 
@@ -62,24 +62,42 @@ class ConfigChange extends React.Component {
       getData(url, credentials).then(data => {
         console.log("this should be data.data.jobs", data.data.jobs);
         {
-          this.setState(
-            {
-              dryRunProgressData: data.data.jobs
-            }
-          );
+          this.setState({
+            dryRunProgressData: data.data.jobs
+          });
         }
       });
     }, 500);
   };
 
   render() {
+    let dryRunProgressData = this.state.dryRunProgressData;
+    let dryRunJobStatus = "";
+    dryRunProgressData.map((job, i) => {
+      dryRunJobStatus = job.status;
+    });
+
+    if (dryRunJobStatus === "FINISHED" || dryRunJobStatus === "EXCEPTION") {
+      clearInterval(this.repeatingJobData);
+      if (dryRunJobStatus === "FINISHED") {
+        dryRunProgressData.map((job, i) => {
+          dryRunResults = job.result.devices;
+        });
+      }
+    }
+
     // console.log("hello! this is the workflow component");
     // console.log("these are props (in Workflow)", this.props);
     return (
       <section>
         <h1>Commit changes workflow</h1>
         <ConfigChangeStep1 />
-        <ConfigChangeStep2 />
+        <ConfigChangeStep2
+          dryRunSyncStart={this.dryRunSyncStart}
+          dryRunProgressData={dryRunProgressData}
+          dryRunJobStatus={dryRunJobStatus}
+          devices={dryRunResults}
+        />
         <ConfigChangeStep3 />
         <ConfigChangeStep4 />
       </section>
