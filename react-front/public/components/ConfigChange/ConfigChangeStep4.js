@@ -11,7 +11,10 @@ class ConfigChangeStep4 extends React.Component {
           </a>
         </div>
         <div className="workflow-collapsable">
-          <p>this is box4 </p>
+          <p>Step 4 of 4: Final step</p>
+          <button id="confirm" onClick={e => this.props.dryRunSyncStart(e)}>
+           Confirm commit
+          </button>
         </div>
       </div>
     );
