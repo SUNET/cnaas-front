@@ -1,5 +1,5 @@
 import React from "react";
-import ConfigChangeProgressBar from "./ConfigChangeProgressBar";
+import ProgressBar from "./ProgressBar";
 import getData from "../../utils/getData";
 import { postData } from "../../utils/sendData";
 
@@ -86,7 +86,7 @@ class ConfigChangeStep2 extends React.Component {
               </button>
             </div>
             <div key="1">
-              <ConfigChangeProgressBar
+              <ProgressBar
                 value={finishedDevices}
                 total={totalDevices}
               />

@@ -1,6 +1,6 @@
 import React from "react";
 
-class ConfigChangeProgressBar extends React.Component {
+class ProgressBar extends React.Component {
   state = {};
   // this could propably be a function
   render() {
@@ -17,4 +17,4 @@ class ConfigChangeProgressBar extends React.Component {
   }
 }
 
-export default ConfigChangeProgressBar;
+export default ProgressBar;
