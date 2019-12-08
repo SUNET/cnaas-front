@@ -15,9 +15,15 @@ class ConfigChangeStep3 extends React.Component {
           </a>
         </div>
         <div className="workflow-collapsable">
-          <p>
-            this is box3 this will display results from step 2 and 2 buttons
-          </p>
+          <p>Step 3 of 4: Look through and verify diff</p>
+          <div>
+            <button key="1" onClick={this.approveDiff}>
+              Approve
+            </button>
+            <button key="2" onClick={this.rejectDiff}>
+              Reject
+            </button>
+          </div>
         </div>
       </div>
     );
