@@ -13,6 +13,7 @@ class ConfigChangeStep3 extends React.Component {
     console.log("these are props in step 3", this.props);
     let devicesObj = this.props.devices;
     console.log("this is devicesObj", devicesObj);
+    let dryRunChangeScore = this.props.dryRunChangeScore;
 
     return (
       <div className="workflow-container">
@@ -25,6 +26,7 @@ class ConfigChangeStep3 extends React.Component {
         <div className="workflow-collapsable">
           <p>Step 3 of 4: Look through and verify diff</p>
           <div>
+            <p>Total change score: {dryRunChangeScore}</p>
             <button key="1" onClick={this.approveDiff}>
               Approve
             </button>
