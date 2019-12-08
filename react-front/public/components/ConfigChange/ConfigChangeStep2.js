@@ -1,5 +1,6 @@
 import React from "react";
 import ProgressBar from "./ProgressBar";
+import DeviceFailList from "./DeviceFailList";
 import getData from "../../utils/getData";
 import { postData } from "../../utils/sendData";
 
@@ -61,7 +62,7 @@ class ConfigChangeStep2 extends React.Component {
     let failingDevices = "";
     if (dryRunJobStatus === "FINISHED") {
       finishedDevices = 100;
-      // failingDevices = [<DeviceFailList devices={this.props.devices} />];
+      failingDevices = [<DeviceFailList devices={this.props.devices} />];
     }
 
     return (
@@ -86,10 +87,7 @@ class ConfigChangeStep2 extends React.Component {
               </button>
             </div>
             <div key="1">
-              <ProgressBar
-                value={finishedDevices}
-                total={totalDevices}
-              />
+              <ProgressBar value={finishedDevices} total={totalDevices} />
               <p>status: {dryRunJobStatus}</p>
               <p className="error">{exceptionMessage}</p>
               <p>start time: {jobStartTime}</p>
