@@ -21,17 +21,16 @@ class ConfigChangeStep3 extends React.Component {
     const totalDevicesAffected = deviceNames.map(device => device.length);
 
     const deviceDiffArray = deviceData.map(device => {
-      return (
-        device.job_tasks
-          .map(subJob => {
-            if (subJob.diff !== "") {
-              return subJob.diff;
-            }
-            return null;
-          })
-      );
+      return device.job_tasks
+        .map(subJob => {
+          if (subJob.diff !== "") {
+            return subJob.diff;
+          }
+          return null;
+        })
+        .filter(diff => diff !== null);
     });
-     console.log("deviceDiffArray", deviceDiffArray);
+    console.log("deviceDiffArray", deviceDiffArray);
 
     return (
       <div className="workflow-container">
