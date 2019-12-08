@@ -65,37 +65,39 @@ class ConfigChangeStep2 extends React.Component {
     }
 
     return (
-      <div className="workflow-container">
-        <div className="workflow-container__header">
-          <h2>Dry run (2/4)</h2>
-          <a href="#">
-            <button className="workflow-container__button--hide">Close</button>
-          </a>
-        </div>
-        <div className="workflow-collapsable">
-          <p>
-            Step 2 of 4: Sending generated configuration to devices to calculate
-            diff and check sanity
-          </p>
-          <div className="workflow-collapsable__button-result">
-            <button key="0" onClick={this.deviceSyncTo}>
-              Start sync
-            </button>
-            <p>{syncMessage}</p>
-            <p>{syncStatus}</p>
-            <p>{syncJobId}</p>
+      <div>
+        <div className="workflow-container">
+          <div className="workflow-container__header">
+            <h2>Dry run (2/4)</h2>
+            <a href="#">
+              <button className="workflow-container__button--hide">
+                Close
+              </button>
+            </a>
           </div>
-          <div>
-            <ConfigChangeProgressBar
-              finishedDevices={finishedDevices}
-              totalDevices={totalDevices}
-            />
+          <div key="1" className="workflow-collapsable">
+            <p>
+              Step 2 of 4: Sending generated configuration to devices to
+              calculate diff and check sanity
+            </p>
+            <div key="0" className="inner-content">
+              <button key="0" onClick={e => this.props.dryRunSyncStart(e)}>
+                Start config dry run
+              </button>
+            </div>
+            <div key="1">
+              <ConfigChangeProgressBar
+                value={finishedDevices}
+                total={totalDevices}
+              />
+              <p>status: {dryRunJobStatus}</p>
+              <p className="error">{exceptionMessage}</p>
+              <p>start time: {jobStartTime}</p>
+              <p>finish time: {jobFinishTime}</p>
+            </div>
           </div>
-          <div>
-            <p>status: {syncStatus}</p>
-            <p>start time: {jobStartTime}</p>
-            <p>finish time: {jobFinishTime}</p>
-          </div>
+          {failingDevices}
+          {retryButtons}
         </div>
       </div>
     );
