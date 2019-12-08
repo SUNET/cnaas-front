@@ -262,3 +262,11 @@ progress::-moz-progress-bar {
   color: red;
   margin: 0 16px;
 }
+
+#diff-box pre {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  hyphens: auto;
+  padding: 16px;
+}
