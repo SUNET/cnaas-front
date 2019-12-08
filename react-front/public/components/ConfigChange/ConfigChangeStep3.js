@@ -20,14 +20,17 @@ class ConfigChangeStep3 extends React.Component {
 
     const totalDevicesAffected = deviceNames.map(device => device.length);
 
+    // iterate through values 
     const deviceDiffArray = deviceData.map(device => {
       return device.job_tasks
+      // iterate through the sub_tasks, create a new array where diffs are added (if they are there) and null if its empty 
         .map(subJob => {
           if (subJob.diff !== "") {
             return subJob.diff;
           }
           return null;
         })
+        // filter out empty diffs
         .filter(diff => diff !== null);
     });
     console.log("deviceDiffArray", deviceDiffArray);
