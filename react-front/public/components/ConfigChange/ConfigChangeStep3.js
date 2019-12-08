@@ -1,6 +1,14 @@
 import React from "react";
 
 class ConfigChangeStep3 extends React.Component {
+  approveDiff = () => {
+    return console.log("you approved diff");
+  };
+
+  rejectDiff = () => {
+    return console.log("you rejected diff");
+  };
+
   render() {
     console.log("these are props in step 3", this.props);
     let devicesObj = this.props.devices;
