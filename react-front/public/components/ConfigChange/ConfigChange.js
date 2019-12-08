@@ -76,8 +76,10 @@ class ConfigChange extends React.Component {
     let dryRunProgressData = this.state.dryRunProgressData;
     let dryRunJobStatus = "";
     let dryRunResults = "";
+    let dryRunChangeScore = "";
     dryRunProgressData.map((job, i) => {
       dryRunJobStatus = job.status;
+      dryRunChangeScore = job.change_score;
     });
 
     if (dryRunJobStatus === "FINISHED" || dryRunJobStatus === "EXCEPTION") {
