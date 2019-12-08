@@ -47,12 +47,12 @@ class ConfigChange extends React.Component {
   pollJobStatus = () => {
     // job id leading to finish / some devices failing / no diff
     // use jobId from API in url
-    let jobId = this.state.dryRunSyncData.job_id;
+    // let jobId = this.state.dryRunSyncData.job_id;
     // let jobId = "16";
     // job id leading to finish
     // let jobId = "5ddbe1548b2d390c963b97d8";
     // job id leading to finish / diff
-    // let jobId = "5";
+    let jobId = "5";
     // let jobId = "5de8d5608b2d394fe74709a0";
     // job id leading to exception
     // let jobId = "12";

@@ -16,9 +16,22 @@ class ConfigChangeStep3 extends React.Component {
     let dryRunChangeScore = this.props.dryRunChangeScore;
 
     const deviceNames = Object.keys(devicesObj);
+    const deviceData = Object.values(devicesObj);
 
     const totalDevicesAffected = deviceNames.map(device => device.length);
-    // console.log("totalDevicesAffected", totalDevicesAffected);
+
+    const deviceDiffArray = deviceData.map(device => {
+      return (
+        device.job_tasks
+          .map(subJob => {
+            if (subJob.diff !== "") {
+              return subJob.diff;
+            }
+            return null;
+          })
+      );
+    });
+     console.log("deviceDiffArray", deviceDiffArray);
 
     return (
       <div className="workflow-container">
