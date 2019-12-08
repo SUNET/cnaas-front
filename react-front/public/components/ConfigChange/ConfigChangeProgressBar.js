@@ -7,14 +7,9 @@ class ConfigChangeProgressBar extends React.Component {
     return (
       <div>
         <div id="progressbar">
-          <progress
-            min="0"
-            max="100"
-            value={this.props.finishedDevices}
-          ></progress>
+          <progress min="0" max="100" value={this.props.value}></progress>
           <label>
-            {this.props.finishedDevices}/{this.props.totalDevices} devices
-            finished
+            {this.props.value}/{this.props.total} devices finished
           </label>
         </div>
       </div>
