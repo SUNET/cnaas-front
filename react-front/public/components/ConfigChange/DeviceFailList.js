@@ -2,7 +2,6 @@ import React from "react";
 
 class DeviceFailList extends React.Component {
   render() {
-    let failedDeviceNameList = "";
     let devicesObj = this.props.devices;
     // split device object up into a key array and a values array
     const deviceNames = Object.keys(devicesObj);
@@ -28,6 +27,18 @@ class DeviceFailList extends React.Component {
         return obj;
       }, {});
     // console.log("failedDeviceNameObj: ", failedDeviceNameObj);
+
+    // pull out the names into an array and render
+    const failedDeviceNames = Object.values(failedDeviceNameObj);
+    let failedDeviceNameList = failedDeviceNames.map((name, i) => {
+      return (
+        <li key={i}>
+          <p className="error" key="0">
+            {name}
+          </p>
+        </li>
+      );
+    });
 
     return (
       <div>
