@@ -91,8 +91,6 @@ class ConfigChange extends React.Component {
       }
     }
 
-    // console.log("hello! this is the workflow component");
-    // console.log("these are props (in Workflow)", this.props);
     return (
       <section>
         <h1>Commit changes workflow</h1>
@@ -103,7 +101,10 @@ class ConfigChange extends React.Component {
           dryRunJobStatus={dryRunJobStatus}
           devices={dryRunResults}
         />
-        <ConfigChangeStep3 />
+        <ConfigChangeStep3
+          dryRunChangeScore={dryRunChangeScore}
+          devices={dryRunResults}
+        />
         <ConfigChangeStep4 />
       </section>
     );

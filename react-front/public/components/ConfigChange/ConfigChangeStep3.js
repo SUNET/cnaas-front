@@ -2,6 +2,10 @@ import React from "react";
 
 class ConfigChangeStep3 extends React.Component {
   render() {
+    console.log("these are props in step 3", this.props);
+    let devicesObj = this.props.devices;
+    console.log("this is devicesObj", devicesObj);
+
     return (
       <div className="workflow-container">
         <div className="workflow-container__header">
