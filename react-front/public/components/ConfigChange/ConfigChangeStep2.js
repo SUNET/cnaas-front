@@ -14,41 +14,55 @@ class ConfigChangeStep2 extends React.Component {
   }
 
   render() {
-    // extract sync data
-    let syncData = this.state.syncData;
-    let syncMessage = syncData.data;
-    let syncStatus = syncData.status;
-    let syncJobId = syncData.job_id;
+    console.log("this is props in configchange step 2", this.props);
+    let dryRunProgressData = this.props.dryRunProgressData;
+    let dryRunJobStatus = this.props.dryRunJobStatus;
 
-    // iterate trhough the job data and extract relevant info
-    let jobStatus = "";
     let jobStartTime = "";
     let jobFinishTime = "";
-    // totalDevices mocked at 100 for progress bar
-    let finishedDevices = 0;
-    let totalDevices = 100;
-
-    let jobsData = this.state.jobsData;
-    jobsData.map((job, i) => {
-      jobStatus = job.status;
+    dryRunProgressData.map((job, i) => {
       jobStartTime = job.start_time;
       jobFinishTime = job.finish_time;
-
-      // generating random data to mock value in progress bar
-      finishedDevices = this.randomIntFromInterval(0, 100);
-      console.log("this is finsihedDevices", finishedDevices);
-      // extracting actual data when API populated
-      // let finishedDevices = job.finished_devices.length;
-      // let totalDevices = job.result._totals.selected_devices;
-      // let exceptionText = job.exception;
-
-      // stop the setInterval when job status is finished
-      if (jobStatus === "FINISHED" || jobStatus === "EXCEPTION") {
-        console.log("jobStatus is finished or errored");
-        clearInterval(this.state.repeatingData);
-      }
-      return jobStatus, jobStartTime, jobFinishTime, finishedDevices;
     });
+
+    //  totalDevices mocked at 100 for progress bar
+    let finishedDevices = 0;
+    let totalDevices = 100;
+    if (dryRunJobStatus === "RUNNING") {
+      dryRunProgressData.map((job, i) => {
+        finishedDevices = this.randomIntFromInterval(0, 100);
+        // finishedDevices = job.finished_devices;
+      });
+    }
+
+    let exceptionMessage = "";
+    let retryButtons = "";
+    if (dryRunJobStatus === "EXCEPTION") {
+      dryRunProgressData.map((job, i) => {
+        exceptionMessage = job.exception.message;
+      });
+
+      retryButtons = [
+        <div>
+          <button key="1" onClick={e => this.props.dryRunSyncStart(e)}>
+            Retry
+          </button>
+          <button
+            id="force-button"
+            key="2"
+            onClick={e => this.props.dryRunSyncStart(e)}
+          >
+            Force retry
+          </button>
+        </div>
+      ];
+    }
+
+    let failingDevices = "";
+    if (dryRunJobStatus === "FINISHED") {
+      finishedDevices = 100;
+      failingDevices = [<DeviceFailList devices={this.props.devices} />];
+    }
 
     return (
       <div className="workflow-container">
