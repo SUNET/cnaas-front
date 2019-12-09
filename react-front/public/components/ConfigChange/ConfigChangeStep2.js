@@ -64,6 +64,28 @@ class ConfigChangeStep2 extends React.Component {
       // failingDevices = [<DeviceFailList devices={this.props.devices} />];
     }
 
+    // stop the setInterval when job status is finished
+    if (dryRunJobStatus === "FINISHED" || dryRunJobStatus  === "EXCEPTION") {
+      console.log("jobStatus is finished or errored");
+      clearInterval(this.state.repeatingData);
+    }
+    // allow a force retry of dry run if it errored
+    // jobStatus === "EXCEPTION"
+    if (dryRunJobStatus === "EXCEPTION") {
+      console.log("jobStatus errored");
+      error = [
+        <div>
+          <p key="0">something went wrong</p>
+          <button key="1" onClick={this.deviceSyncTo}>
+            Retry
+          </button>
+          <button key="2" onClick={this.deviceSyncToWithForce}>
+            Force retry
+          </button>
+        </div>
+      ];
+    }
+
     return (
       <div>
         <div className="workflow-container">
