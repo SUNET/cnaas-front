@@ -7,18 +7,13 @@ class Header extends React.Component {
       <header>
         <nav>
           <ul>
-            <NavLink
-              exact
-              activeClassName="active"
-              to={`/`}
-            >
+            <NavLink exact activeClassName="active" to={`/`}>
+              <li>Login</li>
+            </NavLink>
+            <NavLink exact activeClassName="active" to={`/devices`}>
               <li>Devices</li>
             </NavLink>
-            <NavLink
-              exact
-              activeClassName="active"
-              to={`/config-change`}
-            >
+            <NavLink exact activeClassName="active" to={`/config-change`}>
               <li>Config change</li>
             </NavLink>
           </ul>
