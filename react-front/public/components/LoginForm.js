@@ -14,7 +14,13 @@ class LoginForm extends React.Component {
 
   render() {
     if (this.props.show !== true) {
-      return <div />;
+      return (
+        <div>
+          <button className="logout" onClick={ev => this.props.logout()}>
+            logout
+          </button>
+        </div>
+      );
     }
     return (
       <div className="container">

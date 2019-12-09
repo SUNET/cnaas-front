@@ -77,7 +77,11 @@ class Panel extends React.Component {
           exact
           path="/"
           render={props => (
-            <LoginForm login={this.login} show={this.state.showLoginForm} />
+            <LoginForm
+              login={this.login}
+              logout={this.logout}
+              show={this.state.showLoginForm}
+            />
           )}
         />
         <Route
