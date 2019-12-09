@@ -13,9 +13,9 @@ class LoginForm extends React.Component {
   };
 
   render() {
-    // if (this.props.show !== true) {
-    //   return <div />;
-    // }
+    if (this.props.show !== true) {
+      return <div />;
+    }
     return (
       <div className="container">
         <form
