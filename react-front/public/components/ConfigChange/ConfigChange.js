@@ -24,8 +24,10 @@ class ConfigChange extends React.Component {
     let dataToSend = { dry_run: true, all: true };
     if (e.target.id === "force-button") {
       dataToSend = { dry_run: true, all: true, force: true };
+    } else if (e.target.id === "confirm") {
+      console.log("you pressed confirm");
+      // dataToSend = { dry_run: false, all: true, force: true };
     }
-    // console.log("this is whats used in func", dataToSend);
     postData(url, credentials, dataToSend).then(data => {
       console.log("this should be data", data);
       {
@@ -105,7 +107,7 @@ class ConfigChange extends React.Component {
           dryRunChangeScore={dryRunChangeScore}
           devices={dryRunResults}
         />
-        <ConfigChangeStep4 />
+        <ConfigChangeStep4 dryRunSyncStart={this.dryRunSyncStart} />
       </section>
     );
   }
