@@ -61,16 +61,13 @@ class Panel extends React.Component {
     // });
   };
 
-  // logout = () => {
-  //   localStorage.removeItem("token");
-  //   this.setState({
-  //     showLoginForm: true,
-  //     showPortfolioList: false,
-  //     showPortfolioDetail: false,
-  //     instrumentDetails: false,
-  //     errorMessage: "you have logged out"
-  //   });
-  // };
+  logout = () => {
+    localStorage.removeItem("token");
+    this.setState({
+      showLoginForm: true,
+      errorMessage: "you have logged out"
+    });
+  };
 
   render() {
     console.log("this is props (in panel)", this.props);
@@ -80,18 +77,18 @@ class Panel extends React.Component {
           exact
           path="/"
           render={props => (
-            <LoginForm
-              login={this.login}
-              show={this.state.showLoginForm}
-              {...this.props}
-            />
+            <LoginForm login={this.login} show={this.state.showLoginForm} />
           )}
         />
-        <Route exact path="/devices" component={DeviceList} />
+        <Route
+          exact
+          path="/devices"
+          render={props => <DeviceList logout={this.logout} />}
+        />
         <Route
           exact
           path="/config-change"
-          render={props => <ConfigChange {...this.props} />}
+          render={props => <ConfigChange logout={this.logout} />}
         />
       </div>
     );
