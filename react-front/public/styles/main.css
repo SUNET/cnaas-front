@@ -248,3 +248,25 @@ progress::-moz-progress-bar {
 #data .device_details_table td {
   padding: 4px;
 }
+
+/* error styles */
+
+.error {
+  color: #ff4500;
+}
+
+/* diff box styles */
+
+#diff-box {
+  background-color: lightgray;
+  color: red;
+  margin: 0 16px;
+}
+
+#diff-box pre {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  hyphens: auto;
+  padding: 16px;
+}

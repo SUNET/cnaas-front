@@ -47,12 +47,12 @@ class ConfigChange extends React.Component {
   pollJobStatus = () => {
     // job id leading to finish / some devices failing / no diff
     // use jobId from API in url
-    let jobId = this.state.dryRunSyncData.job_id;
+    // let jobId = this.state.dryRunSyncData.job_id;
     // let jobId = "16";
     // job id leading to finish
     // let jobId = "5ddbe1548b2d390c963b97d8";
     // job id leading to finish / diff
-    // let jobId = "5";
+    let jobId = "5";
     // let jobId = "5de8d5608b2d394fe74709a0";
     // job id leading to exception
     // let jobId = "12";
@@ -91,8 +91,6 @@ class ConfigChange extends React.Component {
       }
     }
 
-    // console.log("hello! this is the workflow component");
-    // console.log("these are props (in Workflow)", this.props);
     return (
       <section>
         <h1>Commit changes workflow</h1>
@@ -103,7 +101,10 @@ class ConfigChange extends React.Component {
           dryRunJobStatus={dryRunJobStatus}
           devices={dryRunResults}
         />
-        <ConfigChangeStep3 />
+        <ConfigChangeStep3
+          dryRunChangeScore={dryRunChangeScore}
+          devices={dryRunResults}
+        />
         <ConfigChangeStep4 />
       </section>
     );
