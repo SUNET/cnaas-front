@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  cnaas_front:
+    build: ./front/
+    ports:
+      - 4443:4443
+    environment:
+      - GITREPO_ETC
+      - CNAAS_API_URL
+      - CNAAS_AUTH_URL
