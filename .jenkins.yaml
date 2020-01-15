@@ -1,17 +1,15 @@
 #
-# Jenkins pipeline for CNaaS Front
+# Jenkins pipeline for CNaaS
 #
 
 disabled: false
 
-# slack:
-#   room: "cnaas"
+slack:
+  room: "cnaas-builds"
 
 extra_jobs:
   - name: cnaas-front
-    git:
-      branch: develop
     builders:
       - docker
     docker_name: cnaas/front
-    docker_context_dir: .
+    docker_context_dir: docker/front
