@@ -73,6 +73,7 @@ class ConfigChangeStep2 extends React.Component {
     // allow a force retry of dry run if it errored
     // jobStatus === "EXCEPTION"
     if (dryRunJobStatus === "EXCEPTION") {
+      let error = "";
       console.log("jobStatus errored");
       error = [
         <div>
