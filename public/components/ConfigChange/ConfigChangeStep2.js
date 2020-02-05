@@ -18,7 +18,7 @@ class ConfigChangeStep2 extends React.Component {
     console.log("this is props in configchange step 2", this.props);
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
-
+    console.log("this is dryRunProgressData", dryRunProgressData);
     let jobStartTime = "";
     let jobFinishTime = "";
     dryRunProgressData.map((job, i) => {
@@ -66,7 +66,7 @@ class ConfigChangeStep2 extends React.Component {
     }
 
     // stop the setInterval when job status is finished
-    if (dryRunJobStatus === "FINISHED" || dryRunJobStatus  === "EXCEPTION") {
+    if (dryRunJobStatus === "FINISHED" || dryRunJobStatus === "EXCEPTION") {
       console.log("jobStatus is finished or errored");
       clearInterval(this.state.repeatingData);
     }

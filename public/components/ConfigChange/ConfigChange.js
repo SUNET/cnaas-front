@@ -19,15 +19,19 @@ class ConfigChange extends React.Component {
   };
 
   dryRunSyncStart = e => {
+    console.log("dry run will sync");
     const credentials = this.state.token;
-    let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
+    // let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
+    let url = "https://mdh.cnaas.sunet.se/api/v1.0/device_syncto";
     let dataToSend = { dry_run: true, all: true };
-    if (e.target.id === "force-button") {
-      dataToSend = { dry_run: true, all: true, force: true };
-    } else if (e.target.id === "confirm") {
-      console.log("you pressed confirm");
-      // dataToSend = { dry_run: false, all: true, force: true };
-    }
+    console.log("this is url", url);
+    // if (e.target.id === "force-button") {
+    //   dataToSend = { dry_run: true, all: true, force: true };
+    // } else if (e.target.id === "confirm") {
+    //   console.log("you pressed confirm");
+    // dataToSend = { dry_run: false, all: true, force: true };
+    // }
+    console.log("now it will post the data");
     postData(url, credentials, dataToSend).then(data => {
       console.log("this should be data", data);
       {
@@ -47,22 +51,12 @@ class ConfigChange extends React.Component {
   };
 
   pollJobStatus = () => {
-    // job id leading to finish / some devices failing / no diff
-    // use jobId from API in url
-    // let jobId = this.state.dryRunSyncData.job_id;
-    // let jobId = "16";
-    // job id leading to finish
-    // let jobId = "5ddbe1548b2d390c963b97d8";
-    // job id leading to finish / diff
-    let jobId = "5";
-    // let jobId = "5de8d5608b2d394fe74709a0";
-    // job id leading to exception
-    // let jobId = "12";
-    // let jobId = "5de8d5608b2d394fe74709b0"
+    let jobId = this.state.dryRunSyncData.job_id;
+    console.log("this is jobID:", jobId);
     const credentials = this.state.token;
-    let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
+    // let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
+    let url = `https://mdh.cnaas.sunet.se/api/v1.0/job/${jobId}`;
     this.repeatingJobData = setInterval(() => {
-      // console.log("start interval on:", jobId);
       getData(url, credentials).then(data => {
         console.log("this should be data.data.jobs", data.data.jobs);
         {

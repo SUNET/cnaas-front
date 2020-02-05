@@ -12,9 +12,9 @@ class ConfigChangeStep1 extends React.Component {
 
   getCommitInfo = () => {
     const credentials = this.state.token;
-    let url =
-      "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/repository/settings";
-  
+    // let url =
+      // "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/repository/settings";
+    let url = "https://mdh.cnaas.sunet.se/api/v1.0/repository/settings"
     getData(url, credentials).then(data => {
       console.log("this should be data", data);
       {
@@ -33,8 +33,9 @@ class ConfigChangeStep1 extends React.Component {
   // this request takes some time, perhaps work in a "loading..."
   refreshCommitInfo = () => {
     const credentials = this.state.token;
-    let url =
-      "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/repository/settings";
+    // let url =
+    //   "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/repository/settings";
+    let url = "https://mdh.cnaas.sunet.se/api/v1.0/repository/settings";
     let dataToSend = { action: "REFRESH" };
 
     putData(url, credentials, dataToSend).then(data => {
