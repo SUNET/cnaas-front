@@ -10,9 +10,9 @@ class ConfigChangeStep3 extends React.Component {
   };
 
   render() {
-    console.log("these are props in step 3", this.props);
+    // console.log("these are props in step 3", this.props);
     let devicesObj = this.props.devices;
-    console.log("this is devicesObj", devicesObj);
+    // console.log("this is devicesObj", devicesObj);
     let dryRunChangeScore = this.props.dryRunChangeScore;
 
     const deviceNames = Object.keys(devicesObj);
@@ -38,7 +38,7 @@ class ConfigChangeStep3 extends React.Component {
     // console.log("deviceDiffArray", deviceDiffArray);
     
     const deviceDiffs = deviceDiffArray.map(info => <pre>{info}</pre>);
-    console.log("deviceDiffs", deviceDiffs);
+    // console.log("deviceDiffs", deviceDiffs);
 
     return (
       <div className="workflow-container">
