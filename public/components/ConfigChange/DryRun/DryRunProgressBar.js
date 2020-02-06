@@ -14,20 +14,21 @@ class DryRunProgressBar extends React.Component {
     let finishedDevicesNum = 0;
     let percentageValue = 0;
 
-    if (jobStatus === "RUNNING") {
+    if (jobStatus === "RUNNING" || jobStatus === "FINISHED") {
       progressData.map((job, i) => {
         finishedDevicesData = job.finished_devices;
         finishedDevicesNum = finishedDevicesData.length;
+        console.log("finishedDevicesData :", finishedDevicesData);
         console.log("finishedDevicesNum:", finishedDevicesNum);
         percentageValue = (finishedDevicesNum / totalDevices) * 100;
         console.log("this is the percentage value:", percentageValue);
+        // if (jobStatus === "FINISHED") {
+        //   percentageValue = percentageValue / 100;
+        // }
       });
     }
-    if (jobStatus === "FINISHED") {
-      percentageValue = 100;
-    }
 
-    return <ProgressBar value={percentageValue} total={totalDevices} />;
+    return <ProgressBar numberValue={finishedDevicesNum} percentValue={percentageValue} total={totalDevices} />;
   }
 }
 
