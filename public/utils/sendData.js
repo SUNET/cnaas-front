@@ -1,4 +1,4 @@
-const checkRequestStatus = require("./checkResponseStatus");
+const checkResponseStatus = require("./checkResponseStatus");
 
 const putData = (url, credentials, dataToSend) => {
   return fetch(url, {
@@ -9,7 +9,7 @@ const putData = (url, credentials, dataToSend) => {
     },
     body: JSON.stringify(dataToSend)
   })
-    .then(response => checkRequestStatus(response))
+    .then(response => checkResponseStatus(response))
     .then(response => response.json());
 };
 
@@ -22,7 +22,7 @@ const postData = (url, credentials, dataToSend) => {
     },
     body: JSON.stringify(dataToSend)
   })
-    .then(response => checkRequestStatus(response))
+    .then(response => checkResponseStatus(response))
     .then(response => response.json());
 };
 

@@ -1,4 +1,4 @@
-const checkRequestStatus = require("./checkResponseStatus");
+const checkResponseStatus = require("./checkResponseStatus");
 
 const getData = (url, credentials) => {
   return fetch(url, {
@@ -7,7 +7,7 @@ const getData = (url, credentials) => {
       Authorization: `Bearer ${credentials}`
     }
   })
-    .then(response => checkRequestStatus(response))
+    .then(response => checkResponseStatus(response))
     .then(response => response.json());
 };
 
