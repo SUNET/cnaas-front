@@ -36,8 +36,8 @@ class ConfigChange extends React.Component {
     const credentials = this.state.token;
     // let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
     let url = "https://mdh.cnaas.sunet.se/api/v1.0/device_syncto";
-    let dataToSend = { dry_run: true, all: true };
-    // let dataToSend = { dry_run: true, hostname: "esk-d11351-a1" };
+    // let dataToSend = { dry_run: true, all: true };
+    let dataToSend = { dry_run: true, hostname: "esk-d11351-a1" };
    
     if (e.target.id === "force-button") {
       dataToSend = { dry_run: true, all: true, force: true };
