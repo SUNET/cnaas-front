@@ -114,7 +114,7 @@ class DeviceList extends React.Component {
         filterValue;
     }
     fetch(
-      "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/devices?sort=" +
+      "https://mdh.cnaas.sunet.se/api/v1.0/devices?sort=" +
         sortField +
         filterParams +
         "&page=" +
