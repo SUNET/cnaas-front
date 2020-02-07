@@ -18,7 +18,7 @@ class ConfigChangeStep3 extends React.Component {
     const deviceNames = Object.keys(devicesObj);
     const deviceData = Object.values(devicesObj);
 
-    const totalDevicesAffected = deviceNames.map(device => device.length);
+    const totalDevicesAffected = deviceNames.length;
 
     // iterate through values
     const deviceDiffArray = deviceData.map(device => {
