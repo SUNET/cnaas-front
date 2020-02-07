@@ -44,7 +44,7 @@ class DryRun extends React.Component {
             <DryRunProgressBar
               dryRunJobStatus={dryRunJobStatus}
               dryRunProgressData={dryRunProgressData}
-              totalDevices={this.props.totalPages}
+              totalDevices={this.props.totalCount}
             />
             <DryRunProgressInfo
               dryRunJobStatus={dryRunJobStatus}

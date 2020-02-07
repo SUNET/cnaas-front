@@ -15,7 +15,7 @@ class ConfigChange extends React.Component {
     dryRunSyncJobid: null,
     dryRunProgressData: [],
     dryRunResultData: [],
-    totalPages: 0
+    totalCount: 0
     // errorMessage: ""
   };
 
@@ -23,8 +23,7 @@ class ConfigChange extends React.Component {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
       console.log("total: " + totalCountHeader);
-      const totalPages = Math.ceil(totalCountHeader / 10);
-      this.setState({ totalPages: totalPages });
+      this.setState({ totalCount: totalCountHeader });
     } else {
       console.log("Could not find X-Total-Count header, only showing one page");
     }
@@ -36,8 +35,8 @@ class ConfigChange extends React.Component {
     const credentials = this.state.token;
     // let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
     let url = "https://mdh.cnaas.sunet.se/api/v1.0/device_syncto";
-    // let dataToSend = { dry_run: true, all: true };
-    let dataToSend = { dry_run: true, hostname: "esk-d11351-a1" };
+    let dataToSend = { dry_run: true, all: true };
+    // let dataToSend = { dry_run: true, hostname: "esk-d11351-a1" };
    
     if (e.target.id === "force-button") {
       dataToSend = { dry_run: true, all: true, force: true };
@@ -123,7 +122,7 @@ class ConfigChange extends React.Component {
           dryRunProgressData={dryRunProgressData}
           dryRunJobStatus={dryRunJobStatus}
           devices={dryRunResults}
-          totalPages={this.state.totalPages}
+          totalCount={this.state.totalCount}
         />
         <ConfigChangeStep3
           dryRunChangeScore={dryRunChangeScore}
