@@ -1,10 +1,10 @@
 import React from "react";
 import ConfigChangeStep1 from "./ConfigChangeStep1";
-import ConfigChangeStep2 from "./ConfigChangeStep2";
+import DryRun from "./DryRun/DryRun";
 import ConfigChangeStep3 from "./ConfigChangeStep3";
 import ConfigChangeStep4 from "./ConfigChangeStep4";
-
-import { postData } from "../../utils/sendData";
+import checkResponseStatus from "../../utils/checkResponseStatus";
+// import { postData } from "../../utils/sendData";
 import getData from "../../utils/getData";
 
 class ConfigChange extends React.Component {
@@ -14,8 +14,20 @@ class ConfigChange extends React.Component {
     dryRunSyncData: [],
     dryRunSyncJobid: null,
     dryRunProgressData: [],
-    dryRunResultData: []
+    dryRunResultData: [],
+    totalCount: 0
     // errorMessage: ""
+  };
+
+  readHeaders = response => {
+    const totalCountHeader = response.headers.get("X-Total-Count");
+    if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
+      console.log("total: " + totalCountHeader);
+      this.setState({ totalCount: totalCountHeader });
+    } else {
+      console.log("Could not find X-Total-Count header, only showing one page");
+    }
+    return response;
   };
 
   dryRunSyncStart = e => {
@@ -24,35 +36,48 @@ class ConfigChange extends React.Component {
     // let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
     let url = "https://mdh.cnaas.sunet.se/api/v1.0/device_syncto";
     let dataToSend = { dry_run: true, all: true };
-    console.log("this is url", url);
-    // if (e.target.id === "force-button") {
-    //   dataToSend = { dry_run: true, all: true, force: true };
-    // } else if (e.target.id === "confirm") {
+    // let dataToSend = { dry_run: true, hostname: "esk-d11351-a1" };
+   
+    if (e.target.id === "force-button") {
+      dataToSend = { dry_run: true, all: true, force: true };
+    } 
+    //else if (e.target.id === "confirm") {
     //   console.log("you pressed confirm");
     // dataToSend = { dry_run: false, all: true, force: true };
     // }
     console.log("now it will post the data");
-    postData(url, credentials, dataToSend).then(data => {
-      console.log("this should be data", data);
-      {
-        this.setState(
-          {
-            dryRunSyncData: data
-          },
-          () => {
-            this.pollJobStatus();
-          },
-          () => {
-            console.log("this is new state", this.state.dryRunSyncData);
-          }
-        );
-      }
-    });
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${credentials}`
+      },
+      body: JSON.stringify(dataToSend)
+    })
+      .then(response => checkResponseStatus(response))
+      .then(response => this.readHeaders(response))
+      .then(response => response.json())
+      .then(data => {
+        console.log("this should be data", data);
+        {
+          this.setState(
+            {
+              dryRunSyncData: data,
+            },
+            () => {
+              this.pollJobStatus();
+            },
+            () => {
+              console.log("this is new state", this.state.dryRunSyncData);
+            }
+          );
+        }
+      });
   };
 
   pollJobStatus = () => {
     let jobId = this.state.dryRunSyncData.job_id;
-    console.log("this is jobID:", jobId);
+    // console.log("this is jobID:", jobId);
     const credentials = this.state.token;
     // let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
     let url = `https://mdh.cnaas.sunet.se/api/v1.0/job/${jobId}`;
@@ -65,7 +90,7 @@ class ConfigChange extends React.Component {
           });
         }
       });
-    }, 500);
+    }, 700);
   };
 
   render() {
@@ -73,6 +98,7 @@ class ConfigChange extends React.Component {
     let dryRunJobStatus = "";
     let dryRunResults = "";
     let dryRunChangeScore = "";
+
     dryRunProgressData.map((job, i) => {
       dryRunJobStatus = job.status;
       dryRunChangeScore = job.change_score;
@@ -91,11 +117,12 @@ class ConfigChange extends React.Component {
       <section>
         <h1>Commit changes workflow</h1>
         <ConfigChangeStep1 />
-        <ConfigChangeStep2
+        <DryRun
           dryRunSyncStart={this.dryRunSyncStart}
           dryRunProgressData={dryRunProgressData}
           dryRunJobStatus={dryRunJobStatus}
           devices={dryRunResults}
+          totalCount={this.state.totalCount}
         />
         <ConfigChangeStep3
           dryRunChangeScore={dryRunChangeScore}

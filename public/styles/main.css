@@ -193,8 +193,8 @@ td {
 }
 
 progress {
+  display: flex;
   width: calc(100% - 32px);
-  height: 28px;
   border-radius: 10px;
 }
 

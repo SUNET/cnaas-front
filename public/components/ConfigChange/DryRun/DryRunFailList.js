@@ -1,6 +1,6 @@
 import React from "react";
 
-class DeviceFailList extends React.Component {
+class DryRunFailList extends React.Component {
   render() {
     let devicesObj = this.props.devices;
     // split device object up into a key array and a values array
@@ -48,4 +48,4 @@ class DeviceFailList extends React.Component {
   }
 }
 
-export default DeviceFailList;
+export default DryRunFailList;

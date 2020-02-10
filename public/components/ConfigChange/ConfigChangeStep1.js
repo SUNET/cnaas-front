@@ -16,7 +16,7 @@ class ConfigChangeStep1 extends React.Component {
       // "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/repository/settings";
     let url = "https://mdh.cnaas.sunet.se/api/v1.0/repository/settings"
     getData(url, credentials).then(data => {
-      console.log("this should be data", data);
+      // console.log("this should be data", data);
       {
         this.setState(
           {
@@ -39,7 +39,7 @@ class ConfigChangeStep1 extends React.Component {
     let dataToSend = { action: "REFRESH" };
 
     putData(url, credentials, dataToSend).then(data => {
-      console.log("this should be data", data);
+      // console.log("this should be data", data);
       {
         this.setState(
           {
