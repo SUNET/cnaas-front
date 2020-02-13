@@ -108,44 +108,44 @@ footer {
 }
 
 /* task styles */
-. {
+.task-container {
   border: solid gray 1px;
   margin: 16px 0;
   padding-bottom: 16px;
 }
 
-. h2,
-. p {
+.task-container h2,
+.task-container p {
   padding: 0 16px;
 }
 
-. p {
+.task-container p {
   padding: 0 16px;
   font-size: 20px;
   font-weight: 400;
 }
 
-.__header {
+.task-container .heading {
   display: flex;
   justify-content: space-between;
   background-color: #f4f4f4;
 }
 
-.__button--close {
+.task-container .close {
   background: transparent;
   border: none;
   text-transform: capitalize;
   color: #ff4500;
 }
 
-.__button--hide:hover {
+.task-container .close:hover {
   background-color: transparent;
   border: none;
   border-radius: 0;
   text-decoration: underline;
 }
 
-.task-collapsable info {
+.task-collapsable .info {
   display: flex;
   align-items: baseline;
 }
@@ -193,8 +193,8 @@ td {
 }
 
 progress {
+  display: flex;
   width: calc(100% - 32px);
-  height: 28px;
   border-radius: 10px;
 }
 
