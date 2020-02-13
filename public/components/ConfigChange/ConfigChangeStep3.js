@@ -41,14 +41,14 @@ class ConfigChangeStep3 extends React.Component {
     // console.log("deviceDiffs", deviceDiffs);
 
     return (
-      <div className="workflow-container">
-        <div className="workflow-container__header">
+      <div className="task-container">
+        <div className="heading">
           <h2>Verify difference (3/4)</h2>
           <a href="#">
-            <button className="workflow-container__button--hide">Close</button>
+            <button className="close">Close</button>
           </a>
         </div>
-        <div className="workflow-collapsable">
+        <div className="task-collapsable">
           <p>Step 3 of 4: Look through and verify diff</p>
           <div>
             <p>Total devices affected: {totalDevicesAffected}</p>

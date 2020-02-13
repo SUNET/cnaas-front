@@ -3,14 +3,14 @@ import React from "react";
 class ConfigChangeStep4 extends React.Component {
   render() {
     return (
-      <div className="workflow-container">
-        <div className="workflow-container__header">
+      <div className="task-container">
+        <div className="heading">
           <h2>Commit configuration (4/4)</h2>
           <a href="#">
-            <button className="workflow-container__button--hide">Close</button>
+            <button className="close">Close</button>
           </a>
         </div>
-        <div className="workflow-collapsable">
+        <div className="task-collapsable">
           <p>Step 4 of 4: Final step</p>
           <button id="confirm" onClick={e => this.props.dryRunSyncStart(e)}>
            Confirm commit

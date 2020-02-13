@@ -107,45 +107,45 @@ footer {
   padding: 16px;
 }
 
-/* Workflow styles */
-.workflow-container {
+/* task styles */
+. {
   border: solid gray 1px;
   margin: 16px 0;
   padding-bottom: 16px;
 }
 
-.workflow-container h2,
-.workflow-container p {
+. h2,
+. p {
   padding: 0 16px;
 }
 
-.workflow-container p {
+. p {
   padding: 0 16px;
   font-size: 20px;
   font-weight: 400;
 }
 
-.workflow-container__header {
+.__header {
   display: flex;
   justify-content: space-between;
   background-color: #f4f4f4;
 }
 
-.workflow-container__button--hide {
+.__button--close {
   background: transparent;
   border: none;
   text-transform: capitalize;
   color: #ff4500;
 }
 
-.workflow-container__button--hide:hover {
+.__button--hide:hover {
   background-color: transparent;
   border: none;
   border-radius: 0;
   text-decoration: underline;
 }
 
-.workflow-collapsable__button-result {
+.task-collapsable info {
   display: flex;
   align-items: baseline;
 }

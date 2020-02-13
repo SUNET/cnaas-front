@@ -14,7 +14,7 @@ class ConfigChangeStep1 extends React.Component {
     const credentials = this.state.token;
     // let url =
       // "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/repository/settings";
-    let url = "https://mdh.cnaas.sunet.se/api/v1.0/repository/settings"
+    let url = "https://mdh.cnaas.sunet.se/api/v1.0/repository/settings";
     getData(url, credentials).then(data => {
       // console.log("this should be data", data);
       {
@@ -58,19 +58,19 @@ class ConfigChangeStep1 extends React.Component {
     let refreshedCommitInfo = this.state.latestCommitInfo;
 
     return (
-      <div className="workflow-container">
-        <div className="workflow-container__header">
+      <div className="task-container">
+        <div className="heading">
           <h2>Refresh repositories (1/4)</h2>
           <a href="#">
-            <button className="workflow-container__button--hide">Close</button>
+            <button className="close">Close</button>
           </a>
         </div>
-        <div className="workflow-collapsable">
-          <div className="workflow-collapsable__button-result">
+        <div className="task-collapsable">
+          <div className="info">
             <button onClick={this.getCommitInfo}> See latest commit </button>
             <p>{commitInfo}</p>
           </div>
-          <div className="workflow-collapsable__button-result">
+          <div className="info">
             <button onClick={this.refreshCommitInfo}>
               Refresh commit info
             </button>

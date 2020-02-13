@@ -76,7 +76,8 @@ class ConfigChange extends React.Component {
   };
 
   pollJobStatus = () => {
-    let jobId = this.state.dryRunSyncData.job_id;
+    // let jobId = this.state.dryRunSyncData.job_id;
+    let jobId = 1448;
     // console.log("this is jobID:", jobId);
     const credentials = this.state.token;
     // let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
@@ -115,7 +116,7 @@ class ConfigChange extends React.Component {
 
     return (
       <section>
-        <h1>Commit changes workflow</h1>
+        <h1>Commit changes task</h1>
         <ConfigChangeStep1 />
         <DryRun
           dryRunSyncStart={this.dryRunSyncStart}
