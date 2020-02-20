@@ -76,8 +76,8 @@ class ConfigChange extends React.Component {
   };
 
   pollJobStatus = () => {
-    // let jobId = this.state.dryRunSyncData.job_id;
-    let jobId = 1448;
+    let jobId = this.state.dryRunSyncData.job_id;
+    // let jobId = 1448;
     // let jobId = 1560;
     // console.log("this is jobID:", jobId);
     const credentials = this.state.token;
