@@ -62,9 +62,9 @@ p {
   font-weight: 400;
 }
 
-p:first-child {
+/* p:first-child {
   margin-top: 16px;
-}
+} */
 
 button {
   background: #ff4500;
@@ -107,45 +107,48 @@ footer {
   padding: 16px;
 }
 
-/* Workflow styles */
-.workflow-container {
+/* task styles */
+.task-container {
   border: solid gray 1px;
   margin: 16px 0;
   padding-bottom: 16px;
 }
 
-.workflow-container h2,
-.workflow-container p {
+.task-container h2,
+.task-container p {
   padding: 0 16px;
 }
 
-.workflow-container p {
-  padding: 0 16px;
+.task-container p {
   font-size: 20px;
   font-weight: 400;
 }
 
-.workflow-container__header {
+.task-container .heading {
   display: flex;
   justify-content: space-between;
   background-color: #f4f4f4;
 }
 
-.workflow-container__button--hide {
+.task-container .close {
   background: transparent;
   border: none;
   text-transform: capitalize;
   color: #ff4500;
 }
 
-.workflow-container__button--hide:hover {
+.task-container .close:hover {
   background-color: transparent;
   border: none;
   border-radius: 0;
   text-decoration: underline;
 }
 
-.workflow-collapsable__button-result {
+.task-collapsable {
+  margin-top: 16px;
+}
+
+.task-collapsable .info {
   display: flex;
   align-items: baseline;
 }
@@ -250,17 +253,28 @@ progress::-moz-progress-bar {
 }
 
 /* error styles */
-
 .error {
   color: #ff4500;
 }
 
 /* diff box styles */
-
 #diff-box {
-  background-color: lightgray;
-  color: red;
+  background-color: #ececec;
+  color: #ff4500;
   margin: 0 16px;
+}
+
+#diff-box li {
+  margin: 16px 0;
+}
+
+#diff-box li .device-name {
+  background-color: lightgray;
+}
+
+#diff-box .device-name {
+  color: #003049;
+  padding:16px;
 }
 
 #diff-box pre {
@@ -268,5 +282,5 @@ progress::-moz-progress-bar {
   overflow-wrap: break-word;
   word-break: break-all;
   hyphens: auto;
-  padding: 16px;
+  padding: 0 16px;
 }

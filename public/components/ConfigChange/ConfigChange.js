@@ -1,7 +1,7 @@
 import React from "react";
 import ConfigChangeStep1 from "./ConfigChangeStep1";
 import DryRun from "./DryRun/DryRun";
-import ConfigChangeStep3 from "./ConfigChangeStep3";
+import VerifyDiff from "./VerifyDiff/VerifyDiff";
 import ConfigChangeStep4 from "./ConfigChangeStep4";
 import checkResponseStatus from "../../utils/checkResponseStatus";
 // import { postData } from "../../utils/sendData";
@@ -62,7 +62,7 @@ class ConfigChange extends React.Component {
         {
           this.setState(
             {
-              dryRunSyncData: data,
+              dryRunSyncData: data
             },
             () => {
               this.pollJobStatus();
@@ -77,6 +77,8 @@ class ConfigChange extends React.Component {
 
   pollJobStatus = () => {
     let jobId = this.state.dryRunSyncData.job_id;
+    // let jobId = 1448;
+    // let jobId = 1560;
     // console.log("this is jobID:", jobId);
     const credentials = this.state.token;
     // let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
@@ -115,7 +117,7 @@ class ConfigChange extends React.Component {
 
     return (
       <section>
-        <h1>Commit changes workflow</h1>
+        <h1>Commit changes task</h1>
         <ConfigChangeStep1 />
         <DryRun
           dryRunSyncStart={this.dryRunSyncStart}
@@ -124,7 +126,7 @@ class ConfigChange extends React.Component {
           devices={dryRunResults}
           totalCount={this.state.totalCount}
         />
-        <ConfigChangeStep3
+        <VerifyDiff
           dryRunChangeScore={dryRunChangeScore}
           devices={dryRunResults}
         />
