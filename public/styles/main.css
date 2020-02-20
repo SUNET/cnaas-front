@@ -62,9 +62,9 @@ p {
   font-weight: 400;
 }
 
-p:first-child {
+/* p:first-child {
   margin-top: 16px;
-}
+} */
 
 button {
   background: #ff4500;
@@ -120,7 +120,6 @@ footer {
 }
 
 .task-container p {
-  padding: 0 16px;
   font-size: 20px;
   font-weight: 400;
 }
@@ -143,6 +142,10 @@ footer {
   border: none;
   border-radius: 0;
   text-decoration: underline;
+}
+
+.task-collapsable {
+  margin-top: 16px;
 }
 
 .task-collapsable .info {
@@ -250,17 +253,28 @@ progress::-moz-progress-bar {
 }
 
 /* error styles */
-
 .error {
   color: #ff4500;
 }
 
 /* diff box styles */
-
 #diff-box {
-  background-color: lightgray;
-  color: red;
+  background-color: #ececec;
+  color: #ff4500;
   margin: 0 16px;
+}
+
+#diff-box li {
+  margin: 16px 0;
+}
+
+#diff-box li .device-name {
+  background-color: lightgray;
+}
+
+#diff-box .device-name {
+  color: #003049;
+  padding:16px;
 }
 
 #diff-box pre {
@@ -268,5 +282,5 @@ progress::-moz-progress-bar {
   overflow-wrap: break-word;
   word-break: break-all;
   hyphens: auto;
-  padding: 16px;
+  padding: 0 16px;
 }
