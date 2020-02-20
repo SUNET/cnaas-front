@@ -1,6 +1,12 @@
 import React from "react";
+import Prism from "prismjs";
+import "../../../styles/prism.css";
+import "../../../../node_modules/prismjs/components/prism-diff.min.js";
 
 class VerifyDiffResult extends React.Component {
+  componentDidMount() {
+    Prism.highlightAll();
+  }
   render() {
     // console.log("these are props in step 3", this.props);
     const deviceNames = this.props.deviceNames;
@@ -27,8 +33,10 @@ class VerifyDiffResult extends React.Component {
             <p className="device-name" key={i}>
               {nameAndDiffArray[0]}
             </p>
-            <pre className="diff" key={i + 1}>
-              {nameAndDiffArray[1]}
+            <pre className="diff-highlight" key={i + 1}>
+              <code className="language-diff diff-highlight">
+                {nameAndDiffArray[1]}
+              </code>
             </pre>
           </li>
         );

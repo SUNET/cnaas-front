@@ -274,13 +274,12 @@ progress::-moz-progress-bar {
 
 #diff-box .device-name {
   color: #003049;
-  padding:16px;
+  padding: 16px;
 }
 
 #diff-box pre {
-  white-space: pre-wrap;
+  /* white-space: pre-wrap;
   overflow-wrap: break-word;
-  word-break: break-all;
-  hyphens: auto;
-  padding: 0 16px;
+  word-break: break-all; */
+  padding-left: 16px;
 }

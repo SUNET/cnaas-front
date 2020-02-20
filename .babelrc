@@ -1,9 +1,15 @@
 {
-  "presets": [
-    "env",
-    "react"
-  ],
+  "presets": ["env", "react"],
   "plugins": [
+    [
+      "prismjs",
+      {
+        "languages": ["javascript", "css", "diff"],
+        "plugins": ["diff"],
+        "theme": "default",
+        "css": true
+      }
+    ],
     "transform-class-properties"
   ]
 }
