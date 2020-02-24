@@ -16,7 +16,7 @@ class Panel extends React.Component {
     event.preventDefault();
     console.log("this is email", email);
     console.log("this is password", password);
-    // const url = "https://tug-lab.cnaas.sunet.se:2443/api/v1.0/auth";
+    // const url = process.env.API_URL + "/api/v1.0/auth";
     // fetch(url, {
     //   method: "POST",
     //   headers: { "Content-Type": "application/json" },
