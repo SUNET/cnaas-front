@@ -1,4 +1,5 @@
 import React from "react";
+import SyntaxHighlight from "../../SyntaxHighlight";
 
 class VerifyDiffResult extends React.Component {
   render() {
@@ -18,7 +19,7 @@ class VerifyDiffResult extends React.Component {
           return [deviceNames[i], diff];
         }, []);
     });
-    // renders name and diff values in the array
+    //renders name and diff values in the array
     const deviceNameAndDiffList = deviceNameAndDiffArray.map(
       (nameAndDiffArray, i) => {
         console.log("this is nameAndDiffObj", nameAndDiffArray);
@@ -27,9 +28,11 @@ class VerifyDiffResult extends React.Component {
             <p className="device-name" key={i}>
               {nameAndDiffArray[0]}
             </p>
-            <pre className="diff" key={i + 1}>
-              {nameAndDiffArray[1]}
-            </pre>
+            <SyntaxHighlight
+              index={i}
+              syntaxLanguage={"language-diff diff-highlight"}
+              code={nameAndDiffArray[1]}
+            />
           </li>
         );
       }
