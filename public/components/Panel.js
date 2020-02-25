@@ -5,6 +5,12 @@ import LoginForm from "./LoginForm";
 import { Route } from "react-router-dom";
 import { postData } from "react-router-dom";
 
+function btoaUTF16 (sString) {
+  var aUTF16CodeUnits = new Uint16Array(sString.length);
+  Array.prototype.forEach.call(aUTF16CodeUnits, function (el, idx, arr) { arr[idx] = sString.charCodeAt(idx); });
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(aUTF16CodeUnits.buffer)));
+}
+
 class Panel extends React.Component {
   state = {
     token: null,
@@ -12,23 +18,19 @@ class Panel extends React.Component {
     // errorMessage: ""
   };
 
+
   login = (email, password) => {
     event.preventDefault();
     console.log("this is email", email);
-    console.log("this is password", password);
-    // const url = process.env.API_URL + "/api/v1.0/auth";
-    // fetch(url, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     email,
-    //     password
-    //   })
-    // })
-    //   // .then(res => this.checkStatus(res))
-    //   .then(res => res.json())
-    //   .then(token => {
-    // console.log("this is token", token);
+    const url = process.env.API_URL + "/api/v1.0/auth";
+    fetch(url, {
+      method: "POST",
+      headers: new Headers({"Authorization": 'Basic ' + btoaUTF16(email + ":" + password) })
+    })
+    .then(res => this.checkStatus(res))
+    .then(res => res.json())
+    .then(token => {
+    console.log("this is token", token);
     this.setState(
       {
         showLoginForm: false,
@@ -39,7 +41,7 @@ class Panel extends React.Component {
         localStorage.setItem("token", this.state.token);
       }
     );
-    // })
+    })
     // .catch(error => {
     //   this.setState(
     //     {
