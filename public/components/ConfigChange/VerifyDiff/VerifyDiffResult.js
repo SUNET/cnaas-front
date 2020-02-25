@@ -26,7 +26,7 @@ class VerifyDiffResult extends React.Component {
         return (
           <li key={i}>
             <p className="device-name" key={i}>
-              {nameAndDiffArray[0]}{" "}
+              {nameAndDiffArray[0]}
             </p>
             <SyntaxHighlight
               index={i}
