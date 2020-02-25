@@ -260,11 +260,11 @@ progress::-moz-progress-bar {
 #diff-box {
   background-color: #ececec;
   color: #ff4500;
-  margin: 0 16px;
+  margin: 0 1rem;
 }
 
 #diff-box li {
-  margin: 16px 0;
+  margin: 1rem 0;
 }
 
 #diff-box li .device-name {
@@ -273,12 +273,10 @@ progress::-moz-progress-bar {
 
 #diff-box .device-name {
   color: #003049;
-  padding: 16px;
+  padding: 1rem;
+  margin: 0;
 }
 
 #diff-box pre {
-  /* white-space: pre-wrap;
-  overflow-wrap: break-word;
-  word-break: break-all; */
-  padding-left: 16px;
+  padding-left: 1rem;
 }

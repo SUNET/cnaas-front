@@ -1,13 +1,7 @@
 import React from "react";
-import Prism from "prismjs";
-
-import "../../../../node_modules/prismjs/components/prism-diff.min.js";
-import "../../../styles/prism.css";
+import SyntaxHighlight from "../../SyntaxHighlight";
 
 class VerifyDiffResult extends React.Component {
-  componentDidMount() {
-    Prism.highlightAll();
-  }
   render() {
     // console.log("these are props in step 3", this.props);
     const deviceNames = this.props.deviceNames;
@@ -25,20 +19,20 @@ class VerifyDiffResult extends React.Component {
           return [deviceNames[i], diff];
         }, []);
     });
-    // renders name and diff values in the array
+    //renders name and diff values in the array
     const deviceNameAndDiffList = deviceNameAndDiffArray.map(
       (nameAndDiffArray, i) => {
         console.log("this is nameAndDiffObj", nameAndDiffArray);
         return (
           <li key={i}>
             <p className="device-name" key={i}>
-              {nameAndDiffArray[0]}
+              {nameAndDiffArray[0]}{" "}
             </p>
-            <pre className="diff-highlight" key={i + 1}>
-              <code className="language-diff diff-highlight">
-                {nameAndDiffArray[1]}
-              </code>
-            </pre>
+            <SyntaxHighlight
+              index={i}
+              syntaxLanguage={"language-diff diff-highlight"}
+              code={nameAndDiffArray[1]}
+            />
           </li>
         );
       }
