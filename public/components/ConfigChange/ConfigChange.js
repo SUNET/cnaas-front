@@ -33,8 +33,7 @@ class ConfigChange extends React.Component {
   dryRunSyncStart = e => {
     console.log("dry run will sync");
     const credentials = this.state.token;
-    // let url = "https://tug-lab.cnaas.sunet.se:8443/api/v1.0/device_syncto";
-    let url = "https://mdh.cnaas.sunet.se/api/v1.0/device_syncto";
+    let url = process.env.API_URL + "/api/v1.0/device_syncto";
     let dataToSend = { dry_run: true, all: true };
     // let dataToSend = { dry_run: true, hostname: "esk-d11351-a1" };
    
@@ -76,13 +75,12 @@ class ConfigChange extends React.Component {
   };
 
   pollJobStatus = () => {
-    // let jobId = this.state.dryRunSyncData.job_id;
-    let jobId = 1448;
+    let jobId = this.state.dryRunSyncData.job_id;
+    // let jobId = 1448;
     // let jobId = 1560;
     // console.log("this is jobID:", jobId);
     const credentials = this.state.token;
-    // let url = `https://tug-lab.cnaas.sunet.se:8443/api/v1.0/job/${jobId}`;
-    let url = `https://mdh.cnaas.sunet.se/api/v1.0/job/${jobId}`;
+    let url = process.env.API_URL + `/api/v1.0/job/${jobId}`;
     this.repeatingJobData = setInterval(() => {
       getData(url, credentials).then(data => {
         console.log("this should be data.data.jobs", data.data.jobs);

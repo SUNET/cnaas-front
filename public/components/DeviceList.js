@@ -114,12 +114,13 @@ class DeviceList extends React.Component {
         filterValue;
     }
     fetch(
-      "https://mdh.cnaas.sunet.se/api/v1.0/devices?sort=" +
-        sortField +
-        filterParams +
-        "&page=" +
-        pageNum +
-        "&per_page=10",
+      process.env.API_URL +
+      "/api/v1.0/devices?sort=" +
+      sortField +
+      filterParams +
+      "&page=" +
+      pageNum +
+      "&per_page=10",
       {
         method: "GET",
         headers: {
