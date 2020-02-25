@@ -30,6 +30,6 @@ cd /opt/cnaas/
 git clone https://github.com/SUNET/cnaas-front.git
 cd cnaas-front/
 npm i
-npm run-script build
-cp dist/* /opt/cnaas/static
+#npm run-script build
+#cp dist/* /opt/cnaas/static
 
