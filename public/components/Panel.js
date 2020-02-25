@@ -4,7 +4,9 @@ import ConfigChange from "./ConfigChange/ConfigChange";
 import LoginForm from "./LoginForm";
 import { Route } from "react-router-dom";
 import { postData } from "react-router-dom";
+import checkResponseStatus from "../utils/checkResponseStatus";
 
+// passible base64 encode function?
 function btoaUTF16 (sString) {
   var aUTF16CodeUnits = new Uint16Array(sString.length);
   Array.prototype.forEach.call(aUTF16CodeUnits, function (el, idx, arr) { arr[idx] = sString.charCodeAt(idx); });
@@ -25,42 +27,41 @@ class Panel extends React.Component {
     const url = process.env.API_URL + "/api/v1.0/auth";
     fetch(url, {
       method: "POST",
-      headers: new Headers({"Authorization": 'Basic ' + btoaUTF16(email + ":" + password) })
+      headers: new Headers({"Authorization": 'Basic ' + btoa(email + ":" + password) })
     })
-    .then(res => this.checkStatus(res))
-    .then(res => res.json())
-    .then(token => {
-    console.log("this is token", token);
+    .then(response => checkResponseStatus(response))
+    .then(response => response.json())
+    .then(data => {
+    console.log("this is token", data['access_token']);
     this.setState(
       {
         showLoginForm: false,
-        token:
-          "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw"
+        token: data['access_token']
       },
       () => {
         localStorage.setItem("token", this.state.token);
       }
     );
     })
-    // .catch(error => {
-    //   this.setState(
-    //     {
-    //       showLoginForm: false,
-    //       showPortfolioList: false,
-    //       showPortfolioDetail: false,
-    //       instrumentDetails: false
-    //     },
-    //     () => {
-    //       localStorage.removeItem("token");
-    //       this.setState({
-    //         showLoginForm: true,
-    //         showPortfolioList: false,
-    //         showPortfolioDetail: false,
-    //         instrumentDetails: false
-    //       });
-    //     }
-    //   );
-    // });
+    .catch(error => {
+      this.setState(
+        {
+          showLoginForm: false,
+          showPortfolioList: false,
+          showPortfolioDetail: false,
+          instrumentDetails: false
+        },
+        () => {
+          localStorage.removeItem("token");
+          this.setState({
+            showLoginForm: true,
+            showPortfolioList: false,
+            showPortfolioDetail: false,
+            instrumentDetails: false
+          });
+        }
+      );
+    });
   };
 
   logout = () => {
