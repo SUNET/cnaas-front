@@ -41,7 +41,7 @@ class LoginForm extends React.Component {
           <label className="title">
             Password
             <input
-              type="text"
+              type="password"
               name="password"
               onChange={this.handleInput}
               required
