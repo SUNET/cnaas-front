@@ -62,12 +62,12 @@ class ConfigChangeStep1 extends React.Component {
         </div>
         <div className="task-collapsable">
           <div className="info">
-            <button onClick={this.getCommitInfo}> See latest commit </button>
+            <button onClick={this.getCommitInfo}> See latest settings commit </button>
             <p>{commitInfo}</p>
           </div>
           <div className="info">
             <button onClick={this.refreshCommitInfo}>
-              Refresh commit info
+              Refresh settings
             </button>
             <p>{refreshedCommitInfo}</p>
           </div>
