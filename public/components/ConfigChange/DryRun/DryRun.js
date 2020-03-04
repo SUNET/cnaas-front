@@ -2,8 +2,19 @@ import React from "react";
 import DryRunProgressBar from "./DryRunProgressBar";
 import DryRunProgressInfo from "./DryRunProgressInfo";
 import DryRunError from "./DryRunError";
+import { Form, Checkbox } from "semantic-ui-react";
 
 class DryRun extends React.Component {
+  state = {
+    "resync": false
+  };
+
+  checkboxChangeHandler = (event, data) => {
+    this.setState({ [data.name]: data.checked }, () => { 
+      console.log("resync:" + this.state.resync);
+    });
+  };
+
   render() {
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
@@ -34,9 +45,12 @@ class DryRun extends React.Component {
             diff and check sanity
           </p>
           <div key="0" className="info">
-            <button key="0" onClick={e => this.props.dryRunSyncStart(e)}>
-              Start config dry run
-            </button>
+            <Form>
+              <Checkbox label="Re-sync all devices" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} />
+              <button key="0" onClick={e => this.props.dryRunSyncStart(e, {"resync": this.state.resync})}>
+                Start config dry run
+              </button>
+            </Form>
           </div>
           <DryRunProgressBar
             dryRunJobStatus={dryRunJobStatus}

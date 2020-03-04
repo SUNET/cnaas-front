@@ -28,7 +28,7 @@ class ConfigChange extends React.Component {
     return response;
   };
 
-  dryRunSyncStart = e => {
+  dryRunSyncStart = (e, options) => {
     console.log("dry run will sync");
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/device_syncto";
@@ -38,11 +38,16 @@ class ConfigChange extends React.Component {
     if (e.target.id === "force-button") {
       dataToSend = { dry_run: true, all: true, force: true };
     } 
-    //else if (e.target.id === "confirm") {
-    //   console.log("you pressed confirm");
+    else if (e.target.id === "confirm") {
+      window.confirm("Really push config?")
+      console.log("you pressed confirm");
     // dataToSend = { dry_run: false, all: true, force: true };
-    // }
-    console.log("now it will post the data");
+    }
+    if (options === undefined) options = {};
+    if (options.resync !== undefined) {
+      dataToSend["resync"] = options.resync;
+    }
+    console.log("now it will post the data: "+JSON.stringify(dataToSend));
     fetch(url, {
       method: "POST",
       headers: {
