@@ -4,20 +4,21 @@ import { putData } from "../../utils/sendData";
 
 class ConfigChangeStep1 extends React.Component {
   state = {
-    commitInfo: [],
-    latestCommitInfo: []
-    // errorMessage: ""
+    commitInfo: {},
+    commitUpdateInfo: {},
   };
 
-  getCommitInfo = () => {
+  getRepoStatus = (repo_name) => {
     const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + "/api/v1.0/repository/settings";
+    let url = process.env.API_URL + "/api/v1.0/repository/" + repo_name;
+    let newCommitInfo = this.state.commitInfo;
     getData(url, credentials).then(data => {
       // console.log("this should be data", data);
+      newCommitInfo[repo_name] = data.data;
       {
         this.setState(
           {
-            commitInfo: data.data
+            commitInfo: newCommitInfo
           },
           () => {
             console.log("this is new state", this.state.commitInfo);
@@ -28,17 +29,27 @@ class ConfigChangeStep1 extends React.Component {
   };
 
   // this request takes some time, perhaps work in a "loading..."
-  refreshCommitInfo = () => {
+  refreshRepo = (repo_name) => {
     const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + "/api/v1.0/repository/settings";
+    let url = process.env.API_URL + "/api/v1.0/repository/" + repo_name;
     let dataToSend = { action: "REFRESH" };
+    let newCommitInfo = this.state.commitInfo;
+    let newCommitUpdateInfo = this.state.commitUpdateInfo;
 
     putData(url, credentials, dataToSend).then(data => {
       // console.log("this should be data", data);
+      if ( data.status === "success" ) {
+        newCommitUpdateInfo[repo_name] = "success";
+        newCommitInfo[repo_name] = data.data;
+      } else {
+        newCommitUpdateInfo[repo_name] = "error";
+        newCommitInfo[repo_name] = data.message;
+      }
       {
         this.setState(
           {
-            latestCommitInfo: data.data
+            commitInfo: newCommitInfo,
+            commitUpdateInfo: newCommitUpdateInfo
           },
           () => {
             console.log("this is new state", this.state.latestCommitInfo);
@@ -48,10 +59,12 @@ class ConfigChangeStep1 extends React.Component {
     });
   };
 
-  render() {
-    let commitInfo = this.state.commitInfo;
-    let refreshedCommitInfo = this.state.latestCommitInfo;
+  componentDidMount() {
+    this.getRepoStatus('settings');
+    this.getRepoStatus('templates');
+  }
 
+  render() {
     return (
       <div className="task-container">
         <div className="heading">
@@ -62,14 +75,24 @@ class ConfigChangeStep1 extends React.Component {
         </div>
         <div className="task-collapsable">
           <div className="info">
-            <button onClick={this.getCommitInfo}> See latest settings commit </button>
-            <p>{commitInfo}</p>
+            <p>Latest settings repo commit: </p>
+            <p>{this.state.commitInfo['settings']}</p>
           </div>
           <div className="info">
-            <button onClick={this.refreshCommitInfo}>
+            <p>Latest templates repo commit: </p>
+            <p>{this.state.commitInfo['templates']}</p>
+          </div>
+          <div className="info">
+            <button onClick={ () => this.refreshRepo('settings')}>
               Refresh settings
             </button>
-            <p>{refreshedCommitInfo}</p>
+            <p>{this.state.commitUpdateInfo['settings']}</p>
+          </div>
+          <div className="info">
+            <button onClick={ () => this.refreshRepo('templates')}>
+              Refresh templates
+            </button>
+            <p>{this.state.commitUpdateInfo['templates']}</p>
           </div>
         </div>
       </div>
