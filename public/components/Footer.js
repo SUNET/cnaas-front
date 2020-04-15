@@ -4,7 +4,7 @@ class Footer extends React.Component {
   render() {
     return (
       <footer>
-        <p>This a footer</p>
+        <p>Timezone: UTC</p>
       </footer>
     );
   }

@@ -12,7 +12,7 @@ class ConfigChangeStep4 extends React.Component {
         </div>
         <div className="task-collapsable">
           <p>Step 4 of 4: Final step</p>
-          <button id="confirm" onClick={e => this.props.dryRunSyncStart(e, {})}>
+          <button id="confirm" ref="confirmrunButton" disabled={true} onClick={e => this.props.dryRunSyncStart(e, {})}>
            Confirm commit
           </button>
         </div>

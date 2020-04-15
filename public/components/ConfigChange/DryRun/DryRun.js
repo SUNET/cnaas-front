@@ -15,6 +15,11 @@ class DryRun extends React.Component {
     });
   };
 
+  dryrunButtonOnclick = (e) => {
+    this.refs.dryrunButton.setAttribute("disabled", true);
+    this.props.dryRunSyncStart(e, {"resync": this.state.resync})
+  };
+
   render() {
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
@@ -47,7 +52,7 @@ class DryRun extends React.Component {
           <div key="0" className="info">
             <Form>
               <Checkbox label="Re-sync all devices" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} />
-              <button key="0" onClick={e => this.props.dryRunSyncStart(e, {"resync": this.state.resync})}>
+              <button key="0" ref="dryrunButton" onClick={e => this.dryrunButtonOnclick(e)}>
                 Start config dry run
               </button>
             </Form>

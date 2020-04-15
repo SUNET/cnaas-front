@@ -113,6 +113,8 @@ class ConfigChange extends React.Component {
         dryRunProgressData.map((job, i) => {
           dryRunResults = job.result.devices;
         });
+        var confirmButtonElem = document.getElementById("confirm");
+        confirmButtonElem.disabled = false;
       }
     }
 
