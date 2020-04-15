@@ -16,8 +16,9 @@ class DryRun extends React.Component {
   };
 
   dryrunButtonOnclick = (e) => {
-    this.refs.dryrunButton.setAttribute("disabled", true);
-    this.props.dryRunSyncStart(e, {"resync": this.state.resync})
+    this.props.dryRunSyncStart({"resync": this.state.resync});
+    var confirmButtonElem = document.getElementById("dryrunButton");
+    confirmButtonElem.disabled = true;
   };
 
   render() {
@@ -44,19 +45,21 @@ class DryRun extends React.Component {
             <button className="close">Close</button>
           </a>
         </div>
-        <div key="1" className="task-collapsable">
+        <div className="task-collapsable">
           <p>
             Step 2 of 4: Sending generated configuration to devices to calculate
             diff and check sanity
           </p>
-          <div key="0" className="info">
-            <Form>
+          <Form>
+            <div className="info">
               <Checkbox label="Re-sync all devices" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} />
-              <button key="0" ref="dryrunButton" onClick={e => this.dryrunButtonOnclick(e)}>
+            </div>
+            <div className="info">
+              <button id="dryrunButton" onClick={e => this.dryrunButtonOnclick(e)}>
                 Start config dry run
               </button>
-            </Form>
-          </div>
+            </div>
+          </Form>
           <DryRunProgressBar
             dryRunJobStatus={dryRunJobStatus}
             dryRunProgressData={dryRunProgressData}

@@ -22,7 +22,6 @@ class VerifyDiffResult extends React.Component {
     //renders name and diff values in the array
     const deviceNameAndDiffList = deviceNameAndDiffArray.map(
       (nameAndDiffArray, i) => {
-        console.log("this is nameAndDiffObj", nameAndDiffArray);
         return (
           <li key={i}>
             <p className="device-name" key={i}>

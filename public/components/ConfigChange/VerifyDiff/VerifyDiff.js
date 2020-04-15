@@ -4,7 +4,7 @@ import VerifyDiffResult from "./VerifyDiffResult";
 
 class VerifyDiff extends React.Component {
   render() {
-    console.log("these are props in step 3", this.props);
+    //console.log("these are props in step 3", this.props);
     let devicesObj = this.props.devices;
     const deviceNames = Object.keys(devicesObj);
     const deviceData = Object.values(devicesObj);
