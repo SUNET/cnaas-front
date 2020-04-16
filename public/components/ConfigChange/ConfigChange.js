@@ -9,8 +9,6 @@ import getData from "../../utils/getData";
 
 class ConfigChange extends React.Component {
   state = {
-    token:
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw",
     dryRunSyncData: [],
     dryRunSyncJobid: null,
     dryRunProgressData: [],
@@ -32,7 +30,7 @@ class ConfigChange extends React.Component {
 
   dryRunSyncStart = e => {
     console.log("dry run will sync");
-    const credentials = this.state.token;
+    const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/device_syncto";
     let dataToSend = { dry_run: true, all: true };
     // let dataToSend = { dry_run: true, hostname: "esk-d11351-a1" };
@@ -79,7 +77,7 @@ class ConfigChange extends React.Component {
     // let jobId = 1448;
     // let jobId = 1560;
     // console.log("this is jobID:", jobId);
-    const credentials = this.state.token;
+    const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + `/api/v1.0/job/${jobId}`;
     this.repeatingJobData = setInterval(() => {
       getData(url, credentials).then(data => {
