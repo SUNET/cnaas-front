@@ -27,7 +27,7 @@ class Panel extends React.Component {
     const url = process.env.API_URL + "/api/v1.0/auth";
     fetch(url, {
       method: "POST",
-      headers: new Headers({"Authorization": 'Basic ' + btoa(email + ":" + password) })
+      headers: {"Authorization": 'Basic ' + btoa(email + ":" + password) }
     })
     .then(response => checkResponseStatus(response))
     .then(response => response.json())
@@ -47,17 +47,11 @@ class Panel extends React.Component {
       this.setState(
         {
           showLoginForm: false,
-          showPortfolioList: false,
-          showPortfolioDetail: false,
-          instrumentDetails: false
         },
         () => {
           localStorage.removeItem("token");
           this.setState({
             showLoginForm: true,
-            showPortfolioList: false,
-            showPortfolioDetail: false,
-            instrumentDetails: false
           });
         }
       );
