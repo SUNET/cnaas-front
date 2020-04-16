@@ -7,14 +7,10 @@ class DryRunError extends React.Component {
       <div>
         <DryRunFailList devices={this.props.devices} />
         <div>
-          <button key="1" onClick={e => this.props.dryRunSyncStart(e)}>
+          <button onClick={e => this.props.dryRunSyncStart()}>
             Retry
           </button>
-          <button
-            id="force-button"
-            key="2"
-            onClick={e => this.props.dryRunSyncStart(e)}
-          >
+          <button onClick={e => this.props.dryRunSyncStart({"force": true})}>
             Force retry
           </button>
         </div>

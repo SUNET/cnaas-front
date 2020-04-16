@@ -2,8 +2,25 @@ import React from "react";
 import DryRunProgressBar from "./DryRunProgressBar";
 import DryRunProgressInfo from "./DryRunProgressInfo";
 import DryRunError from "./DryRunError";
+import { Form, Checkbox } from "semantic-ui-react";
 
 class DryRun extends React.Component {
+  state = {
+    "resync": false
+  };
+
+  checkboxChangeHandler = (event, data) => {
+    this.setState({ [data.name]: data.checked }, () => { 
+      console.log("resync:" + this.state.resync);
+    });
+  };
+
+  dryrunButtonOnclick = (e) => {
+    this.props.dryRunSyncStart({"resync": this.state.resync});
+    var confirmButtonElem = document.getElementById("dryrunButton");
+    confirmButtonElem.disabled = true;
+  };
+
   render() {
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
@@ -28,16 +45,21 @@ class DryRun extends React.Component {
             <button className="close">Close</button>
           </a>
         </div>
-        <div key="1" className="task-collapsable">
+        <div className="task-collapsable">
           <p>
             Step 2 of 4: Sending generated configuration to devices to calculate
             diff and check sanity
           </p>
-          <div key="0" className="info">
-            <button key="0" onClick={e => this.props.dryRunSyncStart(e)}>
-              Start config dry run
-            </button>
-          </div>
+          <Form>
+            <div className="info">
+              <Checkbox label="Re-sync all devices" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} />
+            </div>
+            <div className="info">
+              <button id="dryrunButton" onClick={e => this.dryrunButtonOnclick(e)}>
+                Start config dry run
+              </button>
+            </div>
+          </Form>
           <DryRunProgressBar
             dryRunJobStatus={dryRunJobStatus}
             dryRunProgressData={dryRunProgressData}

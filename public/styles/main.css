@@ -86,6 +86,10 @@ button:hover {
   color: #ff4500;
 }
 
+button:disabled {
+  background: #cccccc;
+}
+
 section {
   display: flex;
   flex: 1;

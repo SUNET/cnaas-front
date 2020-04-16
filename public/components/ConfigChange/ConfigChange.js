@@ -13,36 +13,55 @@ class ConfigChange extends React.Component {
     dryRunSyncJobid: null,
     dryRunProgressData: [],
     dryRunResultData: [],
-    totalCount: 0
-    // errorMessage: ""
+    dryRunTotalCount: 0,
+    liveRunSyncData: [],
+    liveRunSyncJobid: null,
+    liveRunProgressData: [],
+    liveRunResultData: [],
+    liveRunTotalCount: 0
   };
 
-  readHeaders = response => {
+  readHeaders = (response, dry_run) => {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
       console.log("total: " + totalCountHeader);
-      this.setState({ totalCount: totalCountHeader });
+      if (dry_run === true) {
+        this.setState({ dryRunTotalCount: totalCountHeader });
+      } else {
+        this.setState({ liveRunTotalCount: totalCountHeader });
+      }
     } else {
       console.log("Could not find X-Total-Count header, only showing one page");
     }
     return response;
   };
 
-  dryRunSyncStart = e => {
-    console.log("dry run will sync");
+  deviceSyncStart = (options) => {
+    console.log("Starting sync devices");
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/device_syncto";
     let dataToSend = { dry_run: true, all: true };
-    // let dataToSend = { dry_run: true, hostname: "esk-d11351-a1" };
    
-    if (e.target.id === "force-button") {
-      dataToSend = { dry_run: true, all: true, force: true };
-    } 
-    //else if (e.target.id === "confirm") {
-    //   console.log("you pressed confirm");
-    // dataToSend = { dry_run: false, all: true, force: true };
-    // }
-    console.log("now it will post the data");
+    if (options !== undefined) {
+      if (options.resync !== undefined) {
+        dataToSend["resync"] = options.resync;
+      }
+      if (options.force !== undefined) {
+        dataToSend["force"] = options.force;
+      }
+      if (options.dry_run !== undefined) {
+        dataToSend["dry_run"] = options.dry_run;
+      }
+    } else {
+     options = {};
+    }
+
+    if (dataToSend["dry_run"] === false) {
+      console.log("sync live run");
+      dataToSend["force"] = true;
+    }
+
+    console.log("now it will post the data: "+JSON.stringify(dataToSend));
     fetch(url, {
       method: "POST",
       headers: {
@@ -52,43 +71,65 @@ class ConfigChange extends React.Component {
       body: JSON.stringify(dataToSend)
     })
       .then(response => checkResponseStatus(response))
-      .then(response => this.readHeaders(response))
+      .then(response => this.readHeaders(response, dataToSend["dry_run"]))
       .then(response => response.json())
       .then(data => {
         console.log("this should be data", data);
         {
-          this.setState(
-            {
-              dryRunSyncData: data
-            },
-            () => {
-              this.pollJobStatus();
-            },
-            () => {
-              console.log("this is new state", this.state.dryRunSyncData);
-            }
-          );
+          if (dataToSend["dry_run"] === true) {
+            this.setState(
+              {
+                dryRunSyncData: data
+              },
+              () => {
+                this.pollJobStatus(data.job_id, true);
+              },
+              () => {
+                console.log("this is new state", this.state.dryRunSyncData);
+              }
+            );
+          } else {
+            this.setState(
+              {
+                liveRunSyncData: data
+              },
+              () => {
+                this.pollJobStatus(data.job_id, false);
+              },
+              () => {
+                console.log("this is new state", this.state.liveRunSyncData);
+              }
+            );
+          }
         }
       });
   };
 
-  pollJobStatus = () => {
-    let jobId = this.state.dryRunSyncData.job_id;
-    // let jobId = 1448;
-    // let jobId = 1560;
-    // console.log("this is jobID:", jobId);
+  pollJobStatus = (job_id, dry_run) => {
     const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + `/api/v1.0/job/${jobId}`;
-    this.repeatingJobData = setInterval(() => {
-      getData(url, credentials).then(data => {
-        console.log("this should be data.data.jobs", data.data.jobs);
-        {
-          this.setState({
-            dryRunProgressData: data.data.jobs
-          });
-        }
-      });
-    }, 700);
+    let url = process.env.API_URL + `/api/v1.0/job/${job_id}`;
+
+    if (dry_run === true) {
+      this.repeatingDryrunJobData = setInterval(() => {
+        getData(url, credentials).then(data => {
+          {
+            this.setState({
+              dryRunProgressData: data.data.jobs
+            });
+          }
+        });
+      }, 1000);
+    } else {
+      this.repeatingLiverunJobData = setInterval(() => {
+        getData(url, credentials).then(data => {
+          {
+            this.setState({
+              liveRunProgressData: data.data.jobs
+            });
+          }
+        });
+      }, 1000);
+    }
   };
 
   render() {
@@ -96,6 +137,9 @@ class ConfigChange extends React.Component {
     let dryRunJobStatus = "";
     let dryRunResults = "";
     let dryRunChangeScore = "";
+    let liveRunProgressData = this.state.liveRunProgressData;
+    let liveRunJobStatus = "";
+    let liveRunResults = "";
 
     dryRunProgressData.map((job, i) => {
       dryRunJobStatus = job.status;
@@ -103,10 +147,25 @@ class ConfigChange extends React.Component {
     });
 
     if (dryRunJobStatus === "FINISHED" || dryRunJobStatus === "EXCEPTION") {
-      clearInterval(this.repeatingJobData);
+      clearInterval(this.repeatingDryrunJobData);
       if (dryRunJobStatus === "FINISHED") {
         dryRunProgressData.map((job, i) => {
           dryRunResults = job.result.devices;
+        });
+        var confirmButtonElem = document.getElementById("confirmButton");
+        confirmButtonElem.disabled = false;
+      }
+    }
+
+    liveRunProgressData.map((job, i) => {
+      liveRunJobStatus = job.status;
+    });
+
+    if (liveRunJobStatus === "FINISHED" || liveRunJobStatus === "EXCEPTION") {
+      clearInterval(this.repeatingLiverunJobData);
+      if (liveRunJobStatus === "FINISHED") {
+        liveRunProgressData.map((job, i) => {
+          liveRunResults = job.result.devices;
         });
       }
     }
@@ -116,17 +175,23 @@ class ConfigChange extends React.Component {
         <h1>Commit changes task</h1>
         <ConfigChangeStep1 />
         <DryRun
-          dryRunSyncStart={this.dryRunSyncStart}
+          dryRunSyncStart={this.deviceSyncStart}
           dryRunProgressData={dryRunProgressData}
           dryRunJobStatus={dryRunJobStatus}
           devices={dryRunResults}
-          totalCount={this.state.totalCount}
+          totalCount={this.state.dryRunTotalCount}
         />
         <VerifyDiff
           dryRunChangeScore={dryRunChangeScore}
           devices={dryRunResults}
         />
-        <ConfigChangeStep4 dryRunSyncStart={this.dryRunSyncStart} />
+        <ConfigChangeStep4
+          dryRunSyncStart={this.deviceSyncStart}
+          dryRunProgressData={liveRunProgressData}
+          dryRunJobStatus={liveRunJobStatus}
+          devices={liveRunResults}
+          totalCount={this.state.liveRunTotalCount}
+        />
       </section>
     );
   }

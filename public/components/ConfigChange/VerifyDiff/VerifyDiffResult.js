@@ -11,18 +11,17 @@ class VerifyDiffResult extends React.Component {
     const deviceNameAndDiffArray = deviceData.map((jobsObj, i) => {
       const jobTasks = jobsObj.job_tasks;
       return jobTasks
-        .map((subTasks, i) => {
+        .map((subTasks, j) => {
           return subTasks.diff;
         })
         .filter(diff => diff !== "")
-        .reduce((arr, diff, i) => {
+        .reduce((arr, diff, n) => {
           return [deviceNames[i], diff];
         }, []);
     });
     //renders name and diff values in the array
     const deviceNameAndDiffList = deviceNameAndDiffArray.map(
       (nameAndDiffArray, i) => {
-        console.log("this is nameAndDiffObj", nameAndDiffArray);
         return (
           <li key={i}>
             <p className="device-name" key={i}>

@@ -3,16 +3,8 @@ import VerifyDiffInfo from "./VerifyDiffInfo";
 import VerifyDiffResult from "./VerifyDiffResult";
 
 class VerifyDiff extends React.Component {
-  approveDiff = () => {
-    return console.log("you approved diff");
-  };
-
-  rejectDiff = () => {
-    return console.log("you rejected diff");
-  };
-
   render() {
-    // console.log("these are props in step 3", this.props);
+    //console.log("these are props in step 3", this.props);
     let devicesObj = this.props.devices;
     const deviceNames = Object.keys(devicesObj);
     const deviceData = Object.values(devicesObj);
@@ -36,12 +28,6 @@ class VerifyDiff extends React.Component {
               deviceNames={deviceNames}
               deviceData={deviceData}
             />
-            <button key="1" onClick={this.approveDiff}>
-              Approve
-            </button>
-            <button key="2" onClick={this.rejectDiff}>
-              Reject
-            </button>
           </div>
         </div>
       </div>
