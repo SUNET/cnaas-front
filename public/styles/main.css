@@ -284,3 +284,14 @@ progress::-moz-progress-bar {
 #diff-box pre {
   padding-left: 1rem;
 }
+
+/* log output styles */
+.logoutput {
+  overflow-y: scroll;
+  max-height: 10em;
+  overflow-x: hidden;
+  font-family: monospace;
+  background-color: #ddd;
+  margin: 1em;
+  font-size: 90%;
+}
