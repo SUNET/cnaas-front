@@ -76,7 +76,7 @@ class DeviceList extends React.Component {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
       console.log("total: " + totalCountHeader);
-      const totalPages = Math.ceil(totalCountHeader / 10);
+      const totalPages = Math.ceil(totalCountHeader / 20);
       this.setState({ totalPages: totalPages });
     } else {
       console.log("Could not find X-Total-Count header, only showing one page");
@@ -119,7 +119,7 @@ class DeviceList extends React.Component {
       filterParams +
       "&page=" +
       pageNum +
-      "&per_page=10",
+      "&per_page=20",
       {
         method: "GET",
         headers: {
@@ -185,6 +185,8 @@ class DeviceList extends React.Component {
       let deviceStateExtra = "";
       if (items.state == "DISCOVERED" || items.state == "DHCP_BOOT") {
         deviceStateExtra = <DeviceInitForm deviceId={items.id} />;
+      } else if (items.state == "MANAGED") {
+        deviceStateExtra = <p><a href={"/config-change?hostname=" + items.hostname}>Sync</a></p>;
       }
       return [
         <tr key={index} onClick={this.clickRow.bind(this)}>
