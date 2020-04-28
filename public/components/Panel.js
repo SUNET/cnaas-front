@@ -1,5 +1,6 @@
 import React from "react";
 import DeviceList from "./DeviceList";
+import GroupList from "./GroupList";
 import ConfigChange from "./ConfigChange/ConfigChange";
 import LoginForm from "./LoginForm";
 import { Route } from "react-router-dom";
@@ -88,8 +89,14 @@ class Panel extends React.Component {
         />
         <Route
           exact
+          path="/groups"
+          render={props => <GroupList logout={this.logout} />}
+        />
+        <Route
+          exact
           path="/config-change"
-          render={props => <ConfigChange logout={this.logout} />}
+          component={ConfigChange}
+//          render={props => <ConfigChange logout={this.logout} />}
         />
       </div>
     );
