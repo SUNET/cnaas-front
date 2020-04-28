@@ -22,24 +22,65 @@ class VerifyDiffResult extends React.Component {
     //renders name and diff values in the array
     const deviceNameAndDiffList = deviceNameAndDiffArray.map(
       (nameAndDiffArray, i) => {
-        return (
-          <li key={i}>
-            <p className="device-name" key={i}>
-              {nameAndDiffArray[0]}
-            </p>
-            <SyntaxHighlight
-              index={i}
-              syntaxLanguage={"language-diff diff-highlight"}
-              code={nameAndDiffArray[1]}
-            />
-          </li>
-        );
+        if (nameAndDiffArray[0] !== undefined) {
+          return (
+            <li key={i}>
+              <p className="device-name" key={i}>
+                {nameAndDiffArray[0]} diffs
+              </p>
+              <SyntaxHighlight
+                index={i}
+                syntaxLanguage={"language-diff diff-highlight"}
+                code={nameAndDiffArray[1]}
+              />
+            </li>
+          );
+        } else {
+          return;
+        }
+      }
+    );
+    // creates a 2D array that pairs device name and their exceptions
+    const deviceNameAndExceptionArray = deviceData.map((jobsObj, i) => {
+      const jobTasks = jobsObj.job_tasks;
+      return jobTasks
+        .filter(subTask => subTask.failed === true)
+        .map((subTasks, j) => {
+          return subTasks.result;
+        })
+        .reduce((arr, result, n) => {
+          return [deviceNames[i], result];
+        }, []);
+    });
+    console.log("exceptionarray", deviceNameAndExceptionArray);
+    //renders name and diff values in the array
+    const deviceNameAndExceptionList = deviceNameAndExceptionArray.map(
+      (nameAndExceptionArray, i) => {
+        if (nameAndExceptionArray[0] !== undefined ) {
+          return (
+            <li key={i}>
+              <p className="device-name" key={i}>
+                {nameAndExceptionArray[0]} failed result
+              </p>
+              <pre>
+                {nameAndExceptionArray[1]}
+              </pre>
+            </li>
+          );
+        } else {
+          return;
+        }
       }
     );
 
     return (
-      <div id="diff-box">
-        <ul>{deviceNameAndDiffList}</ul>
+      <div>
+        <div id="diff-box">
+          <ul>{deviceNameAndDiffList}</ul>
+        </div>
+        <div id="diff-box">
+          <ul>{deviceNameAndExceptionList}</ul>
+        </div>
       </div>
     );
   }
