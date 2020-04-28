@@ -13,6 +13,9 @@ class Header extends React.Component {
             <NavLink exact activeClassName="active" to={`/devices`}>
               <li>Devices</li>
             </NavLink>
+            <NavLink exact activeClassName="active" to={`/groups`}>
+              <li>Groups</li>
+            </NavLink>
             <NavLink exact activeClassName="active" to={`/config-change`}>
               <li>Config change</li>
             </NavLink>
