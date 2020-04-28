@@ -163,14 +163,17 @@ class ConfigChange extends React.Component {
     let dryRunJobStatus = "";
     let dryRunResults = "";
     let dryRunChangeScore = "";
+    let dryRunJobId = "";
     let liveRunProgressData = this.state.liveRunProgressData;
     let liveRunJobStatus = "";
     let liveRunResults = "";
+    let liveRunJobId = "";
     let commitTargetName = this.getCommitTargetName(this.getCommitTarget());
 
     dryRunProgressData.map((job, i) => {
       dryRunJobStatus = job.status;
       dryRunChangeScore = job.change_score;
+      dryRunJobId = job.id;
     });
 
     if (dryRunJobStatus === "FINISHED" || dryRunJobStatus === "EXCEPTION") {
@@ -186,6 +189,7 @@ class ConfigChange extends React.Component {
 
     liveRunProgressData.map((job, i) => {
       liveRunJobStatus = job.status;
+      liveRunJobId = job.id;
     });
 
     if (liveRunJobStatus === "FINISHED" || liveRunJobStatus === "EXCEPTION") {
@@ -206,6 +210,7 @@ class ConfigChange extends React.Component {
           dryRunSyncStart={this.deviceSyncStart}
           dryRunProgressData={dryRunProgressData}
           dryRunJobStatus={dryRunJobStatus}
+          jobId={dryRunJobId}
           devices={dryRunResults}
           totalCount={this.state.dryRunTotalCount}
         />
@@ -217,6 +222,7 @@ class ConfigChange extends React.Component {
           dryRunSyncStart={this.deviceSyncStart}
           dryRunProgressData={liveRunProgressData}
           dryRunJobStatus={liveRunJobStatus}
+          jobId={liveRunJobId}
           devices={liveRunResults}
           totalCount={this.state.liveRunTotalCount}
         />

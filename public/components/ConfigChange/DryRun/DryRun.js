@@ -24,6 +24,7 @@ class DryRun extends React.Component {
   render() {
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
+    let jobId = this.props.jobId;
     let error = "";
 
     if (dryRunJobStatus === "EXCEPTION") {
@@ -68,6 +69,7 @@ class DryRun extends React.Component {
           <DryRunProgressInfo
             dryRunJobStatus={dryRunJobStatus}
             dryRunProgressData={dryRunProgressData}
+            jobId={jobId}
           />
         </div>
         {error}
