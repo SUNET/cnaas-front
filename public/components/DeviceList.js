@@ -3,6 +3,7 @@ import { Button, Select, Input, Icon, Pagination } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
+const io = require("socket.io-client");
 
 class DeviceList extends React.Component {
   state = {
@@ -14,7 +15,21 @@ class DeviceList extends React.Component {
     synchronized_sort: "",
     devicesData: [],
     activePage: 1,
-    totalPages: 1
+    totalPages: 1,
+    deviceInitJobs: {},
+    logLines: []
+  };
+
+  addDeviceInitJob = (device_id, job_id) => {
+    let deviceInitJobs = this.state.deviceInitJobs;
+    if (device_id in deviceInitJobs) {
+      deviceInitJobs[device_id].push(job_id);
+    } else {
+      deviceInitJobs[device_id] = [job_id];
+    }
+    this.setState({deviceInitJobs: deviceInitJobs}, () => {
+      console.log("device init jobs: ", this.state.deviceInitJobs)
+    });
   };
 
   getDevicesData = options => {
@@ -70,7 +85,60 @@ class DeviceList extends React.Component {
 
   componentDidMount() {
     this.getDevicesData();
-  }
+
+    const socket = io(process.env.API_URL);
+//    const socket = io("https://norpan.cnaas.io");
+    socket.on('connect', function(data) {
+      console.log('Websocket connected!');
+      var ret = socket.emit('events', {'update': 'device'});
+      var ret = socket.emit('events', {'update': 'job'});
+      var ret = socket.emit('events', {'loglevel': 'DEBUG'});
+    });
+    socket.on('events', (data) => {
+      console.log(data);
+      // device update event
+      if (data.device_id !== undefined && data.action == "UPDATED") {
+        let newDevicesData = this.state.devicesData.map((dev) => {
+          if (dev.id == data.device_id) {
+            return data.object;
+          } else {
+            return dev;
+          }
+        });
+        this.setState({devicesData: newDevicesData});
+      // job update event
+      } else if (data.job_id !== undefined) {
+        var newLogLines = this.state.logLines;
+        if (data.status === "EXCEPTION") {
+          newLogLines.push("job #"+data.job_id+" changed status to "+data.status+": "+data.exception+"\n");
+        } else {
+          newLogLines.push("job #"+data.job_id+" changed status to "+data.status+"\n");
+        }
+        this.setState({logLines: newLogLines});
+        
+        // if finished && next_job id, push next_job_id to array
+        if (data.next_job_id !== undefined && typeof data.next_job_id === "number") {
+          let newDeviceInitJobs = {};
+          Object.keys(this.state.deviceInitJobs).map(device_id => {
+            if (this.state.deviceInitJobs[device_id][0] == data.job_id) {
+              newDeviceInitJobs[device_id] = [data.job_id, data.next_job_id];
+            } else {
+              newDeviceInitJobs[device_id] = this.state.deviceInitJobs[device_id];
+            }
+          });
+          this.setState({deviceInitJobs: newDeviceInitJobs}, () => {
+            console.log("DEBUG01 next_job_updated list: ", this.state.deviceInitJobs)
+          });
+        }
+      // log events
+      } else if (typeof data === 'string' || data instanceof String) {
+        var newLogLines = this.state.logLines;
+        newLogLines.push(data + "\n");
+        this.setState({logLines: newLogLines});
+      }
+
+    });
+  };
 
   readHeaders = response => {
     const totalCountHeader = response.headers.get("X-Total-Count");
@@ -164,6 +232,12 @@ class DeviceList extends React.Component {
     );
   }
 
+  checkJobId(job_id) {
+    return function(logLine) {
+      return logLine.toLowerCase().includes("job #"+job_id);
+    }
+  };
+
   render() {
     let deviceInfo = "";
     const devicesData = this.state.devicesData;
@@ -183,11 +257,27 @@ class DeviceList extends React.Component {
         );
       }
       let deviceStateExtra = "";
-      if (items.state == "DISCOVERED" || items.state == "DHCP_BOOT") {
-        deviceStateExtra = <DeviceInitForm deviceId={items.id} />;
+      if (items.state == "DISCOVERED") {
+        deviceStateExtra = <DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceInitJob.bind(this)} />;
+      } else if (items.state == "INIT") {
+        if (items.id in this.state.deviceInitJobs) {
+          deviceStateExtra = <p>Init jobs: {this.state.deviceInitJobs[items.id].join(", ")}</p>;
+        }
       } else if (items.state == "MANAGED") {
         deviceStateExtra = <p><a href={"/config-change?hostname=" + items.hostname}>Sync</a></p>;
       }
+      let log = {};
+      Object.keys(this.state.deviceInitJobs).map(device_id => {
+        this.state.deviceInitJobs[device_id].map(job_id => {
+          this.state.logLines.filter(this.checkJobId(job_id)).map(logLine => {
+            log[device_id] = log[device_id] + logLine;
+            var element = document.getElementById("logoutputdiv_device_id_"+device_id);
+            if (element !== undefined) {
+              element.scrollTop = element.scrollHeight;
+            }
+          });
+        });
+      });
       return [
         <tr key={index} onClick={this.clickRow.bind(this)}>
           <td key="0">
@@ -212,8 +302,8 @@ class DeviceList extends React.Component {
                   <td>{items.description}</td>
                 </tr>
                 <tr>
-                  <td>Management IP</td>
-                  <td>{items.management_ip}</td>
+                  <td>Management IP (DHCP IP)</td>
+                  <td>{items.management_ip} ({items.dhcp_ip})</td>
                 </tr>
                 <tr>
                   <td>Infra IP</td>
@@ -246,6 +336,11 @@ class DeviceList extends React.Component {
               </tbody>
             </table>
             {deviceStateExtra}
+            <div id={"logoutputdiv_device_id_"+items.id} className="logoutput">
+              <pre>
+                {log[items.id]}
+              </pre>
+            </div>
           </td>
         </tr>
       ];

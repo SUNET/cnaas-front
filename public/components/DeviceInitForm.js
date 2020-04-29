@@ -2,6 +2,7 @@
 import React from "react";
 import PropTypes from 'prop-types'
 import { Button, Select, Input, Icon } from 'semantic-ui-react'
+import checkResponseStatus from "../utils/checkResponseStatus";
 
 class DeviceInitForm extends React.Component {
   state = {
@@ -26,6 +27,38 @@ class DeviceInitForm extends React.Component {
       submitIcon: "cog",
       submitText: "Initializing...",
     })
+    this.submitInitJob(this.props.deviceId, this.state.hostname, "ACCESS");
+  }
+
+  submitInitJob(device_id, hostname, device_type) {
+    console.log("Starting device init");
+    const credentials = localStorage.getItem("token");
+    let url = process.env.API_URL + "/api/v1.0/device_init/" + device_id;
+    let job_id = null;
+    let dataToSend = {
+      hostname: hostname,
+      device_type: device_type
+    };
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${credentials}`
+      },
+      body: JSON.stringify(dataToSend)
+    })
+    .then(response => checkResponseStatus(response))
+    .then(response => response.json())
+    .then(data => {
+      console.log("device_init response data", data);
+      if (data.job_id !== undefined && typeof data.job_id === "number") {
+        this.props.jobIdCallback(this.props.deviceId, data.job_id);
+      } else {
+        console.log("error when submitting device_init job", data.job_id);
+      }
+    });
+    
   }
 
   render() {
@@ -36,7 +69,7 @@ class DeviceInitForm extends React.Component {
         />
         <Select placeholder="Device type" options={[{'key': 'ACCESS', 'value': 'ACCESS', 'text': 'Access'}]} />
         <Button disabled={this.state.submitDisabled} icon labelPosition='right'>
-          Initialize
+          {this.state.submitText}
           <Icon name={this.state.submitIcon} />
         </Button>
       </form>
@@ -45,7 +78,8 @@ class DeviceInitForm extends React.Component {
 }
 
 DeviceInitForm.propTypes = {
-  deviceId: PropTypes.number
+  deviceId: PropTypes.number,
+  jobIdCallback: PropTypes.func
 }
 
 export default DeviceInitForm;
