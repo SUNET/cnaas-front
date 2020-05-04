@@ -12,7 +12,8 @@ class DeviceList extends React.Component {
     filterValue: null,
     hostname_sort: "",
     device_type_sort: "",
-    synchronized_sort: "",
+    state_sort: "",
+    id_sort: "↓",
     devicesData: [],
     activePage: 1,
     totalPages: 1,
@@ -66,7 +67,8 @@ class DeviceList extends React.Component {
     const oldValue = this.state[header + "_sort"];
     newState["hostname_sort"] = "";
     newState["device_type_sort"] = "";
-    newState["synchronized_sort"] = "";
+    newState["state_sort"] = "";
+    newState["id_sort"] = "";
     if (oldValue == "" || oldValue == "↑") {
       newState[header + "_sort"] = "↓";
       sortField = header;
@@ -238,23 +240,41 @@ class DeviceList extends React.Component {
     }
   };
 
+  renderSortButton(key) {
+    if (key === "↑") {
+      return <Icon name="sort up" />;
+    } else if (key === "↓") {
+      return <Icon name="sort down" />;
+    } else {
+      return <Icon name="sort" />;
+    }
+  }
+
   render() {
     let deviceInfo = "";
     const devicesData = this.state.devicesData;
     deviceInfo = devicesData.map((items, index) => {
       let syncStatus = "";
-      if (items.synchronized === true) {
-        syncStatus = (
-          <td key="2">
-            <Icon name="check" color="green" />
-          </td>
-        );
+      if (items.state === "MANAGED") {
+        if (items.synchronized === true) {
+          syncStatus = (
+            <td key="2">
+              MANAGED <Icon name="check" color="green" />
+            </td>
+          );
+        } else {
+          syncStatus = (
+            <td key="2">
+              MANAGED <Icon name="delete" color="red" />
+            </td>
+          );
+        }
       } else {
-        syncStatus = (
-          <td key="2">
-            <Icon name="delete" color="red" />
-          </td>
-        );
+          syncStatus = (
+            <td key="2">
+              {items.state}
+            </td>
+          );
       }
       let deviceStateExtra = "";
       if (items.state == "DISCOVERED") {
@@ -264,7 +284,7 @@ class DeviceList extends React.Component {
           deviceStateExtra = <p>Init jobs: {this.state.deviceInitJobs[items.id].join(", ")}</p>;
         }
       } else if (items.state == "MANAGED") {
-        deviceStateExtra = <p><a href={"/config-change?hostname=" + items.hostname}>Sync</a></p>;
+        deviceStateExtra = <p><a href={"/config-change?hostname=" + items.hostname}><Icon name="sync" />Sync</a></p>;
       }
       let log = {};
       Object.keys(this.state.deviceInitJobs).map(device_id => {
@@ -354,28 +374,33 @@ class DeviceList extends React.Component {
         <div id="device_list">
           <h2>Device list</h2>
           <div id="data">
-            <table>
+            <table className="device_list">
               <thead>
                 <tr>
                   <th onClick={() => this.sortHeader("hostname")}>
-                    Hostname <Icon name="sort" />{" "}
+                    Hostname
                     <div className="hostname_sort">
-                      {this.state.hostname_sort}
+                      {this.renderSortButton(this.state.hostname_sort)}
                     </div>
                   </th>
                   <th onClick={() => this.sortHeader("device_type")}>
-                    Device type <Icon name="sort" />{" "}
+                    Device type
                     <div className="device_type_sort">
-                      {this.state.device_type_sort}
+                      {this.renderSortButton(this.state.device_type_sort)}
                     </div>
                   </th>
-                  <th onClick={() => this.sortHeader("synchronized")}>
-                    Sync. status <Icon name="sort" />{" "}
+                  <th onClick={() => this.sortHeader("state")}>
+                    State (Sync status)
                     <div className="sync_status_sort">
-                      {this.state.synchronized_sort}
+                      {this.renderSortButton(this.state.state_sort)}
                     </div>
                   </th>
-                  <th>id</th>
+                  <th onClick={() => this.sortHeader("id")}>
+                    ID
+                    <div className="sync_status_sort">
+                      {this.renderSortButton(this.state.id_sort)}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>{deviceInfo}</tbody>
