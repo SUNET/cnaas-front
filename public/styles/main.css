@@ -231,6 +231,14 @@ progress::-moz-progress-bar {
   padding: 16px 0;
 }
 
+/* make ID column small, use nth-child instead of last so it doesn't affect device_details */
+#device_list .device_list tr td:nth-child(4),
+#device_list .device_list tr th:nth-child(4) {
+  width: 5em;
+  min-width: 2em;
+  max-width: 5em;
+}
+
 #data {
   height: 100%;
   margin: 16px 0;
@@ -253,6 +261,12 @@ progress::-moz-progress-bar {
 
 #data .device_details_table td {
   padding: 4px;
+}
+
+#data .device_details_table tr td:first-child {
+  width: 20em;
+  min-width: 20em;
+  max-width: 20em;
 }
 
 /* error styles */
@@ -283,4 +297,15 @@ progress::-moz-progress-bar {
 
 #diff-box pre {
   padding-left: 1rem;
+}
+
+/* log output styles */
+.logoutput {
+  overflow-y: scroll;
+  max-height: 10em;
+  overflow-x: hidden;
+  font-family: monospace;
+  background-color: #ddd;
+  margin: 1em;
+  font-size: 90%;
 }

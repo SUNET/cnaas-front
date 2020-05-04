@@ -38,7 +38,8 @@ class DeviceSearchForm extends React.Component {
   render() {
     const searchOptions = [
       { 'key': 'hostname', 'value': 'hostname', 'text': 'Hostname' },
-      { 'key': 'id', 'value': 'id', 'text': 'ID' },
+      { 'key': 'device_type', 'value': 'device_type', 'text': 'Device type' },
+      { 'key': 'state', 'value': 'state', 'text': 'State' },
       { 'key': 'management_ip', 'value': 'management_ip', 'text': 'Management IP' },
       { 'key': 'serial', 'value': 'serial', 'text': 'Serial number' },
       { 'key': 'ztp_mac', 'value': 'ztp_mac', 'text': 'MAC' },
@@ -46,7 +47,7 @@ class DeviceSearchForm extends React.Component {
       { 'key': 'vendor', 'value': 'vendor', 'text': 'Vendor' },
       { 'key': 'model', 'value': 'model', 'text': 'Hardware model' },
       { 'key': 'os_version', 'value': 'os_version', 'text': 'OS version' },
-      { 'key': 'state', 'value': 'state', 'text': 'State' },
+      { 'key': 'id', 'value': 'id', 'text': 'ID' },
     ]
 
     return (

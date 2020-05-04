@@ -6,6 +6,7 @@ import ConfigChangeStep4 from "./ConfigChangeStep4";
 import checkResponseStatus from "../../utils/checkResponseStatus";
 // import { postData } from "../../utils/sendData";
 import getData from "../../utils/getData";
+import queryString from 'query-string';
 
 class ConfigChange extends React.Component {
   state = {
@@ -40,7 +41,8 @@ class ConfigChange extends React.Component {
     console.log("Starting sync devices");
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/device_syncto";
-    let dataToSend = { dry_run: true, all: true };
+    let dataToSend = this.getCommitTarget();
+    dataToSend["dry_run"] = true;
    
     if (options !== undefined) {
       if (options.resync !== undefined) {
@@ -132,18 +134,46 @@ class ConfigChange extends React.Component {
     }
   };
 
+  getCommitTarget() {
+    let queryParams = queryString.parse(this.props.location.search);
+    if (queryParams.hostname !== undefined) {
+      return {hostname: queryParams.hostname}
+    }
+    else if (queryParams.group !== undefined) {
+      return {group: queryParams.group}
+    } else {
+      return {all: true};
+    }
+  };
+
+  getCommitTargetName(target) {
+    if (target.all !== undefined) {
+      return "All unsynchronized devices";
+    } else if (target.hostname !== undefined) {
+      return "Hostname: " + target.hostname
+    } else if (target.group !== undefined) {
+      return "Group: " + target.group
+    } else {
+      return "Unknown"
+    }
+  };
+
   render() {
     let dryRunProgressData = this.state.dryRunProgressData;
     let dryRunJobStatus = "";
     let dryRunResults = "";
     let dryRunChangeScore = "";
+    let dryRunJobId = "";
     let liveRunProgressData = this.state.liveRunProgressData;
     let liveRunJobStatus = "";
     let liveRunResults = "";
+    let liveRunJobId = "";
+    let commitTargetName = this.getCommitTargetName(this.getCommitTarget());
 
     dryRunProgressData.map((job, i) => {
       dryRunJobStatus = job.status;
       dryRunChangeScore = job.change_score;
+      dryRunJobId = job.id;
     });
 
     if (dryRunJobStatus === "FINISHED" || dryRunJobStatus === "EXCEPTION") {
@@ -159,6 +189,7 @@ class ConfigChange extends React.Component {
 
     liveRunProgressData.map((job, i) => {
       liveRunJobStatus = job.status;
+      liveRunJobId = job.id;
     });
 
     if (liveRunJobStatus === "FINISHED" || liveRunJobStatus === "EXCEPTION") {
@@ -172,12 +203,14 @@ class ConfigChange extends React.Component {
 
     return (
       <section>
-        <h1>Commit changes task</h1>
+        <h1>Commit changes task test</h1>
+        <p>Commit changes to: { commitTargetName }</p>
         <ConfigChangeStep1 />
         <DryRun
           dryRunSyncStart={this.deviceSyncStart}
           dryRunProgressData={dryRunProgressData}
           dryRunJobStatus={dryRunJobStatus}
+          jobId={dryRunJobId}
           devices={dryRunResults}
           totalCount={this.state.dryRunTotalCount}
         />
@@ -189,6 +222,7 @@ class ConfigChange extends React.Component {
           dryRunSyncStart={this.deviceSyncStart}
           dryRunProgressData={liveRunProgressData}
           dryRunJobStatus={liveRunJobStatus}
+          jobId={liveRunJobId}
           devices={liveRunResults}
           totalCount={this.state.liveRunTotalCount}
         />
