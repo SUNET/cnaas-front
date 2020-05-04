@@ -1,6 +1,7 @@
 import React from "react";
 import DeviceList from "./DeviceList";
 import GroupList from "./GroupList";
+import JobList from "./JobList";
 import ConfigChange from "./ConfigChange/ConfigChange";
 import LoginForm from "./LoginForm";
 import { Route } from "react-router-dom";
@@ -86,6 +87,11 @@ class Panel extends React.Component {
           exact
           path="/devices"
           render={props => <DeviceList logout={this.logout} />}
+        />
+        <Route
+          exact
+          path="/jobs"
+          render={props => <JobList logout={this.logout} />}
         />
         <Route
           exact
