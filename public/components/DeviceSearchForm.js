@@ -57,7 +57,7 @@ class DeviceSearchForm extends React.Component {
           icon={<Icon name='delete' link onClick={this.clearSearch.bind(this)}/>}
           value={this.state.searchText}
         />
-        <Select compact options={searchOptions} defaultValue='hostname' onChange={this.updateSearchField.bind(this)} />
+        <Select options={searchOptions} defaultValue='hostname' onChange={this.updateSearchField.bind(this)} />
         <Button type='submit'>Search</Button>
       </form>
     );

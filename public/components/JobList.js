@@ -17,7 +17,8 @@ class JobList extends React.Component {
     id_sort: "↑",
     jobsData: [],
     activePage: 1,
-    totalPages: 1
+    totalPages: 1,
+    logLines: []
   };
 
   getJobsData = options => {
@@ -231,6 +232,30 @@ class JobList extends React.Component {
             deviceData={deviceData}
           />
         ];
+      } else if (job.function_name === "init_access_device_step1") {
+        let deviceResult = Object.values(job.result.devices);
+        let results = deviceResult[0].job_tasks.map(task => {
+          if (task.task_name === "napalm_get") {
+            if (task.failed === true) {
+              return "Device changed management IP";
+            } else {
+              return "Error: Device kept old management IP";
+            }
+          } else if (task.task_name === "Generate initial device config") {
+            if (task.failed === true) {
+              return "Error: Failed to generate config";
+            } else {
+              return "Config generated successfully";
+            }
+          }
+        }).filter(result => {
+          if (result !== undefined) {
+            return result;
+          }
+        });
+        return results.map(result => {
+          return <p>{result}</p>;
+        });
       } else {
         return [
           <pre>{JSON.stringify(job.result, null, 2)}</pre>

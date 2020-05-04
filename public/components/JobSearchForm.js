@@ -37,6 +37,7 @@ class JobSearchForm extends React.Component {
 
   render() {
     const searchOptions = [
+      { 'key': 'id', 'value': 'id', 'text': 'ID' },
       { 'key': 'function_name', 'value': 'function_name', 'text': 'Function name' },
       { 'key': 'status', 'value': 'status', 'text': 'Status' },
       { 'key': 'scheduled_by', 'value': 'scheduled_by', 'text': 'Scheduled by' },
@@ -52,7 +53,7 @@ class JobSearchForm extends React.Component {
           icon={<Icon name='delete' link onClick={this.clearSearch.bind(this)}/>}
           value={this.state.searchText}
         />
-        <Select compact options={searchOptions} defaultValue='function_name' onChange={this.updateSearchField.bind(this)} />
+        <Select options={searchOptions} defaultValue='id' onChange={this.updateSearchField.bind(this)} />
         <Button type='submit'>Search</Button>
       </form>
     );
