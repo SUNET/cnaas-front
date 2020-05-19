@@ -1,11 +1,10 @@
 import React from "react";
 import DeviceList from "./DeviceList";
 import GroupList from "./GroupList";
+import JobList from "./JobList";
 import ConfigChange from "./ConfigChange/ConfigChange";
 import LoginForm from "./LoginForm";
 import { Route } from "react-router-dom";
-import { postData } from "react-router-dom";
-import checkResponseStatus from "../utils/checkResponseStatus";
 
 // passible base64 encode function?
 function btoaUTF16 (sString) {
@@ -34,6 +33,11 @@ class Panel extends React.Component {
           exact
           path="/devices"
           render={props => <DeviceList logout={this.logout} />}
+        />
+        <Route
+          exact
+          path="/jobs"
+          render={props => <JobList logout={this.logout} />}
         />
         <Route
           exact
