@@ -52,6 +52,12 @@ class App extends React.Component {
     });
   };
 
+  componentDidMount() {
+    if (localStorage.getItem("token") !== null) {
+      this.setState({loggedIn: true});
+    }
+  }
+
   render() {
     return (
       <div className="container">
