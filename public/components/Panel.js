@@ -4,6 +4,7 @@ import GroupList from "./GroupList";
 import JobList from "./JobList";
 import ConfigChange from "./ConfigChange/ConfigChange";
 import LoginForm from "./LoginForm";
+import ErrorBoundary from "./ErrorBoundary"
 import { Route } from "react-router-dom";
 
 // passible base64 encode function?
@@ -29,27 +30,29 @@ class Panel extends React.Component {
             />
           )}
         />
-        <Route
-          exact
-          path="/devices"
-          render={props => <DeviceList logout={this.logout} />}
-        />
-        <Route
-          exact
-          path="/jobs"
-          render={props => <JobList logout={this.logout} />}
-        />
-        <Route
-          exact
-          path="/groups"
-          render={props => <GroupList logout={this.logout} />}
-        />
-        <Route
-          exact
-          path="/config-change"
-          component={ConfigChange}
-//          render={props => <ConfigChange logout={this.logout} />}
-        />
+        <ErrorBoundary>
+          <Route
+            exact
+            path="/devices"
+            render={props => <DeviceList logout={this.logout} />}
+          />
+          <Route
+            exact
+            path="/jobs"
+            render={props => <JobList logout={this.logout} />}
+          />
+          <Route
+            exact
+            path="/groups"
+            render={props => <GroupList logout={this.logout} />}
+          />
+          <Route
+            exact
+            path="/config-change"
+            component={ConfigChange}
+  //          render={props => <ConfigChange logout={this.logout} />}
+          />
+        </ErrorBoundary>
       </div>
     );
   }
