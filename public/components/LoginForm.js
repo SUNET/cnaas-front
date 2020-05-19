@@ -17,7 +17,7 @@ class LoginForm extends React.Component {
       return (
         <div>
           <button className="logout" onClick={ev => this.props.logout()}>
-            logout
+            Logout
           </button>
         </div>
       );

@@ -1,39 +1,28 @@
 import React from "react";
 import { Button, Select, Input, Icon, Pagination } from "semantic-ui-react";
-import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
-import DeviceInitForm from "./DeviceInitForm";
+import JobSearchForm from "./JobSearchForm";
+import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
+import formatISODate from "../utils/formatters";
 const io = require("socket.io-client");
 
-class DeviceList extends React.Component {
+class JobList extends React.Component {
   state = {
-    sortField: "id",
+    sortField: "-id",
     filterField: null,
     filterValue: null,
-    hostname_sort: "",
-    device_type_sort: "",
-    state_sort: "",
-    id_sort: "↓",
-    devicesData: [],
+    function_name_sort: "",
+    status_sort: "",
+    scheduled_by_sort: "",
+    finish_time_sort: "",
+    id_sort: "↑",
+    jobsData: [],
     activePage: 1,
     totalPages: 1,
-    deviceInitJobs: {},
     logLines: []
   };
 
-  addDeviceInitJob = (device_id, job_id) => {
-    let deviceInitJobs = this.state.deviceInitJobs;
-    if (device_id in deviceInitJobs) {
-      deviceInitJobs[device_id].push(job_id);
-    } else {
-      deviceInitJobs[device_id] = [job_id];
-    }
-    this.setState({deviceInitJobs: deviceInitJobs}, () => {
-      console.log("device init jobs: ", this.state.deviceInitJobs)
-    });
-  };
-
-  getDevicesData = options => {
+  getJobsData = options => {
     if (options === undefined) options = {};
     let newState = this.state;
     if (options.sortField !== undefined) {
@@ -50,7 +39,7 @@ class DeviceList extends React.Component {
       newState["activePage"] = options.pageNum;
     }
     this.setState(newState);
-    return this.getDevicesAPIData(
+    return this.getJobsAPIData(
       newState["sortField"],
       newState["filterField"],
       newState["filterValue"],
@@ -63,11 +52,12 @@ class DeviceList extends React.Component {
    */
   sortHeader = header => {
     let newState = this.state;
-    let sortField = "id";
+    let sortField = "-id";
     const oldValue = this.state[header + "_sort"];
-    newState["hostname_sort"] = "";
-    newState["device_type_sort"] = "";
-    newState["state_sort"] = "";
+    newState["function_name_sort"] = "";
+    newState["status_sort"] = "";
+    newState["scheduled_by_sort"] = "";
+    newState["finish_time_sort"] = "";
     newState["id_sort"] = "";
     if (oldValue == "" || oldValue == "↑") {
       newState[header + "_sort"] = "↓";
@@ -77,7 +67,7 @@ class DeviceList extends React.Component {
       sortField = "-" + header;
     }
     this.setState(newState);
-    this.getDevicesData({ sortField: sortField });
+    this.getJobsData({ sortField: sortField });
     // Close all expanded table rows when resorting the table
     var deviceDetails = document.getElementsByClassName("device_details_row");
     for (var i = 0; i < deviceDetails.length; i++) {
@@ -86,60 +76,28 @@ class DeviceList extends React.Component {
   };
 
   componentDidMount() {
-    this.getDevicesData();
+    this.getJobsData();
+
     const credentials = localStorage.getItem("token");
     const socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
-      var ret = socket.emit('events', {'update': 'device'});
       var ret = socket.emit('events', {'update': 'job'});
-      var ret = socket.emit('events', {'loglevel': 'DEBUG'});
     });
     socket.on('events', (data) => {
-      // device update event
-      if (data.device_id !== undefined && data.action == "UPDATED") {
-        let newDevicesData = this.state.devicesData.map((dev) => {
-          if (dev.id == data.device_id) {
-            return data.object;
-          } else {
-            return dev;
-          }
-        });
-        this.setState({devicesData: newDevicesData});
       // job update event
-      } else if (data.job_id !== undefined) {
+      if (data.job_id !== undefined) {
         var newLogLines = this.state.logLines;
+        if (newLogLines.length >= 1000) {
+          newLogLines.shift();
+        }
         if (data.status === "EXCEPTION") {
           newLogLines.push("job #"+data.job_id+" changed status to "+data.status+": "+data.exception+"\n");
         } else {
           newLogLines.push("job #"+data.job_id+" changed status to "+data.status+"\n");
         }
         this.setState({logLines: newLogLines});
-        
-        // if finished && next_job id, push next_job_id to array
-        if (data.next_job_id !== undefined && typeof data.next_job_id === "number") {
-          let newDeviceInitJobs = {};
-          Object.keys(this.state.deviceInitJobs).map(device_id => {
-            if (this.state.deviceInitJobs[device_id][0] == data.job_id) {
-              newDeviceInitJobs[device_id] = [data.job_id, data.next_job_id];
-            } else {
-              newDeviceInitJobs[device_id] = this.state.deviceInitJobs[device_id];
-            }
-          });
-          this.setState({deviceInitJobs: newDeviceInitJobs}, () => {
-            console.log("next_job_updated list: ", this.state.deviceInitJobs)
-          });
-        }
-      // log events
-      } else if (typeof data === 'string' || data instanceof String) {
-        var newLogLines = this.state.logLines;
-        if (newLogLines.length >= 1000) {
-          newLogLines.shift();
-        }
-        newLogLines.push(data + "\n");
-        this.setState({logLines: newLogLines});
-      }
-
+      } 
     });
   };
 
@@ -155,21 +113,17 @@ class DeviceList extends React.Component {
     return response;
   };
 
-  getDevicesAPIData = (sortField = "id", filterField, filterValue, pageNum) => {
+  getJobsAPIData = (sortField = "id", filterField, filterValue, pageNum) => {
     const credentials = localStorage.getItem("token");
     // Build filter part of the URL to only return specific devices from the API
     // TODO: filterValue should probably be urlencoded?
     let filterParams = "";
     let filterFieldOperator = "";
     const stringFields = [
-      "hostname",
-      "management_ip",
-      "serial",
-      "ztp_mac",
-      "platform",
-      "vendor",
-      "model",
-      "os_version"
+      "function_name",
+      "scheduled_by",
+      "ticket_ref",
+      "comment",
     ];
     if (filterField != null && filterValue != null) {
       if (stringFields.indexOf(filterField) !== -1) {
@@ -185,7 +139,7 @@ class DeviceList extends React.Component {
     }
     fetch(
       process.env.API_URL +
-      "/api/v1.0/devices?sort=" +
+      "/api/v1.0/jobs?sort=" +
       sortField +
       filterParams +
       "&page=" +
@@ -206,7 +160,7 @@ class DeviceList extends React.Component {
         {
           this.setState(
             {
-              devicesData: data.data.devices
+              jobsData: data.data.jobs
             },
             () => {
               console.log("this is new state", this.state.devicesData);
@@ -231,7 +185,7 @@ class DeviceList extends React.Component {
   pageChange(e, data) {
     // Update active page and then reload data
     this.setState({ activePage: data.activePage }, () =>
-      this.getDevicesData({ numPage: data.activePage })
+      this.getJobsData({ numPage: data.activePage })
     );
   }
 
@@ -251,67 +205,95 @@ class DeviceList extends React.Component {
     }
   }
 
-  render() {
-    let deviceInfo = "";
-    const devicesData = this.state.devicesData;
-    deviceInfo = devicesData.map((items, index) => {
-      let syncStatus = "";
-      if (items.state === "MANAGED") {
-        if (items.synchronized === true) {
-          syncStatus = (
-            <td key="2">
-              MANAGED <Icon name="check" color="green" />
-            </td>
-          );
-        } else {
-          syncStatus = (
-            <td key="2">
-              MANAGED <Icon name="delete" color="red" />
-            </td>
-          );
-        }
+  showException(id) {
+    console.log("unhide: ", id);
+    var element = document.getElementById("exception_traceback_"+id);
+    if (element !== undefined) {
+      element.hidden = false;
+    }
+  }
+
+  renderJobDetails(job, index) {
+    if (job.status === "EXCEPTION") {
+      if (job.exception !== undefined && job.exception !== null) {
+        return [
+          <p>Exception message: {job.exception.message}</p>,
+          <p><a onClick={() => this.showException(index)}>Show exception traceback</a></p>,
+          <pre id={"exception_traceback_"+index} hidden>{job.exception.traceback}</pre>
+        ];
       } else {
-          syncStatus = (
-            <td key="2">
-              {items.state}
-            </td>
-          );
+        return [
+          <p>Empty exception</p>
+        ]
       }
-      let deviceStateExtra = "";
-      if (items.state == "DISCOVERED") {
-        deviceStateExtra = <DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceInitJob.bind(this)} />;
-      } else if (items.state == "INIT") {
-        if (items.id in this.state.deviceInitJobs) {
-          deviceStateExtra = <p>Init jobs: {this.state.deviceInitJobs[items.id].join(", ")}</p>;
-        }
-      } else if (items.state == "MANAGED") {
-        deviceStateExtra = <p><a href={"/config-change?hostname=" + items.hostname}><Icon name="sync" />Sync</a></p>;
-      }
-      let log = {};
-      Object.keys(this.state.deviceInitJobs).map(device_id => {
-        this.state.deviceInitJobs[device_id].map(job_id => {
-          this.state.logLines.filter(this.checkJobId(job_id)).map(logLine => {
-            log[device_id] = log[device_id] + logLine;
-            var element = document.getElementById("logoutputdiv_device_id_"+device_id);
-            if (element !== undefined) {
-              element.scrollTop = element.scrollHeight;
+    } else if (job.status === "FINISHED") {
+      console.log("finished: ", job.function_name);
+      if (job.function_name === "sync_devices") {
+        let devicesObj = job.result.devices;
+        const deviceNames = Object.keys(devicesObj);
+        const deviceData = Object.values(devicesObj);
+        return [
+          <p>Diff results: </p>,
+          <VerifyDiffResult
+            deviceNames={deviceNames}
+            deviceData={deviceData}
+          />
+        ];
+      } else if (job.function_name === "init_access_device_step1") {
+        let deviceResult = Object.values(job.result.devices);
+        let results = deviceResult[0].job_tasks.map(task => {
+          if (task.task_name === "napalm_get") {
+            if (task.failed === true) {
+              return "Device changed management IP";
+            } else {
+              return "Error: Device kept old management IP";
             }
-          });
+          } else if (task.task_name === "Generate initial device config") {
+            if (task.failed === true) {
+              return "Error: Failed to generate config";
+            } else {
+              return "Config generated successfully";
+            }
+          }
+        }).filter(result => {
+          if (result !== undefined) {
+            return result;
+          }
         });
-      });
+        return results.map(result => {
+          return <p>{result}</p>;
+        });
+      } else {
+        return [
+          <pre>{JSON.stringify(job.result, null, 2)}</pre>
+        ];
+      }
+    } else {
+      return [
+        <pre>{JSON.stringify(job.result, null, 2)}</pre>
+      ];
+    }
+  }
+
+  render() {
+    const jobsData = this.state.jobsData;
+    let jobTableBody = jobsData.map((job, index) => {
+      let jobDetails = this.renderJobDetails(job, index);
+
       return [
         <tr key={index} onClick={this.clickRow.bind(this)}>
           <td key="0">
             <Icon name="angle down" />
-            {items.hostname}
+            {job.id}
           </td>
-          <td key="1">{items.device_type}</td>
-          {syncStatus}
-          <td key="3">{items.id}</td>
+          <td key="1">{job.function_name}</td>
+          <td key="2">{job.status}</td>
+          <td key="3">{job.scheduled_by}</td>
+          <td key="4">{formatISODate(job.finish_time)}</td>
         </tr>,
         <tr
           key={index + "_content"}
-          colSpan="4"
+          colSpan="5"
           className="device_details_row"
           hidden
         >
@@ -319,49 +301,36 @@ class DeviceList extends React.Component {
             <table className="device_details_table">
               <tbody>
                 <tr>
-                  <td>Description</td>
-                  <td>{items.description}</td>
+                  <td>Start time</td>
+                  <td>{formatISODate(job.start_time)}</td>
                 </tr>
                 <tr>
-                  <td>Management IP (DHCP IP)</td>
-                  <td>{items.management_ip} ({items.dhcp_ip})</td>
+                  <td>Finish time</td>
+                  <td>{formatISODate(job.finish_time)}</td>
                 </tr>
                 <tr>
-                  <td>Infra IP</td>
-                  <td>{items.infra_ip}</td>
+                  <td>Comment</td>
+                  <td>{job.comment}</td>
                 </tr>
                 <tr>
-                  <td>MAC</td>
-                  <td>{items.ztp_mac}</td>
+                  <td>Ticket reference</td>
+                  <td>{job.ticket_ref}</td>
                 </tr>
                 <tr>
-                  <td>Vendor</td>
-                  <td>{items.vendor}</td>
+                  <td>Next job id</td>
+                  <td>{job.next_job_id}</td>
                 </tr>
                 <tr>
-                  <td>Model</td>
-                  <td>{items.model}</td>
+                  <td>Change score</td>
+                  <td>{job.change_score}</td>
                 </tr>
                 <tr>
-                  <td>OS Version</td>
-                  <td>{items.os_version}</td>
-                </tr>
-                <tr>
-                  <td>Serial</td>
-                  <td>{items.serial}</td>
-                </tr>
-                <tr>
-                  <td>State</td>
-                  <td>{items.state}</td>
+                  <td>Finished devices</td>
+                  <td>{job.finished_devices.join(", ")}</td>
                 </tr>
               </tbody>
             </table>
-            {deviceStateExtra}
-            <div id={"logoutputdiv_device_id_"+items.id} className="logoutput">
-              <pre>
-                {log[items.id]}
-              </pre>
-            </div>
+            {jobDetails}
           </td>
         </tr>
       ];
@@ -370,41 +339,47 @@ class DeviceList extends React.Component {
     return (
       <section>
         <div id="search">
-          <DeviceSearchForm searchAction={this.getDevicesData} />
+          <JobSearchForm searchAction={this.getJobsData} />
         </div>
-        <div id="device_list">
-          <h2>Device list</h2>
+        <div id="job_list">
+          <h2>Job list</h2>
           <div id="data">
-            <table className="device_list">
+            <table className="job_list">
               <thead>
                 <tr>
-                  <th onClick={() => this.sortHeader("hostname")}>
-                    Hostname
-                    <div className="hostname_sort">
-                      {this.renderSortButton(this.state.hostname_sort)}
-                    </div>
-                  </th>
-                  <th onClick={() => this.sortHeader("device_type")}>
-                    Device type
-                    <div className="device_type_sort">
-                      {this.renderSortButton(this.state.device_type_sort)}
-                    </div>
-                  </th>
-                  <th onClick={() => this.sortHeader("state")}>
-                    State (Sync status)
-                    <div className="sync_status_sort">
-                      {this.renderSortButton(this.state.state_sort)}
-                    </div>
-                  </th>
                   <th onClick={() => this.sortHeader("id")}>
                     ID
                     <div className="sync_status_sort">
                       {this.renderSortButton(this.state.id_sort)}
                     </div>
                   </th>
+                  <th onClick={() => this.sortHeader("function_name")}>
+                    Function name
+                    <div className="hostname_sort">
+                      {this.renderSortButton(this.state.function_name_sort)}
+                    </div>
+                  </th>
+                  <th onClick={() => this.sortHeader("status")}>
+                    Status
+                    <div className="device_type_sort">
+                      {this.renderSortButton(this.state.status_sort)}
+                    </div>
+                  </th>
+                  <th onClick={() => this.sortHeader("scheduled_by")}>
+                    Scheduled by
+                    <div className="sync_status_sort">
+                      {this.renderSortButton(this.state.scheduled_by_sort)}
+                    </div>
+                  </th>
+                  <th onClick={() => this.sortHeader("finish_time")}>
+                    Finish time
+                    <div className="sync_status_sort">
+                      {this.renderSortButton(this.state.finish_time_sort)}
+                    </div>
+                  </th>
                 </tr>
               </thead>
-              <tbody>{deviceInfo}</tbody>
+              <tbody>{jobTableBody}</tbody>
             </table>
           </div>
           <div>
@@ -420,4 +395,4 @@ class DeviceList extends React.Component {
   }
 }
 
-export default DeviceList;
+export default JobList;
