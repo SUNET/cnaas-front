@@ -76,9 +76,11 @@ class JobList extends React.Component {
   };
 
   componentDidMount() {
-    this.getJobsData();
-
     const credentials = localStorage.getItem("token");
+    if (credentials === null) {
+      throw("no API token found");
+    }
+    this.getJobsData();
     const socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
