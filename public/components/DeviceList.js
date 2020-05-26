@@ -86,10 +86,12 @@ class DeviceList extends React.Component {
   };
 
   componentDidMount() {
+    const credentials = localStorage.getItem("token");
+    if (credentials === null) {
+      throw("no API token found");
+    }
     this.getDevicesData();
-
-    const socket = io(process.env.API_URL);
-//    const socket = io("https://norpan.cnaas.io");
+    const socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'update': 'device'});
@@ -97,7 +99,6 @@ class DeviceList extends React.Component {
       var ret = socket.emit('events', {'loglevel': 'DEBUG'});
     });
     socket.on('events', (data) => {
-      console.log(data);
       // device update event
       if (data.device_id !== undefined && data.action == "UPDATED") {
         let newDevicesData = this.state.devicesData.map((dev) => {
@@ -129,12 +130,15 @@ class DeviceList extends React.Component {
             }
           });
           this.setState({deviceInitJobs: newDeviceInitJobs}, () => {
-            console.log("DEBUG01 next_job_updated list: ", this.state.deviceInitJobs)
+            console.log("next_job_updated list: ", this.state.deviceInitJobs)
           });
         }
       // log events
       } else if (typeof data === 'string' || data instanceof String) {
         var newLogLines = this.state.logLines;
+        if (newLogLines.length >= 1000) {
+          newLogLines.shift();
+        }
         newLogLines.push(data + "\n");
         this.setState({logLines: newLogLines});
       }

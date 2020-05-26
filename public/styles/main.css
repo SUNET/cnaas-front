@@ -26,9 +26,16 @@ header {
 nav {
   flex: 1;
   margin: 16px;
+  display: flex;
+}
+
+nav h1 {
+  margin: 0;
+  flex: 1;
 }
 
 nav ul {
+  flex: 1;
   display: flex;
   justify-content: flex-end;
 }

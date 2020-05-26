@@ -15,8 +15,8 @@ class DryRunProgressInfo extends React.Component {
   };
 
   componentDidMount(){
-    const socket = io(process.env.API_URL);
-//    const socket = io("https://norpan.cnaas.io");
+    const credentials = localStorage.getItem("token");
+    const socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'loglevel': 'DEBUG'});
@@ -24,8 +24,10 @@ class DryRunProgressInfo extends React.Component {
       console.log(ret)  
     });
     socket.on('events', (data) => {
-      console.log(data);
       var newLogLines = this.state.logLines;
+      if (newLogLines.length >= 1000) {
+        newLogLines.shift();
+      }
       newLogLines.push(data + "\n");
       this.setState({logLines: newLogLines});
       var element = document.getElementById("logoutputdiv");

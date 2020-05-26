@@ -4,9 +4,8 @@ import GroupList from "./GroupList";
 import JobList from "./JobList";
 import ConfigChange from "./ConfigChange/ConfigChange";
 import LoginForm from "./LoginForm";
+import ErrorBoundary from "./ErrorBoundary"
 import { Route } from "react-router-dom";
-import { postData } from "react-router-dom";
-import checkResponseStatus from "../utils/checkResponseStatus";
 
 // passible base64 encode function?
 function btoaUTF16 (sString) {
@@ -16,60 +15,7 @@ function btoaUTF16 (sString) {
 }
 
 class Panel extends React.Component {
-  state = {
-    token: null,
-    showLoginForm: true
-    // errorMessage: ""
-  };
-
-
-  login = (email, password) => {
-    event.preventDefault();
-    console.log("this is email: ", email);
-    const url = process.env.API_URL + "/api/v1.0/auth";
-    fetch(url, {
-      method: "POST",
-      headers: {"Authorization": 'Basic ' + btoa(email + ":" + password) }
-    })
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json())
-    .then(data => {
-    console.log("this is token: ", data['access_token']);
-    this.setState(
-      {
-        showLoginForm: false,
-        token: data['access_token']
-      },
-      () => {
-        localStorage.setItem("token", this.state.token);
-      }
-    );
-    })
-    .catch(error => {
-      this.setState(
-        {
-          showLoginForm: false,
-        },
-        () => {
-          localStorage.removeItem("token");
-          this.setState({
-            showLoginForm: true,
-          });
-        }
-      );
-    });
-  };
-
-  logout = () => {
-    localStorage.removeItem("token");
-    this.setState({
-      showLoginForm: true,
-      errorMessage: "you have logged out"
-    });
-  };
-
   render() {
-    console.log("this is props (in panel)", this.props);
     return (
       <div id="panel">
         <Route
@@ -77,33 +23,36 @@ class Panel extends React.Component {
           path="/"
           render={props => (
             <LoginForm
-              login={this.login}
-              logout={this.logout}
-              show={this.state.showLoginForm}
+              login={this.props.login}
+              logout={this.props.logout}
+              show={!this.props.loggedIn}
+              errorMessage={this.props.loginMessage}
             />
           )}
         />
-        <Route
-          exact
-          path="/devices"
-          render={props => <DeviceList logout={this.logout} />}
-        />
-        <Route
-          exact
-          path="/jobs"
-          render={props => <JobList logout={this.logout} />}
-        />
-        <Route
-          exact
-          path="/groups"
-          render={props => <GroupList logout={this.logout} />}
-        />
-        <Route
-          exact
-          path="/config-change"
-          component={ConfigChange}
-//          render={props => <ConfigChange logout={this.logout} />}
-        />
+        <ErrorBoundary>
+          <Route
+            exact
+            path="/devices"
+            render={props => <DeviceList logout={this.logout} />}
+          />
+          <Route
+            exact
+            path="/jobs"
+            render={props => <JobList logout={this.logout} />}
+          />
+          <Route
+            exact
+            path="/groups"
+            render={props => <GroupList logout={this.logout} />}
+          />
+          <Route
+            exact
+            path="/config-change"
+            component={ConfigChange}
+  //          render={props => <ConfigChange logout={this.logout} />}
+          />
+        </ErrorBoundary>
       </div>
     );
   }

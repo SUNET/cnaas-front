@@ -5,7 +5,7 @@ import { Button, Select, Input, Icon } from 'semantic-ui-react'
 class JobSearchForm extends React.Component {
   state = {
       searchText: "",
-      searchField: "function_name"
+      searchField: "id"
   };
 
   updateSearchText(e) {

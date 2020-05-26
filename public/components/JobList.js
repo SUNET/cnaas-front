@@ -3,6 +3,7 @@ import { Button, Select, Input, Icon, Pagination } from "semantic-ui-react";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
+import formatISODate from "../utils/formatters";
 const io = require("socket.io-client");
 
 class JobList extends React.Component {
@@ -75,27 +76,29 @@ class JobList extends React.Component {
   };
 
   componentDidMount() {
+    const credentials = localStorage.getItem("token");
+    if (credentials === null) {
+      throw("no API token found");
+    }
     this.getJobsData();
-
-    const socket = io(process.env.API_URL);
-//    const socket = io("https://norpan.cnaas.io");
+    const socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'update': 'job'});
     });
     socket.on('events', (data) => {
-      console.log(data);
       // job update event
       if (data.job_id !== undefined) {
         var newLogLines = this.state.logLines;
+        if (newLogLines.length >= 1000) {
+          newLogLines.shift();
+        }
         if (data.status === "EXCEPTION") {
           newLogLines.push("job #"+data.job_id+" changed status to "+data.status+": "+data.exception+"\n");
         } else {
           newLogLines.push("job #"+data.job_id+" changed status to "+data.status+"\n");
         }
         this.setState({logLines: newLogLines});
-        
-      // log events
       } 
     });
   };
@@ -214,11 +217,17 @@ class JobList extends React.Component {
 
   renderJobDetails(job, index) {
     if (job.status === "EXCEPTION") {
-      return [
-        <p>Exception message: {job.exception.message}</p>,
-        <p><a onClick={() => this.showException(index)}>Show exception traceback</a></p>,
-        <pre id={"exception_traceback_"+index} hidden>{job.exception.traceback}</pre>
-      ];
+      if (job.exception !== undefined && job.exception !== null) {
+        return [
+          <p>Exception message: {job.exception.message}</p>,
+          <p><a onClick={() => this.showException(index)}>Show exception traceback</a></p>,
+          <pre id={"exception_traceback_"+index} hidden>{job.exception.traceback}</pre>
+        ];
+      } else {
+        return [
+          <p>Empty exception</p>
+        ]
+      }
     } else if (job.status === "FINISHED") {
       console.log("finished: ", job.function_name);
       if (job.function_name === "sync_devices") {
@@ -282,7 +291,7 @@ class JobList extends React.Component {
           <td key="1">{job.function_name}</td>
           <td key="2">{job.status}</td>
           <td key="3">{job.scheduled_by}</td>
-          <td key="4">{job.finish_time}</td>
+          <td key="4">{formatISODate(job.finish_time)}</td>
         </tr>,
         <tr
           key={index + "_content"}
@@ -295,11 +304,11 @@ class JobList extends React.Component {
               <tbody>
                 <tr>
                   <td>Start time</td>
-                  <td>{job.start_time}</td>
+                  <td>{formatISODate(job.start_time)}</td>
                 </tr>
                 <tr>
                   <td>Finish time</td>
-                  <td>{job.finish_time}</td>
+                  <td>{formatISODate(job.finish_time)}</td>
                 </tr>
                 <tr>
                   <td>Comment</td>
