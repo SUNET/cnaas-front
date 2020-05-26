@@ -41,7 +41,9 @@ class JobSearchForm extends React.Component {
       { 'key': 'function_name', 'value': 'function_name', 'text': 'Function name' },
       { 'key': 'status', 'value': 'status', 'text': 'Status' },
       { 'key': 'scheduled_by', 'value': 'scheduled_by', 'text': 'Scheduled by' },
+      { 'key': 'comment', 'value': 'comment', 'text': 'Comment' },
       { 'key': 'ticket_ref', 'value': 'ticket_ref', 'text': 'Ticket reference' },
+      { 'key': 'finish_time', 'value': 'finish_time', 'text': 'Finish time' },
     ]
 
     return (
