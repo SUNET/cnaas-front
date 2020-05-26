@@ -26,6 +26,7 @@ class ConfigChangeStep4 extends React.Component {
   render() {
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
+    let jobId = this.props.jobId;
 
     return (
       <div className="task-container">
@@ -54,6 +55,7 @@ class ConfigChangeStep4 extends React.Component {
           <DryRunProgressInfo
             dryRunJobStatus={dryRunJobStatus}
             dryRunProgressData={dryRunProgressData}
+            jobId={jobId}
           />
         </div>
       </div>

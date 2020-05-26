@@ -316,3 +316,7 @@ progress::-moz-progress-bar {
   margin: 1em;
   font-size: 90%;
 }
+
+.job_ticket_ref {
+  width: 20em;
+}

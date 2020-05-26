@@ -296,7 +296,7 @@ class DeviceList extends React.Component {
           this.state.logLines.filter(this.checkJobId(job_id)).map(logLine => {
             log[device_id] = log[device_id] + logLine;
             var element = document.getElementById("logoutputdiv_device_id_"+device_id);
-            if (element !== undefined) {
+            if (element !== null) {
               element.scrollTop = element.scrollHeight;
             }
           });
