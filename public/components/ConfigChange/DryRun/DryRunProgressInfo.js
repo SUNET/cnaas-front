@@ -31,7 +31,7 @@ class DryRunProgressInfo extends React.Component {
       newLogLines.push(data + "\n");
       this.setState({logLines: newLogLines});
       var element = document.getElementById("logoutputdiv");
-      if (element !== undefined) {
+      if (element !== null) {
         element.scrollTop = element.scrollHeight;
       }
     });

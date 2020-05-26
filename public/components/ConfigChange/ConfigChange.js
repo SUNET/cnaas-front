@@ -1,4 +1,5 @@
 import React from "react";
+import { Input } from 'semantic-ui-react';
 import ConfigChangeStep1 from "./ConfigChangeStep1";
 import DryRun from "./DryRun/DryRun";
 import VerifyDiff from "./VerifyDiff/VerifyDiff";
@@ -19,8 +20,24 @@ class ConfigChange extends React.Component {
     liveRunSyncJobid: null,
     liveRunProgressData: [],
     liveRunResultData: [],
-    liveRunTotalCount: 0
+    liveRunTotalCount: 0,
+    job_comment: "",
+    job_ticket_ref: ""
   };
+
+  updateComment(e) {
+    const val = e.target.value;
+    this.setState({
+      job_comment: val
+    });
+  }
+
+  updateTicketRef(e) {
+    const val = e.target.value;
+    this.setState({
+      job_ticket_ref: val
+    });
+  }
 
   readHeaders = (response, dry_run) => {
     const totalCountHeader = response.headers.get("X-Total-Count");
@@ -43,6 +60,8 @@ class ConfigChange extends React.Component {
     let url = process.env.API_URL + "/api/v1.0/device_syncto";
     let dataToSend = this.getCommitTarget();
     dataToSend["dry_run"] = true;
+    dataToSend["comment"] = this.state.job_comment;
+    dataToSend["ticket_ref"] = this.state.job_ticket_ref;
    
     if (options !== undefined) {
       if (options.resync !== undefined) {
@@ -163,11 +182,11 @@ class ConfigChange extends React.Component {
     let dryRunJobStatus = "";
     let dryRunResults = "";
     let dryRunChangeScore = "";
-    let dryRunJobId = "";
+    let dryRunJobId = "NA";
     let liveRunProgressData = this.state.liveRunProgressData;
     let liveRunJobStatus = "";
     let liveRunResults = "";
-    let liveRunJobId = "";
+    let liveRunJobId = "NA";
     let commitTargetName = this.getCommitTargetName(this.getCommitTarget());
 
     dryRunProgressData.map((job, i) => {
@@ -203,8 +222,20 @@ class ConfigChange extends React.Component {
 
     return (
       <section>
-        <h1>Commit changes task test</h1>
+        <h1>Commit changes (syncto)</h1>
         <p>Commit changes to: { commitTargetName }</p>
+        <p>Describe the change:</p>
+        <Input placeholder="comment"
+          maxLength="255"
+          className="job_comment"
+          onChange={this.updateComment.bind(this)}
+        />
+        <p>Enter service ticket ID reference:</p>
+        <Input placeholder="ticket reference"
+          maxLength="32"
+          className="job_ticket_ref"
+          onChange={this.updateTicketRef.bind(this)}
+        />
         <ConfigChangeStep1 />
         <DryRun
           dryRunSyncStart={this.deviceSyncStart}
