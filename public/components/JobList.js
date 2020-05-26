@@ -230,7 +230,7 @@ class JobList extends React.Component {
       }
     } else if (job.status === "FINISHED") {
       console.log("finished: ", job.function_name);
-      if (job.function_name === "sync_devices") {
+      if (typeof job.function_name === 'string' && job.function_name.startsWith("sync_devices")) {
         let devicesObj = job.result.devices;
         const deviceNames = Object.keys(devicesObj);
         const deviceData = Object.values(devicesObj);
