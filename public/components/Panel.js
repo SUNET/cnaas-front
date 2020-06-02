@@ -34,23 +34,22 @@ class Panel extends React.Component {
           <Route
             exact
             path="/devices"
-            render={props => <DeviceList logout={this.logout} />}
+            component={DeviceList}
           />
           <Route
             exact
             path="/jobs"
-            render={props => <JobList logout={this.logout} />}
+            component={JobList}
           />
           <Route
             exact
             path="/groups"
-            render={props => <GroupList logout={this.logout} />}
+            component={GroupList}
           />
           <Route
             exact
             path="/config-change"
             component={ConfigChange}
-  //          render={props => <ConfigChange logout={this.logout} />}
           />
         </ErrorBoundary>
       </div>

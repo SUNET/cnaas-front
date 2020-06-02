@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from 'prop-types'
 import { Button, Select, Input, Icon } from 'semantic-ui-react'
+import queryString from 'query-string';
 
 class DeviceSearchForm extends React.Component {
   state = {
@@ -30,9 +31,30 @@ class DeviceSearchForm extends React.Component {
   }
 
   submitSearch(e) {
-    e.preventDefault();
+    if (e !== null) {
+      e.preventDefault();
+    }
     console.log("search submitted: "+this.state.searchText+" "+this.state.searchField);
     this.props.searchAction({ filterField: this.state.searchField, filterValue: this.state.searchText});
+  }
+
+  componentDidMount() {
+    let queryParams = queryString.parse(this.props.location.search);
+    if (queryParams.search_id !== undefined) {
+      this.setState({
+        searchText: queryParams.search_id,
+        searchField: "id"
+      }, () => {
+        this.submitSearch(null);
+      })
+    } else if (queryParams.search_hostname !== undefined) {
+      this.setState({
+        searchText: queryParams.search_hostname,
+        searchField: "hostname"
+      }, () => {
+        this.submitSearch(null);
+      })
+    }
   }
 
   render() {
@@ -67,6 +89,7 @@ class DeviceSearchForm extends React.Component {
 
 DeviceSearchForm.propTypes = {
   searchAction: PropTypes.func.isRequired,
+  location: PropTypes.object.isRequired
 }
 
 export default DeviceSearchForm;

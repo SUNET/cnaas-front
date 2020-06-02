@@ -15,6 +15,7 @@ class DeviceList extends React.Component {
     state_sort: "",
     id_sort: "↓",
     devicesData: [],
+    deviceInterfaceData: {},
     activePage: 1,
     totalPages: 1,
     deviceInitJobs: {},
@@ -219,6 +220,37 @@ class DeviceList extends React.Component {
       });
   };
 
+  getInterfacesData(hostname) {
+    const credentials = localStorage.getItem("token");
+    fetch(
+      process.env.API_URL + "/api/v1.0/device/" + hostname + "/interfaces",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${credentials}`
+        }
+      }
+    )
+    .then(response => checkResponseStatus(response))
+    .then(response => this.readHeaders(response))
+    .then(response => response.json())
+    .then(data => {
+      console.log("this should be interface data", data);
+      {
+        let newDeviceInterfaceData = this.state.deviceInterfaceData;
+        if (Array.isArray(data.data.interfaces) && data.data.interfaces.length)
+        {
+          newDeviceInterfaceData[hostname] = data.data.interfaces;
+          this.setState(
+            {
+              deviceInterfaceData: newDeviceInterfaceData
+            }
+          );
+        }
+      }
+    });
+  }
+
   /**
    * Handle expand/collapse of device details when clicking a row in the table
    */
@@ -226,6 +258,9 @@ class DeviceList extends React.Component {
     const curState = e.target.closest("tr").nextElementSibling.hidden;
     if (curState) {
       e.target.closest("tr").nextElementSibling.hidden = false;
+      if (e.target.closest("tr").id in this.state.deviceInterfaceData === false) {
+        this.getInterfacesData(e.target.closest("tr").id);
+      }
     } else {
       e.target.closest("tr").nextElementSibling.hidden = true;
     }
@@ -243,6 +278,22 @@ class DeviceList extends React.Component {
       return logLine.toLowerCase().includes("job #"+job_id);
     }
   };
+
+  renderMlagLink(interfaceData) {
+    return interfaceData.
+      filter(intf => intf.configtype === "MLAG_PEER").
+      map(intf => {
+      return <a href={"?search_id="+intf.data.neighbor_id} title="Find MLAG peer device">{intf.name}: MLAG peer interface</a>;
+    });
+  }
+
+  renderUplinkLink(interfaceData) {
+    return interfaceData.
+      filter(intf => intf.configtype === "ACCESS_UPLINK").
+      map(intf => {
+        return <a href={"?search_hostname="+intf.data.neighbor} title="Find uplink device">{intf.name}: Uplink to {intf.data.neighbor}</a>;
+    });
+  }
 
   renderSortButton(key) {
     if (key === "↑") {
@@ -280,15 +331,26 @@ class DeviceList extends React.Component {
             </td>
           );
       }
-      let deviceStateExtra = "";
+      let deviceStateExtra = [];
       if (items.state == "DISCOVERED") {
-        deviceStateExtra = <DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceInitJob.bind(this)} />;
+        deviceStateExtra.push(<DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceInitJob.bind(this)} />);
       } else if (items.state == "INIT") {
         if (items.id in this.state.deviceInitJobs) {
-          deviceStateExtra = <p>Init jobs: {this.state.deviceInitJobs[items.id].join(", ")}</p>;
+          deviceStateExtra.push(<p>Init jobs: {this.state.deviceInitJobs[items.id].join(", ")}</p>);
         }
       } else if (items.state == "MANAGED") {
-        deviceStateExtra = <p><a href={"/config-change?hostname=" + items.hostname}><Icon name="sync" />Sync</a></p>;
+        deviceStateExtra.push(<p><a href={"/config-change?hostname=" + items.hostname}><Icon name="sync" />Sync</a></p>);
+      }
+      let deviceInterfaceData = "";
+      if (items.hostname in this.state.deviceInterfaceData !== false) {
+        let mlagPeerLink = this.renderMlagLink(this.state.deviceInterfaceData[items.hostname]);
+        if (mlagPeerLink !== null) {
+          deviceStateExtra.push(mlagPeerLink);
+        }
+        let uplinkLink = this.renderUplinkLink(this.state.deviceInterfaceData[items.hostname]);
+        if (uplinkLink !== null) {
+          deviceStateExtra.push(uplinkLink);
+        }
       }
       let log = {};
       Object.keys(this.state.deviceInitJobs).map(device_id => {
@@ -303,7 +365,7 @@ class DeviceList extends React.Component {
         });
       });
       return [
-        <tr key={index} onClick={this.clickRow.bind(this)}>
+        <tr id={items.hostname} key={index} onClick={this.clickRow.bind(this)}>
           <td key="0">
             <Icon name="angle down" />
             {items.hostname}
@@ -360,6 +422,7 @@ class DeviceList extends React.Component {
               </tbody>
             </table>
             {deviceStateExtra}
+            {deviceInterfaceData}
             <div id={"logoutputdiv_device_id_"+items.id} className="logoutput">
               <pre>
                 {log[items.id]}
@@ -373,7 +436,7 @@ class DeviceList extends React.Component {
     return (
       <section>
         <div id="search">
-          <DeviceSearchForm searchAction={this.getDevicesData} />
+          <DeviceSearchForm location={this.props.location} searchAction={this.getDevicesData} />
         </div>
         <div id="device_list">
           <h2>Device list</h2>
