@@ -202,22 +202,22 @@ class DeviceList extends React.Component {
         }
       }
     )
-      .then(response => checkResponseStatus(response))
-      .then(response => this.readHeaders(response))
-      .then(response => response.json())
-      .then(data => {
-        console.log("this should be data", data);
-        {
-          this.setState(
-            {
-              devicesData: data.data.devices
-            },
-            () => {
-              console.log("this is new state", this.state.devicesData);
-            }
-          );
-        }
-      });
+    .then(response => checkResponseStatus(response))
+    .then(response => this.readHeaders(response))
+    .then(response => response.json())
+    .then(data => {
+      console.log("this should be data", data);
+      {
+        this.setState(
+          {
+            devicesData: data.data.devices
+          },
+          () => {
+            console.log("this is new state", this.state.devicesData);
+          }
+        );
+      }
+    });
   };
 
   getInterfacesData(hostname) {
@@ -232,7 +232,6 @@ class DeviceList extends React.Component {
       }
     )
     .then(response => checkResponseStatus(response))
-    .then(response => this.readHeaders(response))
     .then(response => response.json())
     .then(data => {
       console.log("this should be interface data", data);
