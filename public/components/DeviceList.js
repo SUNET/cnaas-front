@@ -343,7 +343,8 @@ class DeviceList extends React.Component {
 
     let url = process.env.API_URL + "/api/v1.0/device/" + device_id;
     let dataToSend = {
-      state: state
+      state: state,
+      synchronized: false
     };
 
     fetch(url, {
