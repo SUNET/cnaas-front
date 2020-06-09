@@ -261,6 +261,10 @@ progress::-moz-progress-bar {
   flex-direction: column;
 }
 
+#data .device_details_row a {
+  width: fit-content;
+}
+
 #data .device_details_table {
   width: 100%;
   table-layout: fixed;

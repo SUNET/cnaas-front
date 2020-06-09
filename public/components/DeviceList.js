@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Select, Input, Icon, Pagination } from "semantic-ui-react";
+import { Dropdown, Icon, Pagination } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
@@ -18,19 +18,19 @@ class DeviceList extends React.Component {
     deviceInterfaceData: {},
     activePage: 1,
     totalPages: 1,
-    deviceInitJobs: {},
+    deviceJobs: {},
     logLines: []
   };
 
-  addDeviceInitJob = (device_id, job_id) => {
-    let deviceInitJobs = this.state.deviceInitJobs;
-    if (device_id in deviceInitJobs) {
-      deviceInitJobs[device_id].push(job_id);
+  addDeviceJob = (device_id, job_id) => {
+    let deviceJobs = this.state.deviceJobs;
+    if (device_id in deviceJobs) {
+      deviceJobs[device_id].push(job_id);
     } else {
-      deviceInitJobs[device_id] = [job_id];
+      deviceJobs[device_id] = [job_id];
     }
-    this.setState({deviceInitJobs: deviceInitJobs}, () => {
-      console.log("device init jobs: ", this.state.deviceInitJobs)
+    this.setState({deviceJobs: deviceJobs}, () => {
+      console.log("device jobs: ", this.state.deviceJobs)
     });
   };
 
@@ -123,15 +123,15 @@ class DeviceList extends React.Component {
         // if finished && next_job id, push next_job_id to array
         if (data.next_job_id !== undefined && typeof data.next_job_id === "number") {
           let newDeviceInitJobs = {};
-          Object.keys(this.state.deviceInitJobs).map(device_id => {
-            if (this.state.deviceInitJobs[device_id][0] == data.job_id) {
+          Object.keys(this.state.deviceJobs).map(device_id => {
+            if (this.state.deviceJobs[device_id][0] == data.job_id) {
               newDeviceInitJobs[device_id] = [data.job_id, data.next_job_id];
             } else {
-              newDeviceInitJobs[device_id] = this.state.deviceInitJobs[device_id];
+              newDeviceInitJobs[device_id] = this.state.deviceJobs[device_id];
             }
           });
-          this.setState({deviceInitJobs: newDeviceInitJobs}, () => {
-            console.log("next_job_updated list: ", this.state.deviceInitJobs)
+          this.setState({deviceJobs: newDeviceInitJobs}, () => {
+            console.log("next_job_updated list: ", this.state.deviceJobs)
           });
         }
       // log events
@@ -304,6 +304,66 @@ class DeviceList extends React.Component {
     }
   }
 
+  syncDeviceAction(hostname) {
+    this.props.history.push("config-change?hostname="+hostname);
+  }
+
+  updateFactsAction(hostname, device_id) {
+    console.log("Update facts for hostname: "+hostname);
+    const credentials = localStorage.getItem("token");
+
+    let url = process.env.API_URL + "/api/v1.0/device_update_facts";
+    let job_id = null;
+    let dataToSend = {
+      hostname: hostname
+    };
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${credentials}`
+      },
+      body: JSON.stringify(dataToSend)
+    })
+    .then(response => checkResponseStatus(response))
+    .then(response => response.json())
+    .then(data => {
+      if (data.job_id !== undefined && typeof data.job_id === "number") {
+        this.addDeviceJob(device_id, data.job_id);
+      } else {
+        console.log("error when submitting device_update_facts job", data.job_id);
+      }
+    });
+  }
+
+  changeStateAction(device_id, state) {
+    console.log("Change state for device_id: "+device_id);
+    const credentials = localStorage.getItem("token");
+
+    let url = process.env.API_URL + "/api/v1.0/device/" + device_id;
+    let dataToSend = {
+      state: state,
+      synchronized: false
+    };
+
+    fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${credentials}`
+      },
+      body: JSON.stringify(dataToSend)
+    })
+    .then(response => checkResponseStatus(response))
+    .then(response => response.json())
+    .then(data => {
+      if (data.status !== "success") {
+        console.log("error when updating state:", data.error);
+      }
+    });
+  }
+
   render() {
     let deviceInfo = "";
     const devicesData = this.state.devicesData;
@@ -331,14 +391,26 @@ class DeviceList extends React.Component {
           );
       }
       let deviceStateExtra = [];
+      let menuActions = [
+          <Dropdown.Item text="No actions allowed in this state" disabled="true" />,
+      ];
       if (items.state == "DISCOVERED") {
-        deviceStateExtra.push(<DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceInitJob.bind(this)} />);
+        deviceStateExtra.push(<DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceJob.bind(this)} />);
       } else if (items.state == "INIT") {
-        if (items.id in this.state.deviceInitJobs) {
-          deviceStateExtra.push(<p>Init jobs: {this.state.deviceInitJobs[items.id].join(", ")}</p>);
+        if (items.id in this.state.deviceJobs) {
+          deviceStateExtra.push(<p>Init jobs: {this.state.deviceJobs[items.id].join(", ")}</p>);
         }
       } else if (items.state == "MANAGED") {
-        deviceStateExtra.push(<p><a href={"/config-change?hostname=" + items.hostname}><Icon name="sync" />Sync</a></p>);
+        menuActions = [
+          <Dropdown.Item text="Sync device..." onClick={() => this.syncDeviceAction(items.hostname)} />,
+          <Dropdown.Item text="Update facts" onClick={() => this.updateFactsAction(items.hostname, items.id) }/>,
+          <Dropdown.Item text="Make unmanaged" onClick={() => this.changeStateAction(items.id, "UNMANAGED")} />
+        ];
+      } else if (items.state == "UNMANAGED") {
+        menuActions = [
+          <Dropdown.Item text="Update facts" onClick={() => this.updateFactsAction(items.hostname, items.id) }/>,
+          <Dropdown.Item text="Make managed" onClick={() => this.changeStateAction(items.id, "MANAGED")} />
+        ];
       }
       let deviceInterfaceData = "";
       if (items.hostname in this.state.deviceInterfaceData !== false) {
@@ -352,8 +424,9 @@ class DeviceList extends React.Component {
         }
       }
       let log = {};
-      Object.keys(this.state.deviceInitJobs).map(device_id => {
-        this.state.deviceInitJobs[device_id].map(job_id => {
+      Object.keys(this.state.deviceJobs).map(device_id => {
+        log[device_id] = "";
+        this.state.deviceJobs[device_id].map(job_id => {
           this.state.logLines.filter(this.checkJobId(job_id)).map(logLine => {
             log[device_id] = log[device_id] + logLine;
             var element = document.getElementById("logoutputdiv_device_id_"+device_id);
@@ -380,6 +453,13 @@ class DeviceList extends React.Component {
           hidden
         >
           <td>
+            <div>
+              <Dropdown text="Actions" button="true" >
+                <Dropdown.Menu>
+                  {menuActions}
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
             <table className="device_details_table">
               <tbody>
                 <tr>
