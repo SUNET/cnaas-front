@@ -281,6 +281,10 @@ class JobList extends React.Component {
     const jobsData = this.state.jobsData;
     let jobTableBody = jobsData.map((job, index) => {
       let jobDetails = this.renderJobDetails(job, index);
+      let finishedDevices = "";
+      if (job.finished_devices !== null) {
+        finishedDevices = job.finished_devices.join(", ");
+      }
 
       return [
         <tr key={index} onClick={this.clickRow.bind(this)}>
@@ -328,7 +332,7 @@ class JobList extends React.Component {
                 </tr>
                 <tr>
                   <td>Finished devices</td>
-                  <td>{job.finished_devices.join(", ")}</td>
+                  <td>{finishedDevices}</td>
                 </tr>
               </tbody>
             </table>
