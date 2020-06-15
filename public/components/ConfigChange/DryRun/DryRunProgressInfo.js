@@ -21,7 +21,7 @@ class DryRunProgressInfo extends React.Component {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'loglevel': 'DEBUG'});
 //      var ret = socket.emit('events', {'update': 'job'});
-      console.log(ret)  
+      console.log(ret);
     });
     socket.on('events', (data) => {
       var newLogLines = this.state.logLines;
@@ -30,12 +30,15 @@ class DryRunProgressInfo extends React.Component {
       }
       newLogLines.push(data + "\n");
       this.setState({logLines: newLogLines});
+    });
+  };
+
+  componentDidUpdate() {
       var element = document.getElementById("logoutputdiv");
       if (element !== null) {
         element.scrollTop = element.scrollHeight;
       }
-    });
-  };
+  }
 
   render() {
     // console.log("this is props in configchange progress data", this.props);

@@ -52,7 +52,7 @@ class ConfigChangeStep1 extends React.Component {
             commitUpdateInfo: newCommitUpdateInfo
           },
           () => {
-            console.log("this is new state", this.state.latestCommitInfo);
+            console.log("this is new state", newCommitInfo, newCommitUpdateInfo);
           }
         );
       }
