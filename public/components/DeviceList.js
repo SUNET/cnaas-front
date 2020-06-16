@@ -4,6 +4,7 @@ import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
 const io = require("socket.io-client");
+var socket = null;
 
 class DeviceList extends React.Component {
   state = {
@@ -92,7 +93,7 @@ class DeviceList extends React.Component {
       throw("no API token found");
     }
     this.getDevicesData();
-    const socket = io(process.env.API_URL, {query: {jwt: credentials}});
+    socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'update': 'device'});
@@ -146,6 +147,12 @@ class DeviceList extends React.Component {
 
     });
   };
+
+  componentWillUnmount() {
+    if (socket !== null) {
+      socket.off('events');
+    }
+  }
 
   readHeaders = response => {
     const totalCountHeader = response.headers.get("X-Total-Count");
@@ -392,7 +399,7 @@ class DeviceList extends React.Component {
       }
       let deviceStateExtra = [];
       let menuActions = [
-          <Dropdown.Item text="No actions allowed in this state" disabled="true" />,
+          <Dropdown.Item text="No actions allowed in this state" disabled={true} />,
       ];
       if (items.state == "DISCOVERED") {
         deviceStateExtra.push(<DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceJob.bind(this)} />);
@@ -454,7 +461,7 @@ class DeviceList extends React.Component {
         >
           <td>
             <div>
-              <Dropdown text="Actions" button="true" >
+              <Dropdown text="Actions" button={true} >
                 <Dropdown.Menu>
                   {menuActions}
                 </Dropdown.Menu>

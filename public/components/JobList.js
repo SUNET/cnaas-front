@@ -5,6 +5,7 @@ import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import formatISODate from "../utils/formatters";
 const io = require("socket.io-client");
+var socket = null;
 
 class JobList extends React.Component {
   state = {
@@ -81,7 +82,7 @@ class JobList extends React.Component {
       throw("no API token found");
     }
     this.getJobsData();
-    const socket = io(process.env.API_URL, {query: {jwt: credentials}});
+    socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'update': 'job'});
@@ -102,6 +103,12 @@ class JobList extends React.Component {
       } 
     });
   };
+
+  componentWillUnmount() {
+    if (socket !== null) {
+      socket.off('events');
+    }
+  }
 
   readHeaders = response => {
     const totalCountHeader = response.headers.get("X-Total-Count");

@@ -1,5 +1,6 @@
 import React from "react";
 const io = require("socket.io-client");
+var socket = null;
 
 class DryRunProgressInfo extends React.Component {
   state = {
@@ -16,7 +17,7 @@ class DryRunProgressInfo extends React.Component {
 
   componentDidMount(){
     const credentials = localStorage.getItem("token");
-    const socket = io(process.env.API_URL, {query: {jwt: credentials}});
+    socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'loglevel': 'DEBUG'});
@@ -32,6 +33,12 @@ class DryRunProgressInfo extends React.Component {
       this.setState({logLines: newLogLines});
     });
   };
+
+  componentWillUnmount() {
+    if (socket !== null) {
+      socket.off('events');
+    }
+  }
 
   componentDidUpdate() {
       var element = document.getElementById("logoutputdiv");
