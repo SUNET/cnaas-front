@@ -1,11 +1,7 @@
 import React from "react";
-const io = require("socket.io-client");
-var socket = null;
 
 class DryRunProgressInfo extends React.Component {
   state = {
-    socket: null,
-    logLines: [],
     jobId: null
   };
 
@@ -14,31 +10,6 @@ class DryRunProgressInfo extends React.Component {
       return logLine.toLowerCase().includes("job #"+job_id);
     }
   };
-
-  componentDidMount(){
-    const credentials = localStorage.getItem("token");
-    socket = io(process.env.API_URL, {query: {jwt: credentials}});
-    socket.on('connect', function(data) {
-      console.log('Websocket connected!');
-      var ret = socket.emit('events', {'loglevel': 'DEBUG'});
-//      var ret = socket.emit('events', {'update': 'job'});
-      console.log(ret);
-    });
-    socket.on('events', (data) => {
-      var newLogLines = this.state.logLines;
-      if (newLogLines.length >= 1000) {
-        newLogLines.shift();
-      }
-      newLogLines.push(data + "\n");
-      this.setState({logLines: newLogLines});
-    });
-  };
-
-  componentWillUnmount() {
-    if (socket !== null) {
-      socket.off('events');
-    }
-  }
 
   componentDidUpdate() {
       var element = document.getElementById("logoutputdiv");
@@ -57,7 +28,7 @@ class DryRunProgressInfo extends React.Component {
     let jobFinishTime = "";
     let exceptionMessage = "";
     let log = "";
-    this.state.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
+    this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
       log = log + logLine;
     })
 

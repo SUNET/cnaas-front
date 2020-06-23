@@ -70,6 +70,7 @@ class DryRun extends React.Component {
             dryRunJobStatus={dryRunJobStatus}
             dryRunProgressData={dryRunProgressData}
             jobId={jobId}
+            logLines={this.props.logLines}
           />
         </div>
         {error}

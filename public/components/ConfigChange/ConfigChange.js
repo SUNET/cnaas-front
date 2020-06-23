@@ -8,6 +8,8 @@ import checkResponseStatus from "../../utils/checkResponseStatus";
 // import { postData } from "../../utils/sendData";
 import getData from "../../utils/getData";
 import queryString from 'query-string';
+const io = require("socket.io-client");
+var socket = null;
 
 class ConfigChange extends React.Component {
   state = {
@@ -22,7 +24,8 @@ class ConfigChange extends React.Component {
     liveRunResultData: [],
     liveRunTotalCount: 0,
     job_comment: "",
-    job_ticket_ref: ""
+    job_ticket_ref: "",
+    logLines: []
   };
 
   updateComment(e) {
@@ -177,6 +180,30 @@ class ConfigChange extends React.Component {
     }
   };
 
+  componentDidMount(){
+    const credentials = localStorage.getItem("token");
+    socket = io(process.env.API_URL, {query: {jwt: credentials}});
+    socket.on('connect', function(data) {
+      console.log('Websocket connected!');
+      var ret = socket.emit('events', {'loglevel': 'DEBUG'});
+      console.log(ret);
+    });
+    socket.on('events', (data) => {
+      var newLogLines = this.state.logLines;
+      if (newLogLines.length >= 1000) {
+        newLogLines.shift();
+      }
+      newLogLines.push(data + "\n");
+      this.setState({logLines: newLogLines});
+    });
+  };
+
+  componentWillUnmount() {
+    if (socket !== null) {
+      socket.off('events');
+    }
+  }
+
   render() {
     let dryRunProgressData = this.state.dryRunProgressData;
     let dryRunJobStatus = "";
@@ -244,6 +271,7 @@ class ConfigChange extends React.Component {
           jobId={dryRunJobId}
           devices={dryRunResults}
           totalCount={this.state.dryRunTotalCount}
+          logLines={this.state.logLines}
         />
         <VerifyDiff
           dryRunChangeScore={dryRunChangeScore}
@@ -256,6 +284,7 @@ class ConfigChange extends React.Component {
           jobId={liveRunJobId}
           devices={liveRunResults}
           totalCount={this.state.liveRunTotalCount}
+          logLines={this.state.logLines}
         />
       </section>
     );
