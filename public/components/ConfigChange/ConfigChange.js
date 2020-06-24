@@ -140,6 +140,9 @@ class ConfigChange extends React.Component {
             this.setState({
               dryRunProgressData: data.data.jobs
             });
+            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
+              clearInterval(this.repeatingDryrunJobData);
+            }
           }
         });
       }, 1000);
@@ -150,6 +153,9 @@ class ConfigChange extends React.Component {
             this.setState({
               liveRunProgressData: data.data.jobs
             });
+            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
+              clearInterval(this.repeatingLiverunJobData);
+            }
           }
         });
       }, 1000);
@@ -222,15 +228,12 @@ class ConfigChange extends React.Component {
       dryRunJobId = job.id;
     });
 
-    if (dryRunJobStatus === "FINISHED" || dryRunJobStatus === "EXCEPTION") {
-      clearInterval(this.repeatingDryrunJobData);
-      if (dryRunJobStatus === "FINISHED") {
-        dryRunProgressData.map((job, i) => {
-          dryRunResults = job.result.devices;
-        });
-        var confirmButtonElem = document.getElementById("confirmButton");
-        confirmButtonElem.disabled = false;
-      }
+    if (dryRunJobStatus === "FINISHED") {
+      dryRunProgressData.map((job, i) => {
+        dryRunResults = job.result.devices;
+      });
+      var confirmButtonElem = document.getElementById("confirmButton");
+      confirmButtonElem.disabled = false;
     }
 
     liveRunProgressData.map((job, i) => {
@@ -238,13 +241,10 @@ class ConfigChange extends React.Component {
       liveRunJobId = job.id;
     });
 
-    if (liveRunJobStatus === "FINISHED" || liveRunJobStatus === "EXCEPTION") {
-      clearInterval(this.repeatingLiverunJobData);
-      if (liveRunJobStatus === "FINISHED") {
-        liveRunProgressData.map((job, i) => {
-          liveRunResults = job.result.devices;
-        });
-      }
+    if (liveRunJobStatus === "FINISHED") {
+      liveRunProgressData.map((job, i) => {
+        liveRunResults = job.result.devices;
+      });
     }
 
     return (
