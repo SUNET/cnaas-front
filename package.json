@@ -25,7 +25,7 @@
     "history": "^4.10.1",
     "jest": "^24.9.0",
     "parcel-bundler": "^1.12.3",
-    "prismjs": "^1.20.0",
+    "prismjs": "^1.21.0",
     "react-router-dom": "^5.1.2"
   },
   "dependencies": {
