@@ -187,9 +187,19 @@ class JobList extends React.Component {
     const curState = e.target.closest("tr").nextElementSibling.hidden;
     if (curState) {
       e.target.closest("tr").nextElementSibling.hidden = false;
-      Prism.highlightAllUnder(e.target.closest("tr").nextElementSibling, true);
+      try {
+        Prism.highlightAllUnder(e.target.closest("tr").nextElementSibling, true);
+        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle right icon";
+      } catch(error) {
+        console.log("Could not highlight or change icon for expanded row")
+      }
     } else {
       e.target.closest("tr").nextElementSibling.hidden = true;
+      try {
+        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle down icon";
+      } catch(error) {
+        console.log("Could not change icon for collapsed row")
+      }
     }
   }
 
