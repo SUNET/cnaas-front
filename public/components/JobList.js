@@ -4,6 +4,7 @@ import checkResponseStatus from "../utils/checkResponseStatus";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import formatISODate from "../utils/formatters";
+import Prism from "prismjs";
 const io = require("socket.io-client");
 var socket = null;
 
@@ -186,6 +187,7 @@ class JobList extends React.Component {
     const curState = e.target.closest("tr").nextElementSibling.hidden;
     if (curState) {
       e.target.closest("tr").nextElementSibling.hidden = false;
+      Prism.highlightAllUnder(e.target.closest("tr").nextElementSibling, true);
     } else {
       e.target.closest("tr").nextElementSibling.hidden = true;
     }
