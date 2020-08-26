@@ -189,14 +189,14 @@ class JobList extends React.Component {
       e.target.closest("tr").nextElementSibling.hidden = false;
       try {
         Prism.highlightAllUnder(e.target.closest("tr").nextElementSibling, true);
-        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle right icon";
+        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle down icon";
       } catch(error) {
         console.log("Could not highlight or change icon for expanded row")
       }
     } else {
       e.target.closest("tr").nextElementSibling.hidden = true;
       try {
-        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle down icon";
+        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle right icon";
       } catch(error) {
         console.log("Could not change icon for collapsed row")
       }
@@ -308,7 +308,7 @@ class JobList extends React.Component {
       return [
         <tr key={index} onClick={this.clickRow.bind(this)}>
           <td key="0">
-            <Icon name="angle down" />
+            <Icon name="angle right" />
             {job.id}
           </td>
           <td key="1">{job.function_name}</td>

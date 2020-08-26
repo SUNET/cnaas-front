@@ -268,14 +268,14 @@ class DeviceList extends React.Component {
         this.getInterfacesData(e.target.closest("tr").id);
       }
       try {
-        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle right icon";
+        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle down icon";
       } catch(error) {
         console.log("Could not change icon for expanded row")
       }
     } else {
       e.target.closest("tr").nextElementSibling.hidden = true;
       try {
-        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle down icon";
+        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle right icon";
       } catch(error) {
         console.log("Could not change icon for collapsed row")
       }
@@ -456,7 +456,7 @@ class DeviceList extends React.Component {
       return [
         <tr id={items.hostname} key={index} onClick={this.clickRow.bind(this)}>
           <td key="0">
-            <Icon name="angle down" />
+            <Icon name="angle right" />
             {items.hostname}
           </td>
           <td key="1">{items.device_type}</td>
