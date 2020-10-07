@@ -62,6 +62,7 @@ class DeviceSearchForm extends React.Component {
       { 'key': 'hostname', 'value': 'hostname', 'text': 'Hostname' },
       { 'key': 'device_type', 'value': 'device_type', 'text': 'Device type' },
       { 'key': 'state', 'value': 'state', 'text': 'State' },
+      { 'key': 'synchronized', 'value': 'synchronized', 'text': 'Synchronized' },
       { 'key': 'management_ip', 'value': 'management_ip', 'text': 'Management IP' },
       { 'key': 'serial', 'value': 'serial', 'text': 'Serial number' },
       { 'key': 'ztp_mac', 'value': 'ztp_mac', 'text': 'MAC' },

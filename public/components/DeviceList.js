@@ -182,17 +182,30 @@ class DeviceList extends React.Component {
       "model",
       "os_version"
     ];
+    const false_strings = [
+      "false",
+      "no",
+      "0"
+    ]
     if (filterField != null && filterValue != null) {
       if (stringFields.indexOf(filterField) !== -1) {
         filterFieldOperator = "[contains]";
       }
-      filterParams =
-        "&filter[" +
-        filterField +
-        "]" +
-        filterFieldOperator +
-        "=" +
-        filterValue;
+      if (filterField == "synchronized") {
+        if (false_strings.indexOf(filterValue) !== -1) {
+          filterParams = "&filter[synchronized]=false&filter[state]=MANAGED"
+        } else {
+          filterParams = "&filter[synchronized]=true&filter[state]=MANAGED"
+        }
+      } else {
+        filterParams =
+          "&filter[" +
+          filterField +
+          "]" +
+          filterFieldOperator +
+          "=" +
+          filterValue;
+      }
     }
     fetch(
       process.env.API_URL +
