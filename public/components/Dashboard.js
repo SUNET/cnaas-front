@@ -94,8 +94,8 @@ class Dashboard extends React.Component {
               <p>Templates repo updated: {templatesInfo}</p>
             </Grid.Column>
             <Grid.Column width={8}>
-              <p>Managed devices: {this.state.deviceCount["managed"]}</p>
-              <p>Unsynchronized devices: {this.state.deviceCount["unsynchronized"]}</p>
+              <p>Managed devices: <a href={"/devices?filterstring=filter%5Bstate%5D%3DMANAGED"}>{this.state.deviceCount["managed"]}</a></p>
+              <p>Unsynchronized devices: <a href={"/devices?filterstring=filter%5Bsynchronized%5D%3Dfalse"}>{this.state.deviceCount["unsynchronized"]}</a></p>
             </Grid.Column>
           </Grid>
         </Container>
