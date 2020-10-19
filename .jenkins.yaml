@@ -15,3 +15,6 @@ extra_jobs:
       - docker
     docker_name: cnaas/front
     docker_context_dir: .
+    docker_tags:
+      - "latest"
+
