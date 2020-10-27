@@ -5,6 +5,7 @@ import JobList from "./JobList";
 import ConfigChange from "./ConfigChange/ConfigChange";
 import LoginForm from "./LoginForm";
 import ErrorBoundary from "./ErrorBoundary"
+import Dashboard from "./Dashboard"
 import { Route } from "react-router-dom";
 
 // passible base64 encode function?
@@ -31,6 +32,11 @@ class Panel extends React.Component {
           )}
         />
         <ErrorBoundary>
+          <Route
+            exact
+            path="/dashboard"
+            component={Dashboard}
+          />
           <Route
             exact
             path="/devices"

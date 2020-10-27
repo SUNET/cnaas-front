@@ -3,6 +3,7 @@ import { Dropdown, Icon, Pagination } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
+import queryString from 'query-string';
 const io = require("socket.io-client");
 var socket = null;
 
@@ -20,8 +21,31 @@ class DeviceList extends React.Component {
     activePage: 1,
     totalPages: 1,
     deviceJobs: {},
-    logLines: []
+    logLines: [],
+    queryParamsParsed: false
   };
+
+  parseQueryParams(callback) {
+    if (this.state.queryParamsParsed === false) {
+      this.setState({queryParamsParsed: true});
+
+      let queryParams = queryString.parse(this.props.location.search);
+      if (queryParams.filterstring !== undefined) {
+        let filterRegex = /filter\[(?<field>\w+)\]=(?<value>\w+)/;
+        let match = filterRegex.exec(queryParams.filterstring);
+        if (match) {
+          this.setState({
+            filterField: match.groups.field,
+            filterValue: match.groups.value
+          }, () => {
+            callback();
+          });
+        }
+      } else {
+        callback();
+      }
+    } 
+  }
 
   addDeviceJob = (device_id, job_id) => {
     let deviceJobs = this.state.deviceJobs;
@@ -92,7 +116,11 @@ class DeviceList extends React.Component {
     if (credentials === null) {
       throw("no API token found");
     }
-    this.getDevicesData();
+    if (this.state.queryParamsParsed === false) {
+      this.parseQueryParams(this.getDevicesData);
+    } else {
+      this.getDevicesData();
+    }
     socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
       console.log('Websocket connected!');
@@ -182,17 +210,30 @@ class DeviceList extends React.Component {
       "model",
       "os_version"
     ];
+    const false_strings = [
+      "false",
+      "no",
+      "0"
+    ]
     if (filterField != null && filterValue != null) {
       if (stringFields.indexOf(filterField) !== -1) {
         filterFieldOperator = "[contains]";
       }
-      filterParams =
-        "&filter[" +
-        filterField +
-        "]" +
-        filterFieldOperator +
-        "=" +
-        filterValue;
+      if (filterField == "synchronized") {
+        if (false_strings.indexOf(filterValue) !== -1) {
+          filterParams = "&filter[synchronized]=false&filter[state]=MANAGED"
+        } else {
+          filterParams = "&filter[synchronized]=true&filter[state]=MANAGED"
+        }
+      } else {
+        filterParams =
+          "&filter[" +
+          filterField +
+          "]" +
+          filterFieldOperator +
+          "=" +
+          filterValue;
+      }
     }
     fetch(
       process.env.API_URL +

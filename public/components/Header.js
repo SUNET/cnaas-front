@@ -5,6 +5,9 @@ class Header extends React.Component {
   loggedInLinks = () => {
     if (localStorage.getItem("token") !== null) {
       return [
+        <NavLink exact activeClassName="active" to={`/dashboard`}>
+          <li>Dashboard</li>
+        </NavLink>,
         <NavLink exact activeClassName="active" to={`/devices`}>
           <li>Devices</li>
         </NavLink>,

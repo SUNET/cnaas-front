@@ -20,7 +20,7 @@ class VerifyDiffResult extends React.Component {
         }, []);
     });
     //renders name and diff values in the array
-    const deviceNameAndDiffList = deviceNameAndDiffArray.map(
+    var deviceNameAndDiffList = deviceNameAndDiffArray.map(
       (nameAndDiffArray, i) => {
         if (nameAndDiffArray[0] !== undefined) {
           return (
@@ -40,6 +40,11 @@ class VerifyDiffResult extends React.Component {
         }
       }
     );
+    // Check if we get a result back, but the result contains only empty diffs
+    if (deviceData !== undefined && deviceData.length != 0 &&
+        (deviceNameAndDiffList === undefined || (deviceNameAndDiffList.length == 1 && deviceNameAndDiffList[0] === undefined))) {
+      deviceNameAndDiffList = <li><p>All devices returned empty diffs</p></li>;
+    }
     // creates a 2D array that pairs device name and their exceptions
     const deviceNameAndExceptionArray = deviceData.map((jobsObj, i) => {
       const jobTasks = jobsObj.job_tasks;
