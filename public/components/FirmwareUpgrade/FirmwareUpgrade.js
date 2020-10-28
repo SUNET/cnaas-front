@@ -3,6 +3,8 @@ import queryString from 'query-string';
 import { Input } from 'semantic-ui-react';
 import FirmwareStep1 from './FirmwareStep1';
 import FirmwareStep2 from './FirmwareStep2';
+import checkResponseStatus from "../../utils/checkResponseStatus";
+import getData from "../../utils/getData";
 
 class FirmwareUpgrade extends React.Component {
   state = {
@@ -10,10 +12,14 @@ class FirmwareUpgrade extends React.Component {
     step2jobId: null,
     step2jobStatus: null,
     step2jobResult: null,
+    step2finishedDevices: [],
+    step2jobData: null,
     step3totalCount: 0,
     step3jobId: null,
     step3jobStatus: null,
     step3jobResult: null,
+    step3finishedDevices: [],
+    step3jobData: null,
     job_comment: "",
     job_ticket_ref: "",
     logLines: []
@@ -60,12 +66,24 @@ class FirmwareUpgrade extends React.Component {
     let url = process.env.API_URL + `/api/v1.0/job/${job_id}`;
 
     if (step == 2) {
+      getData(url, credentials).then(data => {
+        {
+          this.setState({
+            step2jobStatus: data.data.jobs[0].status,
+            step2jobResult: data.data.jobs[0].result,
+            step2finishedDevices: data.data.jobs[0].finished_devices,
+            step2jobData: data.data.jobs[0]
+          });
+        }
+      });
       this.repeatingStep2interval = setInterval(() => {
         getData(url, credentials).then(data => {
           {
             this.setState({
               step2jobStatus: data.data.jobs[0].status,
               step2jobResult: data.data.jobs[0].result,
+              step2finishedDevices: data.data.jobs[0].finished_devices,
+              step2jobData: data.data.jobs[0]
             });
             if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
               clearInterval(this.repeatingStep2interval);
@@ -74,12 +92,24 @@ class FirmwareUpgrade extends React.Component {
         });
       }, 5000);
     } else if (step == 3) {
+      getData(url, credentials).then(data => {
+        {
+          this.setState({
+            step3jobStatus: data.data.jobs[0].status,
+            step3jobResult: data.data.jobs[0].result,
+            step3finishedDevices: data.data.jobs[0].finished_devices,
+            step3jobData: data.data.jobs[0]
+          });
+        }
+      });
       this.repeatingStep3interval = setInterval(() => {
         getData(url, credentials).then(data => {
           {
             this.setState({
               step3jobStatus: data.data.jobs[0].status,
               step3jobResult: data.data.jobs[0].result,
+              step3finishedDevices: data.data.jobs[0].finished_devices,
+              step3jobData: data.data.jobs[0]
             });
             if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
               clearInterval(this.repeatingStep3interval);
@@ -105,7 +135,7 @@ class FirmwareUpgrade extends React.Component {
     return response;
   };
 
-  firmwareUpgradeStart = (step) => {
+  firmwareUpgradeStart = (step, filename) => {
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/firmware/upgrade";
     let dataToSend = this.getCommitTarget();
@@ -113,8 +143,8 @@ class FirmwareUpgrade extends React.Component {
    
     if (step == 2) {
       dataToSend["pre_flight"] = true;
-      dataToSend["download"] = true;
-      dataToSend["activate"] = true;
+//      dataToSend["download"] = true;
+//      dataToSend["activate"] = true;
     }
     else if (step == 3) {
       dataToSend["reboot"] = true;
@@ -199,6 +229,8 @@ class FirmwareUpgrade extends React.Component {
           jobStatus={this.state.step2jobStatus}
           jobId={this.state.step2jobId}
           jobResult={this.state.step2jobResult}
+          jobFinishedDevices={this.state.step2finishedDevices}
+          jobData={this.state.step2jobData}
           totalCount={this.state.step2totalCount}
           logLines={this.state.logLines}
         />
