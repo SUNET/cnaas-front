@@ -8,17 +8,21 @@ import { Form, Select } from "semantic-ui-react";
 class FirmwareStep2 extends React.Component {
   state = {
     filename: null,
-    firmware_options: []
+    firmware_options: [],
+    firmware_locked: false
   };
 
   updateFilename(e, option) {
-    const val = option.value;
-    this.setState({
-      filename: val
-    });
+    if (this.state.firmware_locked === false) {
+      const val = option.value;
+      this.setState({
+        filename: val
+      });
+    }
   }
 
   onClickStep2 = (e) => {
+    this.setState({firmware_locked: true});
     this.props.firmwareUpgradeStart(2, this.state.filename);
     var confirmButtonElem = document.getElementById("step2button");
     confirmButtonElem.disabled = true;
@@ -82,6 +86,7 @@ class FirmwareStep2 extends React.Component {
               placeholder="filename"
               options={this.state.firmware_options}
               onChange={this.updateFilename.bind(this)}
+              disabled={this.state.firmware_locked}
             />
             <div className="info">
               <button id="step2button" onClick={e => this.onClickStep2(e)}>

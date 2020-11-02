@@ -3,8 +3,11 @@ import queryString from 'query-string';
 import { Input } from 'semantic-ui-react';
 import FirmwareStep1 from './FirmwareStep1';
 import FirmwareStep2 from './FirmwareStep2';
+import FirmwareStep3 from './FirmwareStep3';
 import checkResponseStatus from "../../utils/checkResponseStatus";
 import getData from "../../utils/getData";
+const io = require("socket.io-client");
+var socket = null;
 
 class FirmwareUpgrade extends React.Component {
   state = {
@@ -20,6 +23,8 @@ class FirmwareUpgrade extends React.Component {
     step3jobResult: null,
     step3finishedDevices: [],
     step3jobData: null,
+    activateStep3: false,
+    filename: null,
     job_comment: "",
     job_ticket_ref: "",
     logLines: []
@@ -87,6 +92,7 @@ class FirmwareUpgrade extends React.Component {
             });
             if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
               clearInterval(this.repeatingStep2interval);
+              this.setState({activateStep3: true});
             }
           }
         });
@@ -143,13 +149,16 @@ class FirmwareUpgrade extends React.Component {
    
     if (step == 2) {
       dataToSend["pre_flight"] = true;
-//      dataToSend["download"] = true;
-//      dataToSend["activate"] = true;
+      dataToSend["download"] = true;
+      dataToSend["filename"] = filename;
+      dataToSend["activate"] = true;
+      this.setState({filename: filename});
     }
     else if (step == 3) {
       dataToSend["reboot"] = true;
       dataToSend["post_flight"] = true;
       dataToSend["post_waittime"] = 600;
+      dataToSend["filename"] = filename;
     } else {
       throw 'Invalid argument passed to firmwareUpgradeStart';
     }
@@ -202,6 +211,30 @@ class FirmwareUpgrade extends React.Component {
       });
   };
 
+  componentDidMount(){
+    const credentials = localStorage.getItem("token");
+    socket = io(process.env.API_URL, {query: {jwt: credentials}});
+    socket.on('connect', function(data) {
+      console.log('Websocket connected!');
+      var ret = socket.emit('events', {'loglevel': 'DEBUG'});
+      console.log(ret);
+    });
+    socket.on('events', (data) => {
+      var newLogLines = this.state.logLines;
+      if (newLogLines.length >= 1000) {
+        newLogLines.shift();
+      }
+      newLogLines.push(data + "\n");
+      this.setState({logLines: newLogLines});
+    });
+  };
+
+  componentWillUnmount() {
+    if (socket !== null) {
+      socket.off('events');
+    }
+  }
+
   render() {
     const commitTarget = this.getCommitTarget();
     const commitTargetName = this.getCommitTargetName(commitTarget);
@@ -233,6 +266,18 @@ class FirmwareUpgrade extends React.Component {
           jobData={this.state.step2jobData}
           totalCount={this.state.step2totalCount}
           logLines={this.state.logLines}
+        />
+        <FirmwareStep3
+          firmwareUpgradeStart={this.firmwareUpgradeStart}
+          jobStatus={this.state.step3jobStatus}
+          jobId={this.state.step3jobId}
+          jobResult={this.state.step3jobResult}
+          jobFinishedDevices={this.state.step3finishedDevices}
+          jobData={this.state.step3jobData}
+          totalCount={this.state.step3totalCount}
+          logLines={this.state.logLines}
+          filename={this.state.filename}
+          activateStep3={this.state.activateStep3}
         />
       </section>
     );
