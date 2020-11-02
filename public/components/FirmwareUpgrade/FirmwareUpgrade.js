@@ -1,4 +1,5 @@
 import React from "react";
+import { Prompt } from 'react-router';
 import queryString from 'query-string';
 import { Input } from 'semantic-ui-react';
 import FirmwareStep1 from './FirmwareStep1';
@@ -27,7 +28,8 @@ class FirmwareUpgrade extends React.Component {
     filename: null,
     job_comment: "",
     job_ticket_ref: "",
-    logLines: []
+    logLines: [],
+    blockNavigation: false
   };
 
   updateComment(e) {
@@ -77,7 +79,8 @@ class FirmwareUpgrade extends React.Component {
             step2jobStatus: data.data.jobs[0].status,
             step2jobResult: data.data.jobs[0].result,
             step2finishedDevices: data.data.jobs[0].finished_devices,
-            step2jobData: data.data.jobs[0]
+            step2jobData: data.data.jobs[0],
+            blockNavigation: true
           });
         }
       });
@@ -92,7 +95,7 @@ class FirmwareUpgrade extends React.Component {
             });
             if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
               clearInterval(this.repeatingStep2interval);
-              this.setState({activateStep3: true});
+              this.setState({activateStep3: true, blockNavigation: false});
             }
           }
         });
@@ -104,7 +107,8 @@ class FirmwareUpgrade extends React.Component {
             step3jobStatus: data.data.jobs[0].status,
             step3jobResult: data.data.jobs[0].result,
             step3finishedDevices: data.data.jobs[0].finished_devices,
-            step3jobData: data.data.jobs[0]
+            step3jobData: data.data.jobs[0],
+            blockNavigation: true
           });
         }
       });
@@ -118,7 +122,7 @@ class FirmwareUpgrade extends React.Component {
               step3jobData: data.data.jobs[0]
             });
             if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
-              clearInterval(this.repeatingStep3interval);
+              clearInterval(this.repeatingStep3interval, blockNavigation: false);
             }
           }
         });
@@ -149,14 +153,14 @@ class FirmwareUpgrade extends React.Component {
    
     if (step == 2) {
       dataToSend["pre_flight"] = true;
-      dataToSend["download"] = true;
+//      dataToSend["download"] = true;
       dataToSend["filename"] = filename;
-      dataToSend["activate"] = true;
+//      dataToSend["activate"] = true;
       this.setState({filename: filename});
     }
     else if (step == 3) {
-      dataToSend["reboot"] = true;
-      dataToSend["post_flight"] = true;
+//      dataToSend["reboot"] = true;
+//      dataToSend["post_flight"] = true;
       dataToSend["post_waittime"] = 600;
       dataToSend["filename"] = filename;
     } else {
@@ -239,47 +243,53 @@ class FirmwareUpgrade extends React.Component {
     const commitTarget = this.getCommitTarget();
     const commitTargetName = this.getCommitTargetName(commitTarget);
     return (
-      <section>
-        <h1>Firmware upgrade</h1>
-        <p>Firmware upgrade target { commitTargetName }</p>
-        <p>Describe the change:</p>
-        <Input placeholder="comment"
-          maxLength="255"
-          className="job_comment"
-          onChange={this.updateComment.bind(this)}
-        />
-        <p>Enter service ticket ID reference:</p>
-        <Input placeholder="ticket reference"
-          maxLength="32"
-          className="job_ticket_ref"
-          onChange={this.updateTicketRef.bind(this)}
-        />
-        <FirmwareStep1
-          groupName={commitTarget.group}
-        />
-        <FirmwareStep2
-          firmwareUpgradeStart={this.firmwareUpgradeStart}
-          jobStatus={this.state.step2jobStatus}
-          jobId={this.state.step2jobId}
-          jobResult={this.state.step2jobResult}
-          jobFinishedDevices={this.state.step2finishedDevices}
-          jobData={this.state.step2jobData}
-          totalCount={this.state.step2totalCount}
-          logLines={this.state.logLines}
-        />
-        <FirmwareStep3
-          firmwareUpgradeStart={this.firmwareUpgradeStart}
-          jobStatus={this.state.step3jobStatus}
-          jobId={this.state.step3jobId}
-          jobResult={this.state.step3jobResult}
-          jobFinishedDevices={this.state.step3finishedDevices}
-          jobData={this.state.step3jobData}
-          totalCount={this.state.step3totalCount}
-          logLines={this.state.logLines}
-          filename={this.state.filename}
-          activateStep3={this.state.activateStep3}
-        />
-      </section>
+      <React.Fragment>
+        <Prompt
+          when={this.state.blockNavigation}
+          message="A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave."
+          />
+        <section>
+          <h1>Firmware upgrade</h1>
+          <p>Firmware upgrade target { commitTargetName }</p>
+          <p>Describe the change:</p>
+          <Input placeholder="comment"
+            maxLength="255"
+            className="job_comment"
+            onChange={this.updateComment.bind(this)}
+          />
+          <p>Enter service ticket ID reference:</p>
+          <Input placeholder="ticket reference"
+            maxLength="32"
+            className="job_ticket_ref"
+            onChange={this.updateTicketRef.bind(this)}
+          />
+          <FirmwareStep1
+            groupName={commitTarget.group}
+          />
+          <FirmwareStep2
+            firmwareUpgradeStart={this.firmwareUpgradeStart}
+            jobStatus={this.state.step2jobStatus}
+            jobId={this.state.step2jobId}
+            jobResult={this.state.step2jobResult}
+            jobFinishedDevices={this.state.step2finishedDevices}
+            jobData={this.state.step2jobData}
+            totalCount={this.state.step2totalCount}
+            logLines={this.state.logLines}
+          />
+          <FirmwareStep3
+            firmwareUpgradeStart={this.firmwareUpgradeStart}
+            jobStatus={this.state.step3jobStatus}
+            jobId={this.state.step3jobId}
+            jobResult={this.state.step3jobResult}
+            jobFinishedDevices={this.state.step3finishedDevices}
+            jobData={this.state.step3jobData}
+            totalCount={this.state.step3totalCount}
+            logLines={this.state.logLines}
+            filename={this.state.filename}
+            activateStep3={this.state.activateStep3}
+          />
+        </section>
+      </React.Fragment>
     );
   }
 }

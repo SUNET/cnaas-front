@@ -1,4 +1,5 @@
 import React from "react";
+import { Prompt } from 'react-router';
 import DeviceList from "./DeviceList";
 import GroupList from "./GroupList";
 import JobList from "./JobList";
