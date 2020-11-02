@@ -122,7 +122,8 @@ class FirmwareUpgrade extends React.Component {
               step3jobData: data.data.jobs[0]
             });
             if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
-              clearInterval(this.repeatingStep3interval, blockNavigation: false);
+              clearInterval(this.repeatingStep3interval);
+              this.setState({blockNavigation: false});
             }
           }
         });
@@ -236,6 +237,14 @@ class FirmwareUpgrade extends React.Component {
   componentWillUnmount() {
     if (socket !== null) {
       socket.off('events');
+    }
+  }
+
+  componentDidUpdate = () => {
+    if (this.state.blockNavigation) {
+      window.onbeforeunload = () => true
+    } else {
+      window.onbeforeunload = undefined
     }
   }
 
