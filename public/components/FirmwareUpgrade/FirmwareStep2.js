@@ -3,13 +3,22 @@ import FirmwareProgressBar from "./FirmwareProgressBar";
 import FirmwareProgressInfo from "./FirmwareProgressInfo";
 import getData from "../../utils/getData";
 import FirmwareError from "./FirmwareError";
-import { Form, Select } from "semantic-ui-react";
+import { Form, Confirm, Select } from "semantic-ui-react";
 
 class FirmwareStep2 extends React.Component {
   state = {
     filename: null,
     firmware_options: [],
-    firmware_locked: false
+    firmware_locked: false,
+    firmware_selected: false,
+    confirmDiagOpen: false
+  };
+
+  openConfirm = () => { this.setState({confirmDiagOpen: true}) };
+  closeConfirm = () => { this.setState({confirmDiagOpen: false}) };
+  okConfirm = () => {
+    this.setState({confirmDiagOpen: false, firmware_locked: true});
+    this.props.skipStep2();
   };
 
   updateFilename(e, option) {
@@ -19,12 +28,19 @@ class FirmwareStep2 extends React.Component {
         filename: val
       });
     }
+    this.setState({firmware_selected: true});
   }
 
   onClickStep2 = (e) => {
     this.setState({firmware_locked: true});
-    this.props.firmwareUpgradeStart(2, this.state.filename);
+    this.props.firmwareUpgradeStart(2, this.state.filename, null);
     var confirmButtonElem = document.getElementById("step2button");
+    confirmButtonElem.disabled = true;
+  };
+
+  onClickStep2Abort = (e) => {
+    this.props.firmwareUpgradeAbort(2);
+    var confirmButtonElem = document.getElementById("step2abortButton");
     confirmButtonElem.disabled = true;
   };
 
@@ -59,6 +75,8 @@ class FirmwareStep2 extends React.Component {
     let jobId = this.props.jobId;
     let jobFinishedDevices = this.props.jobFinishedDevices;
     let error = "";
+    let step2abortDisabled = true;
+    let step2disabled = true;
 
     if (jobStatus === "EXCEPTION") {
       // console.log("jobStatus errored");
@@ -67,6 +85,16 @@ class FirmwareStep2 extends React.Component {
           devices={this.props.jobResult.devices}
         />
       ];
+    } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
+      step2abortDisabled = false;
+    }
+
+    if (this.state.firmware_selected === false) {
+      step2disabled = true;
+    } else if (this.state.firmware_locked === true) {
+      step2disabled = true;
+    } else {
+      step2disabled = false;
     }
 
     return (
@@ -89,11 +117,23 @@ class FirmwareStep2 extends React.Component {
               disabled={this.state.firmware_locked}
             />
             <div className="info">
-              <button id="step2button" onClick={e => this.onClickStep2(e)}>
+              <button id="step2button" disabled={step2disabled} onClick={e => this.onClickStep2(e)}>
                 Start activate firmware
+              </button>
+              <button id="step2skipButton" disabled={step2disabled} onClick={e => this.openConfirm(e)}>
+                Skip to step 3
+              </button>
+              <button id="step2abortButton" disabled={step2abortDisabled} onClick={e => this.onClickStep2Abort(e)}>
+                Abort!
               </button>
             </div>
           </Form>
+          <Confirm
+            content="Are you sure all selected devices already have the target firmware downloaded and activated?"
+            open={this.state.confirmDiagOpen}
+            onCancel={this.closeConfirm}
+            onConfirm={this.okConfirm}
+          />
           <FirmwareProgressBar
             jobStatus={jobStatus}
             jobFinishedDevices={jobFinishedDevices}

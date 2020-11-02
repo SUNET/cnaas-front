@@ -46,6 +46,10 @@ class FirmwareUpgrade extends React.Component {
     });
   }
 
+  skipStep2 = () => {
+    this.setState({activateStep3: true});
+  }
+
   getCommitTarget() {
     let queryParams = queryString.parse(this.props.location.search);
     if (queryParams.hostname !== undefined) {
@@ -146,7 +150,7 @@ class FirmwareUpgrade extends React.Component {
     return response;
   };
 
-  firmwareUpgradeStart = (step, filename) => {
+  firmwareUpgradeStart = (step, filename, startAt) => {
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/firmware/upgrade";
     let dataToSend = this.getCommitTarget();
@@ -161,11 +165,15 @@ class FirmwareUpgrade extends React.Component {
     }
     else if (step == 3) {
 //      dataToSend["reboot"] = true;
-//      dataToSend["post_flight"] = true;
+      dataToSend["post_flight"] = true;
       dataToSend["post_waittime"] = 600;
       dataToSend["filename"] = filename;
     } else {
       throw 'Invalid argument passed to firmwareUpgradeStart';
+    }
+
+    if (startAt) {
+      dataToSend["start_at"] = startAt;
     }
 
     console.log("Starting firmware upgrade job step "+step);
@@ -213,6 +221,63 @@ class FirmwareUpgrade extends React.Component {
             );
           }
         }
+      });
+  };
+
+  firmwareUpgradeAbort = (step) => {
+    const credentials = localStorage.getItem("token");
+    let jobId = null;
+    let dataToSend = {
+      "action": "ABORT",
+      "abort_reason": "Aborted from WebUI"
+    };
+   
+    if (step == 2) {
+      if (this.state.step2jobStatus === "RUNNING" || this.state.step2jobStatus === "SCHEDULED") {
+        jobId = this.state.step2jobId;
+        var newLogLines = this.state.logLines;
+        if (newLogLines.length >= 1000) {
+          newLogLines.shift();
+        }
+        newLogLines.push("WEBUI job #"+jobId+": Trying to abort job...\n");
+        this.setState({logLines: newLogLines});
+      } else {
+        return;
+      }
+    }
+    else if (step == 3) {
+      if (this.state.step3jobStatus === "RUNNING" || this.state.step3jobStatus === "SCHEDULED") {
+        jobId = this.state.step3jobId;
+        var newLogLines = this.state.logLines;
+        if (newLogLines.length >= 1000) {
+          newLogLines.shift();
+        }
+        newLogLines.push("WEBUI job #"+jobId+": Trying to abort job...\n");
+        this.setState({logLines: newLogLines});
+      } else {
+        return;
+      }
+    } else {
+      throw 'Invalid argument passed to firmwareUpgradeAbort';
+    }
+    let url = process.env.API_URL + "/api/v1.0/job/" + jobId;
+
+    console.log("Aborting firmware upgrade job step "+step);
+
+    console.log("now it will post the data: "+JSON.stringify(dataToSend));
+    fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${credentials}`
+      },
+      body: JSON.stringify(dataToSend)
+    })
+      .then(response => checkResponseStatus(response))
+      .then(response => this.readHeaders(response, step))
+      .then(response => response.json())
+      .then(data => {
+        console.log("this should be data", data);
       });
   };
 
@@ -277,6 +342,7 @@ class FirmwareUpgrade extends React.Component {
           />
           <FirmwareStep2
             firmwareUpgradeStart={this.firmwareUpgradeStart}
+            firmwareUpgradeAbort={this.firmwareUpgradeAbort}
             jobStatus={this.state.step2jobStatus}
             jobId={this.state.step2jobId}
             jobResult={this.state.step2jobResult}
@@ -284,9 +350,11 @@ class FirmwareUpgrade extends React.Component {
             jobData={this.state.step2jobData}
             totalCount={this.state.step2totalCount}
             logLines={this.state.logLines}
+            skipStep2={this.skipStep2}
           />
           <FirmwareStep3
             firmwareUpgradeStart={this.firmwareUpgradeStart}
+            firmwareUpgradeAbort={this.firmwareUpgradeAbort}
             jobStatus={this.state.step3jobStatus}
             jobId={this.state.step3jobId}
             jobResult={this.state.step3jobResult}

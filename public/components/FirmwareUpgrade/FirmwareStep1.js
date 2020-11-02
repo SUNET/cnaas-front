@@ -49,12 +49,15 @@ class FirmwareStep1 extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2>Current OS version (step 1/3)</h2>
+          <h2>Current OS version (1/3)</h2>
           <a href="#">
             <button className="close">Close</button>
           </a>
         </div>
         <div className="task-collapsable">
+          <p>
+            Step 1 of 3: Check currently running OS versions. Use the "Update facts" action on a device in the device list if the OS version listed here does not reflect the actual running version.
+          </p>
           <div className="info">
             {os_version_list}
           </div>
