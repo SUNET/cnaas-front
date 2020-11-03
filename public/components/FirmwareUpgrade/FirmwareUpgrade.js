@@ -97,7 +97,8 @@ class FirmwareUpgrade extends React.Component {
               step2finishedDevices: data.data.jobs[0].finished_devices,
               step2jobData: data.data.jobs[0]
             });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
+            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
+                data.data.jobs[0].status === "ABORTED") {
               clearInterval(this.repeatingStep2interval);
               this.setState({activateStep3: true, blockNavigation: false});
             }
@@ -125,7 +126,8 @@ class FirmwareUpgrade extends React.Component {
               step3finishedDevices: data.data.jobs[0].finished_devices,
               step3jobData: data.data.jobs[0]
             });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
+            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
+                data.data.jobs[0].status === "ABORTED") {
               clearInterval(this.repeatingStep3interval);
               this.setState({blockNavigation: false});
             }

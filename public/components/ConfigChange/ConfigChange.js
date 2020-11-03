@@ -150,7 +150,8 @@ class ConfigChange extends React.Component {
             this.setState({
               dryRunProgressData: data.data.jobs
             });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
+            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
+                data.data.jobs[0].status === "ABORTED") {
               clearInterval(this.repeatingDryrunJobData);
               this.setState({blockNavigation: false});
             }
@@ -172,7 +173,8 @@ class ConfigChange extends React.Component {
             this.setState({
               liveRunProgressData: data.data.jobs
             });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
+            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
+                data.data.jobs[0].status === "ABORTED") {
               clearInterval(this.repeatingLiverunJobData);
               this.setState({blockNavigation: false});
             }
