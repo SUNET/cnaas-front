@@ -4,6 +4,7 @@ import checkResponseStatus from "../utils/checkResponseStatus";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import formatISODate from "../utils/formatters";
+import Prism from "prismjs";
 const io = require("socket.io-client");
 var socket = null;
 
@@ -186,8 +187,19 @@ class JobList extends React.Component {
     const curState = e.target.closest("tr").nextElementSibling.hidden;
     if (curState) {
       e.target.closest("tr").nextElementSibling.hidden = false;
+      try {
+        Prism.highlightAllUnder(e.target.closest("tr").nextElementSibling, true);
+        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle down icon";
+      } catch(error) {
+        console.log("Could not highlight or change icon for expanded row")
+      }
     } else {
       e.target.closest("tr").nextElementSibling.hidden = true;
+      try {
+        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle right icon";
+      } catch(error) {
+        console.log("Could not change icon for collapsed row")
+      }
     }
   }
 
@@ -296,7 +308,7 @@ class JobList extends React.Component {
       return [
         <tr key={index} onClick={this.clickRow.bind(this)}>
           <td key="0">
-            <Icon name="angle down" />
+            <Icon name="angle right" />
             {job.id}
           </td>
           <td key="1">{job.function_name}</td>
