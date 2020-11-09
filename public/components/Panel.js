@@ -3,6 +3,7 @@ import DeviceList from "./DeviceList";
 import GroupList from "./GroupList";
 import JobList from "./JobList";
 import ConfigChange from "./ConfigChange/ConfigChange";
+import FirmwareUpgrade from "./FirmwareUpgrade/FirmwareUpgrade";
 import LoginForm from "./LoginForm";
 import ErrorBoundary from "./ErrorBoundary"
 import Dashboard from "./Dashboard"
@@ -56,6 +57,11 @@ class Panel extends React.Component {
             exact
             path="/config-change"
             component={ConfigChange}
+          />
+          <Route
+            exact
+            path="/firmware-upgrade"
+            component={FirmwareUpgrade}
           />
         </ErrorBoundary>
       </div>

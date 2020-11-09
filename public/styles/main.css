@@ -247,7 +247,6 @@ progress::-moz-progress-bar {
 }
 
 #data {
-  height: 100%;
   margin: 16px 0;
   background: lightgray;
 }

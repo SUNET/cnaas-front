@@ -47,7 +47,10 @@ class GroupList extends React.Component {
         <tr>
           <td>{ key }</td>
           <td>{ this.state.groupData[key].join(", ") }</td>
-          <td><a href={"/config-change?group=" + key }>Sync</a></td>
+          <td>
+            <a href={"/config-change?group=" + key } title="Go to config change/sync to page">Sync...</a>
+            , <a href={"/firmware-upgrade?group=" + key } title="Go to firmware upgrade page">Firmware upgrade...</a>
+          </td>
         </tr>
       ]
     })

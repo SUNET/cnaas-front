@@ -304,6 +304,14 @@ class JobList extends React.Component {
       if (job.finished_devices !== null) {
         finishedDevices = job.finished_devices.join(", ");
       }
+      let startArgs = "";
+      if ('start_arguments' in job && job.start_arguments) {
+        startArgs =  
+          <tr>
+            <td>Start arguments</td>
+            <td>{JSON.stringify(job.start_arguments, null, 0)}</td>
+          </tr>;
+      }
 
       return [
         <tr key={index} onClick={this.clickRow.bind(this)}>
@@ -341,6 +349,7 @@ class JobList extends React.Component {
                   <td>Ticket reference</td>
                   <td>{job.ticket_ref}</td>
                 </tr>
+                {startArgs}
                 <tr>
                   <td>Next job id</td>
                   <td>{job.next_job_id}</td>

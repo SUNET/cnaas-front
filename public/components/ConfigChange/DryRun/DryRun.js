@@ -53,7 +53,7 @@ class DryRun extends React.Component {
           </p>
           <Form>
             <div className="info">
-              <Checkbox label="Re-sync all devices" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} />
+              <Checkbox label="Re-sync devices (check for local changes made outside of NMS)" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} /> 
             </div>
             <div className="info">
               <button id="dryrunButton" onClick={e => this.dryrunButtonOnclick(e)}>

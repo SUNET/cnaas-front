@@ -1,4 +1,5 @@
 import React from "react";
+import { Prompt } from 'react-router';
 import { Input } from 'semantic-ui-react';
 import ConfigChangeStep1 from "./ConfigChangeStep1";
 import DryRun from "./DryRun/DryRun";
@@ -25,7 +26,8 @@ class ConfigChange extends React.Component {
     liveRunTotalCount: 0,
     job_comment: "",
     job_ticket_ref: "",
-    logLines: []
+    logLines: [],
+    blockNavigation: false
   };
 
   updateComment(e) {
@@ -134,27 +136,47 @@ class ConfigChange extends React.Component {
     let url = process.env.API_URL + `/api/v1.0/job/${job_id}`;
 
     if (dry_run === true) {
+      getData(url, credentials).then(data => {
+        {
+          this.setState({
+            dryRunProgressData: data.data.jobs,
+            blockNavigation: true
+          });
+        }
+      });
       this.repeatingDryrunJobData = setInterval(() => {
         getData(url, credentials).then(data => {
           {
             this.setState({
               dryRunProgressData: data.data.jobs
             });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
+            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
+                data.data.jobs[0].status === "ABORTED") {
               clearInterval(this.repeatingDryrunJobData);
+              this.setState({blockNavigation: false});
             }
           }
         });
       }, 1000);
     } else {
+      getData(url, credentials).then(data => {
+        {
+          this.setState({
+            liveRunProgressData: data.data.jobs,
+            blockNavigation: true
+          });
+        }
+      });
       this.repeatingLiverunJobData = setInterval(() => {
         getData(url, credentials).then(data => {
           {
             this.setState({
               liveRunProgressData: data.data.jobs
             });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION") {
+            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
+                data.data.jobs[0].status === "ABORTED") {
               clearInterval(this.repeatingLiverunJobData);
+              this.setState({blockNavigation: false});
             }
           }
         });
@@ -210,6 +232,14 @@ class ConfigChange extends React.Component {
     }
   }
 
+  componentDidUpdate = () => {
+    if (this.state.blockNavigation) {
+      window.onbeforeunload = () => true
+    } else {
+      window.onbeforeunload = undefined
+    }
+  }
+
   render() {
     let dryRunProgressData = this.state.dryRunProgressData;
     let dryRunJobStatus = "";
@@ -248,45 +278,51 @@ class ConfigChange extends React.Component {
     }
 
     return (
-      <section>
-        <h1>Commit changes (syncto)</h1>
-        <p>Commit changes to: { commitTargetName }</p>
-        <p>Describe the change:</p>
-        <Input placeholder="comment"
-          maxLength="255"
-          className="job_comment"
-          onChange={this.updateComment.bind(this)}
-        />
-        <p>Enter service ticket ID reference:</p>
-        <Input placeholder="ticket reference"
-          maxLength="32"
-          className="job_ticket_ref"
-          onChange={this.updateTicketRef.bind(this)}
-        />
-        <ConfigChangeStep1 />
-        <DryRun
-          dryRunSyncStart={this.deviceSyncStart}
-          dryRunProgressData={dryRunProgressData}
-          dryRunJobStatus={dryRunJobStatus}
-          jobId={dryRunJobId}
-          devices={dryRunResults}
-          totalCount={this.state.dryRunTotalCount}
-          logLines={this.state.logLines}
-        />
-        <VerifyDiff
-          dryRunChangeScore={dryRunChangeScore}
-          devices={dryRunResults}
-        />
-        <ConfigChangeStep4
-          dryRunSyncStart={this.deviceSyncStart}
-          dryRunProgressData={liveRunProgressData}
-          dryRunJobStatus={liveRunJobStatus}
-          jobId={liveRunJobId}
-          devices={liveRunResults}
-          totalCount={this.state.liveRunTotalCount}
-          logLines={this.state.logLines}
-        />
-      </section>
+      <React.Fragment>
+        <Prompt
+          when={this.state.blockNavigation}
+          message="A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave."
+          />
+        <section>
+          <h1>Commit changes (syncto)</h1>
+          <p>Commit changes to: { commitTargetName }</p>
+          <p>Describe the change:</p>
+          <Input placeholder="comment"
+            maxLength="255"
+            className="job_comment"
+            onChange={this.updateComment.bind(this)}
+          />
+          <p>Enter service ticket ID reference:</p>
+          <Input placeholder="ticket reference"
+            maxLength="32"
+            className="job_ticket_ref"
+            onChange={this.updateTicketRef.bind(this)}
+          />
+          <ConfigChangeStep1 />
+          <DryRun
+            dryRunSyncStart={this.deviceSyncStart}
+            dryRunProgressData={dryRunProgressData}
+            dryRunJobStatus={dryRunJobStatus}
+            jobId={dryRunJobId}
+            devices={dryRunResults}
+            totalCount={this.state.dryRunTotalCount}
+            logLines={this.state.logLines}
+          />
+          <VerifyDiff
+            dryRunChangeScore={dryRunChangeScore}
+            devices={dryRunResults}
+          />
+          <ConfigChangeStep4
+            dryRunSyncStart={this.deviceSyncStart}
+            dryRunProgressData={liveRunProgressData}
+            dryRunJobStatus={liveRunJobStatus}
+            jobId={liveRunJobId}
+            devices={liveRunResults}
+            totalCount={this.state.liveRunTotalCount}
+            logLines={this.state.logLines}
+          />
+        </section>
+      </React.Fragment>
     );
   }
 }
