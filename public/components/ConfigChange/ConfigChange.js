@@ -9,6 +9,7 @@ import checkResponseStatus from "../../utils/checkResponseStatus";
 // import { postData } from "../../utils/sendData";
 import getData from "../../utils/getData";
 import queryString from 'query-string';
+import Prism from "prismjs";
 const io = require("socket.io-client");
 var socket = null;
 
@@ -154,6 +155,7 @@ class ConfigChange extends React.Component {
                 data.data.jobs[0].status === "ABORTED") {
               clearInterval(this.repeatingDryrunJobData);
               this.setState({blockNavigation: false});
+              Prism.highlightAll();
             }
           }
         });
@@ -177,6 +179,7 @@ class ConfigChange extends React.Component {
                 data.data.jobs[0].status === "ABORTED") {
               clearInterval(this.repeatingLiverunJobData);
               this.setState({blockNavigation: false});
+              Prism.highlightAll();
             }
           }
         });
