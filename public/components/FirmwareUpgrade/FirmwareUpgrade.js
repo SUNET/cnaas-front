@@ -157,16 +157,18 @@ class FirmwareUpgrade extends React.Component {
     let url = process.env.API_URL + "/api/v1.0/firmware/upgrade";
     let dataToSend = this.getCommitTarget();
     dataToSend["url"] = process.env.API_URL + "/firmware/";
+    dataToSend["comment"] = this.state.job_comment;
+    dataToSend["ticket_ref"] = this.state.job_ticket_ref;
    
     if (step == 2) {
       dataToSend["pre_flight"] = true;
-//      dataToSend["download"] = true;
+      dataToSend["download"] = true;
       dataToSend["filename"] = filename;
-//      dataToSend["activate"] = true;
+      dataToSend["activate"] = true;
       this.setState({filename: filename});
     }
     else if (step == 3) {
-//      dataToSend["reboot"] = true;
+      dataToSend["reboot"] = true;
       dataToSend["post_flight"] = true;
       dataToSend["post_waittime"] = 600;
       dataToSend["filename"] = filename;
