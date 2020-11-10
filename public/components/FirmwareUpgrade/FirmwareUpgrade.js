@@ -171,7 +171,6 @@ class FirmwareUpgrade extends React.Component {
       dataToSend["reboot"] = true;
       dataToSend["post_flight"] = true;
       dataToSend["post_waittime"] = 600;
-      dataToSend["filename"] = filename;
     } else {
       throw 'Invalid argument passed to firmwareUpgradeStart';
     }
