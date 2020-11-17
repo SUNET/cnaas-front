@@ -423,9 +423,8 @@ class DeviceList extends React.Component {
   }
 
   render() {
-    let deviceInfo = "";
     const devicesData = this.state.devicesData;
-    deviceInfo = devicesData.map((items, index) => {
+    let deviceInfo = devicesData.map((items, index) => {
       let syncStatus = "";
       if (items.state === "MANAGED") {
         if (items.synchronized === true) {
@@ -569,6 +568,9 @@ class DeviceList extends React.Component {
         </tr>
       ];
     });
+    if (!Array.isArray(deviceInfo) || !deviceInfo.length) {
+      deviceInfo = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading devices...</td></tr>];
+    }
 
     return (
       <section>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Select, Input, Icon, Pagination } from "semantic-ui-react";
+import { Button, Select, Input, Icon, Pagination, TableBody } from "semantic-ui-react";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
@@ -369,6 +369,9 @@ class JobList extends React.Component {
         </tr>
       ];
     });
+    if (!Array.isArray(jobTableBody) || !jobTableBody.length) {
+      jobTableBody = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading jobs...</td></tr>];
+    }
 
     return (
       <section>
