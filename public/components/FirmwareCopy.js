@@ -4,7 +4,7 @@ import checkResponseStatus from "../utils/checkResponseStatus";
 import { Icon, Button, Popup } from "semantic-ui-react";
 import getData from "../utils/getData";
 
-class FirmwareUpload extends React.Component {
+class FirmwareCopy extends React.Component {
   state = {
     firmwareRepoData: [],
     firmwareNmsData: []
@@ -124,7 +124,7 @@ class FirmwareUpload extends React.Component {
         );
       } else {
         actions.push(
-          <form><Button>Upload</Button></form>
+          <form><Button>Copy to NMS <Icon name="cloud download" /></Button></form>
         );
       }
       return [
@@ -190,4 +190,4 @@ class FirmwareUpload extends React.Component {
   }
 }
 
-export default FirmwareUpload;
+export default FirmwareCopy;

@@ -4,7 +4,7 @@ import GroupList from "./GroupList";
 import JobList from "./JobList";
 import ConfigChange from "./ConfigChange/ConfigChange";
 import FirmwareUpgrade from "./FirmwareUpgrade/FirmwareUpgrade";
-import FirmwareUpload from "./FirmwareUpload";
+import FirmwareCopy from "./FirmwareCopy";
 import LoginForm from "./LoginForm";
 import ErrorBoundary from "./ErrorBoundary"
 import Dashboard from "./Dashboard"
@@ -66,8 +66,8 @@ class Panel extends React.Component {
           />
           <Route
             exact
-            path="/firmware-upload"
-            component={FirmwareUpload}
+            path="/firmware-copy"
+            component={FirmwareCopy}
           />
         </ErrorBoundary>
       </div>
