@@ -1,13 +1,15 @@
 import React from "react";
 import formatISODate from "../utils/formatters";
 import checkResponseStatus from "../utils/checkResponseStatus";
-import { Icon, Button, Popup } from "semantic-ui-react";
+import { Icon, Popup } from "semantic-ui-react";
 import getData from "../utils/getData";
+import FirmwareCopyForm from "./FirmwareCopyForm";
 
 class FirmwareCopy extends React.Component {
   state = {
     firmwareRepoData: [],
-    firmwareNmsData: []
+    firmwareNmsData: [],
+    firmwareCopyJobIds: {}
   }
 
   getFirmwareRepoData = () => {
@@ -70,10 +72,10 @@ class FirmwareCopy extends React.Component {
       newRepoFirmware["present_in_repo"] = true;
       let popIndex = firmwareNmsData.indexOf(repoFirmware.filename);
       if (popIndex > -1) {
-        newRepoFirmware["already_uploaded"] = true;
+        newRepoFirmware["already_downloaded"] = true;
         firmwareNmsData.splice(popIndex, 1);
       } else {
-        newRepoFirmware["already_uploaded"] = false;
+        newRepoFirmware["already_downloaded"] = false;
       }
       return newRepoFirmware;
     });
@@ -86,7 +88,7 @@ class FirmwareCopy extends React.Component {
         approved_by: "",
         approved_date: "",
         end_of_life_date: "",
-        already_uploaded: true
+        already_downloaded: true
       });
     })
     console.log("unmatched firmwares: ", firmwareNmsData);
@@ -99,7 +101,7 @@ class FirmwareCopy extends React.Component {
                    position="top center"
                    trigger={<Icon name="cloud" />} />);
       }
-      if (firmware.already_uploaded) {
+      if (firmware.already_downloaded) {
         ico.push(<Popup
                    content="This firmware is present on this local NMS instance"
                    position="top center"
@@ -117,16 +119,6 @@ class FirmwareCopy extends React.Component {
                    trigger={<Icon name="delete" color="red" />} />);
       }
 
-      let actions = [];
-      if (firmware.already_uploaded) {
-        actions.push(
-          <form><Button>Remove <Icon name="trash alternate outline" /></Button></form>
-        );
-      } else {
-        actions.push(
-          <form><Button>Copy to NMS <Icon name="cloud download" /></Button></form>
-        );
-      }
       return [
         <tr key={index} onClick={this.clickRow.bind(this)}>
           <td key="0">
@@ -162,7 +154,11 @@ class FirmwareCopy extends React.Component {
                 </tr>
               </tbody>
             </table>
-            {actions}
+            <FirmwareCopyForm
+              filename={firmware.filename}
+              sha1sum={firmware.sha1sum}
+              already_downloaded={firmware.already_downloaded}
+            />
           </td>
         </tr>
       ];
@@ -184,6 +180,8 @@ class FirmwareCopy extends React.Component {
               <tbody>{firmwareTableBody}</tbody>
             </table>
           </div>
+          <h2>Firmware upgrade</h2>
+          <p><a href="/groups">Select a group for firmware upgrade</a></p>
         </div>
       </section>
     );

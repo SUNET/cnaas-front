@@ -1,5 +1,6 @@
 import React from "react";
 import checkResponseStatus from "../utils/checkResponseStatus";
+import { Icon } from 'semantic-ui-react'
 
 class GroupList extends React.Component {
   state = {
@@ -48,8 +49,10 @@ class GroupList extends React.Component {
           <td>{ key }</td>
           <td>{ this.state.groupData[key].join(", ") }</td>
           <td>
-            <a href={"/config-change?group=" + key } title="Go to config change/sync to page">Sync...</a>
-            , <a href={"/firmware-upgrade?group=" + key } title="Go to firmware upgrade page">Firmware upgrade...</a>
+            <div>
+              <a href={"/config-change?group=" + key } title="Go to config change/sync to page"><Icon name="sync" />Sync...</a><br />
+              <a href={"/firmware-upgrade?group=" + key } title="Go to firmware upgrade page"><Icon name="microchip" />Firmware upgrade...</a>
+            </div>
           </td>
         </tr>
       ]

@@ -17,8 +17,11 @@ class Header extends React.Component {
         <NavLink exact activeClassName="active" to={`/jobs`}>
           <li key="nav4">Jobs</li>
         </NavLink>,
+        <NavLink exact activeClassName="active" to={`/firmware-copy`}>
+          <li key="nav5">Firmware</li>
+        </NavLink>,
         <NavLink exact activeClassName="active" to={`/config-change`}>
-          <li key="nav5">Config change</li>
+          <li key="nav6">Config change</li>
         </NavLink>
       ];
     } else {
