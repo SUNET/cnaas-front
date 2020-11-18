@@ -86,9 +86,18 @@ class JobList extends React.Component {
     }
     this.getJobsData();
     socket = io(process.env.API_URL, {query: {jwt: credentials}});
-    socket.on('connect', function(data) {
+    socket.on('connect', (data) => {
       console.log('Websocket connected!');
+      var newLogLines = [];
       var ret = socket.emit('events', {'update': 'job'});
+      if (ret !== undefined && ret.connected) {
+        newLogLines.push("Listening to job update events...\n");
+      }
+      var ret = socket.emit('events', {'loglevel': 'DEBUG'});
+      if (ret !== undefined && ret.connected) {
+        newLogLines.push("Listening to log message events...\n");
+      }
+      this.setState({logLines: newLogLines});
     });
     socket.on('events', (data) => {
       // job update event
@@ -103,7 +112,17 @@ class JobList extends React.Component {
           newLogLines.push("job #"+data.job_id+" changed status to "+data.status+"\n");
         }
         this.setState({logLines: newLogLines});
-      } 
+        this.getJobsData();
+      } else if (typeof data === 'string' || data instanceof String) {
+        var newLogLines = this.state.logLines;
+        if (newLogLines.length >= 1000) {
+          newLogLines.shift();
+        }
+        if (this.checkJobLog(data)) {
+          newLogLines.push(data + "\n");
+          this.setState({logLines: newLogLines});
+        }
+      }
     });
   };
 
@@ -219,6 +238,16 @@ class JobList extends React.Component {
     this.setState({ activePage: data.activePage }, () =>
       this.getJobsData({ numPage: data.activePage })
     );
+    var tablerows = document.getElementsByClassName("device_details_row");
+    var i;
+    for (i = 0; i < tablerows.length; i++) {
+      tablerows[i].hidden = true;
+      try {
+        tablerows[i].previousElementSibling.firstElementChild.firstElementChild.className = "angle right icon";
+      } catch(error) {
+        console.log("Could not change icon for collapsed row")
+      }
+    } 
   }
 
   checkJobId(job_id) {
@@ -242,6 +271,17 @@ class JobList extends React.Component {
     var element = document.getElementById("exception_traceback_"+id);
     if (element !== undefined) {
       element.hidden = false;
+    }
+  }
+
+  checkJobLog(logLine) {
+    return logLine.toLowerCase().includes("job #");
+  };
+
+  componentDidUpdate() {
+    var element = document.getElementById("logoutputdiv");
+    if (element !== null) {
+      element.scrollTop = element.scrollHeight;
     }
   }
 
@@ -394,6 +434,11 @@ class JobList extends React.Component {
       <section>
         <div id="search">
           <JobSearchForm searchAction={this.getJobsData} />
+        </div>
+        <div id="logoutputdiv" className="logoutput">
+          <pre>
+            {this.state.logLines}
+          </pre>
         </div>
         <div id="job_list">
           <h2>Job list</h2>
