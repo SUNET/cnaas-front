@@ -88,6 +88,7 @@ class FirmwareCopy extends React.Component {
         approved_by: "",
         approved_date: "",
         end_of_life_date: "",
+        os_version: "",
         already_downloaded: true
       });
     })
