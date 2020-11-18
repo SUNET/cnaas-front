@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Select, Input, Icon, Pagination } from "semantic-ui-react";
+import { Button, Select, Input, Icon, Pagination, TableBody } from "semantic-ui-react";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
@@ -21,7 +21,9 @@ class JobList extends React.Component {
     jobsData: [],
     activePage: 1,
     totalPages: 1,
-    logLines: []
+    logLines: [],
+    loading: true,
+    error: null
   };
 
   getJobsData = options => {
@@ -125,6 +127,7 @@ class JobList extends React.Component {
 
   getJobsAPIData = (sortField = "id", filterField, filterValue, pageNum) => {
     const credentials = localStorage.getItem("token");
+    this.setState({loading: true, error: null});
     // Build filter part of the URL to only return specific devices from the API
     // TODO: filterValue should probably be urlencoded?
     let filterParams = "";
@@ -170,13 +173,21 @@ class JobList extends React.Component {
         {
           this.setState(
             {
-              jobsData: data.data.jobs
+              jobsData: data.data.jobs,
+              loading: false
             },
             () => {
               console.log("this is new state", this.state.devicesData);
             }
           );
         }
+      })
+      .catch((error) => {
+        this.setState({
+          jobsData: [],
+          loading: false,
+          error: error
+        })
       });
   };
 
@@ -369,6 +380,15 @@ class JobList extends React.Component {
         </tr>
       ];
     });
+    if (this.state.error) {
+      jobTableBody = [<tr><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+    } else if (!Array.isArray(jobTableBody) || !jobTableBody.length) {
+      if (this.state.loading) {
+        jobTableBody = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading jobs...</td></tr>];
+      } else {
+        jobTableBody = [<tr><td colSpan="5">Empty result</td></tr>];
+      }
+    }
 
     return (
       <section>

@@ -1,9 +1,12 @@
 import React from "react";
 import checkResponseStatus from "../utils/checkResponseStatus";
+import { Icon } from 'semantic-ui-react'
 
 class GroupList extends React.Component {
   state = {
-    groupData: {}
+    groupData: {},
+    loading: true,
+    error: null
   };
 
   componentWillMount() {
@@ -11,6 +14,7 @@ class GroupList extends React.Component {
   }
 
   getGroupsData = () => {
+    this.setState({loading: true, error: null});
     const credentials = localStorage.getItem("token");
     // Build filter part of the URL to only return specific devices from the API
     // TODO: filterValue should probably be urlencoded?
@@ -23,37 +27,54 @@ class GroupList extends React.Component {
         }
       }
     )
-      .then(response => checkResponseStatus(response))
-      .then(response => response.json())
-      .then(data => {
-        console.log("this should be data", data);
-        {
-          this.setState(
-            {
-              groupData: data.data.groups
-            },
-            () => {
-              console.log("this is new state", this.state.devicesData);
-            }
-          );
-        }
-      });
+    .then(response => checkResponseStatus(response))
+    .then(response => response.json())
+    .then(data => {
+      console.log("this should be data", data);
+      {
+        this.setState(
+          {
+            groupData: data.data.groups
+          },
+          () => {
+            console.log("this is new state", this.state.devicesData);
+          }
+        );
+      }
+    })
+    .catch((error) => {
+      this.setState({
+        groupData: [],
+        loading: false,
+        error: error
+      })
+    });
   };
 
   render() {
-    let groupTable = "";
-    groupTable = Object.keys(this.state.groupData).map((key, index) => {
+    let groupTable = Object.keys(this.state.groupData).map((key, index) => {
       return [
         <tr>
           <td>{ key }</td>
           <td>{ this.state.groupData[key].join(", ") }</td>
           <td>
-            <a href={"/config-change?group=" + key } title="Go to config change/sync to page">Sync...</a>
-            , <a href={"/firmware-upgrade?group=" + key } title="Go to firmware upgrade page">Firmware upgrade...</a>
+            <div>
+              <a href={"/config-change?group=" + key } title="Go to config change/sync to page"><Icon name="sync" />Sync...</a><br />
+              <a href={"/firmware-upgrade?group=" + key } title="Go to firmware upgrade page"><Icon name="microchip" />Firmware upgrade...</a>
+            </div>
           </td>
         </tr>
       ]
     })
+    if (this.state.error) {
+      groupTable = [<tr><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+    } else if (!Array.isArray(groupTable) || !groupTable.length) {
+      if (this.state.loading) {
+        groupTable = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading groups...</td></tr>];
+      } else {
+        groupTable = [<tr><td colSpan="5">Empty result</td></tr>];
+      }
+    }
 
     return (
       <section>

@@ -22,7 +22,9 @@ class DeviceList extends React.Component {
     totalPages: 1,
     deviceJobs: {},
     logLines: [],
-    queryParamsParsed: false
+    queryParamsParsed: false,
+    loading: true,
+    error: null
   };
 
   parseQueryParams(callback) {
@@ -195,6 +197,7 @@ class DeviceList extends React.Component {
   };
 
   getDevicesAPIData = (sortField = "id", filterField, filterValue, pageNum) => {
+    this.setState({loading: true, error: null});
     const credentials = localStorage.getItem("token");
     // Build filter part of the URL to only return specific devices from the API
     // TODO: filterValue should probably be urlencoded?
@@ -258,13 +261,21 @@ class DeviceList extends React.Component {
       {
         this.setState(
           {
-            devicesData: data.data.devices
+            devicesData: data.data.devices,
+            loading: false
           },
           () => {
             console.log("this is new state", this.state.devicesData);
           }
         );
       }
+    })
+    .catch((error) => {
+      this.setState({
+        devicesData: [],
+        loading: false,
+        error: error
+      })
     });
   };
 
@@ -423,9 +434,8 @@ class DeviceList extends React.Component {
   }
 
   render() {
-    let deviceInfo = "";
     const devicesData = this.state.devicesData;
-    deviceInfo = devicesData.map((items, index) => {
+    let deviceInfo = devicesData.map((items, index) => {
       let syncStatus = "";
       if (items.state === "MANAGED") {
         if (items.synchronized === true) {
@@ -569,6 +579,15 @@ class DeviceList extends React.Component {
         </tr>
       ];
     });
+    if (this.state.error) {
+      deviceInfo = [<tr><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+    } else if (!Array.isArray(deviceInfo) || !deviceInfo.length) {
+      if (this.state.loading) {
+        deviceInfo = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading devices...</td></tr>];
+      } else {
+        deviceInfo = [<tr><td colSpan="5">Empty result</td></tr>];
+      }
+    }
 
     return (
       <section>

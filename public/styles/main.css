@@ -6,6 +6,7 @@ body {
   color: #003049;
   font-weight: 700;
   line-height: 1.2;
+  overflow-x: scroll;
 }
 
 #root {
