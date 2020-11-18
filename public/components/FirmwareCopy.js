@@ -141,6 +141,10 @@ class FirmwareCopy extends React.Component {
                   <td>{firmware.filename}</td>
                 </tr>
                 <tr>
+                  <td>OS version</td>
+                  <td>{firmware.os_version}</td>
+                </tr>
+                <tr>
                   <td>Approved by</td>
                   <td>{firmware.approved_by}</td>
                 </tr>
