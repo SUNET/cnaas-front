@@ -4,7 +4,9 @@ import { Icon } from 'semantic-ui-react'
 
 class GroupList extends React.Component {
   state = {
-    groupData: {}
+    groupData: {},
+    loading: true,
+    error: null
   };
 
   componentWillMount() {
@@ -12,6 +14,7 @@ class GroupList extends React.Component {
   }
 
   getGroupsData = () => {
+    this.setState({loading: true, error: null});
     const credentials = localStorage.getItem("token");
     // Build filter part of the URL to only return specific devices from the API
     // TODO: filterValue should probably be urlencoded?
@@ -24,26 +27,32 @@ class GroupList extends React.Component {
         }
       }
     )
-      .then(response => checkResponseStatus(response))
-      .then(response => response.json())
-      .then(data => {
-        console.log("this should be data", data);
-        {
-          this.setState(
-            {
-              groupData: data.data.groups
-            },
-            () => {
-              console.log("this is new state", this.state.devicesData);
-            }
-          );
-        }
-      });
+    .then(response => checkResponseStatus(response))
+    .then(response => response.json())
+    .then(data => {
+      console.log("this should be data", data);
+      {
+        this.setState(
+          {
+            groupData: data.data.groups
+          },
+          () => {
+            console.log("this is new state", this.state.devicesData);
+          }
+        );
+      }
+    })
+    .catch((error) => {
+      this.setState({
+        groupData: [],
+        loading: false,
+        error: error
+      })
+    });
   };
 
   render() {
-    let groupTable = "";
-    groupTable = Object.keys(this.state.groupData).map((key, index) => {
+    let groupTable = Object.keys(this.state.groupData).map((key, index) => {
       return [
         <tr>
           <td>{ key }</td>
@@ -57,6 +66,15 @@ class GroupList extends React.Component {
         </tr>
       ]
     })
+    if (this.state.error) {
+      groupTable = [<tr><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+    } else if (!Array.isArray(groupTable) || !groupTable.length) {
+      if (this.state.loading) {
+        groupTable = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading groups...</td></tr>];
+      } else {
+        groupTable = [<tr><td colSpan="5">Empty result</td></tr>];
+      }
+    }
 
     return (
       <section>
