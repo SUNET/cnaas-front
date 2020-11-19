@@ -356,12 +356,12 @@ class JobList extends React.Component {
       if (job.finished_devices !== null) {
         finishedDevices = job.finished_devices.join(", ");
       }
-      let startArgs = "";
+      let startArgs = null;
       if ('start_arguments' in job && job.start_arguments) {
         startArgs =  
           <tr key="4">
             <td>Start arguments</td>
-            <td>{JSON.stringify(job.start_arguments, null, 0).trim()}</td>
+            <td>{JSON.stringify(job.start_arguments, null, 0)}</td>
           </tr>;
       }
 
