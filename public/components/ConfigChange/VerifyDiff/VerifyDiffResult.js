@@ -57,7 +57,6 @@ class VerifyDiffResult extends React.Component {
           return [deviceNames[i], result];
         }, []);
     });
-    console.log("exceptionarray", deviceNameAndExceptionArray);
     //renders name and diff values in the array
     const deviceNameAndExceptionList = deviceNameAndExceptionArray.map(
       (nameAndExceptionArray, i) => {
