@@ -91,11 +91,11 @@ class JobList extends React.Component {
       var newLogLines = [];
       var ret = socket.emit('events', {'update': 'job'});
       if (ret !== undefined && ret.connected) {
-        newLogLines.push("Listening to job update events...\n");
+        newLogLines.push("Listening to job update events\n");
       }
       var ret = socket.emit('events', {'loglevel': 'DEBUG'});
       if (ret !== undefined && ret.connected) {
-        newLogLines.push("Listening to log message events...\n");
+        newLogLines.push("Listening to log message events\n");
       }
       this.setState({logLines: newLogLines});
     });
@@ -256,10 +256,10 @@ class JobList extends React.Component {
     }
   };
 
-  renderSortButton(key) {
-    if (key === "↑") {
+  renderSortButton(sort) {
+    if (sort === "↑") {
       return <Icon name="sort up" />;
-    } else if (key === "↓") {
+    } else if (sort === "↓") {
       return <Icon name="sort down" />;
     } else {
       return <Icon name="sort" />;
@@ -289,13 +289,13 @@ class JobList extends React.Component {
     if (job.status === "EXCEPTION") {
       if (job.exception !== undefined && job.exception !== null) {
         return [
-          <p>Exception message: {job.exception.message}</p>,
-          <p><a onClick={() => this.showException(index)}>Show exception traceback</a></p>,
-          <pre id={"exception_traceback_"+index} hidden>{job.exception.traceback}</pre>
+          <p key={"exch_"+index}>Exception message: {job.exception.message}</p>,
+          <p key={"excth_"+index}><a onClick={() => this.showException(index)}>Show exception traceback</a></p>,
+          <pre key={"exct_"+index} id={"exception_traceback_"+index} hidden>{job.exception.traceback}</pre>
         ];
       } else {
         return [
-          <p>Empty exception</p>
+          <p key={index}>Empty exception</p>
         ]
       }
     } else if (job.status === "FINISHED") {
@@ -305,8 +305,9 @@ class JobList extends React.Component {
         const deviceNames = Object.keys(devicesObj);
         const deviceData = Object.values(devicesObj);
         return [
-          <p>Diff results: </p>,
+          <p key="diffres_header">Diff results: </p>,
           <VerifyDiffResult
+            key="diffres"
             deviceNames={deviceNames}
             deviceData={deviceData}
           />
@@ -332,17 +333,17 @@ class JobList extends React.Component {
             return result;
           }
         });
-        return results.map(result => {
-          return <p>{result}</p>;
+        return results.map((result, index) => {
+          return <p key={index}>{result}</p>;
         });
       } else {
         return [
-          <pre>{JSON.stringify(job.result, null, 2)}</pre>
+          <pre key={index}>{JSON.stringify(job.result, null, 2)}</pre>
         ];
       }
     } else {
       return [
-        <pre>{JSON.stringify(job.result, null, 2)}</pre>
+        <pre key={index}>{JSON.stringify(job.result, null, 2)}</pre>
       ];
     }
   }
@@ -358,16 +359,16 @@ class JobList extends React.Component {
       let startArgs = "";
       if ('start_arguments' in job && job.start_arguments) {
         startArgs =  
-          <tr>
+          <tr key="4">
             <td>Start arguments</td>
-            <td>{JSON.stringify(job.start_arguments, null, 0)}</td>
+            <td>{JSON.stringify(job.start_arguments, null, 0).trim()}</td>
           </tr>;
       }
 
       return [
-        <tr key={index} onClick={this.clickRow.bind(this)}>
+        <tr key={"job_header_"+job.id} onClick={this.clickRow.bind(this)}>
           <td key="0">
-            <Icon name="angle right" />
+            <Icon name="angle right"/>
             {job.id}
           </td>
           <td key="1">{job.function_name}</td>
@@ -376,7 +377,7 @@ class JobList extends React.Component {
           <td key="4">{formatISODate(job.finish_time)}</td>
         </tr>,
         <tr
-          key={index + "_content"}
+          key={"job_content_"+job.id}
           colSpan="5"
           className="device_details_row"
           hidden
@@ -384,32 +385,32 @@ class JobList extends React.Component {
           <td>
             <table className="device_details_table">
               <tbody>
-                <tr>
+                <tr key="0">
                   <td>Start time</td>
                   <td>{formatISODate(job.start_time)}</td>
                 </tr>
-                <tr>
+                <tr key="1">
                   <td>Finish time</td>
                   <td>{formatISODate(job.finish_time)}</td>
                 </tr>
-                <tr>
+                <tr key="2">
                   <td>Comment</td>
                   <td>{job.comment}</td>
                 </tr>
-                <tr>
+                <tr key="3">
                   <td>Ticket reference</td>
                   <td>{job.ticket_ref}</td>
                 </tr>
                 {startArgs}
-                <tr>
+                <tr key="5">
                   <td>Next job id</td>
                   <td>{job.next_job_id}</td>
                 </tr>
-                <tr>
+                <tr key="6">
                   <td>Change score</td>
                   <td>{job.change_score}</td>
                 </tr>
-                <tr>
+                <tr key="7">
                   <td>Finished devices</td>
                   <td>{finishedDevices}</td>
                 </tr>
@@ -421,12 +422,12 @@ class JobList extends React.Component {
       ];
     });
     if (this.state.error) {
-      jobTableBody = [<tr><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+      jobTableBody = [<tr key="error"><td colSpan="5">API error: {this.state.error.message}</td></tr>];
     } else if (!Array.isArray(jobTableBody) || !jobTableBody.length) {
       if (this.state.loading) {
-        jobTableBody = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading jobs...</td></tr>];
+        jobTableBody = [<tr key="loading"><td colSpan="5"><Icon name="spinner" loading={true} />Loading jobs...</td></tr>];
       } else {
-        jobTableBody = [<tr><td colSpan="5">Empty result</td></tr>];
+        jobTableBody = [<tr key="empty"><td colSpan="5">Empty result</td></tr>];
       }
     }
 
@@ -445,32 +446,32 @@ class JobList extends React.Component {
           <div id="data">
             <table className="job_list">
               <thead>
-                <tr>
-                  <th onClick={() => this.sortHeader("id")}>
+                <tr key="header">
+                  <th onClick={() => this.sortHeader("id")} key="0">
                     ID
                     <div className="sync_status_sort">
                       {this.renderSortButton(this.state.id_sort)}
                     </div>
                   </th>
-                  <th onClick={() => this.sortHeader("function_name")}>
+                  <th onClick={() => this.sortHeader("function_name")} key="1">
                     Function name
                     <div className="hostname_sort">
                       {this.renderSortButton(this.state.function_name_sort)}
                     </div>
                   </th>
-                  <th onClick={() => this.sortHeader("status")}>
+                  <th onClick={() => this.sortHeader("status")} key="2">
                     Status
                     <div className="device_type_sort">
                       {this.renderSortButton(this.state.status_sort)}
                     </div>
                   </th>
-                  <th onClick={() => this.sortHeader("scheduled_by")}>
+                  <th onClick={() => this.sortHeader("scheduled_by")} key="3">
                     Scheduled by
                     <div className="sync_status_sort">
                       {this.renderSortButton(this.state.scheduled_by_sort)}
                     </div>
                   </th>
-                  <th onClick={() => this.sortHeader("finish_time")}>
+                  <th onClick={() => this.sortHeader("finish_time")} key="4">
                     Finish time
                     <div className="sync_status_sort">
                       {this.renderSortButton(this.state.finish_time_sort)}

@@ -5,23 +5,23 @@ class Header extends React.Component {
   loggedInLinks = () => {
     if (localStorage.getItem("token") !== null) {
       return [
-        <NavLink exact activeClassName="active" to={`/dashboard`}>
-          <li key="nav1">Dashboard</li>
+        <NavLink exact activeClassName="active" to={`/dashboard`} key="nav1">
+          <li>Dashboard</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/devices`}>
-          <li key="nav2">Devices</li>
+        <NavLink exact activeClassName="active" to={`/devices`} key="nav2">
+          <li>Devices</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/groups`}>
-          <li key="nav3">Groups</li>
+        <NavLink exact activeClassName="active" to={`/groups`} key="nav3">
+          <li>Groups</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/jobs`}>
-          <li key="nav4">Jobs</li>
+        <NavLink exact activeClassName="active" to={`/jobs`} key="nav4">
+          <li>Jobs</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/firmware-copy`}>
-          <li key="nav5">Firmware</li>
+        <NavLink exact activeClassName="active" to={`/firmware-copy`} key="nav5">
+          <li>Firmware</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/config-change`}>
-          <li key="nav6">Config change</li>
+        <NavLink exact activeClassName="active" to={`/config-change`} key="nav6">
+          <li>Config change</li>
         </NavLink>
       ];
     } else {
