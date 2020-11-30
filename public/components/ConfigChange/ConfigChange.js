@@ -20,6 +20,7 @@ class ConfigChange extends React.Component {
     dryRunProgressData: [],
     dryRunResultData: [],
     dryRunTotalCount: 0,
+    synctoForce: false,
     liveRunSyncData: [],
     liveRunSyncJobid: null,
     liveRunProgressData: [],
@@ -75,6 +76,7 @@ class ConfigChange extends React.Component {
       }
       if (options.force !== undefined) {
         dataToSend["force"] = options.force;
+        this.setState({synctoForce: true});
       }
       if (options.dry_run !== undefined) {
         dataToSend["dry_run"] = options.dry_run;
@@ -85,7 +87,9 @@ class ConfigChange extends React.Component {
 
     if (dataToSend["dry_run"] === false) {
       console.log("sync live run");
-      dataToSend["force"] = true;
+      if (this.state.synctoForce) {
+        dataToSend["force"] = true;
+      }
     }
 
     console.log("now it will post the data: "+JSON.stringify(dataToSend));
@@ -265,8 +269,6 @@ class ConfigChange extends React.Component {
       dryRunProgressData.map((job, i) => {
         dryRunResults = job.result.devices;
       });
-      var confirmButtonElem = document.getElementById("confirmButton");
-      confirmButtonElem.disabled = false;
     }
 
     liveRunProgressData.map((job, i) => {
@@ -301,7 +303,9 @@ class ConfigChange extends React.Component {
             className="job_ticket_ref"
             onChange={this.updateTicketRef.bind(this)}
           />
-          <ConfigChangeStep1 />
+          <ConfigChangeStep1
+            dryRunJobStatus={dryRunJobStatus}
+          />
           <DryRun
             dryRunSyncStart={this.deviceSyncStart}
             dryRunProgressData={dryRunProgressData}
@@ -316,13 +320,18 @@ class ConfigChange extends React.Component {
             devices={dryRunResults}
           />
           <ConfigChangeStep4
-            dryRunSyncStart={this.deviceSyncStart}
-            dryRunProgressData={liveRunProgressData}
-            dryRunJobStatus={liveRunJobStatus}
+            liveRunSyncStart={this.deviceSyncStart}
+            liveRunProgressData={liveRunProgressData}
+            liveRunJobStatus={liveRunJobStatus}
+            dryRunJobStatus={dryRunJobStatus}
             jobId={liveRunJobId}
             devices={liveRunResults}
             totalCount={this.state.liveRunTotalCount}
             logLines={this.state.logLines}
+            jobComment={this.state.job_comment}
+            jobTicketRef={this.state.job_ticket_ref}
+            dryRunChangeScore={dryRunChangeScore}
+            synctoForce={this.state.synctoForce}
           />
         </section>
       </React.Fragment>

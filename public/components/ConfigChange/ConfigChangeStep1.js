@@ -1,11 +1,12 @@
 import React from "react";
 import getData from "../../utils/getData";
 import { putData } from "../../utils/sendData";
+import { Popup } from "semantic-ui-react";
 
 class ConfigChangeStep1 extends React.Component {
   state = {
     commitInfo: {},
-    commitUpdateInfo: {},
+    commitUpdateInfo: {}
   };
 
   getRepoStatus = (repo_name) => {
@@ -30,6 +31,10 @@ class ConfigChangeStep1 extends React.Component {
 
   // this request takes some time, perhaps work in a "loading..."
   refreshRepo = (repo_name) => {
+    let resetCommitUpdateInfo = this.state.commitUpdateInfo;
+    resetCommitUpdateInfo[repo_name] = "";
+    this.setState({commitUpdateInfo: resetCommitUpdateInfo});
+
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/repository/" + repo_name;
     let dataToSend = { action: "REFRESH" };
@@ -64,7 +69,29 @@ class ConfigChangeStep1 extends React.Component {
     this.getRepoStatus('templates');
   }
 
+  prettifyCommit(commitStr) {
+//    const p = 'Commit addce6b8e7e62fbf0e6cf0adf6c05ccdab5fe24d master by Johan Marcusson at 2020-11-30 10:55:54+01:00';
+
+
+    const gitCommitRegex = /Commit ([a-z0-9]{8})([a-z0-9]{32}) (\w+) by (.+) at ([0-9:-\s]+)/i;
+    const match = gitCommitRegex.exec(commitStr);
+    try {
+      let commitPopup = <Popup
+                    content={match[1] + match[2]}
+                    position="top center"
+                    hoverable={true}
+                    trigger={<u>{match[1]}</u>} />;
+      return <p>Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}</p>;
+    } catch(err) {
+      return <p>{commitStr}</p>;
+    }
+  }
+
   render() {
+    let buttonsDisabled = false;
+    if (this.props.dryRunJobStatus) {
+      buttonsDisabled = true;
+    }
     return (
       <div className="task-container">
         <div className="heading">
@@ -76,20 +103,20 @@ class ConfigChangeStep1 extends React.Component {
         <div className="task-collapsable">
           <div className="info">
             <p>Latest settings repo commit: </p>
-            <p>{this.state.commitInfo['settings']}</p>
+            {this.prettifyCommit(this.state.commitInfo['settings'])}
           </div>
           <div className="info">
             <p>Latest templates repo commit: </p>
-            <p>{this.state.commitInfo['templates']}</p>
+            {this.prettifyCommit(this.state.commitInfo['templates'])}
           </div>
           <div className="info">
-            <button onClick={ () => this.refreshRepo('settings')}>
+            <button disabled={buttonsDisabled} onClick={ () => this.refreshRepo('settings')}>
               Refresh settings
             </button>
             <p>{this.state.commitUpdateInfo['settings']}</p>
           </div>
           <div className="info">
-            <button onClick={ () => this.refreshRepo('templates')}>
+            <button disabled={buttonsDisabled} onClick={ () => this.refreshRepo('templates')}>
               Refresh templates
             </button>
             <p>{this.state.commitUpdateInfo['templates']}</p>
