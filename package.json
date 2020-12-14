@@ -20,21 +20,21 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "eslint": "^6.8.0",
-    "eslint-config-recommended": "^4.0.0",
-    "eslint-plugin-react": "^7.19.0",
-    "history": "^4.10.1",
+    "eslint-config-recommended": "^4.1.0",
+    "eslint-plugin-react": "^7.21.5",
+    "history": "^5.0.0",
     "jest": "^24.9.0",
-    "parcel-bundler": "^1.12.3",
-    "prismjs": "^1.21.0",
-    "react-router-dom": "^5.1.2"
+    "parcel-bundler": "^1.12.4",
+    "prismjs": "^1.22.0",
+    "react-router-dom": "^5.2.0"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
     "jsonwebtoken": "^8.5.1",
-    "query-string": "^6.12.1",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "query-string": "^6.13.7",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
     "semantic-ui-react": "^0.88.2",
-    "socket.io-client": "^2.3.0"
+    "socket.io-client": "^3.0.4"
   }
 }
