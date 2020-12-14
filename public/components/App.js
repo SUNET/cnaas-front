@@ -3,7 +3,7 @@ import Header from "./Header";
 import Panel from "./Panel";
 import Footer from "./Footer";
 // needed for routing
-import { Router } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import "../styles/reset.css";
@@ -61,10 +61,10 @@ class App extends React.Component {
   render() {
     return (
       <div className="container">
-        <Router history={history}>
+        <BrowserRouter history={history}>
           <Header loggedIn={this.state.loggedIn} />
           <Panel login={this.login} logout={this.logout} loginMessage={this.state.loginMessage} loggedIn={this.state.loggedIn} />
-        </Router>
+        </BrowserRouter>
         <Footer />
       </div>
     );
