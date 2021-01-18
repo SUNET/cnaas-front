@@ -34,7 +34,7 @@ class DryRun extends React.Component {
           dryRunSyncStart={this.props.dryRunSyncStart}
           dryRunProgressData={dryRunProgressData}
           devices={this.props.devices}
-          resync={this.props.resync}
+          resync={this.state.resync}
         />
       ];
     }
