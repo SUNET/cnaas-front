@@ -1,7 +1,7 @@
 
 import React from "react";
 import PropTypes from 'prop-types'
-import { Button, Select, Input, Icon, Modal } from 'semantic-ui-react'
+import { Button, Select, Input, Icon, Modal, Accordion } from 'semantic-ui-react'
 import checkResponseStatus from "../utils/checkResponseStatus";
 import checkJsonResponse from "../utils/checkJsonResponse";
 
@@ -17,7 +17,8 @@ class DeviceInitForm extends React.Component {
       mlag_peer_id: null,
       mlag_peer_candidates: [],
       modal_open: false,
-      initcheck_output: null
+      initcheck_output: null,
+      accordionActiveIndex: 0
   };
 
   updateHostname(e) {
@@ -56,9 +57,9 @@ class DeviceInitForm extends React.Component {
       submitText: "Initializing...",
     });
     if (this.state.mlag_init) {
-      //this.submitInitJob(this.props.deviceId, this.state.hostname, this.state.device_type, this.state.mlag_peer_hostname, this.state.mlag_peer_id);
+      this.submitInitJob(this.props.deviceId, this.state.hostname, this.state.device_type, this.state.mlag_peer_hostname, this.state.mlag_peer_id);
     } else {
-      //this.submitInitJob(this.props.deviceId, this.state.hostname, this.state.device_type);
+      this.submitInitJob(this.props.deviceId, this.state.hostname, this.state.device_type);
     }
   }
 
@@ -94,7 +95,7 @@ class DeviceInitForm extends React.Component {
     .then(response => checkJsonResponse(response))
     .then(data => {
       console.log("device_initcheck response data", data);
-      this.setState({initcheck_output: JSON.stringify(data.data, null, 2)});
+      this.setState({initcheck_output: data.data});
     })
     .catch((error) => {
       this.setState({
@@ -175,6 +176,14 @@ class DeviceInitForm extends React.Component {
 //    });
   }
 
+  accordionClick = (e, titleProps) => {
+    const { index } = titleProps;
+    const { accordionActiveIndex } = this.state;
+    const newIndex = accordionActiveIndex === index ? -1 : index;
+
+    this.setState({ accordionActiveIndex: newIndex });
+  }
+
   render() {
     let mlag_inputs = null;
     if (this.state.mlag_init) {
@@ -187,9 +196,73 @@ class DeviceInitForm extends React.Component {
         />
       ];
     }
-    let initcheck_output = <Icon name="spinner" loading={true} />;
+    let initcheck_html = <Icon name="spinner" loading={true} />;
+    let initcheck_ok = false;
     if (this.state.initcheck_output !== null) {
-      initcheck_output = this.state.initcheck_output;
+      try {
+        const { accordionActiveIndex } = this.state;
+        initcheck_ok = this.state.initcheck_output.compatible;
+        let compatible_linknets = 0;
+        let linknets = "";
+        try {
+          compatible_linknets = this.state.initcheck_output.linknets.length;
+          linknets = <pre>{JSON.stringify(this.state.initcheck_output.linknets, null, 2)}</pre>;
+        } catch(err) {
+          if ('linknets_error' in this.state.initcheck_output) {
+            linknets = this.state.initcheck_output.linknets_error;
+          }
+        }
+        let compatible_neighbors = 0;
+        let neighbors = "";
+        try {
+          compatible_neighbors = this.state.initcheck_output.neighbors.length;
+          neighbors = <pre>{JSON.stringify(this.state.initcheck_output.neighbors, null, 2)}</pre>;
+        } catch(err) {
+          if ('neighbors_error' in this.state.initcheck_output) {
+            neighbors = this.state.initcheck_output.neighbors_error;
+          }
+        }
+
+        initcheck_html = <Accordion>
+            <Accordion.Title
+              active={accordionActiveIndex === 1}
+              index={1}
+              onClick={this.accordionClick}
+            >
+              <Icon name='dropdown' />
+              Linknets: {compatible_linknets}
+              <Icon name={this.state.initcheck_output.linknets_compatible ? "checkmark" : "cancel"} />
+            </Accordion.Title>
+            <Accordion.Content active={accordionActiveIndex === 1}>
+              {linknets}
+            </Accordion.Content>
+            <Accordion.Title
+              active={accordionActiveIndex === 2}
+              index={2}
+              onClick={this.accordionClick}
+            >
+              <Icon name='dropdown' />
+              Compatible neighbors: {compatible_neighbors}
+              <Icon name={this.state.initcheck_output.neighbors_compatible ? "checkmark" : "cancel"} />
+            </Accordion.Title>
+            <Accordion.Content active={accordionActiveIndex === 2}>
+              {neighbors}
+            </Accordion.Content>
+            <Accordion.Title
+              active={accordionActiveIndex === 3}
+              index={3}
+              onClick={this.accordionClick}
+            >
+              <Icon name='dropdown' />
+              Detailed output
+            </Accordion.Title>
+            <Accordion.Content active={accordionActiveIndex === 3}>
+              <pre>{JSON.stringify(this.state.initcheck_output, null, 2)}</pre>
+            </Accordion.Content>
+          </Accordion>;
+      } catch(err) {
+        initcheck_html = <pre>{JSON.stringify(this.state.initcheck_output, null, 2)}</pre>;
+      }
     }
     return (
       <div>
@@ -198,11 +271,13 @@ class DeviceInitForm extends React.Component {
         />
         <Select key="device_type" placeholder="Device type" onChange={this.onChangeDevicetype} options={[
           {'key': 'ACCESS', 'value': 'ACCESS', 'text': 'Access'},
-          {'key': 'ACCESSMLAG', 'value': 'ACCESSMLAG', 'text': 'Access MLAG pair'}
+          {'key': 'ACCESSMLAG', 'value': 'ACCESSMLAG', 'text': 'Access MLAG pair'},
+          {'key': 'DIST', 'value': 'DIST', 'text': 'Distribution'},
+          {'key': 'CORE', 'value': 'CORE', 'text': 'Core'},
           ]} />
         {mlag_inputs}
         <Modal
-          onClose={() => this.setState({modal_open: false, initcheck_output: null})}
+          onClose={() => this.setState({modal_open: false, initcheck_output: null, accordionActiveIndex: 0})}
           onOpen={() => this.setState({modal_open: true})}
           open={this.state.modal_open}
           trigger={
@@ -214,13 +289,13 @@ class DeviceInitForm extends React.Component {
         >
           <Modal.Header>Init compatability check</Modal.Header>
           <Modal.Content>
-            <Modal.Description><pre>{initcheck_output}</pre></Modal.Description>
+            <Modal.Description>{initcheck_html}</Modal.Description>
           </Modal.Content>
           <Modal.Actions>
-            <Button key="cancel" color='black' onClick={() => this.setState({modal_open: false, initcheck_output: null})}>
+            <Button key="cancel" color='black' onClick={() => this.setState({modal_open: false, initcheck_output: null, accordionActiveIndex: 0})}>
               Cancel
             </Button>
-            <Button key="submit" onClick={() => this.submitInit()} icon labelPosition='right'>
+            <Button key="submit" onClick={() => this.submitInit()} disabled={!initcheck_ok} icon labelPosition='right' positive>
               Start initialization
             </Button>
           </Modal.Actions>
