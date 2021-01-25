@@ -377,6 +377,10 @@ class DeviceList extends React.Component {
     this.props.history.push("config-change?hostname="+hostname);
   }
 
+  upgradeDeviceAction(hostname) {
+    this.props.history.push("firmware-upgrade?hostname="+hostname);
+  }
+
   updateFactsAction(hostname, device_id) {
     console.log("Update facts for hostname: "+hostname);
     const credentials = localStorage.getItem("token");
@@ -471,6 +475,7 @@ class DeviceList extends React.Component {
       } else if (items.state == "MANAGED") {
         menuActions = [
           <Dropdown.Item text="Sync device..." onClick={() => this.syncDeviceAction(items.hostname)} />,
+          <Dropdown.Item text="Firmware upgrade..." onClick={() => this.upgradeDeviceAction(items.hostname)} />,
           <Dropdown.Item text="Update facts" onClick={() => this.updateFactsAction(items.hostname, items.id) }/>,
           <Dropdown.Item text="Make unmanaged" onClick={() => this.changeStateAction(items.id, "UNMANAGED")} />
         ];

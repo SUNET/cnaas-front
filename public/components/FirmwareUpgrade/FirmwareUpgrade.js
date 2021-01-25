@@ -341,7 +341,7 @@ class FirmwareUpgrade extends React.Component {
             onChange={this.updateTicketRef.bind(this)}
           />
           <FirmwareStep1
-            groupName={commitTarget.group}
+            commitTarget={commitTarget}
           />
           <FirmwareStep2
             firmwareUpgradeStart={this.firmwareUpgradeStart}
