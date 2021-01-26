@@ -1,5 +1,5 @@
 import React from "react";
-import { Dropdown, Icon, Pagination } from "semantic-ui-react";
+import { Dropdown, Icon, Pagination, Confirm } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
@@ -24,7 +24,35 @@ class DeviceList extends React.Component {
     logLines: [],
     queryParamsParsed: false,
     loading: true,
-    error: null
+    error: null,
+    confirmDeleteDiagOpen: false,
+    confirmDeleteDevice: null,
+    confirmDeleteFactoryDefault: null
+  };
+
+  openConfirmDelete = (device, factory_default) => {
+    this.setState({
+      confirmDeleteDiagOpen: true,
+      confirmDeleteDevice: device,
+      confirmDeleteFactoryDefault: factory_default
+    });
+  };
+  closeConfirmDelete = () => {
+    this.setState({
+      confirmDeleteDiagOpen: false,
+      confirmDeleteDevice: null,
+      confirmDeleteFactoryDefault: null
+    });
+  };
+  okConfirmDelete = () => {
+    let deleteDevice = this.state.confirmDeleteDevice;
+    this.setState({
+      confirmDeleteDiagOpen: false,
+      confirmDeleteDevice: null,
+      confirmDeleteFactoryDefault: null
+    }, () => {
+      this.deleteDevice(deleteDevice);
+    });
   };
 
   parseQueryParams(callback) {
@@ -437,6 +465,34 @@ class DeviceList extends React.Component {
     });
   }
 
+  deleteDevice(device) {
+    console.log("Delete device_id: "+device.id);
+    const credentials = localStorage.getItem("token");
+
+    let url = process.env.API_URL + "/api/v1.0/device/" + device.id;
+    let dataToSend = {};
+    if (this.state.confirmDeleteFactoryDefault === true) {
+      dataToSend["factory_default"] = true;
+    }
+
+    fetch(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${credentials}`
+      },
+      body: JSON.stringify(dataToSend)
+    })
+    .then(response => checkResponseStatus(response))
+    .then(response => response.json())
+    .then(data => {
+      if (data.status !== "success") {
+        console.log("error when deleting device:", data.error);
+      }
+      this.getDevicesData(); // reload device data
+    });
+  }
+
   render() {
     const devicesData = this.state.devicesData;
     let deviceInfo = devicesData.map((items, index) => {
@@ -463,9 +519,7 @@ class DeviceList extends React.Component {
           );
       }
       let deviceStateExtra = [];
-      let menuActions = [
-          <Dropdown.Item text="No actions allowed in this state" disabled={true} />,
-      ];
+      let menuActions = [];
       if (items.state == "DISCOVERED") {
         deviceStateExtra.push(<DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceJob.bind(this)} />);
       } else if (items.state == "INIT") {
@@ -484,6 +538,23 @@ class DeviceList extends React.Component {
           <Dropdown.Item text="Update facts" onClick={() => this.updateFactsAction(items.hostname, items.id) }/>,
           <Dropdown.Item text="Make managed" onClick={() => this.changeStateAction(items.id, "MANAGED")} />
         ];
+      }
+      if (["DHCP_BOOT", "DISCOVERED", "UNMANAGED"].includes(items.state)) {
+        menuActions.push(
+          <Dropdown.Item text="Delete device" onClick={() => this.openConfirmDelete(items, false)} />
+        );
+      }
+      if (["UNMANAGED"].includes(items.state)) {
+        if (items.device_type == "ACCESS") {
+          menuActions.push(
+            <Dropdown.Item text="Delete device and reset to factory default" onClick={() => this.openConfirmDelete(items, true)} />
+          );
+        }
+      }
+      if (menuActions.length == 0) {
+          menuActions = [
+            <Dropdown.Item text="No actions allowed in this state" disabled={true} />
+          ];
       }
       let deviceInterfaceData = "";
       if (items.hostname in this.state.deviceInterfaceData !== false) {
@@ -594,6 +665,11 @@ class DeviceList extends React.Component {
       }
     }
 
+    let confirmDeleteText = "Error";
+    if (this.state.confirmDeleteDevice !== null) {
+      confirmDeleteText = "Are you sure you want to delete device "+this.state.confirmDeleteDevice.hostname+" (ID "+this.state.confirmDeleteDevice.id+") ?";
+    }
+
     return (
       <section>
         <div id="search">
@@ -601,6 +677,12 @@ class DeviceList extends React.Component {
         </div>
         <div id="device_list">
           <h2>Device list</h2>
+          <Confirm
+            content={confirmDeleteText}
+            open={this.state.confirmDeleteDiagOpen}
+            onCancel={this.closeConfirmDelete}
+            onConfirm={this.okConfirmDelete}
+          />
           <div id="data">
             <table className="device_list">
               <thead>
