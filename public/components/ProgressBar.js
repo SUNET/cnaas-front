@@ -27,7 +27,7 @@ class ProgressBar extends React.Component {
     return (
       <div>
         <div id="progressbar">
-          <Progress value={this.props.value} total={this.props.total} progress disabled={disabled} indicating={indicating} success={success} error={error} />
+          <Progress value={this.props.value} total={this.props.total} progress precision={0} disabled={disabled} indicating={indicating} success={success} error={error} />
           <label>
             {this.props.value}/{this.props.total} devices finished
           </label>
