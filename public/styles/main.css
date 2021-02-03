@@ -164,7 +164,7 @@ footer {
   align-items: baseline;
 }
 
-.active {
+a.active {
   color: #ff4500;
   text-decoration: underline;
 }
