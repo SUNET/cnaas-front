@@ -4,14 +4,16 @@ import PropTypes from 'prop-types'
 
 class ProgressBar extends React.Component {
   render() {
-    let indicating = false;
+    let active = false;
     let disabled = true;
     let success = false;
     let error = false;
     if (this.props.jobStatus !== undefined) {
-      if (this.props.jobStatus === "RUNNING") {
+      if (this.props.jobStatus === "SCHEDULED"){
         disabled = false;
-        indicating = true;
+      } else if (this.props.jobStatus === "RUNNING") {
+        disabled = false;
+        active = true;
       } else if (this.props.jobStatus === "FINISHED") {
         if (this.props.value == this.props.total) {
           success = true;
@@ -27,7 +29,7 @@ class ProgressBar extends React.Component {
     return (
       <div>
         <div id="progressbar">
-          <Progress value={this.props.value} total={this.props.total} progress precision={0} disabled={disabled} indicating={indicating} success={success} error={error} />
+          <Progress value={this.props.value} total={this.props.total} progress precision={0} color='orange' disabled={disabled} active={active} success={success} error={error} />
           <label>
             {this.props.value}/{this.props.total} devices finished
           </label>
