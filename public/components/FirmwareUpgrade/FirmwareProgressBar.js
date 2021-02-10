@@ -8,22 +8,16 @@ class FirmwareProgressBar extends React.Component {
     const totalCount = this.props.totalCount;
 
     let finishedDevicesNum = 0;
-    let percentageValue = 0;
 
     if (jobStatus === "RUNNING" || jobStatus === "FINISHED") {
       finishedDevicesNum = jobFinishedDevices.length;
-      if (totalCount === 0) {
-        percentageValue = 0;
-      } else {
-        percentageValue = (finishedDevicesNum / totalCount) * 100;
-      }
     }
 
     return (
       <ProgressBar
-        numberValue={finishedDevicesNum}
-        percentValue={percentageValue}
+        value={finishedDevicesNum}
         total={totalCount}
+        jobStatus={jobStatus}
       />
     );
   }

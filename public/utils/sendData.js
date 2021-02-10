@@ -1,3 +1,4 @@
+const checkJsonResponse = require("./checkJsonResponse");
 const checkResponseStatus = require("./checkResponseStatus");
 
 const putData = (url, credentials, dataToSend) => {
@@ -9,8 +10,7 @@ const putData = (url, credentials, dataToSend) => {
     },
     body: JSON.stringify(dataToSend)
   })
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json());
+    .then(response => checkJsonResponse(response));
 };
 
 const postData = (url, credentials, dataToSend) => {

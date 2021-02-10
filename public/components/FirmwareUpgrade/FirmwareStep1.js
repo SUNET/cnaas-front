@@ -1,6 +1,5 @@
 import React from "react";
 import getData from "../../utils/getData";
-import { putData } from "../../utils/sendData";
 
 class FirmwareStep1 extends React.Component {
   state = {
