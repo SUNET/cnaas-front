@@ -47,7 +47,7 @@ class ConfigChange extends React.Component {
   }
 
   readHeaders = (response, dry_run) => {
-    const totalCountHeader = response.headers.get("X-Total-Count");
+    const totalCountHeader = Number(response.headers.get("X-Total-Count"));
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
       console.log("total: " + totalCountHeader);
       if (dry_run === true) {

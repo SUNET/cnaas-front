@@ -61,6 +61,18 @@ class ConfigChangeStep1 extends React.Component {
           }
         );
       }
+    }).catch(error => {
+      newCommitUpdateInfo[repo_name] = "error";
+      newCommitInfo[repo_name] = error.message;
+      this.setState(
+        {
+          commitInfo: newCommitInfo,
+          commitUpdateInfo: newCommitUpdateInfo
+        },
+        () => {
+          console.log("this is new state", newCommitInfo, newCommitUpdateInfo);
+        }
+      );
     });
   };
 
