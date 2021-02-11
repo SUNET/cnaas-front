@@ -156,7 +156,12 @@ class FirmwareUpgrade extends React.Component {
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/firmware/upgrade";
     let dataToSend = this.getCommitTarget();
-    dataToSend["url"] = process.env.API_URL + "/firmware/";
+    if (process.env.FIRMWARE_URL !== undefined && typeof process.env.FIRMWARE_URL === 'string' &&
+        process.env.FIRMWARE_URL.startsWith('http')) {
+      dataToSend["url"] = process.env.FIRMWARE_URL;
+    } else {
+      dataToSend["url"] = process.env.API_URL + "/firmware/";
+    }
     dataToSend["comment"] = this.state.job_comment;
     dataToSend["ticket_ref"] = this.state.job_ticket_ref;
    
@@ -341,7 +346,7 @@ class FirmwareUpgrade extends React.Component {
             onChange={this.updateTicketRef.bind(this)}
           />
           <FirmwareStep1
-            groupName={commitTarget.group}
+            commitTarget={commitTarget}
           />
           <FirmwareStep2
             firmwareUpgradeStart={this.firmwareUpgradeStart}

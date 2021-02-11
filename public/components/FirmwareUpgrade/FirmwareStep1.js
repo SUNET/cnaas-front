@@ -6,27 +6,43 @@ class FirmwareStep1 extends React.Component {
     firmwareInfo: {},
   };
 
-  getFirmwareStatus = (group_name) => {
+  getFirmwareStatus = (commitTarget) => {
     const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + "/api/v1.0/groups/" + group_name + "/os_version";
-    let newCommitInfo = this.state.commitInfo;
-    getData(url, credentials).then(data => {
-      console.log("this should be data", data);
-      {
-        this.setState(
-          {
-            firmwareInfo: data.data
-          },
-          () => {
-            console.log("this is new state", this.state.firmwareInfo);
-          }
-        );
-      }
-    });
+    if (commitTarget.hostname !== undefined) {
+      let url = process.env.API_URL + "/api/v1.0/devices?filter[hostname]=" + commitTarget.hostname;
+      getData(url, credentials).then(data => {
+        console.log("this should be device data", data);
+        {
+          this.setState(
+            {
+              firmwareInfo: data.data
+            },
+            () => {
+              console.log("this is new state", this.state.firmwareInfo);
+            }
+          );
+        }
+      });
+    } else if (commitTarget.group !== undefined) {
+      let url = process.env.API_URL + "/api/v1.0/groups/" + commitTarget.group + "/os_version";
+      getData(url, credentials).then(data => {
+        console.log("this should be group os_version data", data);
+        {
+          this.setState(
+            {
+              firmwareInfo: data.data
+            },
+            () => {
+              console.log("this is new state", this.state.firmwareInfo);
+            }
+          );
+        }
+      });
+    }
   };
 
   componentDidMount() {
-    this.getFirmwareStatus(this.props.groupName);
+    this.getFirmwareStatus(this.props.commitTarget);
   }
 
   renderHostname(hostname) {
@@ -38,12 +54,16 @@ class FirmwareStep1 extends React.Component {
   render() {
     var os_version_list = <p>None</p>;
     if ('groups' in this.state.firmwareInfo) {
-      const os_versions = this.state.firmwareInfo.groups[this.props.groupName];
+      const os_versions = this.state.firmwareInfo.groups[this.props.commitTarget.group];
       os_version_list = Object.keys(os_versions).map((os_version, index) => {
         return (
           <p><b>{os_version}:</b> <ul>{os_versions[os_version].map(this.renderHostname)}</ul></p>
         );
       })
+    } else if ('devices' in this.state.firmwareInfo) {
+      os_version_list = (
+          <p><b>{this.state.firmwareInfo.devices[0].os_version}:</b> <ul>{this.renderHostname(this.state.firmwareInfo.devices[0].hostname)}</ul></p>
+      );
     }
     return (
       <div className="task-container">
