@@ -9,6 +9,7 @@ sed -e "s|^\(.*proxy_pass \)CNAAS_API_URL;$|\1$CNAAS_API_URL;|" \
   && cat /tmp/nginx_app.conf.new > /etc/nginx/sites-available/nginx_app.conf
 
 sed -e "s|^\(.*API_URL=\)CNAAS_FRONT_URL$|\1$CNAAS_FRONT_URL|" \
+    -e "s|^\(.*FIRMWARE_URL=\)CNAAS_FIRMWARE_URL$|\1$CNAAS_FIRMWARE_URL|" \
   < /opt/cnaas/.env > /tmp/.env \
   && cat /tmp/.env > /opt/cnaas/cnaas-front/.env
 
