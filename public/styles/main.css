@@ -46,9 +46,17 @@ nav li {
 }
 
 a {
-  text-transform: Captalize;
   color: #003049;
+  text-decoration: underline;
+}
+
+nav a {
   text-decoration: none;
+}
+
+nav a.active {
+  color: #ff4500;
+  text-decoration: underline;
 }
 
 h1,
@@ -172,10 +180,6 @@ footer {
   margin: 16px;
 }
 
-a.active {
-  color: #ff4500;
-  text-decoration: underline;
-}
 
 table,
 thead,
