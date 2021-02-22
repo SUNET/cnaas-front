@@ -6,7 +6,8 @@ import { Form, Checkbox } from "semantic-ui-react";
 
 class DryRun extends React.Component {
   state = {
-    "resync": false
+    "resync": false,
+    "dryrunButtonDisabled": false
   };
 
   checkboxChangeHandler = (event, data) => {
@@ -15,17 +16,23 @@ class DryRun extends React.Component {
     });
   };
 
-  dryrunButtonOnclick = (e) => {
+  dryrunButtonOnclick() {
     this.props.dryRunSyncStart({"resync": this.state.resync});
-    var confirmButtonElem = document.getElementById("dryrunButton");
-    confirmButtonElem.disabled = true;
+    this.setState({"dryrunButtonDisabled": true});
   };
+
+  resetButtonOnclick() {
+    this.props.resetState();
+    this.setState({"dryrunButtonDisabled": false});
+  }
 
   render() {
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
     let jobId = this.props.jobId;
     let error = "";
+    let dryrunButtonDisabled = this.state.dryrunButtonDisabled;
+    let resetButtonDisabled = true;
 
     if (dryRunJobStatus === "EXCEPTION") {
       // console.log("jobStatus errored");
@@ -38,14 +45,17 @@ class DryRun extends React.Component {
         />
       ];
     }
+    if (dryRunJobStatus === "FINISHED") {
+      resetButtonDisabled = false;
+    }
+    if (this.props.repoWorkingState === true) {
+      dryrunButtonDisabled = true;
+    }
 
     return (
       <div className="task-container">
         <div className="heading">
           <h2>Dry run (2/4)</h2>
-          <a href="#">
-            <button className="close">Close</button>
-          </a>
         </div>
         <div className="task-collapsable">
           <p>
@@ -57,8 +67,11 @@ class DryRun extends React.Component {
               <Checkbox label="Re-sync devices (check for local changes made outside of NMS)" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} /> 
             </div>
             <div className="info">
-              <button id="dryrunButton" onClick={e => this.dryrunButtonOnclick(e)}>
+              <button id="dryrunButton" disabled={dryrunButtonDisabled} onClick={() => this.dryrunButtonOnclick()}>
                 Start config dry run
+              </button>
+              <button id="resetButton" disabled={resetButtonDisabled} onClick={() => this.resetButtonOnclick()}>
+                Start over
               </button>
             </div>
           </Form>

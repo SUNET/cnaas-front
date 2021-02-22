@@ -6,7 +6,10 @@ import { Popup } from "semantic-ui-react";
 class ConfigChangeStep1 extends React.Component {
   state = {
     commitInfo: {},
-    commitUpdateInfo: {}
+    commitUpdateInfo: {
+      'settings': null,
+      'templates': null,
+    }
   };
 
   getRepoStatus = (repo_name) => {
@@ -31,21 +34,22 @@ class ConfigChangeStep1 extends React.Component {
 
   // this request takes some time, perhaps work in a "loading..."
   refreshRepo = (repo_name) => {
-    let resetCommitUpdateInfo = this.state.commitUpdateInfo;
-    resetCommitUpdateInfo[repo_name] = "";
-    this.setState({commitUpdateInfo: resetCommitUpdateInfo});
+    let newCommitUpdateInfo = this.state.commitUpdateInfo;
+    newCommitUpdateInfo[repo_name] = "updating...";
+    this.setState({commitUpdateInfo: newCommitUpdateInfo});
+    this.props.setRepoWorking(true);
 
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/repository/" + repo_name;
     let dataToSend = { action: "REFRESH" };
     let newCommitInfo = this.state.commitInfo;
-    let newCommitUpdateInfo = this.state.commitUpdateInfo;
 
     putData(url, credentials, dataToSend).then(data => {
       // console.log("this should be data", data);
       if ( data.status === "success" ) {
         newCommitUpdateInfo[repo_name] = "success";
         newCommitInfo[repo_name] = data.data;
+        this.props.setRepoWorking(false);
       } else {
         newCommitUpdateInfo[repo_name] = "error";
         newCommitInfo[repo_name] = data.message;
@@ -103,14 +107,14 @@ class ConfigChangeStep1 extends React.Component {
     let buttonsDisabled = false;
     if (this.props.dryRunJobStatus) {
       buttonsDisabled = true;
+    } else if (this.state.commitUpdateInfo['settings'] == 'updating...' || 
+            this.state.commitUpdateInfo['templates'] == 'updating...') {
+      buttonsDisabled = true;
     }
     return (
       <div className="task-container">
         <div className="heading">
           <h2>Refresh repositories (1/4)</h2>
-          <a href="#">
-            <button className="close">Close</button>
-          </a>
         </div>
         <div className="task-collapsable">
           <div className="info">

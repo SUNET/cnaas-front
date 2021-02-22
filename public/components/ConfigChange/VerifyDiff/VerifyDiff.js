@@ -13,9 +13,6 @@ class VerifyDiff extends React.Component {
       <div className="task-container">
         <div className="heading">
           <h2>Verify difference (3/4)</h2>
-          <a href="#">
-            <button className="close">Close</button>
-          </a>
         </div>
         <div className="task-collapsable">
           <p>Step 3 of 4: Look through and verify diff</p>

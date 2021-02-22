@@ -141,6 +141,10 @@ footer {
   background-color: #f4f4f4;
 }
 
+.task-container .heading h2 {
+  margin: 32px 0 32px 0;
+}
+
 .task-container .close {
   background: transparent;
   border: none;
@@ -162,6 +166,10 @@ footer {
 .task-collapsable .info {
   display: flex;
   align-items: baseline;
+}
+
+.ui.checkbox {
+  margin: 16px;
 }
 
 a.active {
