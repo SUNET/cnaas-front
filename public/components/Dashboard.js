@@ -1,12 +1,13 @@
 import React from "react";
-import { Container, Grid } from "semantic-ui-react";
+import { Container, Grid, Popup } from "semantic-ui-react";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import getData from "../utils/getData";
 
 class Dashboard extends React.Component {
   state = {
     commitInfo: {},
-    deviceCount: {}
+    deviceCount: {},
+    systemVersion: {}
   };
 
   componentDidMount() {
@@ -14,6 +15,7 @@ class Dashboard extends React.Component {
     this.getRepoStatus('templates');
     this.getDeviceCount("managed", "filter[state]=MANAGED");
     this.getDeviceCount("unsynchronized", "filter[state]=MANAGED&filter[synchronized]=false");
+    this.getSystemVersion();
   }
 
   getRepoStatus = (repo_name) => {
@@ -61,6 +63,26 @@ class Dashboard extends React.Component {
     } )
   }
 
+  getSystemVersion = () => {
+    const credentials = localStorage.getItem("token");
+    let url = process.env.API_URL + "/api/v1.0/system/version";
+    let newSystemVersion = this.state.systemVersion;
+    getData(url, credentials).then(data => {
+      // console.log("this should be data", data);
+      newSystemVersion = data.data;
+      {
+        this.setState(
+          {
+            systemVersion: newSystemVersion
+          },
+          () => {
+            console.log("system version", this.state.systemVersion);
+          }
+        );
+      }
+    });
+  };
+
   headerCount = response => {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
@@ -96,6 +118,16 @@ class Dashboard extends React.Component {
             <Grid.Column width={8}>
               <p>Managed devices: <a href={"/devices?filterstring=filter%5Bstate%5D%3DMANAGED"}>{this.state.deviceCount["managed"]}</a></p>
               <p>Unsynchronized devices: <a href={"/devices?filterstring=filter%5Bsynchronized%5D%3Dfalse"}>{this.state.deviceCount["unsynchronized"]}</a></p>
+            </Grid.Column>
+            <Grid.Column width={8}>
+              <p>
+                <Popup
+                  content={"Detailed git commit version: " + this.state.systemVersion['git_version']}
+                  position="top left"
+                  hoverable
+                  trigger={<a href="https://github.com/SUNET/cnaas-nms/releases" alt="CNaaS-NMS github page" target="_blank">CNaaS-NMS version: {this.state.systemVersion['version']}</a>}
+                />
+              </p>
             </Grid.Column>
           </Grid>
         </Container>

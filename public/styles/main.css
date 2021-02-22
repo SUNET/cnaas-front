@@ -46,9 +46,17 @@ nav li {
 }
 
 a {
-  text-transform: Captalize;
   color: #003049;
+  text-decoration: underline;
+}
+
+nav a {
   text-decoration: none;
+}
+
+nav a.active {
+  color: #ff4500;
+  text-decoration: underline;
 }
 
 h1,
@@ -141,6 +149,10 @@ footer {
   background-color: #f4f4f4;
 }
 
+.task-container .heading h2 {
+  margin: 32px 0 32px 0;
+}
+
 .task-container .close {
   background: transparent;
   border: none;
@@ -164,10 +176,10 @@ footer {
   align-items: baseline;
 }
 
-a.active {
-  color: #ff4500;
-  text-decoration: underline;
+.ui.checkbox {
+  margin: 16px;
 }
+
 
 table,
 thead,

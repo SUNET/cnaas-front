@@ -14,23 +14,38 @@ const io = require("socket.io-client");
 var socket = null;
 
 class ConfigChange extends React.Component {
-  state = {
-    dryRunSyncData: [],
-    dryRunSyncJobid: null,
-    dryRunProgressData: [],
-    dryRunResultData: [],
-    dryRunTotalCount: 0,
-    synctoForce: false,
-    liveRunSyncData: [],
-    liveRunSyncJobid: null,
-    liveRunProgressData: [],
-    liveRunResultData: [],
-    liveRunTotalCount: 0,
-    job_comment: "",
-    job_ticket_ref: "",
-    logLines: [],
-    blockNavigation: false
+  getInitialState() {
+    return {
+      dryRunSyncData: [],
+      dryRunSyncJobid: null,
+      dryRunProgressData: [],
+      dryRunTotalCount: 0,
+      synctoForce: false,
+      liveRunSyncData: [],
+      liveRunSyncJobid: null,
+      liveRunProgressData: [],
+      liveRunTotalCount: 0,
+      job_comment: "",
+      job_ticket_ref: "",
+      logLines: [],
+      blockNavigation: false,
+      repoWorking: false
+    }
   };
+
+  constructor() {
+    super();
+    this.state = this.getInitialState();
+  }
+
+  resetState = () => {
+    console.log(this.getInitialState());
+    this.setState(this.getInitialState());
+  }
+
+  setRepoWorking = (working_status) => {
+    this.setState({repoWorking: working_status});
+  }
 
   updateComment(e) {
     const val = e.target.value;
@@ -230,6 +245,11 @@ class ConfigChange extends React.Component {
       }
       newLogLines.push(data + "\n");
       this.setState({logLines: newLogLines});
+      // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
+      if (data.includes("refresh repo") === true) {
+        this.setState({dryRunProgressData: []});
+        console.log("Refresh repo event, reset dryrun status: ", data);
+      }
     });
   };
 
@@ -305,6 +325,7 @@ class ConfigChange extends React.Component {
           />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}
+            setRepoWorking={this.setRepoWorking}
           />
           <DryRun
             dryRunSyncStart={this.deviceSyncStart}
@@ -314,6 +335,8 @@ class ConfigChange extends React.Component {
             devices={dryRunResults}
             totalCount={this.state.dryRunTotalCount}
             logLines={this.state.logLines}
+            resetState={this.resetState}
+            repoWorkingState={this.state.repoWorking}
           />
           <VerifyDiff
             dryRunChangeScore={dryRunChangeScore}

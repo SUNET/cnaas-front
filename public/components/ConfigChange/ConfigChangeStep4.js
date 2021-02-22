@@ -43,6 +43,7 @@ class ConfigChangeStep4 extends React.Component {
       if (!this.props.jobTicketRef || !this.props.jobComment) {
         warnings.push(
           <Popup
+            key="popup1"
             content="Ticket reference or comment is missing"
             position="top center"
             hoverable
@@ -54,6 +55,7 @@ class ConfigChangeStep4 extends React.Component {
       if (this.props.dryRunChangeScore && this.props.dryRunChangeScore > warnChangeScore) {
         warnings.push(
           <Popup
+            key="popup2"
             content={"High change score: "+this.props.dryRunChangeScore}
             position="top center"
             hoverable
@@ -64,6 +66,7 @@ class ConfigChangeStep4 extends React.Component {
       if (this.props.synctoForce) {
         warnings.push(
           <Popup
+            key="popup3"
             content={"Local changes will be overwritten!"}
             position="top center"
             hoverable
@@ -74,6 +77,7 @@ class ConfigChangeStep4 extends React.Component {
       if (warnings.length == 0) {
         warnings.push(
           <Popup
+            key="popup4"
             content={"No warnings"}
             position="top center"
             hoverable
@@ -87,9 +91,6 @@ class ConfigChangeStep4 extends React.Component {
       <div className="task-container">
         <div className="heading">
           <h2>Commit configuration (4/4)</h2>
-          <a href="#">
-            <button className="close">Close</button>
-          </a>
         </div>
         <div className="task-collapsable">
           <p>Step 4 of 4: Final step</p>
