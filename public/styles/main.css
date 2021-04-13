@@ -194,15 +194,13 @@ tr {
 }
 
 thead {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  background-color: lightgray;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 tbody {
   font-size: 16px;
-  font-weight: 400;
+  font-weight: normal;
 }
 
 th,
@@ -210,6 +208,10 @@ td {
   display: flex;
   flex: 1;
   padding: 16px;
+}
+
+.table_options_button {
+  float: right;
 }
 
 /* progress bar styles */
@@ -255,15 +257,15 @@ progress::-moz-progress-bar {
   padding: 16px 0;
 }
 
-/* make ID column small, use nth-child instead of last so it doesn't affect device_details */
+/* make ID column small */
 #device_list .device_list tr td:last-child,
 #device_list .device_list tr th:last-child {
-  min-width: 3em;
+  min-width: 5em;
   max-width: 5em;
 }
 
-#device_list .device_details_table tr td:last-child,
-#device_list .device_details_table tr td:last-child {
+#device_list tr.device_details_row td:last-child,
+#device_list tr.device_details_row td:last-child {
   min-width: 20em;
   max-width: 100%;
 }

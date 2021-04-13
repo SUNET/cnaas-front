@@ -1,5 +1,5 @@
 import React from "react";
-import { Dropdown, Icon, Pagination } from "semantic-ui-react";
+import { Dropdown, Icon, Pagination, Popup, Button, Select, Checkbox } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
@@ -465,6 +465,26 @@ class DeviceList extends React.Component {
     });
   }
 
+  updatePerPageOption(e, option) {
+    const val = option.value;
+    this.setState({
+      resultsPerPage: val
+    }, () => this.getDevicesData());
+  }
+
+  columnSelectorChange = (e, data) => {
+    let newDisplayColumns = this.state.displayColumns;
+    if (data.checked === true && newDisplayColumns.indexOf(data.name) === -1) {
+      newDisplayColumns.push(data.name);
+    } else if (data.checked === false) {
+      const index = newDisplayColumns.indexOf(data.name);
+      if (index > -1) {
+        newDisplayColumns.splice(index, 1);
+      }
+    }
+    this.setState({displayColumns: newDisplayColumns});
+  }
+
   render() {
     const devicesData = this.state.devicesData;
     let deviceInfo = devicesData.map((items, index) => {
@@ -627,13 +647,31 @@ class DeviceList extends React.Component {
     }
 
     let columnHeaders = this.state.displayColumns.map(columnName => {
-      return <th>
-          {columnName}
-          <div className="hostname_sort">
-            {this.renderSortButton(this.state.hostname_sort)}
-          </div>
-        </th>;
+      return <th>{columnName}</th>;
     });
+
+
+    const perPageOptions = [
+      { 'key': 20, 'value': 20, 'text': '20' },
+      { 'key': 50, 'value': 50, 'text': '50' },
+      { 'key': 100, 'value': 100, 'text': '100' },
+    ];
+
+    const allowedColumns = {
+      "model": "Model",
+      "os_version": "OS version",
+      "management_ip": "Management IP",
+      "dhcp_ip": "DHCP IP",
+      "serial": "Serial"
+    };
+
+    let columnSelectors = Object.keys(allowedColumns).map((columnName, columnIndex) => {
+      let checked = false;
+      if (this.state.displayColumns.indexOf(columnName) !== -1) {
+        checked = true;
+      }
+      return <li key={columnIndex}><Checkbox defaultChecked={checked} label={allowedColumns[columnName]} name={columnName} onChange={this.columnSelectorChange.bind(this)} /></li>
+    })
 
     return (
       <section>
@@ -642,6 +680,14 @@ class DeviceList extends React.Component {
         </div>
         <div id="device_list">
           <h2>Device list</h2>
+          <div className="table_options">
+            <Popup on='click' pinned position='bottom right' trigger={<Button className="table_options_button"><Icon name="table" /></Button>} >
+              <p>Items per page:</p>
+              <Select options={perPageOptions} defaultValue={20} onChange={this.updatePerPageOption.bind(this)} />
+              <p>Show extra columns:</p>
+              <ul>{columnSelectors}</ul>
+            </Popup>
+          </div>
           <div id="data">
             <table className="device_list">
               <thead>
