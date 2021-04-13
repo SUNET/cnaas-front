@@ -20,6 +20,7 @@ class DeviceList extends React.Component {
     deviceInterfaceData: {},
     activePage: 1,
     totalPages: 1,
+    resultsPerPage: 20,
     deviceJobs: {},
     logLines: [],
     queryParamsParsed: false,
@@ -59,6 +60,21 @@ class DeviceList extends React.Component {
     this.setState({deviceJobs: deviceJobs}, () => {
       console.log("device jobs: ", this.state.deviceJobs)
     });
+  };
+
+  searchAction = options => {
+    this.setState(
+      { activePage: 1 },
+      () => {
+        this.getDevicesData(options);
+        window.scrollTo(0, 0);
+        // Close all expanded table rows when changing results
+        var deviceDetails = document.getElementsByClassName("device_details_row");
+        for (var i = 0; i < deviceDetails.length; i++) {
+          deviceDetails[i].hidden = true;
+        }
+      }
+    );
   };
 
   getDevicesData = options => {
@@ -188,7 +204,7 @@ class DeviceList extends React.Component {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
       console.log("total: " + totalCountHeader);
-      const totalPages = Math.ceil(totalCountHeader / 20);
+      const totalPages = Math.ceil(totalCountHeader / this.state.resultsPerPage);
       this.setState({ totalPages: totalPages });
     } else {
       console.log("Could not find X-Total-Count header, only showing one page");
@@ -245,7 +261,9 @@ class DeviceList extends React.Component {
       filterParams +
       "&page=" +
       pageNum +
-      "&per_page=20",
+      "&per_page=" +
+      this.state.resultsPerPage
+      ,
       {
         method: "GET",
         headers: {
@@ -336,8 +354,17 @@ class DeviceList extends React.Component {
 
   pageChange(e, data) {
     // Update active page and then reload data
-    this.setState({ activePage: data.activePage }, () =>
-      this.getDevicesData({ numPage: data.activePage })
+    this.setState(
+      { activePage: data.activePage },
+      () => {
+        this.getDevicesData({ numPage: data.activePage } );
+        window.scrollTo(0, 0);
+        // Close all expanded table rows when changing page
+        var deviceDetails = document.getElementsByClassName("device_details_row");
+        for (var i = 0; i < deviceDetails.length; i++) {
+          deviceDetails[i].hidden = true;
+        }
+      }
     );
   }
 
@@ -597,7 +624,7 @@ class DeviceList extends React.Component {
     return (
       <section>
         <div id="search">
-          <DeviceSearchForm location={this.props.location} searchAction={this.getDevicesData} />
+          <DeviceSearchForm location={this.props.location} searchAction={this.searchAction} />
         </div>
         <div id="device_list">
           <h2>Device list</h2>
@@ -637,6 +664,7 @@ class DeviceList extends React.Component {
           <div>
             <Pagination
               defaultActivePage={1}
+              activePage={this.state.activePage}
               totalPages={this.state.totalPages}
               onPageChange={this.pageChange.bind(this)}
             />
