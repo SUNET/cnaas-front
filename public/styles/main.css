@@ -256,11 +256,16 @@ progress::-moz-progress-bar {
 }
 
 /* make ID column small, use nth-child instead of last so it doesn't affect device_details */
-#device_list .device_list tr td:nth-child(4),
-#device_list .device_list tr th:nth-child(4) {
-  width: 5em;
-  min-width: 2em;
+#device_list .device_list tr td:last-child,
+#device_list .device_list tr th:last-child {
+  min-width: 3em;
   max-width: 5em;
+}
+
+#device_list .device_details_table tr td:last-child,
+#device_list .device_details_table tr td:last-child {
+  min-width: 20em;
+  max-width: 100%;
 }
 
 #data {
@@ -291,9 +296,8 @@ progress::-moz-progress-bar {
 }
 
 #data .device_details_table tr td:first-child {
-  width: 20em;
   min-width: 20em;
-  max-width: 20em;
+  max-width: 25em;
 }
 
 /* error styles */

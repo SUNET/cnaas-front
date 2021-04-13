@@ -25,7 +25,8 @@ class DeviceList extends React.Component {
     logLines: [],
     queryParamsParsed: false,
     loading: true,
-    error: null
+    error: null,
+    displayColumns: []
   };
 
   parseQueryParams(callback) {
@@ -536,6 +537,9 @@ class DeviceList extends React.Component {
           });
         });
       });
+      let columnData = this.state.displayColumns.map((columnName, colIndex) => {
+        return <td key={100 + colIndex}>{items[columnName]}</td>;
+      });
       return [
         <tr id={items.hostname} key={index} onClick={this.clickRow.bind(this)}>
           <td key="0">
@@ -544,11 +548,12 @@ class DeviceList extends React.Component {
           </td>
           <td key="1">{items.device_type}</td>
           {syncStatus}
+          {columnData}
           <td key="3">{items.id}</td>
         </tr>,
         <tr
           key={index + "_content"}
-          colSpan="4"
+          colSpan={4+this.state.displayColumns.length}
           className="device_details_row"
           hidden
         >
@@ -621,6 +626,15 @@ class DeviceList extends React.Component {
       }
     }
 
+    let columnHeaders = this.state.displayColumns.map(columnName => {
+      return <th>
+          {columnName}
+          <div className="hostname_sort">
+            {this.renderSortButton(this.state.hostname_sort)}
+          </div>
+        </th>;
+    });
+
     return (
       <section>
         <div id="search">
@@ -650,6 +664,7 @@ class DeviceList extends React.Component {
                       {this.renderSortButton(this.state.state_sort)}
                     </div>
                   </th>
+                  {columnHeaders}
                   <th onClick={() => this.sortHeader("id")}>
                     ID
                     <div className="sync_status_sort">
@@ -663,7 +678,6 @@ class DeviceList extends React.Component {
           </div>
           <div>
             <Pagination
-              defaultActivePage={1}
               activePage={this.state.activePage}
               totalPages={this.state.totalPages}
               onPageChange={this.pageChange.bind(this)}
