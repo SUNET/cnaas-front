@@ -646,11 +646,6 @@ class DeviceList extends React.Component {
       }
     }
 
-    let columnHeaders = this.state.displayColumns.map(columnName => {
-      return <th>{columnName}</th>;
-    });
-
-
     const perPageOptions = [
       { 'key': 20, 'value': 20, 'text': '20' },
       { 'key': 50, 'value': 50, 'text': '50' },
@@ -664,6 +659,10 @@ class DeviceList extends React.Component {
       "dhcp_ip": "DHCP IP",
       "serial": "Serial"
     };
+
+    let columnHeaders = this.state.displayColumns.map(columnName => {
+      return <th>{allowedColumns[columnName]}</th>;
+    });
 
     let columnSelectors = Object.keys(allowedColumns).map((columnName, columnIndex) => {
       let checked = false;
