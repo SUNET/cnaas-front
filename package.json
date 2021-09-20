@@ -24,7 +24,7 @@
     "eslint-plugin-react": "^7.24.0",
     "history": "^5.0.0",
     "jest": "^24.9.0",
-    "prismjs": "^1.24.0",
+    "prismjs": "^1.25.0",
     "parcel-bundler": "^1.12.5",
     "react-router-dom": "^5.2.0"
   },
