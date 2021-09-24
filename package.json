@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel index.html",
-    "dockerstart": "parcel index.html --port 4443",
+    "dockerstart": "parcel index.html --port 8083",
     "test": "jest --watch",
     "build": "parcel build index.js"
   },
