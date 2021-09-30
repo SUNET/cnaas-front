@@ -61,16 +61,22 @@ The public key file is used to verify JWTokens between the auth server and the A
     docker cp cnaas-front_auth_1:/opt/auth-server-poc/cert/public.pem .
     docker cp public.pem cnaas-front_api_1:/opt/cnaas/jwtcert/public.pem
     rm public.pem
-    docker exec -t cnaas-front_api_1 /bin/chown root:www-data /opt/cnaas/jwtcert/public.pem
+    docker exec -u root -t cnaas-front_api_1 /bin/chown root:www-data /opt/cnaas/jwtcert/public.pem
 
 Then, restart the API application.
 
     docker exec -t cnaas-front_api_1 /usr/bin/killall uwsgi
 
+Alternatively, you can restart the whole API container.
+
+    docker-compose restart api
+
 
 ### add some devices to the database
 
     docker exec -i cnaas-front_postgres_1 /usr/bin/psql -U cnaas cnaas < docker/front-dev/cnaas.pgdump
+
+Some errors and warnings will appear. You can ignore those.
 
 
 ### check it's all working
