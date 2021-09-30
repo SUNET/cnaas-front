@@ -48,9 +48,9 @@ A script will set up the auth container for you.
 This script will create a certificate to verify JWTokens issued by the auth server.
 It will also create a user named "cnaas" with password "cnaascnaascnaas".
 
-    docker cp docker/front-dev/setup_auth.sh cnaas-front_cnaas_auth_1:/opt/auth-server-poc/
-    docker exec -t cnaas-front_cnaas_auth_1 /bin/chmod u+x /opt/auth-server-poc/setup_auth.sh
-    docker exec -t cnaas-front_cnaas_auth_1 /opt/auth-server-poc/setup_auth.sh
+    docker cp docker/front-dev/setup_auth.sh cnaas-front_auth_1:/opt/auth-server-poc/
+    docker exec -t cnaas-front_auth_1 /bin/chmod u+x /opt/auth-server-poc/setup_auth.sh
+    docker exec -t cnaas-front_auth_1 /opt/auth-server-poc/setup_auth.sh
 
 
 ### copy the key for JWT authentication
@@ -58,19 +58,19 @@ It will also create a user named "cnaas" with password "cnaascnaascnaas".
 The public key file is used to verify JWTokens between the auth server and the API.
 `public.pem` has to be copied from the auth container to the API container:
 
-    docker cp cnaas-front_cnaas_auth_1:/opt/auth-server-poc/cert/public.pem .
-    docker cp public.pem cnaas-front_cnaas_api_1:/opt/cnaas/jwtcert/public.pem
+    docker cp cnaas-front_auth_1:/opt/auth-server-poc/cert/public.pem .
+    docker cp public.pem cnaas-front_api_1:/opt/cnaas/jwtcert/public.pem
     rm public.pem
-    docker exec -t cnaas-front_cnaas_api_1 /bin/chown root:www-data /opt/cnaas/jwtcert/public.pem
+    docker exec -t cnaas-front_api_1 /bin/chown root:www-data /opt/cnaas/jwtcert/public.pem
 
 Then, restart the API application.
 
-    docker exec -t cnaas-front_cnaas_api_1 /usr/bin/killall uwsgi
+    docker exec -t cnaas-front_api_1 /usr/bin/killall uwsgi
 
 
 ### add some devices to the database
 
-    docker exec -i cnaas-front_cnaas_postgres_1 /usr/bin/psql -U cnaas cnaas < docker/front-dev/cnaas.pgdump
+    docker exec -i cnaas-front_postgres_1 /usr/bin/psql -U cnaas cnaas < docker/front-dev/cnaas.pgdump
 
 
 ### check it's all working

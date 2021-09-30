@@ -6,7 +6,7 @@ services:
   #
 
 
-  cnaas_front:
+  front:
     build: .
     ports:
       - 8083:8083
@@ -14,20 +14,20 @@ services:
       - cnaas
     environment:
       - GITREPO_ETC
-      - CNAAS_API_URL=https://cnaas-front_cnaas_api_1:1443
-      - CNAAS_AUTH_URL=https://cnaas-front_cnaas_auth_1:1443
+      - CNAAS_API_URL=https://cnaas-front_api_1:1443
+      - CNAAS_AUTH_URL=https://cnaas-front_auth_1:1443
       - CNAAS_FRONT_URL=http://127.0.0.1:8083
       - CNAAS_FIRMWARE_URL
     depends_on:
-      - "cnaas_auth"
-      - "cnaas_api"
+      - "auth"
+      - "api"
     volumes:
       - type: volume
         source: cnaas-front-cert
         target: /opt/cnaas/cert
       - .:/app:Z
 
-  cnaas_api:
+  api:
     build:
       context: ../cnaas-nms/docker/api/
       args:
@@ -50,9 +50,9 @@ services:
       - USERNAME_MANAGED
       - PASSWORD_MANAGED
     depends_on:
-      - "cnaas_postgres"
-      - "cnaas_redis"
-      - "cnaas_httpd"
+      - "postgres"
+      - "redis"
+      - "httpd"
     volumes:
       - type: volume
         source: cnaas-coverage
@@ -70,7 +70,7 @@ services:
         source: cnaas-cacert
         target: /opt/cnaas/cacert
 
-  cnaas_httpd:
+  httpd:
     image:
       docker.sunet.se/cnaas/httpd
     ports:
@@ -86,7 +86,7 @@ services:
   # Databases
   #
 
-  cnaas_postgres:
+  postgres:
     build: ../cnaas-nms/docker/postgres/
     volumes:
       - cnaas-postgres-data:/var/lib/postgresql/data
@@ -97,12 +97,12 @@ services:
     networks:
       - cnaas
   
-  cnaas_redis:
+  redis:
     build: ../cnaas-nms/docker/redis/
     networks:
       - cnaas
 
-  cnaas_auth:
+  auth:
     image: docker.sunet.se/auth-server-poc:latest
     ports:
       - 2443:1443
