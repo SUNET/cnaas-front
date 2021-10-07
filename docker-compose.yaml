@@ -1,0 +1,153 @@
+version: '3.7'
+services:
+
+  #
+  # CNaaS NMS interactive frontend development setup
+  #
+
+
+  front:
+    build: .
+    ports:
+      - 8083:8083
+    networks:
+      - cnaas
+    environment:
+      - GITREPO_ETC
+      - CNAAS_API_URL=https://cnaas-front_api_1:1443
+      - CNAAS_AUTH_URL=https://cnaas-front_auth_1:1443
+      - CNAAS_FRONT_URL=http://127.0.0.1:8083
+      - CNAAS_FIRMWARE_URL
+    depends_on:
+      - "auth"
+      - "api"
+    volumes:
+      - type: volume
+        source: cnaas-front-cert
+        target: /opt/cnaas/cert
+      - .:/app:Z
+
+  api:
+    build:
+      context: ../cnaas-nms/docker/api/
+      args:
+        - BUILDBRANCH=develop
+        - GITREPO_BASE=https://github.com/SUNET/cnaas-nms.git
+    ports:
+      - 443:1443
+    networks:
+      - cnaas
+    environment:
+      - GITREPO_TEMPLATES
+      - GITREPO_SETTINGS
+      - COVERAGE
+      - USERNAME_DHCP_BOOT
+      - PASSWORD_DHCP_BOOT
+      - USERNAME_DISCOVERED
+      - PASSWORD_DISCOVERED
+      - USERNAME_INIT
+      - PASSWORD_INIT
+      - USERNAME_MANAGED
+      - PASSWORD_MANAGED
+    depends_on:
+      - "postgres"
+      - "redis"
+      - "httpd"
+    volumes:
+      - type: volume
+        source: cnaas-coverage
+        target: /coverage
+      - type: volume
+        source: cnaas-templates
+        target: /opt/cnaas/templates
+      - type: volume
+        source: cnaas-settings
+        target: /opt/cnaas/settings
+      - type: volume
+        source: cnaas-jwtcert
+        target: /opt/cnaas/jwtcert
+      - type: volume
+        source: cnaas-cacert
+        target: /opt/cnaas/cacert
+
+  httpd:
+    image:
+      docker.sunet.se/cnaas/httpd
+    ports:
+      - 80:1180
+    networks:
+      - cnaas
+    environment:
+      - GITREPO_TEMPLATES
+
+
+
+  #
+  # Databases
+  #
+
+  postgres:
+    build: ../cnaas-nms/docker/postgres/
+    volumes:
+      - cnaas-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=cnaas
+      - POSTGRES_PASSWORD=cnaas
+      - POSTGRES_DB=cnaas
+    networks:
+      - cnaas
+  
+  redis:
+    build: ../cnaas-nms/docker/redis/
+    networks:
+      - cnaas
+
+  auth:
+    image: docker.sunet.se/auth-server-poc:latest
+    ports:
+      - 2443:1443
+    networks:
+      - cnaas
+    volumes:
+      - type: volume
+        source: cnaas-authserver-jwtcert
+        target: /opt/auth-server-poc/cert/
+      - type: volume
+        source: cnaas-authserver-userdb
+        target: /opt/auth-server-poc/userdb/
+
+networks:
+  cnaas:
+    driver: bridge
+    name: cnaas
+    ipam:
+      config:
+      - subnet: 172.30.0.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-cnaas
+
+volumes:
+  cnaas-templates:
+    external: false
+    name: cnaas-templates
+  cnaas-settings:
+    external: false
+    name: cnaas-settings
+  cnaas-postgres-data:
+    external: false
+    name: cnaas-postgres-data
+  cnaas-jwtcert:
+    external: false
+    name: cnaas-jwtcert
+  cnaas-cacert:
+    external: false
+    name: cnaas-cacert
+  cnaas-coverage:
+    external: false
+    name: cnaas-coverage
+  cnaas-authserver-jwtcert:
+    external: false
+  cnaas-authserver-userdb:
+    external: false
+  cnaas-front-cert:
+    external: false

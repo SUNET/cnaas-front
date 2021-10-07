@@ -1,0 +1,789 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 11.11 (Debian 11.11-1.pgdg90+1)
+-- Dumped by pg_dump version 11.11 (Debian 11.11-1.pgdg90+1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: devicestate; Type: TYPE; Schema: public; Owner: cnaas
+--
+
+CREATE TYPE public.devicestate AS ENUM (
+    'UNKNOWN',
+    'PRE_CONFIGURED',
+    'DHCP_BOOT',
+    'DISCOVERED',
+    'INIT',
+    'MANAGED',
+    'MANAGED_NOIF',
+    'UNMANAGED'
+);
+
+
+ALTER TYPE public.devicestate OWNER TO cnaas;
+
+--
+-- Name: devicetype; Type: TYPE; Schema: public; Owner: cnaas
+--
+
+CREATE TYPE public.devicetype AS ENUM (
+    'UNKNOWN',
+    'ACCESS',
+    'DIST',
+    'CORE'
+);
+
+
+ALTER TYPE public.devicetype OWNER TO cnaas;
+
+--
+-- Name: interfaceconfigtype; Type: TYPE; Schema: public; Owner: cnaas
+--
+
+CREATE TYPE public.interfaceconfigtype AS ENUM (
+    'UNKNOWN',
+    'UNMANAGED',
+    'CONFIGFILE',
+    'CUSTOM',
+    'TEMPLATE',
+    'MLAG_PEER',
+    'ACCESS_AUTO',
+    'ACCESS_UNTAGGED',
+    'ACCESS_TAGGED',
+    'ACCESS_UPLINK',
+    'ACCESS_DOWNLINK'
+);
+
+
+ALTER TYPE public.interfaceconfigtype OWNER TO cnaas;
+
+--
+-- Name: jobstatus; Type: TYPE; Schema: public; Owner: cnaas
+--
+
+CREATE TYPE public.jobstatus AS ENUM (
+    'UNKNOWN',
+    'SCHEDULED',
+    'RUNNING',
+    'FINISHED',
+    'EXCEPTION',
+    'ABORTED',
+    'ABORTING'
+);
+
+
+ALTER TYPE public.jobstatus OWNER TO cnaas;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: alembic_version; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.alembic_version (
+    version_num character varying(32) NOT NULL
+);
+
+
+ALTER TABLE public.alembic_version OWNER TO cnaas;
+
+--
+-- Name: apscheduler_jobs; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.apscheduler_jobs (
+    id character varying(191) NOT NULL,
+    next_run_time double precision,
+    job_state bytea NOT NULL
+);
+
+
+ALTER TABLE public.apscheduler_jobs OWNER TO cnaas;
+
+--
+-- Name: device; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.device (
+    id integer NOT NULL,
+    hostname character varying(64) NOT NULL,
+    site_id integer,
+    description character varying(255),
+    management_ip character varying(50),
+    dhcp_ip character varying(50),
+    serial character varying(64),
+    ztp_mac character varying(12),
+    platform character varying(64),
+    vendor character varying(64),
+    model character varying(64),
+    os_version character varying(64),
+    synchronized boolean,
+    state public.devicestate NOT NULL,
+    device_type public.devicetype NOT NULL,
+    last_seen timestamp without time zone,
+    confhash character varying(64),
+    infra_ip character varying(50),
+    oob_ip character varying(50),
+    port integer
+);
+
+
+ALTER TABLE public.device OWNER TO cnaas;
+
+--
+-- Name: device_id_seq; Type: SEQUENCE; Schema: public; Owner: cnaas
+--
+
+CREATE SEQUENCE public.device_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.device_id_seq OWNER TO cnaas;
+
+--
+-- Name: device_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cnaas
+--
+
+ALTER SEQUENCE public.device_id_seq OWNED BY public.device.id;
+
+
+--
+-- Name: interface; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.interface (
+    device_id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    configtype public.interfaceconfigtype NOT NULL,
+    data jsonb
+);
+
+
+ALTER TABLE public.interface OWNER TO cnaas;
+
+--
+-- Name: job; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.job (
+    id integer NOT NULL,
+    status public.jobstatus,
+    scheduled_time timestamp without time zone,
+    start_time timestamp without time zone,
+    finish_time timestamp without time zone,
+    function_name character varying(255),
+    scheduled_by character varying(255),
+    comment character varying(255),
+    ticket_ref character varying(32),
+    next_job_id integer,
+    result jsonb,
+    exception jsonb,
+    finished_devices jsonb,
+    change_score smallint,
+    start_arguments jsonb
+);
+
+
+ALTER TABLE public.job OWNER TO cnaas;
+
+--
+-- Name: job_id_seq; Type: SEQUENCE; Schema: public; Owner: cnaas
+--
+
+CREATE SEQUENCE public.job_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.job_id_seq OWNER TO cnaas;
+
+--
+-- Name: job_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cnaas
+--
+
+ALTER SEQUENCE public.job_id_seq OWNED BY public.job.id;
+
+
+--
+-- Name: joblock; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.joblock (
+    name character varying(32) NOT NULL,
+    start_time timestamp without time zone,
+    abort boolean,
+    job_id integer NOT NULL
+);
+
+
+ALTER TABLE public.joblock OWNER TO cnaas;
+
+--
+-- Name: linknet; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.linknet (
+    id integer NOT NULL,
+    ipv4_network character varying(18),
+    device_a_id integer,
+    device_a_ip character varying(50),
+    device_a_port character varying(64),
+    device_b_id integer,
+    device_b_ip character varying(50),
+    device_b_port character varying(64),
+    site_id integer,
+    description character varying(255)
+);
+
+
+ALTER TABLE public.linknet OWNER TO cnaas;
+
+--
+-- Name: linknet_id_seq; Type: SEQUENCE; Schema: public; Owner: cnaas
+--
+
+CREATE SEQUENCE public.linknet_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.linknet_id_seq OWNER TO cnaas;
+
+--
+-- Name: linknet_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cnaas
+--
+
+ALTER SEQUENCE public.linknet_id_seq OWNED BY public.linknet.id;
+
+
+--
+-- Name: mgmtdomain; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.mgmtdomain (
+    id integer NOT NULL,
+    ipv4_gw character varying(18),
+    device_a_id integer,
+    device_a_ip character varying(50),
+    device_b_id integer,
+    device_b_ip character varying(50),
+    site_id integer,
+    vlan integer,
+    description character varying(255),
+    esi_mac character varying(12)
+);
+
+
+ALTER TABLE public.mgmtdomain OWNER TO cnaas;
+
+--
+-- Name: mgmtdomain_id_seq; Type: SEQUENCE; Schema: public; Owner: cnaas
+--
+
+CREATE SEQUENCE public.mgmtdomain_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.mgmtdomain_id_seq OWNER TO cnaas;
+
+--
+-- Name: mgmtdomain_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cnaas
+--
+
+ALTER SEQUENCE public.mgmtdomain_id_seq OWNED BY public.mgmtdomain.id;
+
+
+--
+-- Name: reservedip; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.reservedip (
+    device_id integer NOT NULL,
+    ip character varying(50),
+    last_seen timestamp without time zone
+);
+
+
+ALTER TABLE public.reservedip OWNER TO cnaas;
+
+--
+-- Name: site; Type: TABLE; Schema: public; Owner: cnaas
+--
+
+CREATE TABLE public.site (
+    id integer NOT NULL,
+    description character varying(255)
+);
+
+
+ALTER TABLE public.site OWNER TO cnaas;
+
+--
+-- Name: site_id_seq; Type: SEQUENCE; Schema: public; Owner: cnaas
+--
+
+CREATE SEQUENCE public.site_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.site_id_seq OWNER TO cnaas;
+
+--
+-- Name: site_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cnaas
+--
+
+ALTER SEQUENCE public.site_id_seq OWNED BY public.site.id;
+
+
+--
+-- Name: device id; Type: DEFAULT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.device ALTER COLUMN id SET DEFAULT nextval('public.device_id_seq'::regclass);
+
+
+--
+-- Name: job id; Type: DEFAULT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.job ALTER COLUMN id SET DEFAULT nextval('public.job_id_seq'::regclass);
+
+
+--
+-- Name: linknet id; Type: DEFAULT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.linknet ALTER COLUMN id SET DEFAULT nextval('public.linknet_id_seq'::regclass);
+
+
+--
+-- Name: mgmtdomain id; Type: DEFAULT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.mgmtdomain ALTER COLUMN id SET DEFAULT nextval('public.mgmtdomain_id_seq'::regclass);
+
+
+--
+-- Name: site id; Type: DEFAULT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.site ALTER COLUMN id SET DEFAULT nextval('public.site_id_seq'::regclass);
+
+
+--
+-- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.alembic_version (version_num) FROM stdin;
+9d01bce3c835
+\.
+
+
+--
+-- Data for Name: apscheduler_jobs; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.apscheduler_jobs (id, next_run_time, job_state) FROM stdin;
+\.
+
+
+--
+-- Data for Name: device; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.device (id, hostname, site_id, description, management_ip, dhcp_ip, serial, ztp_mac, platform, vendor, model, os_version, synchronized, state, device_type, last_seen, confhash, infra_ip, oob_ip, port) FROM stdin;
+1	eosdist1	\N	\N	10.100.3.101	\N	\N	\N	eos	\N	\N	\N	f	MANAGED	DIST	2021-08-06 08:30:11.098957	\N	10.199.0.0	\N	\N
+2	eosdist2	\N	\N	10.100.3.102	\N	\N	\N	eos	\N	\N	\N	f	MANAGED	DIST	2021-08-06 08:30:11.120298	\N	10.199.0.1	\N	\N
+\.
+
+
+--
+-- Data for Name: interface; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.interface (device_id, name, configtype, data) FROM stdin;
+\.
+
+
+--
+-- Data for Name: job; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.job (id, status, scheduled_time, start_time, finish_time, function_name, scheduled_by, comment, ticket_ref, next_job_id, result, exception, finished_devices, change_score, start_arguments) FROM stdin;
+1	FINISHED	2021-08-06 08:30:09.468153	2021-08-06 08:30:09.464807	2021-08-06 08:30:10.760011	refresh_repo	admin	\N	\N	\N	{"message": "Cloned new from remote. Last commit f9f343bc40374202bd2f222535ff48143e76934a master by Johan Marcusson at 2021-01-12 16:34:07+01:00", "repository": "TEMPLATES"}	\N	[]	\N	\N
+2	FINISHED	2021-08-06 08:30:10.786856	2021-08-06 08:30:10.783915	2021-08-06 08:30:11.073518	refresh_repo	admin	\N	\N	\N	{"message": "Cloned new from remote. Last commit 46563d9aafa128a4bd0f9c16e0bd64f1f4f93b2e master by Johan Marcusson at 2021-01-29 11:33:49+01:00", "repository": "SETTINGS"}	\N	[]	\N	\N
+3	FINISHED	2021-08-06 08:38:34.619394	2021-08-06 08:38:34.631938	2021-08-06 08:39:35.205923	sync_devices (dry_run)	admin	\N	\N	\N	{"devices": {"eosdist1": {"failed": true, "job_tasks": [{"diff": "", "failed": true, "result": "Traceback (most recent call last):\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/pyeapi/eapilib.py\\", line 440, in send\\n    self.transport.endheaders(message_body=data)\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 1255, in endheaders\\n    self._send_output(message_body, encode_chunked=encode_chunked)\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 1030, in _send_output\\n    self.send(msg)\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 970, in send\\n    self.connect()\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 1415, in connect\\n    super().connect()\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 942, in connect\\n    (self.host,self.port), self.timeout, self.source_address)\\n  File \\"/usr/lib/python3.7/socket.py\\", line 727, in create_connection\\n    raise err\\n  File \\"/usr/lib/python3.7/socket.py\\", line 716, in create_connection\\n    sock.connect(sa)\\nsocket.timeout: timed out\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/napalm/eos/eos.py\\", line 166, in open\\n    sh_ver = self.device.run_commands([\\"show version\\"])\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/napalm/eos/pyeapi_syntax_wrapper.py\\", line 42, in run_commands\\n    return super(Node, self).run_commands(commands, *args, **kwargs)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/pyeapi/client.py\\", line 771, in run_commands\\n    response = self._connection.execute(commands, encoding, **kwargs)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/pyeapi/eapilib.py\\", line 554, in execute\\n    response = self.send(request)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/pyeapi/eapilib.py\\", line 483, in send\\n    raise ConnectionError(str(self), error_msg)\\npyeapi.eapilib.ConnectionError: Socket error during eAPI connection: timed out\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/nornir/core/task.py\\", line 98, in start\\n    r = self.task(self, **self.params)\\n  File \\"./cnaas_nms/confpush/sync_devices.py\\", line 375, in push_sync_device\\n    task.host.open_connection(\\"napalm\\", configuration=task.nornir.config)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/nornir/core/inventory.py\\", line 499, in open_connection\\n    configuration=configuration,\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/nornir_napalm/plugins/connections/__init__.py\\", line 57, in open\\n    connection.open()\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/napalm/eos/eos.py\\", line 176, in open\\n    raise ConnectionException(str(ce))\\nnapalm.base.exceptions.ConnectionException: Socket error during eAPI connection: timed out\\n", "task_name": "push_sync_device"}, {"diff": "", "failed": false, "result": "hostname eosdist1\\n! comment13\\nmanagement api http-commands                                                                                                                \\n no shutdown\\n vrf MGMT\\n  no shutdown\\nusername admin privilege 15 role network-admin secret sha512 $6$EUgHTmtsuF8lD16R$hUbPV.SccKXWtA2F74aPRvQkL0wsak2ZtdZ49P6IyFqfTse4cuyaqEeBnHPdquf2oiGjNbSevLYpL/8HIb0z./\\n!\\naaa authorization exec default local\\n!\\nvrf instance MGMT\\nip routing\\nip routing vrf MGMT\\nvrf instance STUDENT\\ninterface Ethernet1\\n no switchport\\nip address 10.100.2.101/24\\nno lldp transmit\\nno lldp receive\\ninterface Ethernet2\\n switchport\\n switchport mode trunk\\n channel-group 3 mode active\\ninterface Port-channel 3\\n description DOWNLINK\\n port-channel lacp fallback individual\\n port-channel lacp fallback timeout 3\\ninterface Vlan1\\n ip address 192.168.0.1/24\\nip helper-address 10.100.2.2\\nno shutdown\\nvlan 600\\ninterface Vlan600\\n vrf MGMT\\n ip address 10.0.6.1/24\\ninterface Vlan1\\n description ZTP DHCP\\n vrf MGMT\\n ip address 192.168.0.1/24\\n ip helper-address 10.100.2.2\\n no shutdown\\nvlan 500\\n name student1\\ninterface Vlan500\\n vrf STUDENT\\n description student1\\n ip address virtual 10.200.1.1/24\\n \\nvlan 502\\n name student3\\ninterface Vlan502\\n vrf STUDENT\\n description student3\\n ip address virtual 10.202.1.1/24\\n \\ninterface Loopback0\\n no shutdown\\n ip address 10.199.0.0/32\\ninterface Loopback1\\n vrf MGMT\\n no shutdown\\n ip address 10.100.3.101/32\\nservice routing protocols model multi-agent\\nip routing vrf STUDENT\\nipv6 unicast-routing vrf STUDENT\\n ip route vrf MGMT 0.0.0.0/0 10.0.0.1 name my_route \\n ipv6 route vrf MGMT ::/0 Ethernet3 fe80::2 name undefined \\nrouter ospfv3 vrf STUDENT\\n router-id 10.199.0.0\\n passive-interface default\\n address-family ipv4\\n  redistribute bgp route-map MYMAP\\n address-family ipv6\\nrouter bgp 4200000000\\n router-id 10.199.0.0\\n no bgp default ipv4-unicast\\n address-family ipv4\\n   network 10.199.0.0/32\\n !\\n address-family evpn\\n !\\n vrf STUDENT\\n   rd 10.199.0.0:100\\n   route-target export evpn 1:100\\n   route-target import evpn 1:100\\n   redistribute connected\\n   redistribute static\\n   redistribute ospf\\n   redistribute ospf match external\\n     local-as 64551\\n      neighbor 10.131.11.12 remote-as 64521\\n      neighbor 10.131.11.12 route-map STUDENT-vas-in in\\n      neighbor 10.131.11.12 route-map STUDENT-vas-out out\\n      neighbor 10.131.11.12 maximum-routes 10000\\n      address-family ipv4\\n        neighbor 10.131.11.12 activate\\nntp server vrf MGMT 194.58.202.20\\nntp server vrf MGMT 194.58.202.148\\n", "task_name": "Generate device config"}]}}}	\N	[]	100	{"force": true, "resync": false, "dry_run": true, "auto_push": false, "hostnames": ["eosdist1"]}
+4	FINISHED	2021-08-06 08:39:40.12406	2021-08-06 08:39:40.131888	2021-08-06 08:40:40.242098	update_facts	admin	\N	\N	\N	{"devices": {"eosdist1": {"failed": true, "job_tasks": [{"diff": "", "failed": true, "result": "Traceback (most recent call last):\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/pyeapi/eapilib.py\\", line 440, in send\\n    self.transport.endheaders(message_body=data)\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 1255, in endheaders\\n    self._send_output(message_body, encode_chunked=encode_chunked)\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 1030, in _send_output\\n    self.send(msg)\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 970, in send\\n    self.connect()\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 1415, in connect\\n    super().connect()\\n  File \\"/usr/lib/python3.7/http/client.py\\", line 942, in connect\\n    (self.host,self.port), self.timeout, self.source_address)\\n  File \\"/usr/lib/python3.7/socket.py\\", line 727, in create_connection\\n    raise err\\n  File \\"/usr/lib/python3.7/socket.py\\", line 716, in create_connection\\n    sock.connect(sa)\\nsocket.timeout: timed out\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/napalm/eos/eos.py\\", line 166, in open\\n    sh_ver = self.device.run_commands([\\"show version\\"])\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/napalm/eos/pyeapi_syntax_wrapper.py\\", line 42, in run_commands\\n    return super(Node, self).run_commands(commands, *args, **kwargs)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/pyeapi/client.py\\", line 771, in run_commands\\n    response = self._connection.execute(commands, encoding, **kwargs)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/pyeapi/eapilib.py\\", line 554, in execute\\n    response = self.send(request)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/pyeapi/eapilib.py\\", line 483, in send\\n    raise ConnectionError(str(self), error_msg)\\npyeapi.eapilib.ConnectionError: Socket error during eAPI connection: timed out\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/nornir/core/task.py\\", line 98, in start\\n    r = self.task(self, **self.params)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/nornir_napalm/plugins/tasks/napalm_get.py\\", line 32, in napalm_get\\n    device = task.host.get_connection(CONNECTION_NAME, task.nornir.config)\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/nornir/core/inventory.py\\", line 448, in get_connection\\n    extras=conn.extras,\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/nornir/core/inventory.py\\", line 499, in open_connection\\n    configuration=configuration,\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/nornir_napalm/plugins/connections/__init__.py\\", line 57, in open\\n    connection.open()\\n  File \\"/opt/cnaas/venv/lib/python3.7/site-packages/napalm/eos/eos.py\\", line 176, in open\\n    raise ConnectionException(str(ce))\\nnapalm.base.exceptions.ConnectionException: Socket error during eAPI connection: timed out\\n", "task_name": "napalm_get"}]}}}	\N	[]	\N	{"hostname": "eosdist1"}
+5	ABORTED	2021-08-06 08:40:45.449645	2021-08-06 08:40:45.508353	2021-08-06 08:41:15.61338	device_upgrade	admin	\N	\N	\N	{"devices": {"eosdist1": {"failed": false, "job_tasks": [{"diff": "", "failed": false, "result": null, "task_name": "device_upgrade_task"}, {"diff": "", "failed": false, "result": "Post-flight aborted", "task_name": "arista_post_flight_check"}]}, "eosdist2": {"failed": false, "job_tasks": [{"diff": "", "failed": false, "result": null, "task_name": "device_upgrade_task"}, {"diff": "", "failed": false, "result": "Post-flight aborted", "task_name": "arista_post_flight_check"}]}}}	\N	["eosdist2", "eosdist1"]	\N	{"url": "", "group": "DIST", "post_flight": true, "post_waittime": 30}
+6	ABORTED	2021-08-06 08:41:45.64782	\N	2021-08-06 08:41:18.686444	device_upgrade	admin	\N	\N	\N	{"message": "unit test abort_scheduled_job (aborted by admin)"}	\N	\N	\N	{"url": "", "group": "DIST", "post_flight": true, "post_waittime": 30}
+\.
+
+
+--
+-- Data for Name: joblock; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.joblock (name, start_time, abort, job_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: linknet; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.linknet (id, ipv4_network, device_a_id, device_a_ip, device_a_port, device_b_id, device_b_ip, device_b_port, site_id, description) FROM stdin;
+\.
+
+
+--
+-- Data for Name: mgmtdomain; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.mgmtdomain (id, ipv4_gw, device_a_id, device_a_ip, device_b_id, device_b_ip, site_id, vlan, description, esi_mac) FROM stdin;
+1	10.0.6.1/24	1	\N	2	\N	\N	600	\N	\N
+\.
+
+
+--
+-- Data for Name: reservedip; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.reservedip (device_id, ip, last_seen) FROM stdin;
+\.
+
+
+--
+-- Data for Name: site; Type: TABLE DATA; Schema: public; Owner: cnaas
+--
+
+COPY public.site (id, description) FROM stdin;
+1	default
+\.
+
+
+--
+-- Name: device_id_seq; Type: SEQUENCE SET; Schema: public; Owner: cnaas
+--
+
+SELECT pg_catalog.setval('public.device_id_seq', 2, true);
+
+
+--
+-- Name: job_id_seq; Type: SEQUENCE SET; Schema: public; Owner: cnaas
+--
+
+SELECT pg_catalog.setval('public.job_id_seq', 6, true);
+
+
+--
+-- Name: linknet_id_seq; Type: SEQUENCE SET; Schema: public; Owner: cnaas
+--
+
+SELECT pg_catalog.setval('public.linknet_id_seq', 1, false);
+
+
+--
+-- Name: mgmtdomain_id_seq; Type: SEQUENCE SET; Schema: public; Owner: cnaas
+--
+
+SELECT pg_catalog.setval('public.mgmtdomain_id_seq', 1, true);
+
+
+--
+-- Name: site_id_seq; Type: SEQUENCE SET; Schema: public; Owner: cnaas
+--
+
+SELECT pg_catalog.setval('public.site_id_seq', 2, true);
+
+
+--
+-- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.alembic_version
+    ADD CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num);
+
+
+--
+-- Name: apscheduler_jobs apscheduler_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.apscheduler_jobs
+    ADD CONSTRAINT apscheduler_jobs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: device device_hostname_key; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.device
+    ADD CONSTRAINT device_hostname_key UNIQUE (hostname);
+
+
+--
+-- Name: device device_pkey; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.device
+    ADD CONSTRAINT device_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: interface interface_pkey; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.interface
+    ADD CONSTRAINT interface_pkey PRIMARY KEY (device_id, name);
+
+
+--
+-- Name: job job_pkey; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.job
+    ADD CONSTRAINT job_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: joblock joblock_job_id_key; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.joblock
+    ADD CONSTRAINT joblock_job_id_key UNIQUE (job_id);
+
+
+--
+-- Name: joblock joblock_name_key; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.joblock
+    ADD CONSTRAINT joblock_name_key UNIQUE (name);
+
+
+--
+-- Name: linknet linknet_device_a_id_device_a_port_key; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.linknet
+    ADD CONSTRAINT linknet_device_a_id_device_a_port_key UNIQUE (device_a_id, device_a_port);
+
+
+--
+-- Name: linknet linknet_device_b_id_device_b_port_key; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.linknet
+    ADD CONSTRAINT linknet_device_b_id_device_b_port_key UNIQUE (device_b_id, device_b_port);
+
+
+--
+-- Name: linknet linknet_pkey; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.linknet
+    ADD CONSTRAINT linknet_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mgmtdomain mgmtdomain_device_a_id_device_b_id_key; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.mgmtdomain
+    ADD CONSTRAINT mgmtdomain_device_a_id_device_b_id_key UNIQUE (device_a_id, device_b_id);
+
+
+--
+-- Name: mgmtdomain mgmtdomain_pkey; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.mgmtdomain
+    ADD CONSTRAINT mgmtdomain_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: reservedip reservedip_pkey; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.reservedip
+    ADD CONSTRAINT reservedip_pkey PRIMARY KEY (device_id);
+
+
+--
+-- Name: site site_pkey; Type: CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.site
+    ADD CONSTRAINT site_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ix_apscheduler_jobs_next_run_time; Type: INDEX; Schema: public; Owner: cnaas
+--
+
+CREATE INDEX ix_apscheduler_jobs_next_run_time ON public.apscheduler_jobs USING btree (next_run_time);
+
+
+--
+-- Name: ix_interface_device_id; Type: INDEX; Schema: public; Owner: cnaas
+--
+
+CREATE INDEX ix_interface_device_id ON public.interface USING btree (device_id);
+
+
+--
+-- Name: ix_job_finish_time; Type: INDEX; Schema: public; Owner: cnaas
+--
+
+CREATE INDEX ix_job_finish_time ON public.job USING btree (finish_time);
+
+
+--
+-- Name: ix_job_status; Type: INDEX; Schema: public; Owner: cnaas
+--
+
+CREATE INDEX ix_job_status ON public.job USING btree (status);
+
+
+--
+-- Name: ix_job_ticket_ref; Type: INDEX; Schema: public; Owner: cnaas
+--
+
+CREATE INDEX ix_job_ticket_ref ON public.job USING btree (ticket_ref);
+
+
+--
+-- Name: ix_reservedip_device_id; Type: INDEX; Schema: public; Owner: cnaas
+--
+
+CREATE INDEX ix_reservedip_device_id ON public.reservedip USING btree (device_id);
+
+
+--
+-- Name: device device_site_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.device
+    ADD CONSTRAINT device_site_id_fkey FOREIGN KEY (site_id) REFERENCES public.site(id);
+
+
+--
+-- Name: interface interface_device_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.interface
+    ADD CONSTRAINT interface_device_id_fkey FOREIGN KEY (device_id) REFERENCES public.device(id);
+
+
+--
+-- Name: job job_next_job_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.job
+    ADD CONSTRAINT job_next_job_id_fkey FOREIGN KEY (next_job_id) REFERENCES public.job(id);
+
+
+--
+-- Name: joblock joblock_job_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.joblock
+    ADD CONSTRAINT joblock_job_id_fkey FOREIGN KEY (job_id) REFERENCES public.job(id);
+
+
+--
+-- Name: linknet linknet_device_a_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.linknet
+    ADD CONSTRAINT linknet_device_a_id_fkey FOREIGN KEY (device_a_id) REFERENCES public.device(id);
+
+
+--
+-- Name: linknet linknet_device_b_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.linknet
+    ADD CONSTRAINT linknet_device_b_id_fkey FOREIGN KEY (device_b_id) REFERENCES public.device(id);
+
+
+--
+-- Name: linknet linknet_site_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.linknet
+    ADD CONSTRAINT linknet_site_id_fkey FOREIGN KEY (site_id) REFERENCES public.site(id);
+
+
+--
+-- Name: mgmtdomain mgmtdomain_device_a_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.mgmtdomain
+    ADD CONSTRAINT mgmtdomain_device_a_id_fkey FOREIGN KEY (device_a_id) REFERENCES public.device(id);
+
+
+--
+-- Name: mgmtdomain mgmtdomain_device_b_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.mgmtdomain
+    ADD CONSTRAINT mgmtdomain_device_b_id_fkey FOREIGN KEY (device_b_id) REFERENCES public.device(id);
+
+
+--
+-- Name: mgmtdomain mgmtdomain_site_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.mgmtdomain
+    ADD CONSTRAINT mgmtdomain_site_id_fkey FOREIGN KEY (site_id) REFERENCES public.site(id);
+
+
+--
+-- Name: reservedip reservedip_device_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cnaas
+--
+
+ALTER TABLE ONLY public.reservedip
+    ADD CONSTRAINT reservedip_device_id_fkey FOREIGN KEY (device_id) REFERENCES public.device(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+

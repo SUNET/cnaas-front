@@ -1,9 +1,7 @@
 FROM debian:buster
 
 # Create directories
-RUN mkdir -p /opt/cnaas
-RUN mkdir /opt/cnaas/static
-RUN mkdir /opt/cnaas/static/styles
+RUN mkdir -p /opt/cnaas/static/styles
 
 # Setup script
 COPY setup.sh /opt/cnaas/setup.sh
