@@ -66,8 +66,11 @@ class VerifyDiffResult extends React.Component {
               <p className="device-name" key={i}>
                 {nameAndExceptionArray[0]} failed result
               </p>
-              <pre>
+              <pre className="traceback">
                 {nameAndExceptionArray[1]}
+              </pre>
+              <pre className="exception">
+                {nameAndExceptionArray[1].split("\n").slice(-2).join("\n")}
               </pre>
             </li>
           );

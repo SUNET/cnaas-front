@@ -310,7 +310,6 @@ progress::-moz-progress-bar {
 /* diff box styles */
 #diff-box {
   background-color: #ececec;
-  color: #ff4500;
   margin: 0 1rem;
 }
 
@@ -328,8 +327,21 @@ progress::-moz-progress-bar {
   margin: 0;
 }
 
-#diff-box pre {
+#diff-box pre{
   padding-left: 1rem;
+}
+
+#diff-box pre.exception {
+  white-space: pre-wrap;
+  color: #ff4500;
+}
+
+#diff-box pre.traceback {
+  white-space: pre-wrap;
+  color: #000;
+  height: 1em;
+  overflow-y: scroll;
+  font-size: 80%;
 }
 
 /* log output styles */
