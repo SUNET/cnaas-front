@@ -22,7 +22,6 @@ class ConfigChange extends React.Component {
       dryRunTotalCount: 0,
       synctoForce: false,
       liveRunSyncData: [],
-      liveRunSyncJobid: null,
       liveRunProgressData: [],
       liveRunTotalCount: 0,
       job_comment: "",
@@ -128,7 +127,7 @@ class ConfigChange extends React.Component {
                 dryRunSyncData: data
               },
               () => {
-                this.pollJobStatus(data.job_id, true);
+                this.pollJobStatus(data.job_id, "dry_run");
               },
               () => {
                 console.log("this is new state", this.state.dryRunSyncData);
@@ -140,7 +139,7 @@ class ConfigChange extends React.Component {
                 liveRunSyncData: data
               },
               () => {
-                this.pollJobStatus(data.job_id, false);
+                this.pollJobStatus(data.job_id, "live_run");
               },
               () => {
                 console.log("this is new state", this.state.liveRunSyncData);
@@ -151,59 +150,45 @@ class ConfigChange extends React.Component {
       });
   };
 
-  pollJobStatus = (job_id, dry_run) => {
+  pollJobStatus = (job_id, jobtype) => {
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + `/api/v1.0/job/${job_id}`;
+    let repeatInterval = null;
+    let stateProperty = null;
 
-    if (dry_run === true) {
-      getData(url, credentials).then(data => {
-        {
-          this.setState({
-            dryRunProgressData: data.data.jobs,
-            blockNavigation: true
-          });
-        }
-      });
-      this.repeatingDryrunJobData = setInterval(() => {
-        getData(url, credentials).then(data => {
-          {
-            this.setState({
-              dryRunProgressData: data.data.jobs
-            });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
-                data.data.jobs[0].status === "ABORTED") {
-              clearInterval(this.repeatingDryrunJobData);
-              this.setState({blockNavigation: false});
-              Prism.highlightAll();
-            }
-          }
-        });
-      }, 1000);
+    if (jobtype === "dry_run") {
+      repeatInterval = this.repeatingDryrunJobData;
+      stateProperty = "dryRunProgressData";
+    } else if (jobtype === "live_run") {
+      repeatInterval = this.repeatingLiverunJobData;
+      stateProperty = "liveRunProgressData";
     } else {
+      throw new Error("pollJobStatus called with unknown jobtype");
+    }
+
+    getData(url, credentials).then(data => {
+      {
+        this.setState({
+          [stateProperty]: data.data.jobs,
+          blockNavigation: true
+        });
+      }
+    });
+    repeatInterval = setInterval(() => {
       getData(url, credentials).then(data => {
         {
           this.setState({
-            liveRunProgressData: data.data.jobs,
-            blockNavigation: true
+            [stateProperty]: data.data.jobs
           });
+          if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
+              data.data.jobs[0].status === "ABORTED") {
+            clearInterval(repeatInterval);
+            this.setState({blockNavigation: false});
+            Prism.highlightAll();
+          }
         }
       });
-      this.repeatingLiverunJobData = setInterval(() => {
-        getData(url, credentials).then(data => {
-          {
-            this.setState({
-              liveRunProgressData: data.data.jobs
-            });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
-                data.data.jobs[0].status === "ABORTED") {
-              clearInterval(this.repeatingLiverunJobData);
-              this.setState({blockNavigation: false});
-              Prism.highlightAll();
-            }
-          }
-        });
-      }, 1000);
-    }
+    }, 1000);
   };
 
   getCommitTarget() {
