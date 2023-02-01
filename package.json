@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.20.12",
+    "@babel/preset-react": "^7.18.6",
     "babel-core": "^6.26.3",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^24.9.0",
@@ -25,8 +27,8 @@
     "eslint-plugin-react": "^7.24.0",
     "history": "^5.0.0",
     "jest": "^24.9.0",
-    "prismjs": "^1.27.0",
     "parcel-bundler": "^1.12.5",
+    "prismjs": "^1.27.0",
     "react-router-dom": "^5.2.0"
   },
   "dependencies": {
