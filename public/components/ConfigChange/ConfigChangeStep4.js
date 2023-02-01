@@ -28,6 +28,7 @@ class ConfigChangeStep4 extends React.Component {
     let jobStatus = this.props.liveRunJobStatus;
     let jobId = this.props.jobId;
     let dryRunJobStatus = this.props.dryRunJobStatus;
+    let confirmJobId = this.props.confirmJobId;
     let warnings = [];
 
     let commitButtonDisabled = true;
@@ -112,6 +113,7 @@ class ConfigChangeStep4 extends React.Component {
             dryRunJobStatus={jobStatus}
             dryRunProgressData={progressData}
             jobId={jobId}
+            confirmJobId={confirmJobId}
             logLines={this.props.logLines}
           />
         </div>

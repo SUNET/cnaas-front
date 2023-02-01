@@ -2,7 +2,8 @@ import React from "react";
 
 class DryRunProgressInfo extends React.Component {
   state = {
-    jobId: null
+    jobId: null,
+    confirmJobId: null
   };
 
   checkJobId(job_id) {
@@ -23,6 +24,7 @@ class DryRunProgressInfo extends React.Component {
     let progressData = this.props.dryRunProgressData;
     let jobStatus = this.props.dryRunJobStatus;
     let jobId = this.props.jobId;
+    let confirmJobId = this.props.confirmJobId;
     // console.log("this is dryRunProgressData", progressData);
     let jobStartTime = "";
     let jobFinishTime = "";
@@ -30,15 +32,18 @@ class DryRunProgressInfo extends React.Component {
     let log = "";
     this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
       log = log + logLine;
-    })
-
-    progressData.map((job, i) => {
-      jobStartTime = job.start_time;
-      jobFinishTime = job.finish_time;
-      if (jobStatus === "EXCEPTION") {
-        exceptionMessage = job.exception.message;
-      }
     });
+    this.props.logLines.filter(this.checkJobId(confirmJobId)).map((logLine) => {
+      log = log + logLine;
+    });
+
+    if (Object.keys(progressData).length > 0) {
+      jobStartTime = progressData.start_time;
+      jobFinishTime = progressData.finish_time;
+      if (jobStatus === "EXCEPTION") {
+        exceptionMessage = progressData.exception.message;
+      }
+    }
 
     return (
       <div key="1">

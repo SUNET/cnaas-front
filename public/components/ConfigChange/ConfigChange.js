@@ -18,12 +18,13 @@ class ConfigChange extends React.Component {
     return {
       dryRunSyncData: [],
       dryRunSyncJobid: null,
-      dryRunProgressData: [],
+      dryRunProgressData: {},
       dryRunTotalCount: 0,
       synctoForce: false,
       liveRunSyncData: [],
-      liveRunProgressData: [],
+      liveRunProgressData: {},
       liveRunTotalCount: 0,
+      confirmRunProgressData: {},
       job_comment: "",
       job_ticket_ref: "",
       logLines: [],
@@ -162,6 +163,9 @@ class ConfigChange extends React.Component {
     } else if (jobtype === "live_run") {
       repeatInterval = this.repeatingLiverunJobData;
       stateProperty = "liveRunProgressData";
+    } else if (jobtype === "confirm_run") {
+      repeatInterval = this.repeatingConfirmrunJobData;
+      stateProperty = "confirmRunProgressData";
     } else {
       throw new Error("pollJobStatus called with unknown jobtype");
     }
@@ -177,13 +181,17 @@ class ConfigChange extends React.Component {
     repeatInterval = setInterval(() => {
       getData(url, credentials).then(data => {
         {
+          let jobdata = data.data.jobs[0];
           this.setState({
-            [stateProperty]: data.data.jobs
+            [stateProperty]: jobdata
           });
-          if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
-              data.data.jobs[0].status === "ABORTED") {
+          if (jobdata.status === "FINISHED" || jobdata.status === "EXCEPTION" || jobdata.status === "ABORTED") {
             clearInterval(repeatInterval);
             this.setState({blockNavigation: false});
+            if (jobtype === "live_run" && jobdata.status === "FINISHED" && typeof jobdata.next_job_id === "number") {
+              this.pollJobStatus(jobdata.next_job_id, "confirm_run");
+              console.log("Config change with next_job_id detected (commitmode 2): " + jobdata.next_job_id);
+            }
             Prism.highlightAll();
           }
         }
@@ -262,29 +270,33 @@ class ConfigChange extends React.Component {
     let liveRunJobStatus = "";
     let liveRunResults = "";
     let liveRunJobId = "NA";
+    let confirmRunProgressData = this.state.confirmRunProgressData;
+    let confirmRunJobStatus = "";
+    let confirmRunJobId = "NA";
     let commitTargetName = this.getCommitTargetName(this.getCommitTarget());
 
-    dryRunProgressData.map((job, i) => {
-      dryRunJobStatus = job.status;
-      dryRunChangeScore = job.change_score;
-      dryRunJobId = job.id;
-    });
-
-    if (dryRunJobStatus === "FINISHED") {
-      dryRunProgressData.map((job, i) => {
-        dryRunResults = job.result.devices;
-      });
+    if (Object.keys(dryRunProgressData).length > 0) {
+      dryRunJobStatus = dryRunProgressData.status;
+      dryRunChangeScore = dryRunProgressData.change_score;
+      dryRunJobId = dryRunProgressData.id;
     }
 
-    liveRunProgressData.map((job, i) => {
-      liveRunJobStatus = job.status;
-      liveRunJobId = job.id;
-    });
+    if (dryRunJobStatus === "FINISHED") {
+      dryRunResults = dryRunProgressData.result.devices;
+    }
+
+    if (Object.keys(liveRunProgressData).length > 0) {
+      liveRunJobStatus = liveRunProgressData.status;
+      liveRunJobId = liveRunProgressData.id;
+    }
 
     if (liveRunJobStatus === "FINISHED") {
-      liveRunProgressData.map((job, i) => {
-        liveRunResults = job.result.devices;
-      });
+      liveRunResults = liveRunProgressData.result.devices;
+    }
+    
+    if (Object.keys(confirmRunProgressData).length > 0) {
+      confirmRunJobStatus = confirmRunProgressData.status;
+      confirmRunJobId = confirmRunProgressData.id;
     }
 
     return (
@@ -333,6 +345,7 @@ class ConfigChange extends React.Component {
             liveRunJobStatus={liveRunJobStatus}
             dryRunJobStatus={dryRunJobStatus}
             jobId={liveRunJobId}
+            confirmJobId={confirmRunJobId}
             devices={liveRunResults}
             totalCount={this.state.liveRunTotalCount}
             logLines={this.state.logLines}
