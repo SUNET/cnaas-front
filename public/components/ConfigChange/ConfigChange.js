@@ -96,6 +96,9 @@ class ConfigChange extends React.Component {
       if (options.dry_run !== undefined) {
         dataToSend["dry_run"] = options.dry_run;
       }
+      if (options.commit_mode !== undefined && options.commit_mode >= 0) {
+        dataToSend["commit_mode"] = options.commit_mode;
+      }
     } else {
      options = {};
     }
@@ -345,6 +348,8 @@ class ConfigChange extends React.Component {
             liveRunJobStatus={liveRunJobStatus}
             dryRunJobStatus={dryRunJobStatus}
             jobId={liveRunJobId}
+            confirmRunProgressData={confirmRunProgressData}
+            confirmRunJobStatus={confirmRunJobStatus}
             confirmJobId={confirmRunJobId}
             devices={liveRunResults}
             totalCount={this.state.liveRunTotalCount}

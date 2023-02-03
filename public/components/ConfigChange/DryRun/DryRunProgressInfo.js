@@ -13,7 +13,7 @@ class DryRunProgressInfo extends React.Component {
   };
 
   componentDidUpdate() {
-      var element = document.getElementById("logoutputdiv");
+      var element = document.getElementById("logoutputdiv"+this.props.key);
       if (element !== null) {
         element.scrollTop = element.scrollHeight;
       }
@@ -24,16 +24,12 @@ class DryRunProgressInfo extends React.Component {
     let progressData = this.props.dryRunProgressData;
     let jobStatus = this.props.dryRunJobStatus;
     let jobId = this.props.jobId;
-    let confirmJobId = this.props.confirmJobId;
     // console.log("this is dryRunProgressData", progressData);
     let jobStartTime = "";
     let jobFinishTime = "";
     let exceptionMessage = "";
     let log = "";
     this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
-      log = log + logLine;
-    });
-    this.props.logLines.filter(this.checkJobId(confirmJobId)).map((logLine) => {
       log = log + logLine;
     });
 
@@ -46,18 +42,23 @@ class DryRunProgressInfo extends React.Component {
     }
 
     return (
-      <div key="1">
+      <div key={300+this.props.key} hidden={this.props.hidden}>
         <p>status: {jobStatus} (job #{jobId})</p>
         <p className="error">{exceptionMessage}</p>
         <p>start time: {jobStartTime}</p>
         <p>finish time: {jobFinishTime}</p>
-        <div id="logoutputdiv" className="logoutput">
+        <div id={"logoutputdiv"+this.props.keyNum} className="logoutput">
           <pre>
             {log}
           </pre>
         </div>
       </div>
     );
+  }
+
+  static defaultProps = {
+    hidden: false,
+    keyNum: 1
   }
 }
 

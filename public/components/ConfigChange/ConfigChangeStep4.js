@@ -1,18 +1,19 @@
 import React from "react";
 import DryRunProgressBar from "./DryRun/DryRunProgressBar";
 import DryRunProgressInfo from "./DryRun/DryRunProgressInfo";
-import { Confirm, Popup, Icon } from 'semantic-ui-react';
+import { Confirm, Popup, Icon, Select } from 'semantic-ui-react';
 
 class ConfigChangeStep4 extends React.Component {
   state = {
-    confirmDiagOpen: false
+    confirmDiagOpen: false,
+    commitMode: -1
   };
 
   openConfirm = () => { this.setState({confirmDiagOpen: true}) };
   closeConfirm = () => { this.setState({confirmDiagOpen: false}) };
   okConfirm = () => {
     this.setState({confirmDiagOpen: false});
-    this.props.liveRunSyncStart({"dry_run": false});
+    this.props.liveRunSyncStart({"dry_run": false, "commit_mode": this.state.commitMode});
     var confirmButtonElem = document.getElementById("confirmButton");
     confirmButtonElem.disabled = true;
   };
@@ -22,14 +23,29 @@ class ConfigChangeStep4 extends React.Component {
     var confirmButtonElem = document.getElementById("confirmButton");
     confirmButtonElem.disabled = true;
   };
+  
+  updateCommitMode(e, option) {
+    const val = option.value;
+    this.setState({
+      commitMode: val
+    });
+  }
 
   render() {
     let progressData = this.props.liveRunProgressData;
     let jobStatus = this.props.liveRunJobStatus;
     let jobId = this.props.jobId;
     let dryRunJobStatus = this.props.dryRunJobStatus;
+    let confirmRunProgressData = this.props.confirmRunProgressData;
     let confirmJobId = this.props.confirmJobId;
+    let confirmJobStatus = this.props.confirmRunJobStatus;
     let warnings = [];
+    let commitModeOptions = [
+      {'key': -1, 'value': -1, 'text': "default"},
+      {'key': 0, 'value': 0, 'text': "mode 0 (no confirm)"},
+      {'key': 1, 'value': 1, 'text': "mode 1 (per-device confirm)"},
+      {'key': 2, 'value': 2, 'text': "mode 2 (per-job confirm)"},
+    ];
 
     let commitButtonDisabled = true;
     if (dryRunJobStatus === "FINISHED") {
@@ -98,6 +114,11 @@ class ConfigChangeStep4 extends React.Component {
           <button id="confirmButton" disabled={commitButtonDisabled} onClick={e => this.openConfirm(e)}>
            Confirm commit
           </button> {warnings}
+          <Select
+            placeholder="commit mode"
+            options={commitModeOptions}
+            onChange={this.updateCommitMode.bind(this)}
+          />
           <Confirm
             content="Are you sure you want to commit changes to devices and overwrite any local changes?"
             open={this.state.confirmDiagOpen}
@@ -108,6 +129,7 @@ class ConfigChangeStep4 extends React.Component {
             dryRunJobStatus={jobStatus}
             dryRunProgressData={progressData}
             totalDevices={this.props.totalCount}
+            keyNum={1}
           />
           <DryRunProgressInfo
             dryRunJobStatus={jobStatus}
@@ -115,6 +137,23 @@ class ConfigChangeStep4 extends React.Component {
             jobId={jobId}
             confirmJobId={confirmJobId}
             logLines={this.props.logLines}
+            keyNum={1}
+          />
+          <p hidden={this.state.commitMode != 2}>Confirm progress: </p>
+          <DryRunProgressBar
+            hidden={this.state.commitMode != 2}
+            dryRunJobStatus={confirmJobStatus}
+            dryRunProgressData={confirmRunProgressData}
+            totalDevices={this.props.totalCount}
+            keyNum={2}
+          />
+          <DryRunProgressInfo
+            hidden={this.state.commitMode != 2}
+            dryRunJobStatus={confirmJobStatus}
+            dryRunProgressData={confirmRunProgressData}
+            jobId={confirmJobId}
+            logLines={this.props.logLines}
+            keyNum={2}
           />
         </div>
       </div>

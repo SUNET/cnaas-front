@@ -19,11 +19,18 @@ class DryRunProgressBar extends React.Component {
 
     return (
       <ProgressBar
+        hidden={this.props.hidden}
         value={finishedDevicesNum}
         total={totalDevices}
         jobStatus={jobStatus}
+        key={200+this.props.keyNum}
       />
     );
+  }
+  
+  static defaultProps = {
+    hidden: false,
+    keyNum: 1
   }
 }
 
