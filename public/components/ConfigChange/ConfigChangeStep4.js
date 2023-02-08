@@ -2,12 +2,20 @@ import React from "react";
 import DryRunProgressBar from "./DryRun/DryRunProgressBar";
 import DryRunProgressInfo from "./DryRun/DryRunProgressInfo";
 import { Confirm, Popup, Icon, Select } from 'semantic-ui-react';
+import getData from "../../utils/getData";
 
 class ConfigChangeStep4 extends React.Component {
   state = {
     confirmDiagOpen: false,
+    commitModeDefault: -1,
     commitMode: -1
   };
+  commitModeOptions = [
+    {'value': -1, 'text': "use server default commit mode"},
+    {'value': 0, 'text': "mode 0: no confirm"},
+    {'value': 1, 'text': "mode 1: per-device confirm"},
+    {'value': 2, 'text': "mode 2: per-job confirm"},
+  ]; 
 
   openConfirm = () => { this.setState({confirmDiagOpen: true}) };
   closeConfirm = () => { this.setState({confirmDiagOpen: false}) };
@@ -22,10 +30,36 @@ class ConfigChangeStep4 extends React.Component {
     // Ugly hack, this should be done via some confirmButton state in parent component
     var confirmButtonElem = document.getElementById("confirmButton");
     confirmButtonElem.disabled = true;
+    // Get default commit confirmed mode
+    const credentials = localStorage.getItem("token");
+    let url = process.env.API_URL + "/api/v1.0/settings/server";
+    getData(url, credentials).then(data =>
+      {
+        if (data['api']['COMMIT_CONFIRMED_MODE'] >= 0) {
+          this.setState({
+            commitModeDefault: data['api']['COMMIT_CONFIRMED_MODE'],
+            commitMode: data['api']['COMMIT_CONFIRMED_MODE'],
+          });
+        }
+      }
+    ).then(
+      this.commitModeOptions.map((option, index) => {
+        if (option.value == this.state.commitModeDefault) {
+          let newOption = option;
+          newOption.text = option.text + " (server default)";
+          this.commitModeOptions[index] = newOption;
+        }
+      })
+    ).catch(error => {
+      console.log("API does not support setteings/server to get default commit confirm mode")
+    });
   };
   
   updateCommitMode(e, option) {
-    const val = option.value;
+    let val = option.value;
+    if (val == -1) {
+      val = this.state.commitModeDefault;
+    }
     this.setState({
       commitMode: val
     });
@@ -40,12 +74,7 @@ class ConfigChangeStep4 extends React.Component {
     let confirmJobId = this.props.confirmJobId;
     let confirmJobStatus = this.props.confirmRunJobStatus;
     let warnings = [];
-    let commitModeOptions = [
-      {'key': -1, 'value': -1, 'text': "default"},
-      {'key': 0, 'value': 0, 'text': "mode 0 (no confirm)"},
-      {'key': 1, 'value': 1, 'text': "mode 1 (per-device confirm)"},
-      {'key': 2, 'value': 2, 'text': "mode 2 (per-job confirm)"},
-    ];
+
 
     let commitButtonDisabled = true;
     if (dryRunJobStatus === "FINISHED") {
@@ -115,8 +144,9 @@ class ConfigChangeStep4 extends React.Component {
            Confirm commit
           </button> {warnings}
           <Select
-            placeholder="commit mode"
-            options={commitModeOptions}
+            disabled={this.state.commitModeDefault == -1}
+            placeholder="commit mode (use server default)"
+            options={this.commitModeOptions}
             onChange={this.updateCommitMode.bind(this)}
           />
           <Confirm
