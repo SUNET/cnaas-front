@@ -40,16 +40,15 @@ class ConfigChangeStep4 extends React.Component {
             commitModeDefault: data['api']['COMMIT_CONFIRMED_MODE'],
             commitMode: data['api']['COMMIT_CONFIRMED_MODE'],
           });
+          this.commitModeOptions.map((option, index) => {
+            if (option.value == data['api']['COMMIT_CONFIRMED_MODE']) {
+              let newOption = option;
+              newOption.text = option.text + " (server default)";
+              this.commitModeOptions[index] = newOption;
+            }
+          })
         }
       }
-    ).then(
-      this.commitModeOptions.map((option, index) => {
-        if (option.value == this.state.commitModeDefault) {
-          let newOption = option;
-          newOption.text = option.text + " (server default)";
-          this.commitModeOptions[index] = newOption;
-        }
-      })
     ).catch(error => {
       console.log("API does not support setteings/server to get default commit confirm mode")
     });
@@ -86,11 +85,11 @@ class ConfigChangeStep4 extends React.Component {
     }
 
     if (!commitButtonDisabled) {
-      if (!this.props.jobTicketRef || !this.props.jobComment) {
+      if (!this.props.jobTicketRef && !this.props.jobComment) {
         warnings.push(
           <Popup
             key="popup1"
-            content="Ticket reference or comment is missing"
+            content="Ticket reference and comment is missing"
             position="top center"
             hoverable
             trigger={<Icon name="warning circle" color="yellow" size="large" />}
