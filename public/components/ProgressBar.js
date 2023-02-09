@@ -28,7 +28,7 @@ class ProgressBar extends React.Component {
 
     return (
       <div>
-        <div id="progressbar">
+        <div id="progressbar" hidden={this.props.hidden}>
           <Progress value={this.props.value} total={this.props.total} progress precision={0} color='orange' disabled={disabled} active={active} success={success} error={error} />
           <label>
             {this.props.value}/{this.props.total} devices finished
@@ -42,7 +42,8 @@ class ProgressBar extends React.Component {
 ProgressBar.propTypes = {
   value: PropTypes.number,
   total: PropTypes.number,
-  jobStatus: PropTypes.string
+  jobStatus: PropTypes.string,
+  hidden: PropTypes.bool
 }
 
 export default ProgressBar;

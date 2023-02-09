@@ -11,19 +11,26 @@ class DryRunProgressBar extends React.Component {
     let finishedDevicesNum = 0;
 
     if (jobStatus === "RUNNING" || jobStatus === "FINISHED") {
-      progressData.map((job, i) => {
-        finishedDevicesData = job.finished_devices;
+      if (Object.keys(progressData).length > 0) {
+        finishedDevicesData = progressData.finished_devices;
         finishedDevicesNum = finishedDevicesData.length;
-      });
+      }
     }
 
     return (
       <ProgressBar
+        hidden={this.props.hidden}
         value={finishedDevicesNum}
         total={totalDevices}
         jobStatus={jobStatus}
+        key={200+this.props.keyNum}
       />
     );
+  }
+  
+  static defaultProps = {
+    hidden: false,
+    keyNum: 1
   }
 }
 

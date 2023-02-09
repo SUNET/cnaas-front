@@ -18,13 +18,13 @@ class ConfigChange extends React.Component {
     return {
       dryRunSyncData: [],
       dryRunSyncJobid: null,
-      dryRunProgressData: [],
+      dryRunProgressData: {},
       dryRunTotalCount: 0,
       synctoForce: false,
       liveRunSyncData: [],
-      liveRunSyncJobid: null,
-      liveRunProgressData: [],
+      liveRunProgressData: {},
       liveRunTotalCount: 0,
+      confirmRunProgressData: {},
       job_comment: "",
       job_ticket_ref: "",
       logLines: [],
@@ -96,6 +96,9 @@ class ConfigChange extends React.Component {
       if (options.dry_run !== undefined) {
         dataToSend["dry_run"] = options.dry_run;
       }
+      if (options.commit_mode !== undefined && options.commit_mode >= 0) {
+        dataToSend["commit_mode"] = options.commit_mode;
+      }
     } else {
      options = {};
     }
@@ -128,7 +131,7 @@ class ConfigChange extends React.Component {
                 dryRunSyncData: data
               },
               () => {
-                this.pollJobStatus(data.job_id, true);
+                this.pollJobStatus(data.job_id, "dry_run");
               },
               () => {
                 console.log("this is new state", this.state.dryRunSyncData);
@@ -140,7 +143,7 @@ class ConfigChange extends React.Component {
                 liveRunSyncData: data
               },
               () => {
-                this.pollJobStatus(data.job_id, false);
+                this.pollJobStatus(data.job_id, "live_run");
               },
               () => {
                 console.log("this is new state", this.state.liveRunSyncData);
@@ -151,59 +154,52 @@ class ConfigChange extends React.Component {
       });
   };
 
-  pollJobStatus = (job_id, dry_run) => {
+  pollJobStatus = (job_id, jobtype) => {
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + `/api/v1.0/job/${job_id}`;
+    let repeatInterval = null;
+    let stateProperty = null;
 
-    if (dry_run === true) {
-      getData(url, credentials).then(data => {
-        {
-          this.setState({
-            dryRunProgressData: data.data.jobs,
-            blockNavigation: true
-          });
-        }
-      });
-      this.repeatingDryrunJobData = setInterval(() => {
-        getData(url, credentials).then(data => {
-          {
-            this.setState({
-              dryRunProgressData: data.data.jobs
-            });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
-                data.data.jobs[0].status === "ABORTED") {
-              clearInterval(this.repeatingDryrunJobData);
-              this.setState({blockNavigation: false});
-              Prism.highlightAll();
-            }
-          }
-        });
-      }, 1000);
+    if (jobtype === "dry_run") {
+      repeatInterval = this.repeatingDryrunJobData;
+      stateProperty = "dryRunProgressData";
+    } else if (jobtype === "live_run") {
+      repeatInterval = this.repeatingLiverunJobData;
+      stateProperty = "liveRunProgressData";
+    } else if (jobtype === "confirm_run") {
+      repeatInterval = this.repeatingConfirmrunJobData;
+      stateProperty = "confirmRunProgressData";
     } else {
+      throw new Error("pollJobStatus called with unknown jobtype");
+    }
+
+    getData(url, credentials).then(data => {
+      {
+        this.setState({
+          [stateProperty]: data.data.jobs,
+          blockNavigation: true
+        });
+      }
+    });
+    repeatInterval = setInterval(() => {
       getData(url, credentials).then(data => {
         {
+          let jobdata = data.data.jobs[0];
           this.setState({
-            liveRunProgressData: data.data.jobs,
-            blockNavigation: true
+            [stateProperty]: jobdata
           });
+          if (jobdata.status === "FINISHED" || jobdata.status === "EXCEPTION" || jobdata.status === "ABORTED") {
+            clearInterval(repeatInterval);
+            this.setState({blockNavigation: false});
+            if (jobtype === "live_run" && jobdata.status === "FINISHED" && typeof jobdata.next_job_id === "number") {
+              this.pollJobStatus(jobdata.next_job_id, "confirm_run");
+              console.log("Config change with next_job_id detected (commitmode 2): " + jobdata.next_job_id);
+            }
+            Prism.highlightAll();
+          }
         }
       });
-      this.repeatingLiverunJobData = setInterval(() => {
-        getData(url, credentials).then(data => {
-          {
-            this.setState({
-              liveRunProgressData: data.data.jobs
-            });
-            if (data.data.jobs[0].status === "FINISHED" || data.data.jobs[0].status === "EXCEPTION" ||
-                data.data.jobs[0].status === "ABORTED") {
-              clearInterval(this.repeatingLiverunJobData);
-              this.setState({blockNavigation: false});
-              Prism.highlightAll();
-            }
-          }
-        });
-      }, 1000);
-    }
+    }, 1000);
   };
 
   getCommitTarget() {
@@ -277,29 +273,33 @@ class ConfigChange extends React.Component {
     let liveRunJobStatus = "";
     let liveRunResults = "";
     let liveRunJobId = "NA";
+    let confirmRunProgressData = this.state.confirmRunProgressData;
+    let confirmRunJobStatus = "";
+    let confirmRunJobId = "NA";
     let commitTargetName = this.getCommitTargetName(this.getCommitTarget());
 
-    dryRunProgressData.map((job, i) => {
-      dryRunJobStatus = job.status;
-      dryRunChangeScore = job.change_score;
-      dryRunJobId = job.id;
-    });
-
-    if (dryRunJobStatus === "FINISHED") {
-      dryRunProgressData.map((job, i) => {
-        dryRunResults = job.result.devices;
-      });
+    if (Object.keys(dryRunProgressData).length > 0) {
+      dryRunJobStatus = dryRunProgressData.status;
+      dryRunChangeScore = dryRunProgressData.change_score;
+      dryRunJobId = dryRunProgressData.id;
     }
 
-    liveRunProgressData.map((job, i) => {
-      liveRunJobStatus = job.status;
-      liveRunJobId = job.id;
-    });
+    if (dryRunJobStatus === "FINISHED") {
+      dryRunResults = dryRunProgressData.result.devices;
+    }
+
+    if (Object.keys(liveRunProgressData).length > 0) {
+      liveRunJobStatus = liveRunProgressData.status;
+      liveRunJobId = liveRunProgressData.id;
+    }
 
     if (liveRunJobStatus === "FINISHED") {
-      liveRunProgressData.map((job, i) => {
-        liveRunResults = job.result.devices;
-      });
+      liveRunResults = liveRunProgressData.result.devices;
+    }
+    
+    if (Object.keys(confirmRunProgressData).length > 0) {
+      confirmRunJobStatus = confirmRunProgressData.status;
+      confirmRunJobId = confirmRunProgressData.id;
     }
 
     return (
@@ -348,6 +348,9 @@ class ConfigChange extends React.Component {
             liveRunJobStatus={liveRunJobStatus}
             dryRunJobStatus={dryRunJobStatus}
             jobId={liveRunJobId}
+            confirmRunProgressData={confirmRunProgressData}
+            confirmRunJobStatus={confirmRunJobStatus}
+            confirmJobId={confirmRunJobId}
             devices={liveRunResults}
             totalCount={this.state.liveRunTotalCount}
             logLines={this.state.logLines}
