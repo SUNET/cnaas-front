@@ -1,14 +1,15 @@
 import React from "react";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
-import { Input, Dropdown, Icon, Table, Tab } from "semantic-ui-react";
+import { Input, Dropdown, Icon, Table, Loader, Dimmer } from "semantic-ui-react";
 
 class InterfaceConfig extends React.Component {
   state = {
     interfaceData: [],
     interfaceDataUpdated: {},
     deviceData: [],
-    editDisabled: false
+    editDisabled: false,
+    vlanOptions: []
   }
   hostname = null;
   configTypeOptions = [
@@ -18,7 +19,7 @@ class InterfaceConfig extends React.Component {
     {'value': "ACCESS_DOWNLINK", 'text': "Downlink"},
     {'value': "ACCESS_UPLINK", 'text': "Uplink", 'disabled': true},
     {'value': "MLAG_PEER", 'text': "MLAG peer interface", 'disabled': true},
-  ]; 
+  ];
   configTypesEnabled = ["ACCESS_AUTO", "ACCESS_UNTAGGED", "ACCESS_TAGGED", "ACCESS_DOWNLINK"];
 
   componentDidMount() {
@@ -65,6 +66,20 @@ class InterfaceConfig extends React.Component {
     ).catch(error => {
       console.log(error);
     });
+    url = process.env.API_URL + "/api/v1.0/settings?hostname=" + this.hostname;
+    getData(url, credentials).then(data =>
+      {
+        this.setState({
+          deviceSettings: data['data']['settings'],
+          vlanOptions: Object.entries(data['data']['settings']['vxlans']).map(([vxlan_name, vxlan_data], index) => {
+            return {'value': vxlan_data.vlan_name, 'text': vxlan_data.vlan_name, 'description': vxlan_data.vlan_id};
+          })
+        });
+//        console.log(this.vlanOptions);
+      }
+    ).catch(error => {
+      console.log(error);
+    });
   }
 
   updateStringData(json_key, e) {
@@ -73,7 +88,7 @@ class InterfaceConfig extends React.Component {
     const defaultValue = e.target.defaultValue;
     let newData = this.state.interfaceDataUpdated;
     if (val !== defaultValue) {
-      console.log(interfaceName+" "+val);
+//      console.log(interfaceName+" "+val);
       if (interfaceName in newData) {
         let newInterfaceData = newData[interfaceName];
         newInterfaceData[json_key] = val;
@@ -93,13 +108,15 @@ class InterfaceConfig extends React.Component {
     });
   }
 
-  renderTableRows(interfaceData) {
+  renderTableRows(interfaceData, vlanOptions) {
     return interfaceData.map((item, index) => {
       let ifData = item.data;
       let description = "";
       let editDisabled = !(this.configTypesEnabled.includes(item.configtype));
       let updated = (item.name in this.state.interfaceDataUpdated);
-      console.log(ifData);
+      let untagged_vlan = null;
+      let tagged_vlan_list = null;
+//      console.log(ifData);
       if (ifData !== null) {
         if ('description' in ifData) {
           description = ifData.description;
@@ -108,6 +125,35 @@ class InterfaceConfig extends React.Component {
         } else if ('neighbor_id' in ifData) {
           description = "MLAG peer to device_id " + ifData.neighbor_id;
         }
+        if ('untagged_vlan' in ifData) {
+          if (typeof(ifData['untagged_vlan']) === "number") {
+            let untagged_vlan_mapped = vlanOptions.filter(item => item.description == ifData['untagged_vlan']);
+            if (Array.isArray(untagged_vlan_mapped) && untagged_vlan_mapped.length == 1) {
+              untagged_vlan = untagged_vlan_mapped[0].value;
+            } else {
+              untagged_vlan = null;
+            }
+            console.log("number matched to: "+untagged_vlan);
+          } else {
+            untagged_vlan = ifData['untagged_vlan']
+          }
+        }
+      }
+
+      let currentConfigtype = item.configtype;
+      if (item.name in this.state.interfaceDataUpdated && "configtype" in this.state.interfaceDataUpdated[item.name]) {
+        currentConfigtype = this.state.interfaceDataUpdated[item.name].configtype;
+      }
+
+      let dataCell = "";
+      if (vlanOptions.length == 0 ) {
+        dataCell = <Loader inline active />
+      } else if (currentConfigtype === "ACCESS_TAGGED") {
+        dataCell = <Dropdown fluid multiple selection options={this.state.vlanOptions} defaultValue={ifData.tagged_vlan_list} />
+      } else if (currentConfigtype === "ACCESS_UNTAGGED") {
+        dataCell = <Dropdown fluid selection options={this.state.vlanOptions} defaultValue={untagged_vlan} />
+      } else {
+        dataCell = JSON.stringify(item.data);
       }
 
       return [
@@ -130,14 +176,16 @@ class InterfaceConfig extends React.Component {
               disabled={editDisabled}
             />
           </Table.Cell>
-          <Table.Cell>{JSON.stringify(item.data)}</Table.Cell>
+          <Table.Cell>
+            {dataCell}
+          </Table.Cell>
         </Table.Row>
       ];
     });
   }
 
   render() {
-    let interfaceTable = this.renderTableRows(this.state.interfaceData);
+    let interfaceTable = this.renderTableRows(this.state.interfaceData, this.state.vlanOptions);
     let syncStateIcon = this.state.deviceData.synchronized === true ? <Icon name="check" color="green" /> : <Icon name="delete" color="red" />;
 
     return (
