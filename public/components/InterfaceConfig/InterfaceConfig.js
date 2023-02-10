@@ -67,7 +67,7 @@ class InterfaceConfig extends React.Component {
     });
   }
 
-  updateDescription(e) {
+  updateStringData(json_key, e) {
     const interfaceName = e.target.name.split('_', 2)[1];
     const val = e.target.value;
     const defaultValue = e.target.defaultValue;
@@ -76,14 +76,14 @@ class InterfaceConfig extends React.Component {
       console.log(interfaceName+" "+val);
       if (interfaceName in newData) {
         let newInterfaceData = newData[interfaceName];
-        newInterfaceData["description"] = val;
+        newInterfaceData[json_key] = val;
         newData[interfaceName] = newInterfaceData;
       } else {
         let newData = this.state.interfaceDataUpdated;
-        newData[interfaceName] = {"description": val};
+        newData[interfaceName] = {[json_key]: val};
       }
     } else {
-      delete newData[interfaceName].description;
+      delete newData[interfaceName][json_key];
       if (Object.keys(newData[interfaceName]).length == 0) {
         delete newData[interfaceName];
       }
@@ -103,6 +103,10 @@ class InterfaceConfig extends React.Component {
       if (ifData !== null) {
         if ('description' in ifData) {
           description = ifData.description;
+        } else if ('neighbor' in ifData) {
+          description = "Uplink to " + ifData.neighbor;
+        } else if ('neighbor_id' in ifData) {
+          description = "MLAG peer to device_id " + ifData.neighbor_id;
         }
       }
 
@@ -114,7 +118,8 @@ class InterfaceConfig extends React.Component {
               key={"description_"+item.name}
               name={"description_"+item.name}
               defaultValue={description}
-              onChange={this.updateDescription.bind(this)}
+              disabled={editDisabled}
+              onChange={this.updateStringData.bind(this, "description")}
             />
           </Table.Cell>
           <Table.Cell>
