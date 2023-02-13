@@ -83,7 +83,7 @@ class InterfaceConfig extends React.Component {
   }
 
   updateStringData(json_key, e) {
-    const interfaceName = e.target.name.split('_', 2)[1];
+    const interfaceName = e.target.name.split('|', 2)[1];
     const val = e.target.value;
     const defaultValue = e.target.defaultValue;
     let newData = this.state.interfaceDataUpdated;
@@ -103,6 +103,38 @@ class InterfaceConfig extends React.Component {
         delete newData[interfaceName];
       }
     }
+    this.setState({
+      interfaceDataUpdated: newData
+    });
+  }
+
+  updateDropdownData = (e, data) => {
+    console.log(data);
+
+    const nameSplit = data.name.split('|', 2);
+    const interfaceName = nameSplit[1];
+    const json_key = nameSplit[0];
+    const val = data.value;
+    const defaultValue = data.defaultValue;
+    let newData = this.state.interfaceDataUpdated;
+    if (JSON.stringify(val) !== JSON.stringify(defaultValue)) {
+      console.log(interfaceName+" "+val);
+      if (interfaceName in newData) {
+        let newInterfaceData = newData[interfaceName];
+        newInterfaceData[json_key] = val;
+        newData[interfaceName] = newInterfaceData;
+      } else {
+        let newData = this.state.interfaceDataUpdated;
+        newData[interfaceName] = {[json_key]: val};
+      }
+    } else {
+      delete newData[interfaceName][json_key];
+      if (Object.keys(newData[interfaceName]).length == 0) {
+        delete newData[interfaceName];
+      }
+    }
+    console.log("DEBUG: ");
+    console.log(newData);
     this.setState({
       interfaceDataUpdated: newData
     });
@@ -149,9 +181,23 @@ class InterfaceConfig extends React.Component {
       if (vlanOptions.length == 0 ) {
         dataCell = <Loader inline active />
       } else if (currentConfigtype === "ACCESS_TAGGED") {
-        dataCell = <Dropdown fluid multiple selection options={this.state.vlanOptions} defaultValue={ifData.tagged_vlan_list} />
+        dataCell = <Dropdown
+          key={"tagged_vlan_list|"+item.name}
+          name={"tagged_vlan_list|"+item.name}
+          fluid multiple selection
+          options={this.state.vlanOptions}
+          defaultValue={ifData.tagged_vlan_list}
+          onChange={this.updateDropdownData}
+        />
       } else if (currentConfigtype === "ACCESS_UNTAGGED") {
-        dataCell = <Dropdown fluid selection options={this.state.vlanOptions} defaultValue={untagged_vlan} />
+        dataCell = <Dropdown
+          key={"untagged_vlan|"+item.name}
+          name={"untagged_vlan|"+item.name}
+          fluid selection
+          options={this.state.vlanOptions}
+          defaultValue={untagged_vlan}
+          onChange={this.updateDropdownData}
+        />
       } else {
         dataCell = JSON.stringify(item.data);
       }
@@ -161,8 +207,8 @@ class InterfaceConfig extends React.Component {
           <Table.Cell>{item.name}</Table.Cell>
           <Table.Cell>
             <Input
-              key={"description_"+item.name}
-              name={"description_"+item.name}
+              key={"description|"+item.name}
+              name={"description|"+item.name}
               defaultValue={description}
               disabled={editDisabled}
               onChange={this.updateStringData.bind(this, "description")}
@@ -171,6 +217,8 @@ class InterfaceConfig extends React.Component {
           <Table.Cell>
             <Dropdown
               key={"configtype_"+item.name}
+              name={"configtype_"+item.name}
+              selection
               options={this.configTypeOptions}
               defaultValue={item.configtype}
               disabled={editDisabled}
@@ -196,12 +244,19 @@ class InterfaceConfig extends React.Component {
           <Table>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell>Name</Table.HeaderCell><Table.HeaderCell>Description</Table.HeaderCell><Table.HeaderCell>Configtype</Table.HeaderCell><Table.HeaderCell>Data</Table.HeaderCell>
+                <Table.HeaderCell width={5}>Name</Table.HeaderCell><Table.HeaderCell width={10}>Description</Table.HeaderCell><Table.HeaderCell width={5}>Configtype</Table.HeaderCell><Table.HeaderCell width={10}>Data</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {interfaceTable}
             </Table.Body>
+            <Table.Footer fullWidth>
+              <Table.Row>
+                <Table.HeaderCell colSpan={4}>
+                  ok
+                </Table.HeaderCell>
+              </Table.Row>
+            </Table.Footer>
           </Table>
           </div>
         </div>
