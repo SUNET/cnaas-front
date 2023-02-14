@@ -1,7 +1,7 @@
 import React from "react";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
-import { Input, Dropdown, Icon, Table, Loader, Dimmer } from "semantic-ui-react";
+import { Input, Dropdown, Icon, Table, Loader, Dimmer, Button } from "semantic-ui-react";
 
 class InterfaceConfig extends React.Component {
   state = {
@@ -82,35 +82,29 @@ class InterfaceConfig extends React.Component {
     });
   }
 
-  updateStringData(json_key, e) {
-    const interfaceName = e.target.name.split('|', 2)[1];
-    const val = e.target.value;
-    const defaultValue = e.target.defaultValue;
-    let newData = this.state.interfaceDataUpdated;
-    if (val !== defaultValue) {
-//      console.log(interfaceName+" "+val);
-      if (interfaceName in newData) {
-        let newInterfaceData = newData[interfaceName];
-        newInterfaceData[json_key] = val;
-        newData[interfaceName] = newInterfaceData;
-      } else {
-        let newData = this.state.interfaceDataUpdated;
-        newData[interfaceName] = {[json_key]: val};
+  sendInterfaceData() {
+    // what config keys go in to level, and what goes under ["data"]
+    let topLevelKeyNames = ["configtype"];
+    // build object in the format API expects interfaces{} -> name{} -> configtype,data{}
+    let sendData = {"interfaces": {}};
+    Object.entries(this.state.interfaceDataUpdated).map(([interfaceName, formData]) => {
+      let topLevelKeys = {};
+      let dataLevelKeys = {};
+      Object.entries(formData).map(([formKey, formValue]) => {
+        if (topLevelKeyNames.includes(formKey)) {
+          topLevelKeys[formKey] = formValue;
+        } else {
+          dataLevelKeys[formKey] = formValue;
+        }
+      });
+      if (Object.keys(dataLevelKeys).length >= 0) {
+        topLevelKeys["data"] = dataLevelKeys;
       }
-    } else {
-      delete newData[interfaceName][json_key];
-      if (Object.keys(newData[interfaceName]).length == 0) {
-        delete newData[interfaceName];
-      }
-    }
-    this.setState({
-      interfaceDataUpdated: newData
+      sendData["interfaces"][interfaceName] = topLevelKeys;
     });
   }
 
-  updateDropdownData = (e, data) => {
-    console.log(data);
-
+  updateFieldData = (e, data) => {
     const nameSplit = data.name.split('|', 2);
     const interfaceName = nameSplit[1];
     const json_key = nameSplit[0];
@@ -118,7 +112,6 @@ class InterfaceConfig extends React.Component {
     const defaultValue = data.defaultValue;
     let newData = this.state.interfaceDataUpdated;
     if (JSON.stringify(val) !== JSON.stringify(defaultValue)) {
-      console.log(interfaceName+" "+val);
       if (interfaceName in newData) {
         let newInterfaceData = newData[interfaceName];
         newInterfaceData[json_key] = val;
@@ -133,8 +126,6 @@ class InterfaceConfig extends React.Component {
         delete newData[interfaceName];
       }
     }
-    console.log("DEBUG: ");
-    console.log(newData);
     this.setState({
       interfaceDataUpdated: newData
     });
@@ -170,6 +161,9 @@ class InterfaceConfig extends React.Component {
             untagged_vlan = ifData['untagged_vlan']
           }
         }
+        if ('tagged_vlan_list' in ifData) {
+          tagged_vlan_list = ifData['tagged_vlan_list'];
+        }
       }
 
       let currentConfigtype = item.configtype;
@@ -186,8 +180,8 @@ class InterfaceConfig extends React.Component {
           name={"tagged_vlan_list|"+item.name}
           fluid multiple selection
           options={this.state.vlanOptions}
-          defaultValue={ifData.tagged_vlan_list}
-          onChange={this.updateDropdownData}
+          defaultValue={tagged_vlan_list}
+          onChange={this.updateFieldData}
         />
       } else if (currentConfigtype === "ACCESS_UNTAGGED") {
         dataCell = <Dropdown
@@ -196,7 +190,7 @@ class InterfaceConfig extends React.Component {
           fluid selection
           options={this.state.vlanOptions}
           defaultValue={untagged_vlan}
-          onChange={this.updateDropdownData}
+          onChange={this.updateFieldData}
         />
       } else {
         dataCell = JSON.stringify(item.data);
@@ -211,17 +205,18 @@ class InterfaceConfig extends React.Component {
               name={"description|"+item.name}
               defaultValue={description}
               disabled={editDisabled}
-              onChange={this.updateStringData.bind(this, "description")}
+              onChange={this.updateFieldData}
             />
           </Table.Cell>
           <Table.Cell>
             <Dropdown
-              key={"configtype_"+item.name}
-              name={"configtype_"+item.name}
+              key={"configtype|"+item.name}
+              name={"configtype|"+item.name}
               selection
               options={this.configTypeOptions}
               defaultValue={item.configtype}
               disabled={editDisabled}
+              onChange={this.updateFieldData}
             />
           </Table.Cell>
           <Table.Cell>
@@ -253,7 +248,11 @@ class InterfaceConfig extends React.Component {
             <Table.Footer fullWidth>
               <Table.Row>
                 <Table.HeaderCell colSpan={4}>
-                  ok
+                  <Button
+                    onClick={this.sendInterfaceData.bind(this)}
+                  >
+                    Save
+                  </Button>
                 </Table.HeaderCell>
               </Table.Row>
             </Table.Footer>
