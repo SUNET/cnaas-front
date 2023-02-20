@@ -1,7 +1,7 @@
 import React from "react";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
-import { Input, Dropdown, Icon, Table, Loader, Dimmer, Button } from "semantic-ui-react";
+import { Input, Dropdown, Icon, Table, Loader, Modal, Button } from "semantic-ui-react";
 
 class InterfaceConfig extends React.Component {
   state = {
@@ -102,6 +102,13 @@ class InterfaceConfig extends React.Component {
       }
       sendData["interfaces"][interfaceName] = topLevelKeys;
     });
+  }
+  
+  saveChanges() {
+    // save old state
+    this.sendInterfaceData();
+    // getData to refresh default values
+    // allow or don't allow changes to unsynced devices? will become unsync after send
   }
 
   updateFieldData = (e, data) => {
@@ -239,7 +246,7 @@ class InterfaceConfig extends React.Component {
           <Table>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell width={5}>Name</Table.HeaderCell><Table.HeaderCell width={10}>Description</Table.HeaderCell><Table.HeaderCell width={5}>Configtype</Table.HeaderCell><Table.HeaderCell width={10}>Data</Table.HeaderCell>
+                <Table.HeaderCell width={2}>Name</Table.HeaderCell><Table.HeaderCell width={4}>Description</Table.HeaderCell><Table.HeaderCell width={3}>Configtype</Table.HeaderCell><Table.HeaderCell width={3}>Data</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -248,11 +255,30 @@ class InterfaceConfig extends React.Component {
             <Table.Footer fullWidth>
               <Table.Row>
                 <Table.HeaderCell colSpan={4}>
-                  <Button
-                    onClick={this.sendInterfaceData.bind(this)}
+                  <Modal
+                    onClose={() => this.setState({save_modal_open: false})}
+                    onOpen={() => this.setState({save_modal_open: true})}
+                    open={this.state.save_modal_open}
+                    trigger={
+                    <Button icon labelPosition='right'>
+                      Save & commit...
+                      <Icon name="window restore outline" />
+                    </Button>
+                    }
                   >
-                    Save
-                  </Button>
+                    <Modal.Header>Save & commit</Modal.Header>
+                    <Modal.Content>
+                      <Modal.Description><pre>{JSON.stringify(this.state.interfaceDataUpdated, null, 2)}</pre></Modal.Description>
+                    </Modal.Content>
+                    <Modal.Actions>
+                      <Button key="cancel" color='black' onClick={() => this.setState({save_modal_open: false})}>
+                        Cancel
+                      </Button>
+                      <Button key="submit" onClick={this.sendInterfaceData.bind(this)} icon labelPosition='right' positive>
+                        Save and commit now
+                      </Button>
+                    </Modal.Actions>
+                  </Modal>
                 </Table.HeaderCell>
               </Table.Row>
             </Table.Footer>
