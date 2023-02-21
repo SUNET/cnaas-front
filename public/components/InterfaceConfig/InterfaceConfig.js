@@ -63,6 +63,11 @@ class InterfaceConfig extends React.Component {
           // if finished && next_job id, push next_job_id to array
           if (data.next_job_id !== undefined && typeof data.next_job_id === "number") {
             newState.autoPushJobs = [data, {'job_id': data.next_job_id, "status": "RUNNING"}];
+          } else if (data.status == "FINISHED" || data.status == "EXCEPTION") {
+            newState.errorMessage = "Live run job not scheduled, there was an error or change score was too high to continue with autopush. Check logs or do dry run job manually.";
+            newState.working = false;
+            newState.autoPushJobs = [data];
+            newState.accordionActiveIndex = 2;
           }
         } else if (this.state.autoPushJobs.length == 2 && this.state.autoPushJobs[1].job_id == data.job_id) {
           newState.autoPushJobs = [this.state.autoPushJobs[0], data];
@@ -129,11 +134,16 @@ class InterfaceConfig extends React.Component {
     url = process.env.API_URL + "/api/v1.0/settings?hostname=" + this.hostname;
     getData(url, credentials).then(data =>
       {
+        const vlanOptions = Object.entries(data['data']['settings']['vxlans']).map(([vxlan_name, vxlan_data], index) => {
+            return {'value': vxlan_data.vlan_name, 'text': vxlan_data.vlan_name, 'description': vxlan_data.vlan_id};
+        });
+        let untaggedVlanOptions = vlanOptions;
+        untaggedVlanOptions.push({'value': null, 'text': "None", 'description': "NA"});
+
         this.setState({
           deviceSettings: data['data']['settings'],
-          vlanOptions: Object.entries(data['data']['settings']['vxlans']).map(([vxlan_name, vxlan_data], index) => {
-            return {'value': vxlan_data.vlan_name, 'text': vxlan_data.vlan_name, 'description': vxlan_data.vlan_id};
-          })
+          vlanOptions: vlanOptions,
+          untaggedVlanOptions: untaggedVlanOptions
         });
 //        console.log(this.vlanOptions);
       }
@@ -313,7 +323,7 @@ class InterfaceConfig extends React.Component {
           key={"untagged_vlan|"+item.name}
           name={"untagged_vlan|"+item.name}
           fluid selection
-          options={this.state.vlanOptions}
+          options={this.state.untaggedVlanOptions}
           defaultValue={untagged_vlan}
           onChange={this.updateFieldData}
         />
