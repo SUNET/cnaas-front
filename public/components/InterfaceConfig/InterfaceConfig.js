@@ -10,14 +10,16 @@ class InterfaceConfig extends React.Component {
   state = {
     interfaceData: [],
     interfaceDataUpdated: {},
-    deviceData: [],
+    deviceData: {},
     editDisabled: false,
     vlanOptions: [],
     autoPushJobs: [],
     thirdPartyUpdated: false,
     accordionActiveIndex: 0,
     errorMessage: null,
-    working: false
+    working: false,
+    initialSyncState: null,
+    initialConfHash: null
   }
   hostname = null;
   configTypeOptions = [
@@ -49,7 +51,7 @@ class InterfaceConfig extends React.Component {
         console.log("DEBUG: ");
         console.log(this.state.deviceData);
         console.log(data.object);
-        //this.setState({devicesData: newDevicesData});
+        this.setState({deviceData: data.object});
       // job update event
       } else if (data.job_id !== undefined) {
         // if job updated state
@@ -57,7 +59,7 @@ class InterfaceConfig extends React.Component {
         if (data.function_name === "refresh_repo" && this.state.thirdPartyUpdated === false) {
           newState.thirdPartyUpdated = true;
         }
-        if (this.state.autoPushJobs[0].job_id == data.job_id) {
+        if (this.state.autoPushJobs.length == 1 && this.state.autoPushJobs[0].job_id == data.job_id) {
           // if finished && next_job id, push next_job_id to array
           if (data.next_job_id !== undefined && typeof data.next_job_id === "number") {
             newState.autoPushJobs = [data, {'job_id': data.next_job_id, "status": "RUNNING"}];
@@ -67,7 +69,13 @@ class InterfaceConfig extends React.Component {
           if (data.status == "FINISHED" || data.status == "EXCEPTION") {
             newState.working = false;
             newState.interfaceDataUpdated = {};
-            this.getInterfaceData();
+            this.setState({
+              initialSyncState: null,
+              initialConfHash: null
+            }, () => {
+              this.getInterfaceData();
+              this.getDeviceData();
+            });
           }
         }
         if (Object.keys(newState).length >= 1) {
@@ -89,7 +97,7 @@ class InterfaceConfig extends React.Component {
   getInterfaceData() {
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/interfaces";
-    getData(url, credentials).then(data =>
+    return getData(url, credentials).then(data =>
       {
         this.setState({
           interfaceData: data['data']['interfaces']
@@ -105,10 +113,15 @@ class InterfaceConfig extends React.Component {
     let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname;
     getData(url, credentials).then(data =>
       {
-        this.setState({
+        let newState = {
           deviceData: data['data']['devices'][0],
           editDisabled: !data['data']['devices'][0]['synchronized']
-        });
+        };
+        if (this.state.initialSyncState == null) {
+          newState.initialSyncState = data['data']['devices'][0]['synchronized'];
+          newState.initialConfHash = data['data']['devices'][0]['confhash'];
+        }
+        this.setState(newState);
       }
     ).catch(error => {
       console.log(error);
@@ -193,7 +206,7 @@ class InterfaceConfig extends React.Component {
     });
   }
   
-  saveChanges() {
+  saveAndCommitChanges() {
     // save old state
     this.sendInterfaceData().then(saveStatus => {
       if (saveStatus === true) {
@@ -203,8 +216,17 @@ class InterfaceConfig extends React.Component {
         this.setState({accordionActiveIndex: 2});
       }
     });
-    // getData to refresh default values
-    // allow or don't allow changes to unsynced devices? will become unsync after send
+  }
+
+  saveChanges() {
+    this.sendInterfaceData().then(saveStatus => {
+      if (saveStatus === true) {
+        this.props.history.push('/config-change?hostname='+this.hostname);
+      } else {
+        this.setState({accordionActiveIndex: 2});
+      }
+    })
+
   }
 
   updateFieldData = (e, data) => {
@@ -342,10 +364,20 @@ class InterfaceConfig extends React.Component {
     let interfaceTable = this.renderTableRows(this.state.interfaceData, this.state.vlanOptions);
     let syncStateIcon = this.state.deviceData.synchronized === true ? <Icon name="check" color="green" /> : <Icon name="delete" color="red" />;
     let accordionActiveIndex = this.state.accordionActiveIndex;
+    let commitAutopushDisabled = (
+      this.state.working || 
+      !this.state.initialSyncState ||
+      (this.state.initialConfHash != this.state.deviceData.confhash)
+    );
+    let stateWarning = null;
+    if (!this.state.initialSyncState || (this.state.initialConfHash != this.state.deviceData.confhash)) {
+      stateWarning = <p><Icon name="warning sign" color="orange" size="large" />Device is not synchronized, use dry_run and verify diff to apply changes.</p>;
+    }
 
     return (
       <section>
         <p>Hostname: {this.hostname}, sync state: {syncStateIcon}</p>
+        {stateWarning}
         <div id="device_list">
           <div id="data">
           <Table>
@@ -412,11 +444,14 @@ class InterfaceConfig extends React.Component {
                       </Modal.Description>
                     </Modal.Content>
                     <Modal.Actions>
-                      <Button key="cancel" color='black' onClick={() => this.setState({save_modal_open: false})}>
-                        Cancel
+                      <Button key="close" color='black' onClick={() => this.setState({save_modal_open: false, autoPushJobs: [], errorMessage: null, accordionActiveIndex: 0})}>
+                        Close
                       </Button>
-                      <Button key="submit" onClick={this.saveChanges.bind(this)} disabled={this.state.working} icon labelPosition='right' positive>
+                      <Button key="submit" onClick={this.saveAndCommitChanges.bind(this)} disabled={commitAutopushDisabled} color="yellow">
                         Save and commit now
+                      </Button>
+                      <Button key="dryrun" onClick={this.saveChanges.bind(this)} disabled={this.state.working} positive>
+                        Save and dry run...
                       </Button>
                     </Modal.Actions>
                   </Modal>
