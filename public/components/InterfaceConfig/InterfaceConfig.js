@@ -1,7 +1,10 @@
 import React from "react";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
-import { Input, Dropdown, Icon, Table, Loader, Modal, Button } from "semantic-ui-react";
+import { putData, postData } from "../../utils/sendData";
+import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion } from "semantic-ui-react";
+const io = require("socket.io-client");
+var socket = null;
 
 class InterfaceConfig extends React.Component {
   state = {
@@ -9,7 +12,12 @@ class InterfaceConfig extends React.Component {
     interfaceDataUpdated: {},
     deviceData: [],
     editDisabled: false,
-    vlanOptions: []
+    vlanOptions: [],
+    autoPushJobs: [],
+    thirdPartyUpdated: false,
+    accordionActiveIndex: 0,
+    errorMessage: null,
+    working: false
   }
   hostname = null;
   configTypeOptions = [
@@ -28,6 +36,45 @@ class InterfaceConfig extends React.Component {
       this.getInterfaceData();
       this.getDeviceData();
     }
+    const credentials = localStorage.getItem("token");
+    socket = io(process.env.API_URL, {query: {jwt: credentials}});
+    socket.on('connect', function(data) {
+      console.log('Websocket connected!');
+      var ret = socket.emit('events', {'update': 'device'});
+      var ret = socket.emit('events', {'update': 'job'});
+    });
+    socket.on('events', (data) => {
+      // device update event
+      if (data.device_id !== undefined && data.device_id == this.state.deviceData['id'] && data.action == "UPDATED") {
+        console.log("DEBUG: ");
+        console.log(this.state.deviceData);
+        console.log(data.object);
+        //this.setState({devicesData: newDevicesData});
+      // job update event
+      } else if (data.job_id !== undefined) {
+        // if job updated state
+        let newState = {};
+        if (data.function_name === "refresh_repo" && this.state.thirdPartyUpdated === false) {
+          newState.thirdPartyUpdated = true;
+        }
+        if (this.state.autoPushJobs[0].job_id == data.job_id) {
+          // if finished && next_job id, push next_job_id to array
+          if (data.next_job_id !== undefined && typeof data.next_job_id === "number") {
+            newState.autoPushJobs = [data, {'job_id': data.next_job_id, "status": "RUNNING"}];
+          }
+        } else if (this.state.autoPushJobs.length == 2 && this.state.autoPushJobs[1].job_id == data.job_id) {
+          newState.autoPushJobs = [this.state.autoPushJobs[0], data];
+          if (data.status == "FINISHED" || data.status == "EXCEPTION") {
+            newState.working = false;
+            newState.interfaceDataUpdated = {};
+            this.getInterfaceData();
+          }
+        }
+        if (Object.keys(newState).length >= 1) {
+          this.setState(newState);
+        }
+      }
+    });
   }
 
   getDeviceName() {
@@ -81,13 +128,13 @@ class InterfaceConfig extends React.Component {
       console.log(error);
     });
   }
-
-  sendInterfaceData() {
+  
+  prepareSendJson(interfaceData) {
     // what config keys go in to level, and what goes under ["data"]
     let topLevelKeyNames = ["configtype"];
     // build object in the format API expects interfaces{} -> name{} -> configtype,data{}
     let sendData = {"interfaces": {}};
-    Object.entries(this.state.interfaceDataUpdated).map(([interfaceName, formData]) => {
+    Object.entries(interfaceData).map(([interfaceName, formData]) => {
       let topLevelKeys = {};
       let dataLevelKeys = {};
       Object.entries(formData).map(([formKey, formValue]) => {
@@ -102,11 +149,60 @@ class InterfaceConfig extends React.Component {
       }
       sendData["interfaces"][interfaceName] = topLevelKeys;
     });
+    return sendData;
+  }
+
+  sendInterfaceData() {
+    const credentials = localStorage.getItem("token");
+    const url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/interfaces";
+
+    let sendData = this.prepareSendJson(this.state.interfaceDataUpdated);
+
+    return putData(url, credentials, sendData).then(data => {
+      console.log("put interface return data: ");
+      console.log(data);
+
+      if ( data.status === "success" ) {
+        return true;
+      } else {
+        this.setState({errorMessage: data.message});
+        return false;
+      }
+    }).catch(error => {
+      this.setState({errorMessage: error.message});
+      return false;
+    });
+  }
+
+  startSynctoAutopush() {
+    const credentials = localStorage.getItem("token");
+    let url = process.env.API_URL + "/api/v1.0/device_syncto";
+
+    let sendData = {
+      "dry_run": true,
+      "comment": "interface update via WebUI",
+      "hostname": this.hostname,
+      "auto_push": true
+    };
+
+    postData(url, credentials, sendData).then(data => {
+      this.setState({
+        autoPushJobs: [{"job_id": data.job_id, "status": "RUNNING"}],
+        working: true
+      });
+    });
   }
   
   saveChanges() {
     // save old state
-    this.sendInterfaceData();
+    this.sendInterfaceData().then(saveStatus => {
+      if (saveStatus === true) {
+        this.startSynctoAutopush();
+        this.setState({accordionActiveIndex: 3});
+      } else {
+        this.setState({accordionActiveIndex: 2});
+      }
+    });
     // getData to refresh default values
     // allow or don't allow changes to unsynced devices? will become unsync after send
   }
@@ -163,7 +259,7 @@ class InterfaceConfig extends React.Component {
             } else {
               untagged_vlan = null;
             }
-            console.log("number matched to: "+untagged_vlan);
+//            console.log("number matched to: "+untagged_vlan);
           } else {
             untagged_vlan = ifData['untagged_vlan']
           }
@@ -234,9 +330,18 @@ class InterfaceConfig extends React.Component {
     });
   }
 
+  accordionClick = (e, titleProps) => {
+    const index = titleProps.index;
+    const accordionActiveIndex = this.state.accordionActiveIndex;
+    const newIndex = accordionActiveIndex === index ? -1 : index;
+
+    this.setState({ accordionActiveIndex: newIndex });
+  }
+
   render() {
     let interfaceTable = this.renderTableRows(this.state.interfaceData, this.state.vlanOptions);
     let syncStateIcon = this.state.deviceData.synchronized === true ? <Icon name="check" color="green" /> : <Icon name="delete" color="red" />;
+    let accordionActiveIndex = this.state.accordionActiveIndex;
 
     return (
       <section>
@@ -268,13 +373,49 @@ class InterfaceConfig extends React.Component {
                   >
                     <Modal.Header>Save & commit</Modal.Header>
                     <Modal.Content>
-                      <Modal.Description><pre>{JSON.stringify(this.state.interfaceDataUpdated, null, 2)}</pre></Modal.Description>
+                      <Modal.Description>
+                        <Accordion>
+                          <Accordion.Title
+                            active={accordionActiveIndex === 1}
+                            index={1}
+                            onClick={this.accordionClick}
+                          >
+                            <Icon name='dropdown' />
+                            POST JSON: 
+                          </Accordion.Title>
+                          <Accordion.Content active={accordionActiveIndex === 1}>
+                            <pre>{JSON.stringify(this.prepareSendJson(this.state.interfaceDataUpdated), null, 2)}</pre>
+                          </Accordion.Content>
+                          <Accordion.Title
+                            active={accordionActiveIndex === 2}
+                            index={2}
+                            onClick={this.accordionClick}
+                          >
+                            <Icon name='dropdown' />
+                            POST error: 
+                          </Accordion.Title>
+                          <Accordion.Content active={accordionActiveIndex === 2}>
+                            <pre>{JSON.stringify(this.state.errorMessage)}</pre>
+                          </Accordion.Content>
+                          <Accordion.Title
+                            active={accordionActiveIndex === 3}
+                            index={3}
+                            onClick={this.accordionClick}
+                          >
+                            <Icon name='dropdown' />
+                            Job output: 
+                          </Accordion.Title>
+                          <Accordion.Content active={accordionActiveIndex === 3}>
+                            <pre>{JSON.stringify(this.state.autoPushJobs)}</pre>
+                          </Accordion.Content>
+                        </Accordion>
+                      </Modal.Description>
                     </Modal.Content>
                     <Modal.Actions>
                       <Button key="cancel" color='black' onClick={() => this.setState({save_modal_open: false})}>
                         Cancel
                       </Button>
-                      <Button key="submit" onClick={this.sendInterfaceData.bind(this)} icon labelPosition='right' positive>
+                      <Button key="submit" onClick={this.saveChanges.bind(this)} disabled={this.state.working} icon labelPosition='right' positive>
                         Save and commit now
                       </Button>
                     </Modal.Actions>
