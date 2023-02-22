@@ -409,6 +409,10 @@ class DeviceList extends React.Component {
     this.props.history.push("firmware-upgrade?hostname="+hostname);
   }
 
+  configurePortsAction(hostname) {
+    this.props.history.push("interface-config?hostname="+hostname);
+  }
+
   updateFactsAction(hostname, device_id) {
     console.log("Update facts for hostname: "+hostname);
     const credentials = localStorage.getItem("token");
@@ -514,6 +518,7 @@ class DeviceList extends React.Component {
       let menuActions = [
           <Dropdown.Item text="No actions allowed in this state" disabled={true} />,
       ];
+      let hostnameExtra = [];
       if (items.state == "DISCOVERED") {
         deviceStateExtra.push(<DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceJob.bind(this)} />);
       } else if (items.state == "INIT") {
@@ -527,6 +532,14 @@ class DeviceList extends React.Component {
           <Dropdown.Item text="Update facts" onClick={() => this.updateFactsAction(items.hostname, items.id) }/>,
           <Dropdown.Item text="Make unmanaged" onClick={() => this.changeStateAction(items.id, "UNMANAGED")} />
         ];
+        if (items.device_type === "ACCESS") {
+          menuActions.push(
+            <Dropdown.Item text="Configure ports" onClick={() => this.configurePortsAction(items.hostname)} />
+          );
+          hostnameExtra.push(
+//            <a href={"/interface-config?hostname="+items.hostname}><Icon name='plug' link /></a>
+          );
+        }
       } else if (items.state == "UNMANAGED") {
         menuActions = [
           <Dropdown.Item text="Update facts" onClick={() => this.updateFactsAction(items.hostname, items.id) }/>,
@@ -565,6 +578,7 @@ class DeviceList extends React.Component {
           <td key="0">
             <Icon name="angle right" />
             {items.hostname}
+            {hostnameExtra}
           </td>
           <td key="1">{items.device_type}</td>
           {syncStatus}
