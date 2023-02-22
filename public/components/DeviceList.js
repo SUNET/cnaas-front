@@ -537,7 +537,7 @@ class DeviceList extends React.Component {
             <Dropdown.Item text="Configure ports" onClick={() => this.configurePortsAction(items.hostname)} />
           );
           hostnameExtra.push(
-//            <a href={"/interface-config?hostname="+items.hostname}><Icon name='plug' link /></a>
+            <a href={"/interface-config?hostname="+items.hostname}><Icon name='plug' link /></a>
           );
         }
       } else if (items.state == "UNMANAGED") {
