@@ -137,7 +137,7 @@ class InterfaceConfig extends React.Component {
         const vlanOptions = Object.entries(data['data']['settings']['vxlans']).map(([vxlan_name, vxlan_data], index) => {
             return {'value': vxlan_data.vlan_name, 'text': vxlan_data.vlan_name, 'description': vxlan_data.vlan_id};
         });
-        let untaggedVlanOptions = vlanOptions;
+        let untaggedVlanOptions = [...vlanOptions];
         untaggedVlanOptions.push({'value': null, 'text': "None", 'description': "NA"});
 
         this.setState({
@@ -437,7 +437,7 @@ class InterfaceConfig extends React.Component {
                             POST error: 
                           </Accordion.Title>
                           <Accordion.Content active={accordionActiveIndex === 2}>
-                            <pre>{JSON.stringify(this.state.errorMessage)}</pre>
+                            <p>{JSON.stringify(this.state.errorMessage)}</p>
                           </Accordion.Content>
                           <Accordion.Title
                             active={accordionActiveIndex === 3}
