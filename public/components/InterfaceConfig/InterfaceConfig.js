@@ -2,7 +2,7 @@ import React from "react";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
 import { putData, postData } from "../../utils/sendData";
-import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup } from "semantic-ui-react";
+import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup, Checkbox } from "semantic-ui-react";
 const io = require("socket.io-client");
 var socket = null;
 
@@ -259,8 +259,15 @@ class InterfaceConfig extends React.Component {
     const nameSplit = data.name.split('|', 2);
     const interfaceName = nameSplit[1];
     const json_key = nameSplit[0];
-    const val = data.value;
-    const defaultValue = data.defaultValue;
+    let val = null;
+    let defaultValue = null;
+    if ('defaultChecked' in data) {
+      defaultValue = data.defaultChecked;
+      val = data.checked;
+    } else {
+      defaultValue = data.defaultValue;
+      val = data.value;
+    }
     let newData = this.state.interfaceDataUpdated;
     if (JSON.stringify(val) !== JSON.stringify(defaultValue)) {
       if (interfaceName in newData) {
@@ -290,6 +297,7 @@ class InterfaceConfig extends React.Component {
       let updated = (item.name in this.state.interfaceDataUpdated);
       let untagged_vlan = null;
       let tagged_vlan_list = null;
+      let enabled = true;
 //      console.log(ifData);
       if (ifData !== null) {
         if ('description' in ifData) {
@@ -315,6 +323,12 @@ class InterfaceConfig extends React.Component {
         if ('tagged_vlan_list' in ifData) {
           tagged_vlan_list = ifData['tagged_vlan_list'];
         }
+        if ('enabled' in ifData) {
+          enabled = ifData['enabled'];
+        }
+      }
+      if (updated == true && this.state.interfaceDataUpdated[item.name]['enabled'] !== undefined) {
+        enabled = this.state.interfaceDataUpdated[item.name]['enabled'];
       }
 
       let currentConfigtype = item.configtype;
@@ -324,7 +338,7 @@ class InterfaceConfig extends React.Component {
 
       let dataCell = [];
       if (vlanOptions.length == 0 ) {
-        dataCell = [<Loader inline active />];
+        dataCell = [<Loader key="loading" inline active />];
       } else if (currentConfigtype === "ACCESS_TAGGED") {
         dataCell = [<Dropdown
           key={"tagged_vlan_list|"+item.name}
@@ -346,23 +360,32 @@ class InterfaceConfig extends React.Component {
       }
       if (item.data !== null) {
         dataCell.push(<Popup
-                      header="Raw JSON data"
-                      content={JSON.stringify(item.data)}
-                      position="top right"
-                      wide
-                      hoverable
-                      trigger={<Icon color="grey" name="ellipsis horizontal" />}
-                    />);
+                        key="rawjson"
+                        header="Raw JSON data"
+                        content={JSON.stringify(item.data)}
+                        position="top right"
+                        wide
+                        hoverable
+                        trigger={<Icon color="grey" name="ellipsis horizontal" />}
+                      />);
       }
 
       let statusIcon = <Icon loading color="grey" name="spinner" />;
       if (item.name in this.state.interfaceStatusData) {
-        console.log(this.state.interfaceStatusData[item.name]);
+        let toggleEnabled = <Checkbox
+          key={"enabled|"+item.name}
+          name={"enabled|"+item.name}
+          toggle
+          label={<label>Interface enabled</label>}
+          defaultChecked={enabled}
+          onChange={this.updateFieldData}
+          disabled={editDisabled}
+        />;
         if (this.state.interfaceStatusData[item.name]['is_up'] == true) {
           statusIcon = <Popup
                          header={item.name}
-                         content={"Interface is up, speed: " + 
-                           this.state.interfaceStatusData[item.name]['speed'] + " Mbit/s"}
+                         content={["Interface is up, speed: " + 
+                           this.state.interfaceStatusData[item.name]['speed'] + " Mbit/s", toggleEnabled]}
                          position="right center"
                          wide
                          hoverable
@@ -371,16 +394,18 @@ class InterfaceConfig extends React.Component {
         } else if (this.state.interfaceStatusData[item.name]['is_enabled'] == false) {
           statusIcon = <Popup
                          header={item.name}
-                         content={"Interface is admin disabled"}
+                         content={["Interface is admin disabled", toggleEnabled]}
                          position="right center"
+                         wide
                          hoverable
                          trigger={<Icon color="red" name="circle" />}
                        />;
         } else {
           statusIcon = <Popup
                          header={item.name}
-                         content={"Interface is down"}
+                         content={["Interface is down", toggleEnabled]}
                          position="right center"
+                         wide
                          hoverable
                          trigger={<Icon color="grey" name="circle outline" />}
                        />;
@@ -449,7 +474,10 @@ class InterfaceConfig extends React.Component {
           <Table>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell width={2}>Name</Table.HeaderCell><Table.HeaderCell width={4}>Description</Table.HeaderCell><Table.HeaderCell width={3}>Configtype</Table.HeaderCell><Table.HeaderCell width={3}>Data</Table.HeaderCell>
+                <Table.HeaderCell width={2}>Name</Table.HeaderCell>
+                <Table.HeaderCell width={4}>Description</Table.HeaderCell>
+                <Table.HeaderCell width={3}>Configtype</Table.HeaderCell>
+                <Table.HeaderCell width={3}>Options</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
             <Table.Body>
