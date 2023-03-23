@@ -2,7 +2,7 @@ import React from "react";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
 import { putData, postData } from "../../utils/sendData";
-import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion } from "semantic-ui-react";
+import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup } from "semantic-ui-react";
 const io = require("socket.io-client");
 var socket = null;
 
@@ -10,6 +10,7 @@ class InterfaceConfig extends React.Component {
   state = {
     interfaceData: [],
     interfaceDataUpdated: {},
+    interfaceStatusData: {},
     deviceData: {},
     editDisabled: false,
     vlanOptions: [],
@@ -37,6 +38,7 @@ class InterfaceConfig extends React.Component {
     if (this.hostname !== null) {
       this.getInterfaceData();
       this.getDeviceData();
+      this.getInterfaceStatusData();
     }
     const credentials = localStorage.getItem("token");
     socket = io(process.env.API_URL, {query: {jwt: credentials}});
@@ -106,6 +108,20 @@ class InterfaceConfig extends React.Component {
       {
         this.setState({
           interfaceData: data['data']['interfaces']
+        });
+      }
+    ).catch(error => {
+      console.log(error);
+    });
+  }
+
+  getInterfaceStatusData() {
+    const credentials = localStorage.getItem("token");
+    let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/interface_status";
+    return getData(url, credentials).then(data =>
+      {
+        this.setState({
+          interfaceStatusData: data['data']['interface_status']
         });
       }
     ).catch(error => {
@@ -306,34 +322,74 @@ class InterfaceConfig extends React.Component {
         currentConfigtype = this.state.interfaceDataUpdated[item.name].configtype;
       }
 
-      let dataCell = "";
+      let dataCell = [];
       if (vlanOptions.length == 0 ) {
-        dataCell = <Loader inline active />
+        dataCell = [<Loader inline active />];
       } else if (currentConfigtype === "ACCESS_TAGGED") {
-        dataCell = <Dropdown
+        dataCell = [<Dropdown
           key={"tagged_vlan_list|"+item.name}
           name={"tagged_vlan_list|"+item.name}
           fluid multiple selection
           options={this.state.vlanOptions}
           defaultValue={tagged_vlan_list}
           onChange={this.updateFieldData}
-        />
+        />];
       } else if (currentConfigtype === "ACCESS_UNTAGGED") {
-        dataCell = <Dropdown
+        dataCell = [<Dropdown
           key={"untagged_vlan|"+item.name}
           name={"untagged_vlan|"+item.name}
           fluid selection
           options={this.state.untaggedVlanOptions}
           defaultValue={untagged_vlan}
           onChange={this.updateFieldData}
-        />
-      } else {
-        dataCell = JSON.stringify(item.data);
+        />];
+      }
+      if (item.data !== null) {
+        dataCell.push(<Popup
+                      header="Raw JSON data"
+                      content={JSON.stringify(item.data)}
+                      position="top right"
+                      wide
+                      hoverable
+                      trigger={<Icon color="grey" name="ellipsis horizontal" />}
+                    />);
+      }
+
+      let statusIcon = <Icon loading color="grey" name="spinner" />;
+      if (item.name in this.state.interfaceStatusData) {
+        console.log(this.state.interfaceStatusData[item.name]);
+        if (this.state.interfaceStatusData[item.name]['is_up'] == true) {
+          statusIcon = <Popup
+                         header={item.name}
+                         content={"Interface is up, speed: " + 
+                           this.state.interfaceStatusData[item.name]['speed'] + " Mbit/s"}
+                         position="right center"
+                         wide
+                         hoverable
+                         trigger={<Icon color="green" name="circle" />}
+                       />;
+        } else if (this.state.interfaceStatusData[item.name]['is_enabled'] == false) {
+          statusIcon = <Popup
+                         header={item.name}
+                         content={"Interface is admin disabled"}
+                         position="right center"
+                         hoverable
+                         trigger={<Icon color="red" name="circle" />}
+                       />;
+        } else {
+          statusIcon = <Popup
+                         header={item.name}
+                         content={"Interface is down"}
+                         position="right center"
+                         hoverable
+                         trigger={<Icon color="grey" name="circle outline" />}
+                       />;
+        }
       }
 
       return [
-        <Table.Row key={"tr_"+index} disabled={editDisabled} warning={updated}>
-          <Table.Cell>{item.name}</Table.Cell>
+        <Table.Row key={"tr_"+index} warning={updated}>
+          <Table.Cell>{statusIcon}   {item.name}</Table.Cell>
           <Table.Cell>
             <Input
               key={"description|"+item.name}
