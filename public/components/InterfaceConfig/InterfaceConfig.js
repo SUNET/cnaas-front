@@ -20,7 +20,8 @@ class InterfaceConfig extends React.Component {
     errorMessage: null,
     working: false,
     initialSyncState: null,
-    initialConfHash: null
+    initialConfHash: null,
+    awaitingDeviceSynchronization: false
   }
   hostname = null;
   configTypeOptions = [
@@ -53,7 +54,21 @@ class InterfaceConfig extends React.Component {
         console.log("DEBUG: ");
         console.log(this.state.deviceData);
         console.log(data.object);
-        this.setState({deviceData: data.object});
+        if (this.state.awaitingDeviceSynchronization === true && data.object['synchronized'] === true) {
+          console.log("update data after job finish");
+          this.setState({
+            initialSyncState: null,
+            initialConfHash: null,
+            awaitingDeviceSynchronization: false,
+            deviceData: data.object
+          }, () => {
+            this.getInterfaceData();
+            this.getDeviceData();
+            this.refreshInterfaceStatus();
+          });
+        } else {
+          this.setState({deviceData: data.object});
+        }
       // job update event
       } else if (data.job_id !== undefined) {
         // if job updated state
@@ -74,15 +89,10 @@ class InterfaceConfig extends React.Component {
         } else if (this.state.autoPushJobs.length == 2 && this.state.autoPushJobs[1].job_id == data.job_id) {
           newState.autoPushJobs = [this.state.autoPushJobs[0], data];
           if (data.status == "FINISHED" || data.status == "EXCEPTION") {
+            console.log("jobs finished!");
             newState.working = false;
             newState.interfaceDataUpdated = {};
-            this.setState({
-              initialSyncState: null,
-              initialConfHash: null
-            }, () => {
-              this.getInterfaceData();
-              this.getDeviceData();
-            });
+            this.setState({awaitingDeviceSynchronization: true});
           }
         }
         if (Object.keys(newState).length >= 1) {
@@ -126,6 +136,12 @@ class InterfaceConfig extends React.Component {
       }
     ).catch(error => {
       console.log(error);
+    });
+  }
+
+  refreshInterfaceStatus() {
+    this.setState({interfaceStatusData: {}}, () => {
+      this.getInterfaceStatusData();
     });
   }
 
@@ -376,7 +392,7 @@ class InterfaceConfig extends React.Component {
           key={"enabled|"+item.name}
           name={"enabled|"+item.name}
           toggle
-          label={<label>Interface enabled</label>}
+          label={<label>Enable interface</label>}
           defaultChecked={enabled}
           onChange={this.updateFieldData}
           disabled={editDisabled}
@@ -549,6 +565,10 @@ class InterfaceConfig extends React.Component {
                       </Button>
                     </Modal.Actions>
                   </Modal>
+                  <Button icon labelPosition='right' onClick={this.refreshInterfaceStatus.bind(this)}>
+                    Refresh interface status
+                    <Icon name="refresh" />
+                  </Button>
                 </Table.HeaderCell>
               </Table.Row>
             </Table.Footer>
