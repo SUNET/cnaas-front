@@ -36,7 +36,7 @@ class InterfaceConfig extends React.Component {
   ];
   configTypesEnabled = ["ACCESS_AUTO", "ACCESS_UNTAGGED", "ACCESS_TAGGED", "ACCESS_DOWNLINK"];
   columnWidths = {
-    "vlans": 3,
+    "vlans": 4,
     "tags": 3,
     "json": 1
   };
@@ -414,6 +414,7 @@ class InterfaceConfig extends React.Component {
             defaultValue={tags}
             onAddItem={this.addTagOption}
             onChange={this.updateFieldData}
+            disabled={editDisabled}
           />;
         } else if (columnName == "json") {
           if (item.data !== null) {
@@ -429,7 +430,7 @@ class InterfaceConfig extends React.Component {
               />;
           }
         }
-        return <Table.Cell key={columnName} width={this.columnWidths[columnName]}>{colData}</Table.Cell>;
+        return <Table.Cell collapsing key={columnName}>{colData}</Table.Cell>;
       });
 
       let statusIcon = <Icon loading color="grey" name="spinner" />;
@@ -476,8 +477,8 @@ class InterfaceConfig extends React.Component {
 
       return [
         <Table.Row key={"tr_"+index} warning={updated}>
-          <Table.Cell width={2}>{statusIcon}   {item.name}</Table.Cell>
-          <Table.Cell width={4}>
+          <Table.Cell>{statusIcon}   {item.name}</Table.Cell>
+          <Table.Cell>
             <Input
               key={"description|"+item.name}
               name={"description|"+item.name}
@@ -486,7 +487,7 @@ class InterfaceConfig extends React.Component {
               onChange={this.updateFieldData}
             />
           </Table.Cell>
-          <Table.Cell width={3}>
+          <Table.Cell>
             <Dropdown
               key={"configtype|"+item.name}
               name={"configtype|"+item.name}
@@ -534,7 +535,9 @@ class InterfaceConfig extends React.Component {
       (this.state.initialConfHash != this.state.deviceData.confhash)
     );
     let stateWarning = null;
-    if (!this.state.initialSyncState || (this.state.initialConfHash != this.state.deviceData.confhash)) {
+    if (this.state.initialSyncState === null) {
+      stateWarning = <Loader active />;
+    } else if (!this.state.initialSyncState || (this.state.initialConfHash != this.state.deviceData.confhash)) {
       stateWarning = <p><Icon name="warning sign" color="orange" size="large" />Device is not synchronized, use dry_run and verify diff to apply changes.</p>;
     }
 
@@ -569,11 +572,11 @@ class InterfaceConfig extends React.Component {
             </Popup>
           </div>
           <div id="data">
-          <Table>
+          <Table compact>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell width={2}>Name</Table.HeaderCell>
-                <Table.HeaderCell width={4}>Description</Table.HeaderCell>
+                <Table.HeaderCell width={3}>Name</Table.HeaderCell>
+                <Table.HeaderCell width={6}>Description</Table.HeaderCell>
                 <Table.HeaderCell width={3}>Configtype</Table.HeaderCell>
                 {columnHeaders}
               </Table.Row>
