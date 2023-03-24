@@ -2,7 +2,7 @@ import React from "react";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
 import { putData, postData } from "../../utils/sendData";
-import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup, Checkbox } from "semantic-ui-react";
+import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup, Checkbox, TableCell } from "semantic-ui-react";
 const io = require("socket.io-client");
 var socket = null;
 
@@ -21,7 +21,8 @@ class InterfaceConfig extends React.Component {
     working: false,
     initialSyncState: null,
     initialConfHash: null,
-    awaitingDeviceSynchronization: false
+    awaitingDeviceSynchronization: false,
+    displayColumns: ["vlans"]
   }
   hostname = null;
   configTypeOptions = [
@@ -33,6 +34,11 @@ class InterfaceConfig extends React.Component {
     {'value': "MLAG_PEER", 'text': "MLAG peer interface", 'disabled': true},
   ];
   configTypesEnabled = ["ACCESS_AUTO", "ACCESS_UNTAGGED", "ACCESS_TAGGED", "ACCESS_DOWNLINK"];
+  columnWidths = {
+    "vlans": 3,
+    "tags": 3,
+    "json": 1
+  };
 
   componentDidMount() {
     this.hostname = this.getDeviceName();
@@ -352,39 +358,46 @@ class InterfaceConfig extends React.Component {
         currentConfigtype = this.state.interfaceDataUpdated[item.name].configtype;
       }
 
-      let dataCell = [];
-      if (vlanOptions.length == 0 ) {
-        dataCell = [<Loader key="loading" inline active />];
-      } else if (currentConfigtype === "ACCESS_TAGGED") {
-        dataCell = [<Dropdown
-          key={"tagged_vlan_list|"+item.name}
-          name={"tagged_vlan_list|"+item.name}
-          fluid multiple selection
-          options={this.state.vlanOptions}
-          defaultValue={tagged_vlan_list}
-          onChange={this.updateFieldData}
-        />];
-      } else if (currentConfigtype === "ACCESS_UNTAGGED") {
-        dataCell = [<Dropdown
-          key={"untagged_vlan|"+item.name}
-          name={"untagged_vlan|"+item.name}
-          fluid selection
-          options={this.state.untaggedVlanOptions}
-          defaultValue={untagged_vlan}
-          onChange={this.updateFieldData}
-        />];
-      }
-      if (item.data !== null) {
-        dataCell.push(<Popup
-                        key="rawjson"
-                        header="Raw JSON data"
-                        content={JSON.stringify(item.data)}
-                        position="top right"
-                        wide
-                        hoverable
-                        trigger={<Icon color="grey" name="ellipsis horizontal" />}
-                      />);
-      }
+      let optionalColumns = this.state.displayColumns.map((columnName) => {
+        let colData = null;
+        if (columnName == "vlans") {
+          if (vlanOptions.length == 0 ) {
+            colData = <Loader key="loading" inline active />;
+          } else if (currentConfigtype === "ACCESS_TAGGED") {
+            colData = <Dropdown
+              key={"tagged_vlan_list|"+item.name}
+              name={"tagged_vlan_list|"+item.name}
+              fluid multiple selection
+              options={this.state.vlanOptions}
+              defaultValue={tagged_vlan_list}
+              onChange={this.updateFieldData}
+            />;
+          } else if (currentConfigtype === "ACCESS_UNTAGGED") {
+            colData = <Dropdown
+              key={"untagged_vlan|"+item.name}
+              name={"untagged_vlan|"+item.name}
+              fluid selection
+              options={this.state.untaggedVlanOptions}
+              defaultValue={untagged_vlan}
+              onChange={this.updateFieldData}
+            />;
+          }
+        } else if (columnName == "json") {
+          if (item.data !== null) {
+            colData =
+              <Popup
+                key="rawjson"
+                header="Raw JSON data"
+                content={JSON.stringify(item.data)}
+                position="top right"
+                wide
+                hoverable
+                trigger={<Icon color="grey" name="ellipsis horizontal" />}
+              />;
+          }
+        }
+        return <Table.Cell key={columnName} width={this.columnWidths[columnName]}>{colData}</Table.Cell>;
+      });
 
       let statusIcon = <Icon loading color="grey" name="spinner" />;
       if (item.name in this.state.interfaceStatusData) {
@@ -430,8 +443,8 @@ class InterfaceConfig extends React.Component {
 
       return [
         <Table.Row key={"tr_"+index} warning={updated}>
-          <Table.Cell>{statusIcon}   {item.name}</Table.Cell>
-          <Table.Cell>
+          <Table.Cell width={2}>{statusIcon}   {item.name}</Table.Cell>
+          <Table.Cell width={4}>
             <Input
               key={"description|"+item.name}
               name={"description|"+item.name}
@@ -440,7 +453,7 @@ class InterfaceConfig extends React.Component {
               onChange={this.updateFieldData}
             />
           </Table.Cell>
-          <Table.Cell>
+          <Table.Cell width={3}>
             <Dropdown
               key={"configtype|"+item.name}
               name={"configtype|"+item.name}
@@ -451,9 +464,7 @@ class InterfaceConfig extends React.Component {
               onChange={this.updateFieldData}
             />
           </Table.Cell>
-          <Table.Cell>
-            {dataCell}
-          </Table.Cell>
+          {optionalColumns}
         </Table.Row>
       ];
     });
@@ -465,6 +476,19 @@ class InterfaceConfig extends React.Component {
     const newIndex = accordionActiveIndex === index ? -1 : index;
 
     this.setState({ accordionActiveIndex: newIndex });
+  }
+
+  columnSelectorChange = (e, data) => {
+    let newDisplayColumns = this.state.displayColumns;
+    if (data.checked === true && newDisplayColumns.indexOf(data.name) === -1) {
+      newDisplayColumns.push(data.name);
+    } else if (data.checked === false) {
+      const index = newDisplayColumns.indexOf(data.name);
+      if (index > -1) {
+        newDisplayColumns.splice(index, 1);
+      }
+    }
+    this.setState({displayColumns: newDisplayColumns});
   }
 
   render() {
@@ -481,11 +505,36 @@ class InterfaceConfig extends React.Component {
       stateWarning = <p><Icon name="warning sign" color="orange" size="large" />Device is not synchronized, use dry_run and verify diff to apply changes.</p>;
     }
 
+    const allowedColumns = {
+      "vlans": "VLANs",
+      "tags": "Tags",
+      "json": "Raw JSON"
+    };
+
+    let columnHeaders = this.state.displayColumns.map(columnName => {
+      return <Table.HeaderCell width={this.columnWidths[columnName]} key={columnName}>{allowedColumns[columnName]}</Table.HeaderCell>;
+    });
+
+    let columnSelectors = Object.keys(allowedColumns).map((columnName, columnIndex) => {
+      let checked = false;
+      if (this.state.displayColumns.indexOf(columnName) !== -1) {
+        checked = true;
+      }
+      return <li key={columnIndex}><Checkbox defaultChecked={checked} label={allowedColumns[columnName]} name={columnName} onChange={this.columnSelectorChange.bind(this)} /></li>
+    })
+
     return (
       <section>
-        <p>Hostname: {this.hostname}, sync state: {syncStateIcon}</p>
-        {stateWarning}
         <div id="device_list">
+          <h2>Interface configuration</h2>
+          <p>Hostname: {this.hostname}, sync state: {syncStateIcon}</p>
+          {stateWarning}
+          <div className="table_options">
+            <Popup on='click' pinned position='bottom right' trigger={<Button className="table_options_button"><Icon name="table" /></Button>} >
+              <p>Show extra columns:</p>
+              <ul>{columnSelectors}</ul>
+            </Popup>
+          </div>
           <div id="data">
           <Table>
             <Table.Header>
@@ -493,7 +542,7 @@ class InterfaceConfig extends React.Component {
                 <Table.HeaderCell width={2}>Name</Table.HeaderCell>
                 <Table.HeaderCell width={4}>Description</Table.HeaderCell>
                 <Table.HeaderCell width={3}>Configtype</Table.HeaderCell>
-                <Table.HeaderCell width={3}>Options</Table.HeaderCell>
+                {columnHeaders}
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -501,7 +550,7 @@ class InterfaceConfig extends React.Component {
             </Table.Body>
             <Table.Footer fullWidth>
               <Table.Row>
-                <Table.HeaderCell colSpan={4}>
+                <Table.HeaderCell colSpan={3+this.state.displayColumns.length}>
                   <Modal
                     onClose={() => this.setState({save_modal_open: false})}
                     onOpen={() => this.setState({save_modal_open: true})}
