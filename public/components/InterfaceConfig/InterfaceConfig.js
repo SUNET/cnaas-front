@@ -22,7 +22,8 @@ class InterfaceConfig extends React.Component {
     initialSyncState: null,
     initialConfHash: null,
     awaitingDeviceSynchronization: false,
-    displayColumns: ["vlans"]
+    displayColumns: ["vlans"],
+    tagOptions: []
   }
   hostname = null;
   configTypeOptions = [
@@ -122,8 +123,19 @@ class InterfaceConfig extends React.Component {
     let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/interfaces";
     return getData(url, credentials).then(data =>
       {
+        let usedTags = [];
+        data['data']['interfaces'].map((item, index) => {
+          let ifData = item.data;
+          if (ifData !== null && 'tags' in ifData) {
+            ifData['tags'].map((tag) => {
+              usedTags.push({text: tag, value: tag})
+            });
+          }
+        });
+
         this.setState({
-          interfaceData: data['data']['interfaces']
+          interfaceData: data['data']['interfaces'],
+          tagOptions: usedTags
         });
       }
     ).catch(error => {
@@ -277,6 +289,13 @@ class InterfaceConfig extends React.Component {
 
   }
 
+  addTagOption = (e, data) => {
+    let value = data.value;
+    this.setState((prevState) => ({
+      tagOptions: [{ text: value, value }, ...prevState.tagOptions],
+    }))
+  }
+
   updateFieldData = (e, data) => {
     const nameSplit = data.name.split('|', 2);
     const interfaceName = nameSplit[1];
@@ -319,6 +338,7 @@ class InterfaceConfig extends React.Component {
       let updated = (item.name in this.state.interfaceDataUpdated);
       let untagged_vlan = null;
       let tagged_vlan_list = null;
+      let tags = [];
       let enabled = true;
 //      console.log(ifData);
       if (ifData !== null) {
@@ -347,6 +367,9 @@ class InterfaceConfig extends React.Component {
         }
         if ('enabled' in ifData) {
           enabled = ifData['enabled'];
+        }
+        if ('tags' in ifData) {
+          tags = ifData['tags'];
         }
       }
       if (updated == true && this.state.interfaceDataUpdated[item.name]['enabled'] !== undefined) {
@@ -382,6 +405,16 @@ class InterfaceConfig extends React.Component {
               onChange={this.updateFieldData}
             />;
           }
+        } else if (columnName == "tags") {
+          colData = <Dropdown
+            key={"tags|"+item.name}
+            name={"tags|"+item.name}
+            fluid multiple selection search allowAdditions
+            options={this.state.tagOptions}
+            defaultValue={tags}
+            onAddItem={this.addTagOption}
+            onChange={this.updateFieldData}
+          />;
         } else if (columnName == "json") {
           if (item.data !== null) {
             colData =
