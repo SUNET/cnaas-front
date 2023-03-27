@@ -490,8 +490,9 @@ class InterfaceConfig extends React.Component {
         if (this.state.interfaceStatusData[item.name]['is_up'] == true) {
           statusIcon = <Popup
                          header={item.name}
-                         content={["Interface is up, speed: " + 
-                           this.state.interfaceStatusData[item.name]['speed'] + " Mbit/s", toggleEnabled, bounceInterfaceButton, statusMessage]}
+                         content={[
+                         <p key="status">Interface is up, speed: {this.state.interfaceStatusData[item.name]['speed']} Mbit/s</p>,
+                          toggleEnabled, bounceInterfaceButton, statusMessage]}
                          position="right center"
                          wide
                          hoverable
@@ -500,7 +501,7 @@ class InterfaceConfig extends React.Component {
         } else if (this.state.interfaceStatusData[item.name]['is_enabled'] == false) {
           statusIcon = <Popup
                          header={item.name}
-                         content={["Interface is admin disabled", toggleEnabled]}
+                         content={[<p key="status">Interface is admin disabled</p>, toggleEnabled]}
                          position="right center"
                          wide
                          hoverable
@@ -509,7 +510,7 @@ class InterfaceConfig extends React.Component {
         } else {
           statusIcon = <Popup
                          header={item.name}
-                         content={["Interface is down", toggleEnabled, bounceInterfaceButton, statusMessage]}
+                         content={[<p key="status">Interface is down</p>, toggleEnabled, bounceInterfaceButton, statusMessage]}
                          position="right center"
                          wide
                          hoverable
