@@ -23,7 +23,8 @@ class InterfaceConfig extends React.Component {
     initialConfHash: null,
     awaitingDeviceSynchronization: false,
     displayColumns: ["vlans"],
-    tagOptions: []
+    tagOptions: [],
+    interfaceBounceRunning: {}
   }
   hostname = null;
   configTypeOptions = [
@@ -330,6 +331,30 @@ class InterfaceConfig extends React.Component {
     });
   }
 
+  submitBounce(intf) {
+    const credentials = localStorage.getItem("token");
+    let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/interface_status";
+
+    let interfaceBounceRunningNew = this.state.interfaceBounceRunning;
+    interfaceBounceRunningNew[intf] = "running";
+    this.setState({interfaceBounceRunning: interfaceBounceRunningNew});
+
+    let sendData = {"bounce_interfaces": [intf]};
+    putData(url, credentials, sendData).then(data => {
+      interfaceBounceRunningNew = this.state.interfaceBounceRunning;
+      if ( data.status === "success" ) {
+        interfaceBounceRunningNew[intf] = "finished";
+      } else {
+        interfaceBounceRunningNew[intf] = "error: " + data.data;
+      }
+      this.setState({interfaceBounceRunning: interfaceBounceRunningNew});
+    }).catch(error => {
+      interfaceBounceRunningNew = this.state.interfaceBounceRunning;
+      interfaceBounceRunningNew[intf] = "error: " + error;
+      this.setState({interfaceBounceRunning: interfaceBounceRunningNew});
+    });
+  }
+
   renderTableRows(interfaceData, vlanOptions) {
     return interfaceData.map((item, index) => {
       let ifData = item.data;
@@ -444,11 +469,29 @@ class InterfaceConfig extends React.Component {
           onChange={this.updateFieldData}
           disabled={editDisabled}
         />;
+        let bounceDisabled = false;
+        let bounceButtonIcon = <Icon name="retweet" />;
+        let statusMessage = null;
+        if (item.name in this.state.interfaceBounceRunning) {
+          if (this.state.interfaceBounceRunning[item.name] === "running") {
+            bounceDisabled = true;
+          } else {
+            statusMessage = <p key="message">{this.state.interfaceBounceRunning[item.name]}</p>;
+          }
+        }
+        let bounceInterfaceButton = <Button 
+          key={"bounce"}
+          disabled={(editDisabled || bounceDisabled)}
+          loading={(bounceDisabled)}
+          icon labelPosition='right'
+          onClick={() => this.submitBounce(item.name)}
+          size="small"
+          >Bounce interface {bounceButtonIcon}</Button>;
         if (this.state.interfaceStatusData[item.name]['is_up'] == true) {
           statusIcon = <Popup
                          header={item.name}
                          content={["Interface is up, speed: " + 
-                           this.state.interfaceStatusData[item.name]['speed'] + " Mbit/s", toggleEnabled]}
+                           this.state.interfaceStatusData[item.name]['speed'] + " Mbit/s", toggleEnabled, bounceInterfaceButton, statusMessage]}
                          position="right center"
                          wide
                          hoverable
@@ -466,7 +509,7 @@ class InterfaceConfig extends React.Component {
         } else {
           statusIcon = <Popup
                          header={item.name}
-                         content={["Interface is down", toggleEnabled]}
+                         content={["Interface is down", toggleEnabled, bounceInterfaceButton, statusMessage]}
                          position="right center"
                          wide
                          hoverable
