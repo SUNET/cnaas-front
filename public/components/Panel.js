@@ -8,6 +8,7 @@ import FirmwareCopy from "./FirmwareCopy";
 import LoginForm from "./LoginForm";
 import ErrorBoundary from "./ErrorBoundary"
 import Dashboard from "./Dashboard"
+import InterfaceConfig from "./InterfaceConfig/InterfaceConfig";
 import { Route } from "react-router-dom";
 
 // passible base64 encode function?
@@ -68,6 +69,11 @@ class Panel extends React.Component {
             exact
             path="/firmware-copy"
             component={FirmwareCopy}
+          />
+          <Route
+            exact
+            path="/interface-config"
+            component={InterfaceConfig}
           />
         </ErrorBoundary>
       </div>

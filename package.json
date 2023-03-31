@@ -34,10 +34,11 @@
   "dependencies": {
     "dotenv": "^8.6.0",
     "jsonwebtoken": "^9.0.0",
+    "package.json": "^2.0.1",
     "query-string": "^6.14.1",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
-    "semantic-ui-react": "^0.88.2",
+    "semantic-ui-react": "^2.1.4",
     "socket.io-client": "^3.1.3"
   }
 }
