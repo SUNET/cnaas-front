@@ -379,7 +379,7 @@ class DeviceList extends React.Component {
     return interfaceData.
       filter(intf => intf.configtype === "MLAG_PEER").
       map(intf => {
-      return <a href={"?search_id="+intf.data.neighbor_id} title="Find MLAG peer device">{intf.name}: MLAG peer interface</a>;
+      return <a key={intf.name} href={"?search_id="+intf.data.neighbor_id} title="Find MLAG peer device">{intf.name}: MLAG peer interface</a>;
     });
   }
 
@@ -387,7 +387,7 @@ class DeviceList extends React.Component {
     return interfaceData.
       filter(intf => intf.configtype === "ACCESS_UPLINK").
       map(intf => {
-        return <a href={"?search_hostname="+intf.data.neighbor} title="Find uplink device">{intf.name}: Uplink to {intf.data.neighbor}</a>;
+        return <a key={intf.name} href={"?search_hostname="+intf.data.neighbor} title="Find uplink device">{intf.name}: Uplink to {intf.data.neighbor}</a>;
     });
   }
 
@@ -407,6 +407,10 @@ class DeviceList extends React.Component {
 
   upgradeDeviceAction(hostname) {
     this.props.history.push("firmware-upgrade?hostname="+hostname);
+  }
+
+  configurePortsAction(hostname) {
+    this.props.history.push("interface-config?hostname="+hostname);
   }
 
   updateFactsAction(hostname, device_id) {
@@ -487,59 +491,68 @@ class DeviceList extends React.Component {
 
   render() {
     const devicesData = this.state.devicesData;
-    let deviceInfo = devicesData.map((items, index) => {
+    let deviceInfo = devicesData.map((device, index) => {
       let syncStatus = "";
-      if (items.state === "MANAGED") {
-        if (items.synchronized === true) {
+      if (device.state === "MANAGED") {
+        if (device.synchronized === true) {
           syncStatus = (
-            <td key="2">
+            <td key={device.id+"_state"}>
               MANAGED <Icon name="check" color="green" />
             </td>
           );
         } else {
           syncStatus = (
-            <td key="2">
+            <td key={device.id+"_state"}>
               MANAGED <Icon name="delete" color="red" />
             </td>
           );
         }
       } else {
           syncStatus = (
-            <td key="2">
-              {items.state}
+            <td key={device.id+"_state"}>
+              {device.state}
             </td>
           );
       }
       let deviceStateExtra = [];
       let menuActions = [
-          <Dropdown.Item text="No actions allowed in this state" disabled={true} />,
+          <Dropdown.Item key="noaction" text="No actions allowed in this state" disabled={true} />,
       ];
-      if (items.state == "DISCOVERED") {
-        deviceStateExtra.push(<DeviceInitForm deviceId={items.id} jobIdCallback={this.addDeviceJob.bind(this)} />);
-      } else if (items.state == "INIT") {
-        if (items.id in this.state.deviceJobs) {
-          deviceStateExtra.push(<p>Init jobs: {this.state.deviceJobs[items.id].join(", ")}</p>);
+      let hostnameExtra = [];
+      if (device.state == "DISCOVERED") {
+        deviceStateExtra.push(<DeviceInitForm key={device.id+"_initform"} deviceId={device.id} jobIdCallback={this.addDeviceJob.bind(this)} />);
+      } else if (device.state == "INIT") {
+        if (device.id in this.state.deviceJobs) {
+          deviceStateExtra.push(<p>Init jobs: {this.state.deviceJobs[device.id].join(", ")}</p>);
         }
-      } else if (items.state == "MANAGED") {
+      } else if (device.state == "MANAGED") {
         menuActions = [
-          <Dropdown.Item text="Sync device..." onClick={() => this.syncDeviceAction(items.hostname)} />,
-          <Dropdown.Item text="Firmware upgrade..." onClick={() => this.upgradeDeviceAction(items.hostname)} />,
-          <Dropdown.Item text="Update facts" onClick={() => this.updateFactsAction(items.hostname, items.id) }/>,
-          <Dropdown.Item text="Make unmanaged" onClick={() => this.changeStateAction(items.id, "UNMANAGED")} />
+          <Dropdown.Item key="sync" text="Sync device..." onClick={() => this.syncDeviceAction(device.hostname)} />,
+          <Dropdown.Item key="fwupgrade" text="Firmware upgrade..." onClick={() => this.upgradeDeviceAction(device.hostname)} />,
+          <Dropdown.Item key="facts" text="Update facts" onClick={() => this.updateFactsAction(device.hostname, device.id) }/>,
+          <Dropdown.Item key="makeunmanaged" text="Make unmanaged" onClick={() => this.changeStateAction(device.id, "UNMANAGED")} />
         ];
-      } else if (items.state == "UNMANAGED") {
+        if (device.device_type === "ACCESS") {
+          menuActions.push(
+            <Dropdown.Item key="configports" text="Configure ports" onClick={() => this.configurePortsAction(device.hostname)} />
+          );
+          hostnameExtra.push(
+            <a key="interfaceconfig" href={"/interface-config?hostname="+device.hostname}><Icon name='plug' link /></a>
+          );
+        }
+      } else if (device.state == "UNMANAGED") {
         menuActions = [
-          <Dropdown.Item text="Update facts" onClick={() => this.updateFactsAction(items.hostname, items.id) }/>,
-          <Dropdown.Item text="Make managed" onClick={() => this.changeStateAction(items.id, "MANAGED")} />
+          <Dropdown.Item key="facts" text="Update facts" onClick={() => this.updateFactsAction(device.hostname, device.id) }/>,
+          <Dropdown.Item key="makemanaged" text="Make managed" onClick={() => this.changeStateAction(device.id, "MANAGED")} />
         ];
       }
       let deviceInterfaceData = "";
-      if (items.hostname in this.state.deviceInterfaceData !== false) {
-        let mlagPeerLink = this.renderMlagLink(this.state.deviceInterfaceData[items.hostname]);
+      if (device.hostname in this.state.deviceInterfaceData !== false) {
+        let mlagPeerLink = this.renderMlagLink(this.state.deviceInterfaceData[device.hostname]);
         if (mlagPeerLink !== null) {
           deviceStateExtra.push(mlagPeerLink);
         }
-        let uplinkLink = this.renderUplinkLink(this.state.deviceInterfaceData[items.hostname]);
+        let uplinkLink = this.renderUplinkLink(this.state.deviceInterfaceData[device.hostname]);
         if (uplinkLink !== null) {
           deviceStateExtra.push(uplinkLink);
         }
@@ -558,21 +571,22 @@ class DeviceList extends React.Component {
         });
       });
       let columnData = this.state.displayColumns.map((columnName, colIndex) => {
-        return <td key={100 + colIndex}>{items[columnName]}</td>;
+        return <td key={100 + colIndex}>{device[columnName]}</td>;
       });
       return [
-        <tr id={items.hostname} key={index} onClick={this.clickRow.bind(this)}>
-          <td key="0">
+        <tr id={device.hostname} key={device.id+"_row"} onClick={this.clickRow.bind(this)}>
+          <td key={device.id+"_hostname"}>
             <Icon name="angle right" />
-            {items.hostname}
+            {device.hostname}
+            {hostnameExtra}
           </td>
-          <td key="1">{items.device_type}</td>
+          <td key={device.id+"_device_type"}>{device.device_type}</td>
           {syncStatus}
           {columnData}
-          <td key="3">{items.id}</td>
+          <td key={device.id+"_id"}>{device.id}</td>
         </tr>,
         <tr
-          key={index + "_content"}
+          key={device.id+"_content"}
           colSpan={4+this.state.displayColumns.length}
           className="device_details_row"
           hidden
@@ -587,49 +601,49 @@ class DeviceList extends React.Component {
             </div>
             <table className="device_details_table">
               <tbody>
-                <tr>
-                  <td>Description</td>
-                  <td>{items.description}</td>
+                <tr key={"detail_descrow"}>
+                  <td key="name">Description</td>
+                  <td key="value">{device.description}</td>
                 </tr>
-                <tr>
-                  <td>Management IP (DHCP IP)</td>
-                  <td>{items.management_ip} ({items.dhcp_ip})</td>
+                <tr key={"detail_mgmtip"}>
+                  <td key="name">Management IP (DHCP IP)</td>
+                  <td key="value">{device.management_ip} ({device.dhcp_ip})</td>
                 </tr>
-                <tr>
-                  <td>Infra IP</td>
-                  <td>{items.infra_ip}</td>
+                <tr key={"detail_infraip"}>
+                  <td key="name">Infra IP</td>
+                  <td key="value">{device.infra_ip}</td>
                 </tr>
-                <tr>
-                  <td>MAC</td>
-                  <td>{items.ztp_mac}</td>
+                <tr key={"detail_mac"}>
+                  <td key="name">MAC</td>
+                  <td key="value">{device.ztp_mac}</td>
                 </tr>
-                <tr>
-                  <td>Vendor</td>
-                  <td>{items.vendor}</td>
+                <tr key={"detail_vendor"}>
+                  <td key="name">Vendor</td>
+                  <td key="value">{device.vendor}</td>
                 </tr>
-                <tr>
-                  <td>Model</td>
-                  <td>{items.model}</td>
+                <tr key={"detail_model"}>
+                  <td key="name">Model</td>
+                  <td key="value">{device.model}</td>
                 </tr>
-                <tr>
-                  <td>OS Version</td>
-                  <td>{items.os_version}</td>
+                <tr key={"detail_osversion"}>
+                  <td key="name">OS Version</td>
+                  <td key="value">{device.os_version}</td>
                 </tr>
-                <tr>
-                  <td>Serial</td>
-                  <td>{items.serial}</td>
+                <tr key={"detail_serial"}>
+                  <td key="name">Serial</td>
+                  <td key="value">{device.serial}</td>
                 </tr>
-                <tr>
-                  <td>State</td>
-                  <td>{items.state}</td>
+                <tr key={"detail_state"}>
+                  <td key="name">State</td>
+                  <td key="value">{device.state}</td>
                 </tr>
               </tbody>
             </table>
             {deviceStateExtra}
             {deviceInterfaceData}
-            <div id={"logoutputdiv_device_id_"+items.id} className="logoutput">
+            <div id={"logoutputdiv_device_id_"+device.id} className="logoutput">
               <pre>
-                {log[items.id]}
+                {log[device.id]}
               </pre>
             </div>
           </td>
@@ -637,12 +651,12 @@ class DeviceList extends React.Component {
       ];
     });
     if (this.state.error) {
-      deviceInfo = [<tr><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+      deviceInfo = [<tr key={"errorrow"}><td colSpan="5">API error: {this.state.error.message}</td></tr>];
     } else if (!Array.isArray(deviceInfo) || !deviceInfo.length) {
       if (this.state.loading) {
-        deviceInfo = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading devices...</td></tr>];
+        deviceInfo = [<tr key={"loadingrow"}><td colSpan="5"><Icon name="spinner" loading={true} />Loading devices...</td></tr>];
       } else {
-        deviceInfo = [<tr><td colSpan="5">Empty result</td></tr>];
+        deviceInfo = [<tr key={"emptyrow"}><td colSpan="5">Empty result</td></tr>];
       }
     }
 
@@ -661,7 +675,7 @@ class DeviceList extends React.Component {
     };
 
     let columnHeaders = this.state.displayColumns.map(columnName => {
-      return <th>{allowedColumns[columnName]}</th>;
+      return <th key={columnName}>{allowedColumns[columnName]}</th>;
     });
 
     let columnSelectors = Object.keys(allowedColumns).map((columnName, columnIndex) => {
@@ -691,26 +705,26 @@ class DeviceList extends React.Component {
             <table className="device_list">
               <thead>
                 <tr>
-                  <th onClick={() => this.sortHeader("hostname")}>
+                  <th key="hostname" onClick={() => this.sortHeader("hostname")}>
                     Hostname
                     <div className="hostname_sort">
                       {this.renderSortButton(this.state.hostname_sort)}
                     </div>
                   </th>
-                  <th onClick={() => this.sortHeader("device_type")}>
+                  <th key="device_type" onClick={() => this.sortHeader("device_type")}>
                     Device type
                     <div className="device_type_sort">
                       {this.renderSortButton(this.state.device_type_sort)}
                     </div>
                   </th>
-                  <th onClick={() => this.sortHeader("state")}>
+                  <th key="state" onClick={() => this.sortHeader("state")}>
                     State (Sync status)
                     <div className="sync_status_sort">
                       {this.renderSortButton(this.state.state_sort)}
                     </div>
                   </th>
                   {columnHeaders}
-                  <th onClick={() => this.sortHeader("id")}>
+                  <th key="id" onClick={() => this.sortHeader("id")}>
                     ID
                     <div className="sync_status_sort">
                       {this.renderSortButton(this.state.id_sort)}
