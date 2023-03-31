@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
 import { putData, postData } from "../../utils/sendData";
@@ -89,7 +90,10 @@ class InterfaceConfig extends React.Component {
           if (data.next_job_id !== undefined && typeof data.next_job_id === "number") {
             newState.autoPushJobs = [data, {'job_id': data.next_job_id, "status": "RUNNING"}];
           } else if (data.status == "FINISHED" || data.status == "EXCEPTION") {
-            newState.errorMessage = "Live run job not scheduled, there was an error or change score was too high to continue with autopush. Check logs or do dry run job manually.";
+            newState.errorMessage = ["Live run job not scheduled! There was an error or the change score was too high to continue with autopush.", 
+            " Check ", <Link to="/jobs" >job log</Link>, " or do a ", <Link to={"/config-change?hostname="+this.hostname}>dry run</Link>];
+
+          
             newState.working = false;
             newState.autoPushJobs = [data];
             newState.accordionActiveIndex = 2;
@@ -603,6 +607,23 @@ class InterfaceConfig extends React.Component {
       return <li key={columnIndex}><Checkbox defaultChecked={checked} label={allowedColumns[columnName]} name={columnName} onChange={this.columnSelectorChange.bind(this)} /></li>
     })
 
+    let autoPushJobsHTML = this.state.autoPushJobs.map((job, index) => {
+      let jobIcon = null;
+      if (job.status === "RUNNING") {
+        jobIcon = <Icon loading color="grey" name="cog" />;
+      } else if (job.status === "FINISHED") {
+        jobIcon = <Icon name="check" color="green" />
+      } else {
+        jobIcon = <Icon name="delete" color="red" />
+      }
+
+      if (index == 0) {
+        return <li key={index}>Dry run (job ID {job.job_id}) status: {job.status} {jobIcon}</li>;
+      } else {
+        return <li key={index}>Live run (job ID {job.job_id}) status: {job.status} {jobIcon}</li>;
+      }
+    });
+
     return (
       <section>
         <div id="device_list">
@@ -666,7 +687,7 @@ class InterfaceConfig extends React.Component {
                             POST error: 
                           </Accordion.Title>
                           <Accordion.Content active={accordionActiveIndex === 2}>
-                            <p>{JSON.stringify(this.state.errorMessage)}</p>
+                            <p>{this.state.errorMessage}</p>
                           </Accordion.Content>
                           <Accordion.Title
                             active={accordionActiveIndex === 3}
@@ -677,7 +698,7 @@ class InterfaceConfig extends React.Component {
                             Job output: 
                           </Accordion.Title>
                           <Accordion.Content active={accordionActiveIndex === 3}>
-                            <pre>{JSON.stringify(this.state.autoPushJobs)}</pre>
+                            <ul>{autoPushJobsHTML}</ul>
                           </Accordion.Content>
                         </Accordion>
                       </Modal.Description>
