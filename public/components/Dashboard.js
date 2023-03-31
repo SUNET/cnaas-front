@@ -100,7 +100,7 @@ class Dashboard extends React.Component {
     let match = repoDataRegex.exec(this.state.commitInfo['settings']);
     if (match) {
       let branch = match.groups.branch;
-      if (process.env.SETTINGS_WEB_URL !== undefined) {
+      if (process.env.SETTINGS_WEB_URL) {
         branch = <a href={process.env.SETTINGS_WEB_URL} target="_blank">{match.groups.branch}</a>;
       }
       settingsInfo = ["Settings (", branch, ") updated at ", match.groups.date.slice(0, -3), " by ", match.groups.name];
@@ -108,7 +108,7 @@ class Dashboard extends React.Component {
     match = repoDataRegex.exec(this.state.commitInfo['templates']);
     if (match) {
       let branch = match.groups.branch;
-      if (process.env.TEMPLATES_WEB_URL !== undefined) {
+      if (process.env.TEMPLATES_WEB_URL) {
         branch = <a href={process.env.TEMPLATES_WEB_URL} target="_blank">{match.groups.branch}</a>;
       }
       templatesInfo = ["Templates (", branch, ") updated at ", match.groups.date.slice(0, -3), " by ", match.groups.name];

@@ -3,7 +3,7 @@ import React from "react";
 class Footer extends React.Component {
   render() {
     let monitoring_link = null;
-    if (process.env.MONITORING_WEB_URL !== undefined) {
+    if (process.env.MONITORING_WEB_URL) {
       monitoring_link = [" | ", <a href={process.env.MONITORING_WEB_URL} target="_blank">Monitoring</a>];
     }
     return (
