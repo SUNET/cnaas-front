@@ -96,14 +96,22 @@ class Dashboard extends React.Component {
     // Commit 9f05c568adb70782937872e3d3d1cf15ad3f6b63 master by Dennis Wallberg at 2020-10-12 17:25:59+02:00
     let settingsInfo = "Unknown";
     let templatesInfo = "Unknown";
-    let repoDataRegex = /Commit (?<commit_id>\w+) master by (?<name>.+) at (?<date>[0-9- :]+)/;
+    let repoDataRegex = /Commit (?<commit_id>\w+) (?<branch>[a-zA-Z0-9.-_]+) by (?<name>.+) at (?<date>[0-9- :]+)/;
     let match = repoDataRegex.exec(this.state.commitInfo['settings']);
     if (match) {
-      settingsInfo = match.groups.date + " by " + match.groups.name;
+      let branch = match.groups.branch;
+      if (process.env.SETTINGS_WEB_URL !== undefined) {
+        branch = <a href={process.env.SETTINGS_WEB_URL} target="_blank">{match.groups.branch}</a>;
+      }
+      settingsInfo = ["Settings (", branch, ") updated at ", match.groups.date.slice(0, -3), " by ", match.groups.name];
     }
     match = repoDataRegex.exec(this.state.commitInfo['templates']);
     if (match) {
-      templatesInfo = match.groups.date + " by " + match.groups.name;
+      let branch = match.groups.branch;
+      if (process.env.TEMPLATES_WEB_URL !== undefined) {
+        branch = <a href={process.env.TEMPLATES_WEB_URL} target="_blank">{match.groups.branch}</a>;
+      }
+      templatesInfo = ["Templates (", branch, ") updated at ", match.groups.date.slice(0, -3), " by ", match.groups.name];
     }
     console.log(this.state.deviceCount);
 
@@ -112,8 +120,8 @@ class Dashboard extends React.Component {
         <Container>
           <Grid columns={2}>
             <Grid.Column width={8}>
-              <p>Settings repo updated: {settingsInfo}</p>
-              <p>Templates repo updated: {templatesInfo}</p>
+              <p>{settingsInfo}</p>
+              <p>{templatesInfo}</p>
             </Grid.Column>
             <Grid.Column width={8}>
               <p>Managed devices: <a href={"/devices?filterstring=filter%5Bstate%5D%3DMANAGED"}>{this.state.deviceCount["managed"]}</a></p>
