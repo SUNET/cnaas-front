@@ -7,7 +7,7 @@
         "languages": ["javascript", "css", "diff"],
         "plugins": ["diff"],
         "theme": "default",
-        "css": true
+        "css": false
       }
     ],
     "transform-class-properties"
