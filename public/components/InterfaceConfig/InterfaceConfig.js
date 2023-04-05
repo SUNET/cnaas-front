@@ -388,11 +388,22 @@ class InterfaceConfig extends React.Component {
             }
 //            console.log("number matched to: "+untagged_vlan);
           } else {
-            untagged_vlan = ifData['untagged_vlan']
+            untagged_vlan = ifData['untagged_vlan'];
           }
         }
         if ('tagged_vlan_list' in ifData) {
-          tagged_vlan_list = ifData['tagged_vlan_list'];
+          tagged_vlan_list = ifData['tagged_vlan_list'].map((vlan_item) => {
+            if (typeof(vlan_item) === "number") {
+              let vlan_mapped = vlanOptions.filter(item => item.description == vlan_item);
+              if (Array.isArray(vlan_mapped) && vlan_mapped.length == 1) {
+                return vlan_mapped[0].value;
+              } else {
+                return vlan_item;
+              }
+            } else {
+              return vlan_item;
+            }
+          })
         }
         if ('enabled' in ifData) {
           enabled = ifData['enabled'];
