@@ -222,7 +222,7 @@ class InterfaceConfig extends React.Component {
           dataLevelKeys[formKey] = formValue;
         }
       });
-      if (Object.keys(dataLevelKeys).length >= 0) {
+      if (Object.keys(dataLevelKeys).length >= 1) {
         topLevelKeys["data"] = dataLevelKeys;
       }
       sendData["interfaces"][interfaceName] = topLevelKeys;
@@ -286,7 +286,7 @@ class InterfaceConfig extends React.Component {
   saveChanges() {
     this.sendInterfaceData().then(saveStatus => {
       if (saveStatus === true) {
-        this.props.history.push('/config-change?hostname='+this.hostname);
+        this.props.history.push('/config-change?hostname='+this.hostname+'&scrollTo=dry_run');
       } else {
         this.setState({accordionActiveIndex: 2});
       }

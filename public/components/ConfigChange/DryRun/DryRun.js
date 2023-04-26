@@ -55,7 +55,7 @@ class DryRun extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2>Dry run (2/4)</h2>
+          <h2 id="dry_run_section">Dry run (2/4)</h2>
         </div>
         <div className="task-collapsable">
           <p>

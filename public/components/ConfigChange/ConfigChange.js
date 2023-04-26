@@ -227,6 +227,14 @@ class ConfigChange extends React.Component {
   };
 
   componentDidMount(){
+    let queryParams = queryString.parse(this.props.location.search);
+    if (queryParams.scrollTo !== undefined) {
+      const element = document.getElementById(queryParams.scrollTo+'_section');
+      if (element) {
+        element.scrollIntoView({ alignToTop: true, behavior: 'smooth' });
+      }
+    }
+
     const credentials = localStorage.getItem("token");
     socket = io(process.env.API_URL, {query: {jwt: credentials}});
     socket.on('connect', function(data) {
