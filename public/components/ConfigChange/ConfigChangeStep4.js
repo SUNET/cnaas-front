@@ -1,4 +1,5 @@
 import React from "react";
+import { Input } from 'semantic-ui-react';
 import DryRunProgressBar from "./DryRun/DryRunProgressBar";
 import DryRunProgressInfo from "./DryRun/DryRunProgressInfo";
 import { Confirm, Popup, Icon, Select } from 'semantic-ui-react';
@@ -8,7 +9,9 @@ class ConfigChangeStep4 extends React.Component {
   state = {
     confirmDiagOpen: false,
     commitModeDefault: -1,
-    commitMode: -1
+    commitMode: -1,
+    job_comment: "",
+    job_ticket_ref: ""
   };
   commitModeOptions = [
     {'value': -1, 'text': "use server default commit mode"},
@@ -21,10 +24,22 @@ class ConfigChangeStep4 extends React.Component {
   closeConfirm = () => { this.setState({confirmDiagOpen: false}) };
   okConfirm = () => {
     this.setState({confirmDiagOpen: false});
-    this.props.liveRunSyncStart({"dry_run": false, "commit_mode": this.state.commitMode});
+    this.props.liveRunSyncStart({"dry_run": false, "comment": this.state.job_comment, "ticket_ref": this.state.job_ticket_ref, "commit_mode": this.state.commitMode});
     var confirmButtonElem = document.getElementById("confirmButton");
     confirmButtonElem.disabled = true;
   };
+
+  updateComment = (e, data) => {
+    this.setState({
+      job_comment: data.value
+    });
+  }
+
+  updateTicketRef = (e, data) => {
+    this.setState({
+      job_ticket_ref: data.value
+    });
+  }
 
   componentDidMount() {
     // Ugly hack, this should be done via some confirmButton state in parent component
@@ -85,11 +100,11 @@ class ConfigChangeStep4 extends React.Component {
     }
 
     if (!commitButtonDisabled) {
-      if (!this.props.jobTicketRef && !this.props.jobComment) {
+      if (!this.state.job_ticket_ref && !this.state.job_comment) {
         warnings.push(
           <Popup
             key="popup1"
-            content="Ticket reference and comment is missing"
+            content="Ticket reference or comment is missing"
             position="top center"
             hoverable
             trigger={<Icon name="warning circle" color="yellow" size="large" />}
@@ -138,7 +153,24 @@ class ConfigChangeStep4 extends React.Component {
           <h2>Commit configuration (4/4)</h2>
         </div>
         <div className="task-collapsable">
-          <p>Step 4 of 4: Final step</p>
+          <p>Step 4 of 4: Final step, commit new configuration to devices</p>
+          <p>Describe the change:</p>
+          <div className="info">
+          <Input placeholder="comment"
+            maxLength="255"
+            className="job_comment"
+            error={!this.state.job_ticket_ref && !this.state.job_comment}
+            onChange={this.updateComment}
+          />
+          </div>
+          <p>Enter service ticket ID reference:</p>
+          <Input placeholder="ticket reference"
+            maxLength="32"
+            className="job_ticket_ref"
+            error={!this.state.job_ticket_ref && !this.state.job_comment}
+            onChange={this.updateTicketRef}
+          />
+          <br />
           <button id="confirmButton" disabled={commitButtonDisabled} onClick={e => this.openConfirm(e)}>
            Confirm commit
           </button> {warnings}
