@@ -180,6 +180,14 @@ footer {
   margin: 16px;
 }
 
+.task-container .ui.input.job_comment, .task-container .ui.input.job_ticket_ref {
+  margin-left: 16px;
+}
+
+.task-container .job_comment {
+  width: 50em;
+}
+
 
 table,
 thead,
@@ -356,5 +364,5 @@ progress::-moz-progress-bar {
 }
 
 .job_ticket_ref {
-  width: 20em;
+  width: 15em;
 }

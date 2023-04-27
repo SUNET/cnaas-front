@@ -25,8 +25,6 @@ class ConfigChange extends React.Component {
       liveRunProgressData: {},
       liveRunTotalCount: 0,
       confirmRunProgressData: {},
-      job_comment: "",
-      job_ticket_ref: "",
       logLines: [],
       blockNavigation: false,
       repoWorking: false
@@ -45,20 +43,6 @@ class ConfigChange extends React.Component {
 
   setRepoWorking = (working_status) => {
     this.setState({repoWorking: working_status});
-  }
-
-  updateComment(e) {
-    const val = e.target.value;
-    this.setState({
-      job_comment: val
-    });
-  }
-
-  updateTicketRef(e) {
-    const val = e.target.value;
-    this.setState({
-      job_ticket_ref: val
-    });
   }
 
   readHeaders = (response, dry_run) => {
@@ -82,8 +66,6 @@ class ConfigChange extends React.Component {
     let url = process.env.API_URL + "/api/v1.0/device_syncto";
     let dataToSend = this.getCommitTarget();
     dataToSend["dry_run"] = true;
-    dataToSend["comment"] = this.state.job_comment;
-    dataToSend["ticket_ref"] = this.state.job_ticket_ref;
    
     if (options !== undefined) {
       if (options.resync !== undefined) {
@@ -95,6 +77,12 @@ class ConfigChange extends React.Component {
       }
       if (options.dry_run !== undefined) {
         dataToSend["dry_run"] = options.dry_run;
+      }
+      if (options.comment !== undefined) {
+        dataToSend["comment"] = options.comment;
+      }
+      if (options.ticket_ref !== undefined) {
+        dataToSend["ticket_ref"] = options.comment;
       }
       if (options.commit_mode !== undefined && options.commit_mode >= 0) {
         dataToSend["commit_mode"] = options.commit_mode;
@@ -319,18 +307,6 @@ class ConfigChange extends React.Component {
         <section>
           <h1>Commit changes (syncto)</h1>
           <p>Commit changes to: { commitTargetName }</p>
-          <p>Describe the change:</p>
-          <Input placeholder="comment"
-            maxLength="255"
-            className="job_comment"
-            onChange={this.updateComment.bind(this)}
-          />
-          <p>Enter service ticket ID reference:</p>
-          <Input placeholder="ticket reference"
-            maxLength="32"
-            className="job_ticket_ref"
-            onChange={this.updateTicketRef.bind(this)}
-          />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}
             setRepoWorking={this.setRepoWorking}
@@ -362,8 +338,6 @@ class ConfigChange extends React.Component {
             devices={liveRunResults}
             totalCount={this.state.liveRunTotalCount}
             logLines={this.state.logLines}
-            jobComment={this.state.job_comment}
-            jobTicketRef={this.state.job_ticket_ref}
             dryRunChangeScore={dryRunChangeScore}
             synctoForce={this.state.synctoForce}
           />
