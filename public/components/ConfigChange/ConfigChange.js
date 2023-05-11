@@ -82,7 +82,7 @@ class ConfigChange extends React.Component {
         dataToSend["comment"] = options.comment;
       }
       if (options.ticket_ref !== undefined) {
-        dataToSend["ticket_ref"] = options.comment;
+        dataToSend["ticket_ref"] = options.ticket_ref;
       }
       if (options.commit_mode !== undefined && options.commit_mode >= 0) {
         dataToSend["commit_mode"] = options.commit_mode;
