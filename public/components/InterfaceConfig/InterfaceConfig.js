@@ -473,7 +473,6 @@ class InterfaceConfig extends React.Component {
 
       let optionalColumns = this.state.displayColumns.map((columnName) => {
         let colData = [];
-        let untaggedButton = null;
         if (columnName == "vlans") {
           if (vlanOptions.length == 0 ) {
             colData = [<Loader key="loading" inline active />];
