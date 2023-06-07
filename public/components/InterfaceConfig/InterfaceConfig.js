@@ -42,7 +42,8 @@ class InterfaceConfig extends React.Component {
   columnWidths = {
     "vlans": 4,
     "tags": 3,
-    "json": 1
+    "json": 1,
+    "aggregate_id": 3
   };
 
   componentDidMount() {
@@ -329,6 +330,12 @@ class InterfaceConfig extends React.Component {
       defaultValue = data.defaultValue;
       val = data.value;
     }
+    if (["aggregate_id"].includes(json_key)) {
+      val = parseInt(val);
+      if (isNaN(val)) {
+        console.log(json_key+" value is not a number");
+      }
+    }
     let newData = this.state.interfaceDataUpdated;
     if (JSON.stringify(val) !== JSON.stringify(defaultValue)) {
       if (interfaceName in newData) {
@@ -339,8 +346,10 @@ class InterfaceConfig extends React.Component {
         let newData = this.state.interfaceDataUpdated;
         newData[interfaceName] = {[json_key]: val};
       }
-    } else {
-      delete newData[interfaceName][json_key];
+    } else if (newData[interfaceName]) {
+      if (json_key in newData[interfaceName]) {
+        delete newData[interfaceName][json_key];
+      }
       if (Object.keys(newData[interfaceName]).length == 0) {
         delete newData[interfaceName];
       }
@@ -375,8 +384,6 @@ class InterfaceConfig extends React.Component {
   }
 
   untaggedClick = (event, data) => {
-    console.log(data);
-    console.log(this.state.interfaceToggleUntagged);
     if (data.id in this.state.interfaceToggleUntagged) {
       let newData = this.state.interfaceToggleUntagged;
       delete newData[data.id];
@@ -398,6 +405,7 @@ class InterfaceConfig extends React.Component {
       let tagged_vlan_list = null;
       let tags = [];
       let enabled = true;
+      let aggregate_id = null;
 //      console.log(ifData);
       if (ifData !== null) {
         if ('description' in ifData) {
@@ -439,6 +447,9 @@ class InterfaceConfig extends React.Component {
         }
         if ('tags' in ifData) {
           tags = ifData['tags'];
+        }
+        if ('aggregate_id' in ifData) {
+          aggregate_id = ifData['aggregate_id'];
         }
       }
       if (updated == true && this.state.interfaceDataUpdated[item.name]['enabled'] !== undefined) {
@@ -517,6 +528,16 @@ class InterfaceConfig extends React.Component {
                 trigger={<Icon color="grey" name="ellipsis horizontal" />}
               />];
           }
+        } else if (columnName == "aggregate_id") {
+          colData = [
+            <Input
+              key={"aggregate_id|"+item.name}
+              name={"aggregate_id|"+item.name}
+              defaultValue={aggregate_id}
+              disabled={editDisabled}
+              onChange={this.updateFieldData}
+            />
+          ];
         }
         return <Table.Cell collapsing key={columnName}>{colData}</Table.Cell>;
       });
@@ -651,7 +672,8 @@ class InterfaceConfig extends React.Component {
     const allowedColumns = {
       "vlans": "VLANs",
       "tags": "Tags",
-      "json": "Raw JSON"
+      "json": "Raw JSON",
+      "aggregate_id": "LACP aggregate ID"
     };
 
     let columnHeaders = this.state.displayColumns.map(columnName => {
