@@ -43,7 +43,8 @@ class InterfaceConfig extends React.Component {
     "vlans": 4,
     "tags": 3,
     "json": 1,
-    "aggregate_id": 3
+    "aggregate_id": 3,
+    "bpdu_filter": 1
   };
 
   componentDidMount() {
@@ -406,6 +407,7 @@ class InterfaceConfig extends React.Component {
       let tags = [];
       let enabled = true;
       let aggregate_id = null;
+      let bpdu_filter = false;
 //      console.log(ifData);
       if (ifData !== null) {
         if ('description' in ifData) {
@@ -450,6 +452,9 @@ class InterfaceConfig extends React.Component {
         }
         if ('aggregate_id' in ifData) {
           aggregate_id = ifData['aggregate_id'];
+        }
+        if ('bpdu_filter' in ifData) {
+          bpdu_filter = ifData['bpdu_filter'];
         }
       }
       if (updated == true && this.state.interfaceDataUpdated[item.name]['enabled'] !== undefined) {
@@ -536,6 +541,24 @@ class InterfaceConfig extends React.Component {
               defaultValue={aggregate_id}
               disabled={editDisabled}
               onChange={this.updateFieldData}
+            />
+          ];
+        } else if (columnName == "bpdu_filter") {
+          colData = [
+            <Popup
+              key="bpdu_filter"
+              header="Enable spanning-tree BPDU filter on this interface"
+              wide
+              hoverable
+              trigger={
+                <Checkbox
+                  key={"bpdu_filter|"+item.name}
+                  name={"bpdu_filter|"+item.name}
+                  defaultChecked={bpdu_filter}
+                  onChange={this.updateFieldData}
+                  disabled={editDisabled}
+                />
+              }
             />
           ];
         }
@@ -673,7 +696,8 @@ class InterfaceConfig extends React.Component {
       "vlans": "VLANs",
       "tags": "Tags",
       "json": "Raw JSON",
-      "aggregate_id": "LACP aggregate ID"
+      "aggregate_id": "LACP aggregate ID",
+      "bpdu_filter": "BPDU filter"
     };
 
     let columnHeaders = this.state.displayColumns.map(columnName => {
