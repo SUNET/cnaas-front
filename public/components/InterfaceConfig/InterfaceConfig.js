@@ -25,7 +25,9 @@ class InterfaceConfig extends React.Component {
     awaitingDeviceSynchronization: false,
     displayColumns: ["vlans"],
     tagOptions: [],
-    interfaceBounceRunning: {}
+    interfaceBounceRunning: {},
+    mlagPeerHostname: null,
+    interfaceToggleUntagged: {}
   }
   hostname = null;
   configTypeOptions = [
@@ -40,7 +42,9 @@ class InterfaceConfig extends React.Component {
   columnWidths = {
     "vlans": 4,
     "tags": 3,
-    "json": 1
+    "json": 1,
+    "aggregate_id": 3,
+    "bpdu_filter": 1
   };
 
   componentDidMount() {
@@ -138,6 +142,19 @@ class InterfaceConfig extends React.Component {
           }
         });
 
+        data['data']['interfaces'].map((item, index) => {
+          let ifData = item.data;
+          if (ifData !== null && 'neighbor_id' in ifData) {
+            const mlagDevURL = process.env.API_URL + "/api/v1.0/device/" + ifData.neighbor_id;
+            if (this.state.mlagPeerHostname == null) {
+              getData(mlagDevURL, credentials).then(data => {
+                this.setState({mlagPeerHostname: data['data']['devices'][0]['hostname']})
+              }).catch(error => {
+                console.log("MLAG peer not found: "+error);
+              })
+            }
+          }
+        });
         this.setState({
           interfaceData: data['data']['interfaces'],
           tagOptions: usedTags
@@ -314,6 +331,12 @@ class InterfaceConfig extends React.Component {
       defaultValue = data.defaultValue;
       val = data.value;
     }
+    if (["aggregate_id"].includes(json_key)) {
+      val = parseInt(val);
+      if (isNaN(val)) {
+        console.log(json_key+" value is not a number");
+      }
+    }
     let newData = this.state.interfaceDataUpdated;
     if (JSON.stringify(val) !== JSON.stringify(defaultValue)) {
       if (interfaceName in newData) {
@@ -324,8 +347,10 @@ class InterfaceConfig extends React.Component {
         let newData = this.state.interfaceDataUpdated;
         newData[interfaceName] = {[json_key]: val};
       }
-    } else {
-      delete newData[interfaceName][json_key];
+    } else if (newData[interfaceName]) {
+      if (json_key in newData[interfaceName]) {
+        delete newData[interfaceName][json_key];
+      }
       if (Object.keys(newData[interfaceName]).length == 0) {
         delete newData[interfaceName];
       }
@@ -359,6 +384,18 @@ class InterfaceConfig extends React.Component {
     });
   }
 
+  untaggedClick = (event, data) => {
+    if (data.id in this.state.interfaceToggleUntagged) {
+      let newData = this.state.interfaceToggleUntagged;
+      delete newData[data.id];
+      this.setState({interfaceToggleUntagged: newData});
+    } else {
+      let newData = this.state.interfaceToggleUntagged;
+      newData[data.id] = true;
+      this.setState({interfaceToggleUntagged: newData});
+    }
+  }
+
   renderTableRows(interfaceData, vlanOptions) {
     return interfaceData.map((item, index) => {
       let ifData = item.data;
@@ -369,6 +406,8 @@ class InterfaceConfig extends React.Component {
       let tagged_vlan_list = null;
       let tags = [];
       let enabled = true;
+      let aggregate_id = null;
+      let bpdu_filter = false;
 //      console.log(ifData);
       if (ifData !== null) {
         if ('description' in ifData) {
@@ -376,7 +415,7 @@ class InterfaceConfig extends React.Component {
         } else if ('neighbor' in ifData) {
           description = "Uplink to " + ifData.neighbor;
         } else if ('neighbor_id' in ifData) {
-          description = "MLAG peer to device_id " + ifData.neighbor_id;
+          description = "MLAG peer link";
         }
         if ('untagged_vlan' in ifData) {
           if (typeof(ifData['untagged_vlan']) === "number") {
@@ -411,6 +450,12 @@ class InterfaceConfig extends React.Component {
         if ('tags' in ifData) {
           tags = ifData['tags'];
         }
+        if ('aggregate_id' in ifData) {
+          aggregate_id = ifData['aggregate_id'];
+        }
+        if ('bpdu_filter' in ifData) {
+          bpdu_filter = ifData['bpdu_filter'];
+        }
       }
       if (updated == true && this.state.interfaceDataUpdated[item.name]['enabled'] !== undefined) {
         enabled = this.state.interfaceDataUpdated[item.name]['enabled'];
@@ -420,33 +465,51 @@ class InterfaceConfig extends React.Component {
       if (item.name in this.state.interfaceDataUpdated && "configtype" in this.state.interfaceDataUpdated[item.name]) {
         currentConfigtype = this.state.interfaceDataUpdated[item.name].configtype;
       }
+      let displayVlanTagged = currentConfigtype === "ACCESS_TAGGED";
+      if (item.name in this.state.interfaceToggleUntagged) {
+        displayVlanTagged = !displayVlanTagged;
+      }
+      // if state button
 
       let optionalColumns = this.state.displayColumns.map((columnName) => {
-        let colData = null;
+        let colData = [];
         if (columnName == "vlans") {
           if (vlanOptions.length == 0 ) {
-            colData = <Loader key="loading" inline active />;
-          } else if (currentConfigtype === "ACCESS_TAGGED") {
-            colData = <Dropdown
-              key={"tagged_vlan_list|"+item.name}
-              name={"tagged_vlan_list|"+item.name}
-              fluid multiple selection
-              options={this.state.vlanOptions}
-              defaultValue={tagged_vlan_list}
-              onChange={this.updateFieldData}
-            />;
-          } else if (currentConfigtype === "ACCESS_UNTAGGED") {
-            colData = <Dropdown
-              key={"untagged_vlan|"+item.name}
-              name={"untagged_vlan|"+item.name}
-              fluid selection
-              options={this.state.untaggedVlanOptions}
-              defaultValue={untagged_vlan}
-              onChange={this.updateFieldData}
-            />;
+            colData = [<Loader key="loading" inline active />];
+          } else if (currentConfigtype === "ACCESS_TAGGED" || currentConfigtype === "ACCESS_UNTAGGED") {
+            if (displayVlanTagged) {
+              colData = [
+                <Dropdown
+                  key={"tagged_vlan_list|"+item.name}
+                  name={"tagged_vlan_list|"+item.name}
+                  fluid multiple selection
+                  options={this.state.vlanOptions}
+                  defaultValue={tagged_vlan_list}
+                  onChange={this.updateFieldData}
+                />,
+              ];
+            } else {
+              colData = [<Dropdown
+                key={"untagged_vlan|"+item.name}
+                name={"untagged_vlan|"+item.name}
+                fluid selection
+                options={this.state.untaggedVlanOptions}
+                defaultValue={untagged_vlan}
+                onChange={this.updateFieldData}
+              />];
+            }
+            if (currentConfigtype === "ACCESS_TAGGED") {
+              colData.push(
+                <Popup
+                  key="untagged_button"
+                  content="Change untagged VLAN"
+                  trigger={<Button id={item.name} compact size="small" icon onClick={this.untaggedClick.bind(this)} active={item.name in this.state.interfaceToggleUntagged}><Icon size="small" name='underline' /></Button>}
+                />
+              );
+            }
           }
         } else if (columnName == "tags") {
-          colData = <Dropdown
+          colData = [<Dropdown
             key={"tags|"+item.name}
             name={"tags|"+item.name}
             fluid multiple selection search allowAdditions
@@ -455,11 +518,11 @@ class InterfaceConfig extends React.Component {
             onAddItem={this.addTagOption}
             onChange={this.updateFieldData}
             disabled={editDisabled}
-          />;
+          />];
         } else if (columnName == "json") {
           if (item.data !== null) {
             colData =
-              <Popup
+              [<Popup
                 key="rawjson"
                 header="Raw JSON data"
                 content={JSON.stringify(item.data)}
@@ -467,8 +530,36 @@ class InterfaceConfig extends React.Component {
                 wide
                 hoverable
                 trigger={<Icon color="grey" name="ellipsis horizontal" />}
-              />;
+              />];
           }
+        } else if (columnName == "aggregate_id") {
+          colData = [
+            <Input
+              key={"aggregate_id|"+item.name}
+              name={"aggregate_id|"+item.name}
+              defaultValue={aggregate_id}
+              disabled={editDisabled}
+              onChange={this.updateFieldData}
+            />
+          ];
+        } else if (columnName == "bpdu_filter") {
+          colData = [
+            <Popup
+              key="bpdu_filter"
+              header="Enable spanning-tree BPDU filter on this interface"
+              wide
+              hoverable
+              trigger={
+                <Checkbox
+                  key={"bpdu_filter|"+item.name}
+                  name={"bpdu_filter|"+item.name}
+                  defaultChecked={bpdu_filter}
+                  onChange={this.updateFieldData}
+                  disabled={editDisabled}
+                />
+              }
+            />
+          ];
         }
         return <Table.Cell collapsing key={columnName}>{colData}</Table.Cell>;
       });
@@ -603,7 +694,9 @@ class InterfaceConfig extends React.Component {
     const allowedColumns = {
       "vlans": "VLANs",
       "tags": "Tags",
-      "json": "Raw JSON"
+      "json": "Raw JSON",
+      "aggregate_id": "LACP aggregate ID",
+      "bpdu_filter": "BPDU filter"
     };
 
     let columnHeaders = this.state.displayColumns.map(columnName => {
@@ -635,11 +728,17 @@ class InterfaceConfig extends React.Component {
       }
     });
 
+    let mlagPeerInfo = null;
+    if (this.state.mlagPeerHostname !== null) {
+      mlagPeerInfo = <p>MLAG peer hostname: <a href={"/interface-config?hostname="+this.state.mlagPeerHostname}>{this.state.mlagPeerHostname}</a></p>;
+    }
+
     return (
       <section>
         <div id="device_list">
           <h2>Interface configuration</h2>
-          <p>Hostname: {this.hostname}, sync state: {syncStateIcon}</p>
+          <p>Hostname: <a href={"/devices?search_hostname="+this.hostname}>{this.hostname}</a>, sync state: {syncStateIcon}</p>
+          {mlagPeerInfo}
           {stateWarning}
           <div className="table_options">
             <Popup on='click' pinned position='bottom right' trigger={<Button className="table_options_button"><Icon name="table" /></Button>} >
