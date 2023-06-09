@@ -18,6 +18,8 @@ services:
       - CNAAS_AUTH_URL=https://cnaas-front_auth_1:1443
       - CNAAS_FRONT_URL=http://127.0.0.1:8083
       - CNAAS_FIRMWARE_URL
+      - CNAAS_FIRMWARE_REPO_METADATA_URL
+      - CNAAS_FIRMWARE_REPO_URL
     depends_on:
       - "auth"
       - "api"
