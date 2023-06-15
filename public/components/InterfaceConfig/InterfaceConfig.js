@@ -396,42 +396,62 @@ class InterfaceConfig extends React.Component {
     }
   }
 
-  renderTableRows(interfaceData, vlanOptions) {
+  renderTableRows(interfaceData, interfaceDataUpdated, vlanOptions) {
     return interfaceData.map((item, index) => {
       let ifData = item.data;
-      let description = "";
+      let ifDataUpdated = null;
       let editDisabled = !(this.configTypesEnabled.includes(item.configtype));
-      let updated = (item.name in this.state.interfaceDataUpdated);
-      let untagged_vlan = null;
-      let tagged_vlan_list = null;
-      let tags = [];
-      let enabled = true;
-      let aggregate_id = null;
-      let bpdu_filter = false;
-//      console.log(ifData);
-      if (ifData !== null) {
-        if ('description' in ifData) {
-          description = ifData.description;
-        } else if ('neighbor' in ifData) {
-          description = "Uplink to " + ifData.neighbor;
-        } else if ('neighbor_id' in ifData) {
-          description = "MLAG peer link";
+      let updated = false;
+      let fields = {
+        "description": "",
+        "untagged_vlan": null,
+        "tagged_vlan_list": null,
+        "tags": [],
+        "enabled": true,
+        "aggregate_id": null,
+        "bpdu_filter": false
+      };
+      if (item.name in interfaceDataUpdated) {
+        updated = true;
+        ifDataUpdated = interfaceDataUpdated[item.name];
+      }
+      if (ifData === null) {
+        if (ifDataUpdated !== null) {
+          const check_updated_fields = ['untagged_vlan', 'tagged_vlan_list', 'enabled', 'tags', 'aggregate_id', 'bpdu_filter'];
+          check_updated_fields.forEach((field_name) => {
+            if (field_name in ifDataUpdated) {
+              fields[field_name] = ifDataUpdated[field_name];
+            }
+          });
         }
-        if ('untagged_vlan' in ifData) {
+
+      } else {
+        if ('description' in ifData) {
+          fields['description'] = ifData.description;
+        } else if ('neighbor' in ifData) {
+          fields['description'] = "Uplink to " + ifData.neighbor;
+        } else if ('neighbor_id' in ifData) {
+          fields['description'] = "MLAG peer link";
+        }
+
+        if (ifDataUpdated !== null && 'untagged_vlan' in ifDataUpdated) {
+          fields['untagged_vlan'] = ifDataUpdated['untagged_vlan'];
+        } else if ('untagged_vlan' in ifData) {
           if (typeof(ifData['untagged_vlan']) === "number") {
             let untagged_vlan_mapped = vlanOptions.filter(item => item.description == ifData['untagged_vlan']);
             if (Array.isArray(untagged_vlan_mapped) && untagged_vlan_mapped.length == 1) {
-              untagged_vlan = untagged_vlan_mapped[0].value;
+              fields['untagged_vlan'] = untagged_vlan_mapped[0].value;
             } else {
-              untagged_vlan = null;
+              fields['untagged_vlan'] = null;
             }
-//            console.log("number matched to: "+untagged_vlan);
           } else {
-            untagged_vlan = ifData['untagged_vlan'];
+            fields['untagged_vlan'] = ifData['untagged_vlan'];
           }
         }
-        if ('tagged_vlan_list' in ifData) {
-          tagged_vlan_list = ifData['tagged_vlan_list'].map((vlan_item) => {
+        if (ifDataUpdated !== null && 'tagged_vlan_list' in ifDataUpdated) {
+          fields['tagged_vlan_list'] = ifDataUpdated['tagged_vlan_list'];
+        } else if ('tagged_vlan_list' in ifData) {
+          fields['tagged_vlan_list'] = ifData['tagged_vlan_list'].map((vlan_item) => {
             if (typeof(vlan_item) === "number") {
               let vlan_mapped = vlanOptions.filter(item => item.description == vlan_item);
               if (Array.isArray(vlan_mapped) && vlan_mapped.length == 1) {
@@ -444,21 +464,16 @@ class InterfaceConfig extends React.Component {
             }
           })
         }
-        if ('enabled' in ifData) {
-          enabled = ifData['enabled'];
+        if (ifDataUpdated !== null) {
+          const check_updated_fields = ['enabled', 'tags', 'aggregate_id', 'bpdu_filter'];
+          check_updated_fields.forEach((field_name) => {
+            if (field_name in ifDataUpdated) {
+              field[field_name] = ifDataUpdated[field_name];
+            } else if (field_name in ifData) {
+              field[field_name] = ifData[field_name];
+            }
+          });
         }
-        if ('tags' in ifData) {
-          tags = ifData['tags'];
-        }
-        if ('aggregate_id' in ifData) {
-          aggregate_id = ifData['aggregate_id'];
-        }
-        if ('bpdu_filter' in ifData) {
-          bpdu_filter = ifData['bpdu_filter'];
-        }
-      }
-      if (updated == true && this.state.interfaceDataUpdated[item.name]['enabled'] !== undefined) {
-        enabled = this.state.interfaceDataUpdated[item.name]['enabled'];
       }
 
       let currentConfigtype = item.configtype;
@@ -484,7 +499,7 @@ class InterfaceConfig extends React.Component {
                   name={"tagged_vlan_list|"+item.name}
                   fluid multiple selection
                   options={this.state.vlanOptions}
-                  defaultValue={tagged_vlan_list}
+                  defaultValue={fields['tagged_vlan_list']}
                   onChange={this.updateFieldData}
                 />,
               ];
@@ -494,7 +509,7 @@ class InterfaceConfig extends React.Component {
                 name={"untagged_vlan|"+item.name}
                 fluid selection
                 options={this.state.untaggedVlanOptions}
-                defaultValue={untagged_vlan}
+                defaultValue={fields['untagged_vlan']}
                 onChange={this.updateFieldData}
               />];
             }
@@ -514,7 +529,7 @@ class InterfaceConfig extends React.Component {
             name={"tags|"+item.name}
             fluid multiple selection search allowAdditions
             options={this.state.tagOptions}
-            defaultValue={tags}
+            defaultValue={fields['tags']}
             onAddItem={this.addTagOption}
             onChange={this.updateFieldData}
             disabled={editDisabled}
@@ -537,7 +552,7 @@ class InterfaceConfig extends React.Component {
             <Input
               key={"aggregate_id|"+item.name}
               name={"aggregate_id|"+item.name}
-              defaultValue={aggregate_id}
+              defaultValue={fields['aggregate_id']}
               disabled={editDisabled}
               onChange={this.updateFieldData}
             />
@@ -553,7 +568,7 @@ class InterfaceConfig extends React.Component {
                 <Checkbox
                   key={"bpdu_filter|"+item.name}
                   name={"bpdu_filter|"+item.name}
-                  defaultChecked={bpdu_filter}
+                  defaultChecked={fields['bpdu_filter']}
                   onChange={this.updateFieldData}
                   disabled={editDisabled}
                 />
@@ -571,7 +586,7 @@ class InterfaceConfig extends React.Component {
           name={"enabled|"+item.name}
           toggle
           label={<label>Enable interface</label>}
-          defaultChecked={enabled}
+          defaultChecked={fields['enabled']}
           onChange={this.updateFieldData}
           disabled={editDisabled}
         />;
@@ -632,7 +647,7 @@ class InterfaceConfig extends React.Component {
             <Input
               key={"description|"+item.name}
               name={"description|"+item.name}
-              defaultValue={description}
+              defaultValue={fields['description']}
               disabled={editDisabled}
               onChange={this.updateFieldData}
             />
@@ -676,7 +691,7 @@ class InterfaceConfig extends React.Component {
   }
 
   render() {
-    let interfaceTable = this.renderTableRows(this.state.interfaceData, this.state.vlanOptions);
+    let interfaceTable = this.renderTableRows(this.state.interfaceData, this.state.interfaceDataUpdated, this.state.vlanOptions);
     let syncStateIcon = this.state.deviceData.synchronized === true ? <Icon name="check" color="green" /> : <Icon name="delete" color="red" />;
     let accordionActiveIndex = this.state.accordionActiveIndex;
     let commitAutopushDisabled = (
