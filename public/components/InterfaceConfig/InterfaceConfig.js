@@ -418,7 +418,7 @@ class InterfaceConfig extends React.Component {
       if (ifData === null) {
         if (ifDataUpdated !== null) {
           const check_updated_fields = ['untagged_vlan', 'tagged_vlan_list', 'enabled', 'tags', 'aggregate_id', 'bpdu_filter'];
-          check_updated_fields.map((field_name) => {
+          check_updated_fields.forEach((field_name) => {
             if (field_name in ifDataUpdated) {
               fields[field_name] = ifDataUpdated[field_name];
             }
@@ -466,7 +466,7 @@ class InterfaceConfig extends React.Component {
         }
         if (ifDataUpdated !== null) {
           const check_updated_fields = ['enabled', 'tags', 'aggregate_id', 'bpdu_filter'];
-          check_updated_fields.map((field_name) => {
+          check_updated_fields.forEach((field_name) => {
             if (field_name in ifDataUpdated) {
               field[field_name] = ifDataUpdated[field_name];
             } else if (field_name in ifData) {
