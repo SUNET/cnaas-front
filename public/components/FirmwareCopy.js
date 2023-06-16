@@ -13,7 +13,7 @@ class FirmwareCopy extends React.Component {
   }
 
   getFirmwareRepoData = () => {
-    let url = "https://firmware.cnaas.sunet.se/firmware.json";
+    let url = process.env.FIRMWARE_REPO_METADATA_URL;
     getData(url).then(data => {
       console.log("this should be REPO data", data);
       {
@@ -98,23 +98,27 @@ class FirmwareCopy extends React.Component {
       let ico = [];
       if (firmware.present_in_repo) {
         ico.push(<Popup
+                   key="present_repo"
                    content="This firmware is present in the central firmware repository"
                    position="top center"
                    trigger={<Icon name="cloud" />} />);
       }
       if (firmware.already_downloaded) {
         ico.push(<Popup
+                   key="present_local"
                    content="This firmware is present on this local NMS instance"
                    position="top center"
                    trigger={<Icon name="disk" />} />);
       }
       if (firmware.approved) {
         ico.push(<Popup
+                   key="approved"
                    content="This firmware is verified/approved"
                    position="top center"
                    trigger={<Icon name="check" color="green" />} />);
       } else {
         ico.push(<Popup
+                   key="not_approved"
                    content="Warning! This firmware is not verified/approved"
                    position="top center"
                    trigger={<Icon name="delete" color="red" />} />);

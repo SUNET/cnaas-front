@@ -10,6 +10,8 @@ services:
       - CNAAS_AUTH_URL
       - CNAAS_FRONT_URL
       - CNAAS_FIRMWARE_URL
+      - CNAAS_FIRMWARE_REPO_URL
+      - CNAAS_FIRMWARE_REPO_METADATA_URL
     volumes:
       - type: volume
         source: cnaas-front-cert

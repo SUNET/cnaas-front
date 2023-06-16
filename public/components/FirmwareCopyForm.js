@@ -16,7 +16,7 @@ class FirmwareCopyForm extends React.Component {
     const credentials = localStorage.getItem("token");
     let url = process.env.API_URL + "/api/v1.0/firmware";
     let dataToSend = {
-      url: "https://firmware.cnaas.sunet.se/firmware/"+this.props.filename,
+      url: process.env.FIRMWARE_REPO_URL+this.props.filename,
       sha1: this.props.sha1sum,
       verify_tls: true
     };
