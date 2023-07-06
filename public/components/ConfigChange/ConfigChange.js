@@ -6,6 +6,7 @@ import DryRun from "./DryRun/DryRun";
 import VerifyDiff from "./VerifyDiff/VerifyDiff";
 import ConfigChangeStep4 from "./ConfigChangeStep4";
 import checkResponseStatus from "../../utils/checkResponseStatus";
+import SyncStatus from "./SyncStatus";
 // import { postData } from "../../utils/sendData";
 import getData from "../../utils/getData";
 import queryString from 'query-string';
@@ -307,6 +308,7 @@ class ConfigChange extends React.Component {
         <section>
           <h1>Commit changes (syncto)</h1>
           <p>Commit changes to: { commitTargetName }</p>
+          <SyncStatus target={this.getCommitTarget()} />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}
             setRepoWorking={this.setRepoWorking}
