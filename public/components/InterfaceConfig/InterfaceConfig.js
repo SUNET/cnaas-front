@@ -468,9 +468,9 @@ class InterfaceConfig extends React.Component {
           const check_updated_fields = ['enabled', 'tags', 'aggregate_id', 'bpdu_filter'];
           check_updated_fields.forEach((field_name) => {
             if (field_name in ifDataUpdated) {
-              field[field_name] = ifDataUpdated[field_name];
+              fields[field_name] = ifDataUpdated[field_name];
             } else if (field_name in ifData) {
-              field[field_name] = ifData[field_name];
+              fields[field_name] = ifData[field_name];
             }
           });
         }
