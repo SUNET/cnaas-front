@@ -11,10 +11,14 @@ class SyncStatus extends React.Component {
         synchistory: {}
     }
 
-    getDeviceList(hostname, group) {
-        if (hostname !== undefined) {
-
-        } else if (group !== undefined) {
+    getDeviceList() {
+        if (this.props.target.hostname !== undefined) {
+            const credentials = localStorage.getItem("token");
+            let url = process.env.API_URL + "/api/v1.0/devices?filter[hostname]="+this.props.target.hostname+"&filter[state]=MANAGED&per_page=1000";
+            getData(url, credentials).then(data => {
+                this.setState({devices: data['data']['devices']});
+            });
+        } else if (this.props.target.group !== undefined) {
 
         } else {
             const credentials = localStorage.getItem("token");
@@ -54,10 +58,10 @@ class SyncStatus extends React.Component {
                     let timestamp = new Date();
                     timestamp.setTime(e.timestamp*1000);
                     deviceCauses.add(e.cause);
-                    return <li>{e.cause} by {e.by} at {formatISODate(timestamp.toISOString())}</li>;
+                    return <li key={device.hostname}>{e.cause} by {e.by} at {formatISODate(timestamp.toISOString())}</li>;
                 } );
                 
-                let deviceEntry = <li key={device.hostname}><Popup flowing hoverable content={<ul>{eventList}</ul>} trigger={<a>{device.hostname}</a>} /></li>
+                let deviceEntry = <li key={device.hostname}><Popup flowing hoverable content={<ul>{eventList}</ul>} trigger={<a>{device.hostname} ({eventList.length})</a>} /></li>
                 
                 deviceCauses.forEach((cause) => {
                     byCause[cause].push(deviceEntry);
@@ -66,21 +70,32 @@ class SyncStatus extends React.Component {
         });
         let headers = [];
         let contents = [];
-        let ret = Object.entries(byCause).map(([cause, devices]) => {
-            return <li>{cause}: <ul>{devices.reduce((prev, curr) => [prev, ', ', curr])}</ul></li>;
-
+        Object.entries(byCause).map(([cause, devices]) => {
+            headers.push(cause);
+            contents.push(devices);
         });
-        return <ul>{ret}</ul>;
+        return <Table key="devicelist" celled collapsing>
+            <Table.Header>
+                <Table.Row>
+                    {headers.map((cause) => {return <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>})} 
+                </Table.Row>
+            </Table.Header>
+            <Table.Body>
+                <Table.Row>
+                    {contents.map((devices) => {return <Table.Cell key={devices}><ul>{devices}</ul></Table.Cell>})}
+                </Table.Row>
+            </Table.Body>
+        </Table>;
     }
 
     render() {
         let ret = [];
         if (this.props.target.all !== undefined) {
-            ret.push(<p>SyncStatus: All</p>);
+            ret.push(<p key="syncstatus">SyncStatus: All</p>);
         } else if (this.props.target.hostname !== undefined) {
-            ret.push(<p>SyncStatus: {this.props.target.hostname}</p>);
+            ret.push(<p key="syncstatus">SyncStatus: {this.props.target.hostname}</p>);
         } else if (this.props.target.group !== undefined) {
-            ret.push(<p>SyncStatus: {this.props.target.group}</p>);
+            ret.push(<p key="syncstatus">SyncStatus: {this.props.target.group}</p>);
         }
         ret.push(this.renderDeviceList());
         return ret;
