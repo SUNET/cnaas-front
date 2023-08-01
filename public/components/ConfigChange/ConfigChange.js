@@ -230,20 +230,37 @@ class ConfigChange extends React.Component {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'loglevel': 'DEBUG'});
       console.log(ret);
+      ret = socket.emit('events', {'sync': 'all'});
+      console.log(ret);
     });
     socket.on('events', (data) => {
-      var newLogLines = this.state.logLines;
-      if (newLogLines.length >= 1000) {
-        newLogLines.shift();
-      }
-      newLogLines.push(data + "\n");
-      this.setState({logLines: newLogLines});
-      // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
-      if (data.includes("refresh repo") === true) {
-        this.setState({dryRunProgressData: []});
-        console.log("Refresh repo event, reset dryrun status: ", data);
+      // sync events
+      if (data.syncevent_hostname !== undefined && data.syncevent_data !== undefined) {
+        let target = this.getCommitTarget();
+        if (target.hostname !== undefined) {
+          if (target.hostname == data.syncevent_hostname) {
+            console.log("syncevent for:" + data.syncevent_hostname);
+            console.log(data.syncevent_data);
+          }
+        }
+        console.log("syncevent for:" + data.syncevent_hostname);
+        console.log(data.syncevent_data);
+      // log events
+      } else if (typeof data === 'string' || data instanceof String) {
+        var newLogLines = this.state.logLines;
+        if (newLogLines.length >= 1000) {
+          newLogLines.shift();
+        }
+        newLogLines.push(data + "\n");
+        this.setState({logLines: newLogLines});
+        // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
+        if (data.includes("refresh repo") === true) {
+          this.setState({dryRunProgressData: []});
+          console.log("Refresh repo event, reset dryrun status: ", data);
+        }
       }
     });
+    socket.on('')
   };
 
   componentWillUnmount() {

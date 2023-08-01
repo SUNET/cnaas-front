@@ -50,7 +50,7 @@ class SyncStatus extends React.Component {
         this.state.devices.forEach(device => {
             if (device.hostname in this.state.synchistory) {
                 let deviceCauses = new Set(); // Unique causes this device has been impacted by
-                let eventList = this.state.synchistory[device.hostname].map((e) => {
+                let eventList = this.state.synchistory[device.hostname].map((e, index) => {
                     if (!causeTypes.has(e.cause)) {
                         byCause[e.cause] = [];
                         causeTypes.add(e.cause);
@@ -58,7 +58,7 @@ class SyncStatus extends React.Component {
                     let timestamp = new Date();
                     timestamp.setTime(e.timestamp*1000);
                     deviceCauses.add(e.cause);
-                    return <li key={device.hostname}>{e.cause} by {e.by} at {formatISODate(timestamp.toISOString())}</li>;
+                    return <li key={index}>{e.cause} by {e.by} at {formatISODate(timestamp.toISOString())}</li>;
                 } );
                 
                 let deviceEntry = <li key={device.hostname}><Popup flowing hoverable content={<ul>{eventList}</ul>} trigger={<a>{device.hostname} ({eventList.length})</a>} /></li>
@@ -82,7 +82,7 @@ class SyncStatus extends React.Component {
             </Table.Header>
             <Table.Body>
                 <Table.Row>
-                    {contents.map((devices) => {return <Table.Cell key={devices}><ul>{devices}</ul></Table.Cell>})}
+                    {contents.map((devices, index) => {return <Table.Cell key={"devices_"+index}><ul>{devices}</ul></Table.Cell>})}
                 </Table.Row>
             </Table.Body>
         </Table>;
