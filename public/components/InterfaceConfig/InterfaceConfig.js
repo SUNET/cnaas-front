@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import React from "react";
 import { Link } from "react-router-dom";
 import queryString from 'query-string';
@@ -497,7 +498,10 @@ class InterfaceConfig extends React.Component {
                 <Dropdown
                   key={"tagged_vlan_list|"+item.name}
                   name={"tagged_vlan_list|"+item.name}
-                  fluid multiple selection
+                  fluid multiple selection search={(filteredOptions, searchQuery) => {
+                    const re = new RegExp(_.escapeRegExp(searchQuery), 'i');
+                    return _.filter(filteredOptions, (opt) => (re.test(opt.text) || re.test(opt.description.toString())));
+                  }}
                   options={this.state.vlanOptions}
                   defaultValue={fields['tagged_vlan_list']}
                   onChange={this.updateFieldData}
