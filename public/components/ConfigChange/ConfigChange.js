@@ -11,6 +11,9 @@ import SyncStatus from "./SyncStatus";
 import getData from "../../utils/getData";
 import queryString from 'query-string';
 import Prism from "prismjs";
+import { SemanticToastContainer, toast } from 'react-semantic-toasts';
+import 'react-semantic-toasts/styles/react-semantic-alert.css';
+
 const io = require("socket.io-client");
 var socket = null;
 
@@ -28,7 +31,8 @@ class ConfigChange extends React.Component {
       confirmRunProgressData: {},
       logLines: [],
       blockNavigation: false,
-      repoWorking: false
+      repoWorking: false,
+      syncEventCounter: 0
     }
   };
 
@@ -237,14 +241,27 @@ class ConfigChange extends React.Component {
       // sync events
       if (data.syncevent_hostname !== undefined && data.syncevent_data !== undefined) {
         let target = this.getCommitTarget();
+        let showEvent = false;
         if (target.hostname !== undefined) {
           if (target.hostname == data.syncevent_hostname) {
-            console.log("syncevent for:" + data.syncevent_hostname);
-            console.log(data.syncevent_data);
+            showEvent = true;
           }
+        } else {
+          showEvent = true;
         }
-        console.log("syncevent for:" + data.syncevent_hostname);
-        console.log(data.syncevent_data);
+        if (showEvent) {
+          this.setState({ syncEventCounter: this.state.syncEventCounter + 1 });
+          console.log("syncevent for:" + data.syncevent_hostname);
+          console.log(data.syncevent_data);
+          toast({
+            type: 'warning',
+            icon: 'paper plane',
+            title: ('Sync event ('+this.state.syncEventCounter+'): '+data.syncevent_hostname),
+            description: (data.syncevent_data.cause + " by " + data.syncevent_data.by),
+            animation: 'bounce',
+            time: 0
+          });
+        }
       // log events
       } else if (typeof data === 'string' || data instanceof String) {
         var newLogLines = this.state.logLines;
@@ -322,6 +339,7 @@ class ConfigChange extends React.Component {
           when={this.state.blockNavigation}
           message="A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave."
           />
+        <SemanticToastContainer position="top-right" maxToasts={3} />
         <section>
           <h1>Commit changes (syncto)</h1>
           <p>Commit changes to: { commitTargetName }</p>
