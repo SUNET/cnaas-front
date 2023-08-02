@@ -1,8 +1,8 @@
 import React from "react";
-import { Input } from 'semantic-ui-react';
+import { Input, Popup, Icon } from 'semantic-ui-react';
 import DryRunProgressBar from "./DryRun/DryRunProgressBar";
 import DryRunProgressInfo from "./DryRun/DryRunProgressInfo";
-import { Confirm, Popup, Icon, Select } from 'semantic-ui-react';
+import { Confirm, Select } from 'semantic-ui-react';
 import getData from "../../utils/getData";
 
 class ConfigChangeStep4 extends React.Component {
@@ -11,7 +11,8 @@ class ConfigChangeStep4 extends React.Component {
     commitModeDefault: -1,
     commitMode: -1,
     job_comment: "",
-    job_ticket_ref: ""
+    job_ticket_ref: "",
+    expanded: true
   };
   commitModeOptions = [
     {'value': -1, 'text': "use server default commit mode"},
@@ -19,6 +20,10 @@ class ConfigChangeStep4 extends React.Component {
     {'value': 1, 'text': "mode 1: per-device confirm"},
     {'value': 2, 'text': "mode 2: per-job confirm"},
   ]; 
+
+  toggleExpand = (e, props) => {
+    this.setState({expanded: !this.state.expanded});
+  }
 
   openConfirm = () => { this.setState({confirmDiagOpen: true}) };
   closeConfirm = () => { this.setState({confirmDiagOpen: false}) };
@@ -150,9 +155,17 @@ class ConfigChangeStep4 extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2>Commit configuration (4/4)</h2>
+          <h2>
+            <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
+            Commit configuration (4/4)
+            <Popup
+              content="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log."
+              trigger={<Icon name="question circle" size="small" />}
+              wide="very"
+              />
+          </h2>
         </div>
-        <div className="task-collapsable">
+        <div className="task-collapsable" hidden={!this.state.expanded}>
           <p>Step 4 of 4: Final step, commit new configuration to devices</p>
           <p>Describe the change:</p>
           <div className="info">
