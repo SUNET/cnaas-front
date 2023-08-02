@@ -1,6 +1,5 @@
 import React from "react";
 import { Prompt } from 'react-router';
-import { Input } from 'semantic-ui-react';
 import ConfigChangeStep1 from "./ConfigChangeStep1";
 import DryRun from "./DryRun/DryRun";
 import VerifyDiff from "./VerifyDiff/VerifyDiff";
@@ -207,18 +206,6 @@ class ConfigChange extends React.Component {
     }
   };
 
-  getCommitTargetName(target) {
-    if (target.all !== undefined) {
-      return "All unsynchronized devices";
-    } else if (target.hostname !== undefined) {
-      return "Hostname: " + target.hostname
-    } else if (target.group !== undefined) {
-      return "Group: " + target.group
-    } else {
-      return "Unknown"
-    }
-  };
-
   componentDidMount(){
     let queryParams = queryString.parse(this.props.location.search);
     if (queryParams.scrollTo !== undefined) {
@@ -307,7 +294,6 @@ class ConfigChange extends React.Component {
     let confirmRunProgressData = this.state.confirmRunProgressData;
     let confirmRunJobStatus = "";
     let confirmRunJobId = "NA";
-    let commitTargetName = this.getCommitTargetName(this.getCommitTarget());
 
     if (Object.keys(dryRunProgressData).length > 0) {
       dryRunJobStatus = dryRunProgressData.status;
@@ -341,8 +327,6 @@ class ConfigChange extends React.Component {
           />
         <SemanticToastContainer position="top-right" maxToasts={3} />
         <section>
-          <h1>Commit changes (syncto)</h1>
-          <p>Commit changes to: { commitTargetName }</p>
           <SyncStatus target={this.getCommitTarget()} />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}

@@ -1,6 +1,7 @@
+import _ from 'lodash';
 import React from "react";
 import PropTypes from 'prop-types'
-import { Popup, Table } from "semantic-ui-react";
+import { Popup, Table, Icon } from "semantic-ui-react";
 import formatISODate from "../../utils/formatters";
 
 import getData from "../../utils/getData";
@@ -8,18 +9,42 @@ import getData from "../../utils/getData";
 class SyncStatus extends React.Component {
     state = {
         devices: [],
-        synchistory: {}
+        synchistory: {},
+        expanded: true
     }
+
+    toggleExpand = (e, props) => {
+        this.setState({expanded: !this.state.expanded});
+    }
+
+    getCommitTargetName(target) {
+        if (target.all !== undefined) {
+        return "All unsynchronized devices";
+        } else if (target.hostname !== undefined) {
+        return "Hostname: " + target.hostname
+        } else if (target.group !== undefined) {
+        return "Group: " + target.group
+        } else {
+        return "Unknown"
+        }
+    };
 
     getDeviceList() {
         if (this.props.target.hostname !== undefined) {
             const credentials = localStorage.getItem("token");
-            let url = process.env.API_URL + "/api/v1.0/devices?filter[hostname]="+this.props.target.hostname+"&filter[state]=MANAGED&per_page=1000";
+            let url = process.env.API_URL + "/api/v1.0/devices?filter[hostname]="+this.props.target.hostname+"&filter[state]=MANAGED&per_page=1";
             getData(url, credentials).then(data => {
                 this.setState({devices: data['data']['devices']});
             });
         } else if (this.props.target.group !== undefined) {
-
+            const credentials = localStorage.getItem("token");
+            let url_devices = process.env.API_URL + "/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000";
+            getData(url_devices, credentials).then(data_devices => {
+                let url_group = process.env.API_URL + "/api/v1.0/groups/"+this.props.target.group;
+                getData(url_group, credentials).then(data_group => {
+                    this.setState({devices: _.filter(data_devices['data']['devices'], (dev) => (data_group['data']['groups'][this.props.target.group].includes(dev.hostname)))});
+                });
+            });
         } else {
             const credentials = localStorage.getItem("token");
             let url = process.env.API_URL + "/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000";
@@ -35,7 +60,6 @@ class SyncStatus extends React.Component {
         getData(url, credentials).then(data => {
             this.setState({synchistory: data['data']['hostnames']});
         });
-
     }
 
     componentDidMount() {
@@ -74,31 +98,48 @@ class SyncStatus extends React.Component {
             headers.push(cause);
             contents.push(devices);
         });
-        return <Table key="devicelist" celled collapsing>
-            <Table.Header>
-                <Table.Row>
-                    {headers.map((cause) => {return <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>})} 
-                </Table.Row>
-            </Table.Header>
-            <Table.Body>
-                <Table.Row>
-                    {contents.map((devices, index) => {return <Table.Cell key={"devices_"+index}><ul>{devices}</ul></Table.Cell>})}
-                </Table.Row>
-            </Table.Body>
-        </Table>;
+        if (contents.length >= 1) {
+            return <div key="tablecontainer" className='tablecontainer'>
+                <Table key="synceventlist" celled collapsing>
+                    <Table.Header>
+                        <Table.Row>
+                            {headers.map((cause) => {return <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>})} 
+                        </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                        <Table.Row>
+                            {contents.map((devices, index) => {return <Table.Cell key={"devices_"+index}><ul>{devices}</ul></Table.Cell>})}
+                        </Table.Row>
+                    </Table.Body>
+                </Table>
+            </div>;
+        } else {
+            return <p key="no_events">No known synchronization events (old events are not persistent across server reboots)</p>
+        }
     }
 
     render() {
         let ret = [];
-        if (this.props.target.all !== undefined) {
-            ret.push(<p key="syncstatus">SyncStatus: All</p>);
-        } else if (this.props.target.hostname !== undefined) {
-            ret.push(<p key="syncstatus">SyncStatus: {this.props.target.hostname}</p>);
-        } else if (this.props.target.group !== undefined) {
-            ret.push(<p key="syncstatus">SyncStatus: {this.props.target.group}</p>);
-        }
+        let commitTargetName = this.getCommitTargetName(this.props.target);
         ret.push(this.renderDeviceList());
-        return ret;
+        return [<h1 key="header">Commit configuration changes (syncto)</h1>,
+          <div key="container" className="task-container">
+            <div key="heading" className="heading">
+              <h2 id="dry_run_section">
+                <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
+                Target: { commitTargetName }
+                <Popup
+                  content="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized."
+                  trigger={<Icon name="question circle" size="small" />}
+                  wide
+                  />
+              </h2>
+            </div>
+            <div key="events" className="task-collapsable" hidden={!this.state.expanded}>
+                <p key="syncstatus">Synchronization events for: { commitTargetName }</p>
+                {ret}
+            </div>
+          </div>];
     }
 }
 

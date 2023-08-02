@@ -114,7 +114,7 @@ class ConfigChangeStep1 extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2>Refresh repositories (1/4)</h2>
+          <h2>Optional: Refresh repositories (1/4)</h2>
         </div>
         <div className="task-collapsable">
           <div className="info">
