@@ -1,5 +1,6 @@
 import React from "react";
 import { Prompt } from 'react-router';
+import { Link } from 'react-router-dom';
 import ConfigChangeStep1 from "./ConfigChangeStep1";
 import DryRun from "./DryRun/DryRun";
 import VerifyDiff from "./VerifyDiff/VerifyDiff";
@@ -38,14 +39,21 @@ class ConfigChange extends React.Component {
   constructor() {
     super();
     this.state = this.getInitialState();
+    this.syncstatuschild = React.createRef();
   }
 
   resetState = () => {
     console.log(this.getInitialState());
     this.setState(this.getInitialState());
+    this.syncstatuschild.current.getDeviceList();
+    this.syncstatuschild.current.getSyncHistory();
   }
 
   setRepoWorking = (working_status) => {
+    if (this.state.repoWorking === true && working_status === false) {
+      this.syncstatuschild.current.getDeviceList();
+      this.syncstatuschild.current.getSyncHistory();
+    }
     this.setState({repoWorking: working_status});
   }
 
@@ -236,6 +244,12 @@ class ConfigChange extends React.Component {
         } else {
           showEvent = true;
         }
+        // don't show events while refreshing settings/templates via buttons
+        if (this.state.repoWorking === true) {
+          if (data.syncevent_data.cause.startsWith('refresh_')) {
+            showEvent = false;
+          }
+        }
         if (showEvent) {
           this.setState({ syncEventCounter: this.state.syncEventCounter + 1 });
           console.log("syncevent for:" + data.syncevent_hostname);
@@ -244,7 +258,7 @@ class ConfigChange extends React.Component {
             type: 'warning',
             icon: 'paper plane',
             title: ('Sync event ('+this.state.syncEventCounter+'): '+data.syncevent_hostname),
-            description: (data.syncevent_data.cause + " by " + data.syncevent_data.by),
+            description: <p>{data.syncevent_data.cause} by {data.syncevent_data.by} <br /><Link onClick={() => window.location.reload()}>Reload page</Link></p>,
             animation: 'bounce',
             time: 0
           });
@@ -327,7 +341,7 @@ class ConfigChange extends React.Component {
           />
         <SemanticToastContainer position="top-right" maxToasts={3} />
         <section>
-          <SyncStatus target={this.getCommitTarget()} />
+          <SyncStatus target={this.getCommitTarget()} ref={this.syncstatuschild} />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}
             setRepoWorking={this.setRepoWorking}
