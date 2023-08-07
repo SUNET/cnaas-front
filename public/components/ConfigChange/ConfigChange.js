@@ -11,8 +11,8 @@ import SyncStatus from "./SyncStatus";
 import getData from "../../utils/getData";
 import queryString from 'query-string';
 import Prism from "prismjs";
-import { SemanticToastContainer, toast } from 'react-semantic-toasts';
-import 'react-semantic-toasts/styles/react-semantic-alert.css';
+import { SemanticToastContainer, toast } from 'react-semantic-toasts-2';
+import '../../styles/react-semantic-alert.css';
 
 const io = require("socket.io-client");
 var socket = null;
