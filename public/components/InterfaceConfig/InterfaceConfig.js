@@ -14,6 +14,7 @@ class InterfaceConfig extends React.Component {
     interfaceDataUpdated: {},
     interfaceStatusData: {},
     deviceData: {},
+    deviceSettings: null,
     editDisabled: false,
     vlanOptions: [],
     autoPushJobs: [],
@@ -490,8 +491,10 @@ class InterfaceConfig extends React.Component {
       let optionalColumns = this.state.displayColumns.map((columnName) => {
         let colData = [];
         if (columnName == "vlans") {
-          if (vlanOptions.length == 0 ) {
+          if (this.state.deviceSettings === null) {
             colData = [<Loader key="loading" inline active />];
+          } else if (vlanOptions.length == 0 ) {
+            colData = [<p>No VLANs available</p>];
           } else if (currentConfigtype === "ACCESS_TAGGED" || currentConfigtype === "ACCESS_UNTAGGED") {
             if (displayVlanTagged) {
               colData = [
@@ -511,7 +514,10 @@ class InterfaceConfig extends React.Component {
               colData = [<Dropdown
                 key={"untagged_vlan|"+item.name}
                 name={"untagged_vlan|"+item.name}
-                fluid selection
+                fluid selection search={(filteredOptions, searchQuery) => {
+                  const re = new RegExp(_.escapeRegExp(searchQuery), 'i');
+                  return _.filter(filteredOptions, (opt) => (re.test(opt.text) || re.test(opt.description.toString())));
+                }}
                 options={this.state.untaggedVlanOptions}
                 defaultValue={fields['untagged_vlan']}
                 onChange={this.updateFieldData}
