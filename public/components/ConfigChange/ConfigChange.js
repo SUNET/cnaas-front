@@ -96,8 +96,8 @@ class ConfigChange extends React.Component {
       if (options.ticket_ref !== undefined) {
         dataToSend["ticket_ref"] = options.ticket_ref;
       }
-      if (options.commit_mode !== undefined && options.commit_mode >= 0) {
-        dataToSend["commit_mode"] = options.commit_mode;
+      if (options.confirm_mode !== undefined && options.confirm_mode >= 0) {
+        dataToSend["confirm_mode"] = options.confirm_mode;
       }
     } else {
      options = {};
