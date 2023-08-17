@@ -10,7 +10,7 @@ class SyncStatus extends React.Component {
   state = {
     devices: [],
     synchistory: {},
-    expanded: true
+    expanded: false
   }
 
   toggleExpand = (e, props) => {
