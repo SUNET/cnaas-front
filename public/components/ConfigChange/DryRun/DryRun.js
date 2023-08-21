@@ -82,7 +82,7 @@ class DryRun extends React.Component {
             </div>
             <div className="info">
               <button id="dryrunButton" disabled={dryrunButtonDisabled} onClick={() => this.dryrunButtonOnclick()}>
-                Start config dry run
+                Dry run
               </button>
               <button id="resetButton" disabled={resetButtonDisabled} onClick={() => this.resetButtonOnclick()}>
                 Start over
