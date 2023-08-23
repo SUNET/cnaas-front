@@ -266,7 +266,7 @@ class InterfaceConfig extends React.Component {
         return false;
       }
     }).catch(error => {
-      this.setState({errorMessage: error.message});
+      this.setState({errorMessage: error.message.errors.join(", ")});
       return false;
     });
   }

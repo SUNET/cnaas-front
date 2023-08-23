@@ -1,9 +1,10 @@
 import React from "react";
-import { Dropdown, Icon, Pagination, Popup, Button, Select, Checkbox } from "semantic-ui-react";
+import { Dropdown, Icon, Pagination, Popup, Button, Select, Checkbox, Modal, Input } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
 import queryString from 'query-string';
+import { deleteData } from "../utils/sendData";
 const io = require("socket.io-client");
 var socket = null;
 
@@ -26,7 +27,14 @@ class DeviceList extends React.Component {
     queryParamsParsed: false,
     loading: true,
     error: null,
-    displayColumns: []
+    displayColumns: [],
+    delete_modal_open: false,
+    delete_modal_device_id: null,
+    delete_modal_device_state: null,
+    delete_modal_device_type: null,
+    delete_modal_confirm_name: "",
+    delete_modal_factory_default: false,
+    delete_modal_error: null
   };
 
   parseQueryParams(callback) {
@@ -149,15 +157,28 @@ class DeviceList extends React.Component {
     });
     socket.on('events', (data) => {
       // device update event
-      if (data.device_id !== undefined && data.action == "UPDATED") {
-        let newDevicesData = this.state.devicesData.map((dev) => {
-          if (dev.id == data.device_id) {
-            return data.object;
-          } else {
-            return dev;
-          }
-        });
-        this.setState({devicesData: newDevicesData});
+      if (data.device_id !== undefined) {
+        if (data.action == "UPDATED") {
+          let newDevicesData = this.state.devicesData.map((dev) => {
+            if (dev.id == data.device_id) {
+              return data.object;
+            } else {
+              return dev;
+            }
+          });
+          this.setState({devicesData: newDevicesData});
+        } else if (data.action == "DELETED") {
+          let newDevicesData = this.state.devicesData.map((dev) => {
+            if (dev.id == data.device_id) {
+              let new_dev = dev;
+              new_dev['deleted'] = true;
+              return new_dev;
+            } else {
+              return dev;
+            }
+          });
+          this.setState({devicesData: newDevicesData});
+        }
       // job update event
       } else if (data.job_id !== undefined) {
         var newLogLines = this.state.logLines;
@@ -442,6 +463,84 @@ class DeviceList extends React.Component {
     });
   }
 
+  updateDeleteModalConfirmName(e) {
+    const val = e.target.value;
+    this.setState({
+      delete_modal_confirm_name: val
+    });
+  }
+
+  deleteDeviceFactoryDefaultAction = (event, data) => {
+    this.setState({delete_modal_factory_default: data.checked}, () => {
+      console.log("factory_default: " + this.state.delete_modal_factory_default);
+    });
+  };
+
+  deleteModalOpen(device_id, device_hostname, device_state, device_type) {
+    let factory_default = false;
+    if (device_state == "MANAGED" && device_type == "ACCESS") {
+      factory_default = true;
+    }
+    this.setState({
+      delete_modal_open: true,
+      delete_modal_device_id: device_id,
+      delete_modal_device_hostname: device_hostname,
+      delete_modal_device_state: device_state,
+      delete_modal_device_type: device_type,
+      delete_modal_confirm_name: "",
+      delete_modal_factory_default: factory_default
+    });
+  }
+
+  deleteModalClose() {
+    this.setState({
+      delete_modal_open: false,
+      delete_modal_device_id: null,
+      delete_modal_device_hostname: null,
+      delete_modal_device_state: null,
+      delete_modal_device_type: null,
+      delete_modal_confirm_name: "",
+      delete_modal_factory_default: false,
+      delete_modal_error: null
+    });
+  }
+
+  deleteDeviceAction() {
+    let device_id = this.state.delete_modal_device_id;
+    let factory_default = this.state.delete_modal_factory_default;
+
+    const credentials = localStorage.getItem("token");
+
+    let url = process.env.API_URL + "/api/v1.0/device/" + device_id;
+    let job_id = null;
+    let dataToSend = {
+      factory_default: factory_default
+    };
+
+    deleteData(url, credentials, dataToSend).then(data => {
+      if (data.job_id !== undefined && typeof data.job_id === "number") {
+        this.addDeviceJob(device_id, data.job_id);
+        this.deleteModalClose();
+      } else {
+        this.deleteModalClose();
+      }
+    }).catch(error => {
+      console.log(error);
+      if (typeof error.json === "function") {
+        error.json().then(jsonError => {
+          console.log(jsonError);
+          this.setState({delete_modal_error: "JSON error from API: "+jsonError.message});
+        }).catch(genericError => {
+          console.log(error.statusText);
+          this.setState({delete_modal_error: "Error from API: "+error.statusText});
+        });
+      } else {
+        console.log(error);
+        this.setState({delete_modal_error: "Fetch error: "+error});
+      }
+    });
+  }
+
   changeStateAction(device_id, state) {
     console.log("Change state for device_id: "+device_id);
     const credentials = localStorage.getItem("token");
@@ -497,13 +596,13 @@ class DeviceList extends React.Component {
         if (device.synchronized === true) {
           syncStatus = (
             <td key={device.id+"_state"}>
-              MANAGED <Icon name="check" color="green" />
+              MANAGED / SYNC=<Icon name="check" color="green" />
             </td>
           );
         } else {
           syncStatus = (
             <td key={device.id+"_state"}>
-              MANAGED <Icon name="delete" color="red" />
+              MANAGED / SYNC=<Icon name="delete" color="red" />
             </td>
           );
         }
@@ -530,7 +629,8 @@ class DeviceList extends React.Component {
           <Dropdown.Item key="sync" text="Sync device..." onClick={() => this.syncDeviceAction(device.hostname)} />,
           <Dropdown.Item key="fwupgrade" text="Firmware upgrade..." onClick={() => this.upgradeDeviceAction(device.hostname)} />,
           <Dropdown.Item key="facts" text="Update facts" onClick={() => this.updateFactsAction(device.hostname, device.id) }/>,
-          <Dropdown.Item key="makeunmanaged" text="Make unmanaged" onClick={() => this.changeStateAction(device.id, "UNMANAGED")} />
+          <Dropdown.Item key="makeunmanaged" text="Make unmanaged" onClick={() => this.changeStateAction(device.id, "UNMANAGED")} />,
+          <Dropdown.Item key="delete" text="Delete device..." onClick={() => this.deleteModalOpen(device.id, device.hostname, device.state, device.device_type)} />
         ];
         if (device.device_type === "ACCESS") {
           menuActions.push(
@@ -543,7 +643,15 @@ class DeviceList extends React.Component {
       } else if (device.state == "UNMANAGED") {
         menuActions = [
           <Dropdown.Item key="facts" text="Update facts" onClick={() => this.updateFactsAction(device.hostname, device.id) }/>,
-          <Dropdown.Item key="makemanaged" text="Make managed" onClick={() => this.changeStateAction(device.id, "MANAGED")} />
+          <Dropdown.Item key="makemanaged" text="Make managed" onClick={() => this.changeStateAction(device.id, "MANAGED")} />,
+          <Dropdown.Item key="delete" text="Delete device..." onClick={() => this.deleteModalOpen(device.id, device.hostname, device.state, device.device_type)} />
+        ];
+      }
+      if (device.deleted !== undefined) {
+        syncStatus = <td key={device.id+"_state"}>DELETED</td>;
+        hostnameExtra = [<Icon key="deleted" name="delete" color="red" />];
+        menuActions = [
+            <Dropdown.Item key="noaction" text="No actions allowed for deleted device" disabled={true} />,
         ];
       }
       let deviceInterfaceData = "";
@@ -693,6 +801,38 @@ class DeviceList extends React.Component {
         </div>
         <div id="device_list">
           <h2>Device list</h2>
+          <Modal
+            onClose={() => this.deleteModalClose()}
+            open={this.state.delete_modal_open}
+          >
+            <Modal.Header>Delete device {this.state.delete_modal_device_hostname}</Modal.Header>
+            <Modal.Content>
+              <Modal.Description>
+                <p key="confirm">Are you sure you want to delete device {this.state.delete_modal_device_hostname} with device ID {this.state.delete_modal_device_id}? Confirm hostname below to delete</p>
+                <p key="error" hidden={this.state.delete_modal_error === null}>Error deleting device: {this.state.delete_modal_error}</p>
+                <Input placeholder="confirm hostname" onChange={this.updateDeleteModalConfirmName.bind(this)} />
+                <Checkbox
+                  label="Reset device to factory default settings when deleting"
+                  name="factory_default" checked={this.state.delete_modal_factory_default}
+                  disabled={(this.state.delete_modal_device_state != "MANAGED" || this.state.delete_modal_device_type != "ACCESS")}
+                  onChange={this.deleteDeviceFactoryDefaultAction}
+                />
+              </Modal.Description>
+            </Modal.Content>
+            <Modal.Actions>
+              <Button key="cancel" color='black' onClick={() => this.setState({delete_modal_open: false})}>
+                Cancel
+              </Button>
+              <Button
+                key="submit"
+                disabled={this.state.delete_modal_device_hostname != this.state.delete_modal_confirm_name}
+                onClick={() => this.deleteDeviceAction()}
+                icon labelPosition='right' negative
+              >
+                Delete
+              </Button>
+            </Modal.Actions>
+          </Modal>
           <div className="table_options">
             <Popup on='click' pinned position='bottom right' trigger={<Button className="table_options_button"><Icon name="table" /></Button>} >
               <p>Items per page:</p>
@@ -718,7 +858,7 @@ class DeviceList extends React.Component {
                     </div>
                   </th>
                   <th key="state" onClick={() => this.sortHeader("state")}>
-                    State (Sync status)
+                    State / Sync status
                     <div className="sync_status_sort">
                       {this.renderSortButton(this.state.state_sort)}
                     </div>
