@@ -1,7 +1,7 @@
 const checkResponseStatus = require("./checkResponseStatus");
 
 const getData = (url, credentials) => {
-  if (credentials == undefined ) {
+  if (credentials !== undefined ) {
     return fetch(url, {
       method: "GET",
       headers: {
