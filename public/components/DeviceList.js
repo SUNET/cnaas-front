@@ -705,8 +705,15 @@ class DeviceList extends React.Component {
           <Dropdown.Item key="noaction" text="No actions allowed in this state" disabled={true} />,
       ];
       let hostnameExtra = [];
-      if (device.state == "DISCOVERED") {
+      if (device.state == "DHCP_BOOT") {
+        menuActions = [
+          <Dropdown.Item key="delete" text="Delete device..." onClick={() => this.deleteModalOpen(device.id, device.hostname, device.state, device.device_type)} />
+        ];
+      } else if (device.state == "DISCOVERED") {
         deviceStateExtra.push(<DeviceInitForm key={device.id+"_initform"} deviceId={device.id} jobIdCallback={this.addDeviceJob.bind(this)} />);
+        menuActions = [
+          <Dropdown.Item key="delete" text="Delete device..." onClick={() => this.deleteModalOpen(device.id, device.hostname, device.state, device.device_type)} />
+        ];
       } else if (device.state == "INIT") {
         if (device.id in this.state.deviceJobs) {
           deviceStateExtra.push(<p key="initjobs">Init jobs: {this.state.deviceJobs[device.id].join(", ")}</p>);
