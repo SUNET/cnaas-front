@@ -32,6 +32,7 @@ class InterfaceConfig extends React.Component {
     interfaceToggleUntagged: {}
   }
   hostname = null;
+  device_type = null;
   configTypeOptions = [
     {'value': "ACCESS_AUTO", 'text': "Auto/dot1x"},
     {'value': "ACCESS_UNTAGGED", 'text': "Untagged/access"},
@@ -40,7 +41,14 @@ class InterfaceConfig extends React.Component {
     {'value': "ACCESS_UPLINK", 'text': "Uplink", 'disabled': true},
     {'value': "MLAG_PEER", 'text': "MLAG peer interface", 'disabled': true},
   ];
+  ifClassOptions = [
+    {'value': "downlink", 'text': "Downlink"},
+    {'value': "fabric", 'text': "Fabric link"},
+    {'value': "custom", 'text': "Custom"},
+    {'value': "port_template", 'text': "Port template"}
+  ];
   configTypesEnabled = ["ACCESS_AUTO", "ACCESS_UNTAGGED", "ACCESS_TAGGED", "ACCESS_DOWNLINK"];
+  ifClassesEnabled = ["custom", "port_template"];
   columnWidths = {
     "vlans": 4,
     "tags": 3,
@@ -52,8 +60,9 @@ class InterfaceConfig extends React.Component {
   componentDidMount() {
     this.hostname = this.getDeviceName();
     if (this.hostname !== null) {
-      this.getInterfaceData();
-      this.getDeviceData();
+      this.getDeviceData().then(() => {
+        this.getInterfaceData();
+      });
       this.getInterfaceStatusData();
     }
     const credentials = localStorage.getItem("token");
@@ -131,40 +140,57 @@ class InterfaceConfig extends React.Component {
 
   getInterfaceData() {
     const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/interfaces";
-    return getData(url, credentials).then(data =>
-      {
-        let usedTags = [];
-        data['data']['interfaces'].map((item, index) => {
-          let ifData = item.data;
-          if (ifData !== null && 'tags' in ifData) {
-            ifData['tags'].map((tag) => {
-              usedTags.push({text: tag, value: tag})
-            });
-          }
-        });
-
-        data['data']['interfaces'].map((item, index) => {
-          let ifData = item.data;
-          if (ifData !== null && 'neighbor_id' in ifData) {
-            const mlagDevURL = process.env.API_URL + "/api/v1.0/device/" + ifData.neighbor_id;
-            if (this.state.mlagPeerHostname == null) {
-              getData(mlagDevURL, credentials).then(data => {
-                this.setState({mlagPeerHostname: data['data']['devices'][0]['hostname']})
-              }).catch(error => {
-                console.log("MLAG peer not found: "+error);
-              })
+    if (this.device_type == "ACCESS") {
+      let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/interfaces";
+      return getData(url, credentials).then(data =>
+        {
+          let usedTags = [];
+          data['data']['interfaces'].map((item, index) => {
+            let ifData = item.data;
+            if (ifData !== null && 'tags' in ifData) {
+              ifData['tags'].map((tag) => {
+                usedTags.push({text: tag, value: tag})
+              });
             }
-          }
-        });
-        this.setState({
-          interfaceData: data['data']['interfaces'],
-          tagOptions: usedTags
-        });
-      }
-    ).catch(error => {
-      console.log(error);
-    });
+          });
+
+          data['data']['interfaces'].map((item, index) => {
+            let ifData = item.data;
+            if (ifData !== null && 'neighbor_id' in ifData) {
+              const mlagDevURL = process.env.API_URL + "/api/v1.0/device/" + ifData.neighbor_id;
+              if (this.state.mlagPeerHostname == null) {
+                getData(mlagDevURL, credentials).then(data => {
+                  this.setState({mlagPeerHostname: data['data']['devices'][0]['hostname']})
+                }).catch(error => {
+                  console.log("MLAG peer not found: "+error);
+                })
+              }
+            }
+          });
+          this.setState({
+            interfaceData: data['data']['interfaces'],
+            tagOptions: usedTags
+          });
+        }
+      ).catch(error => {
+        console.log(error);
+      });
+    } else if (this.device_type == "DIST") {
+      let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/generate_config?variables_only=true";
+      return getData(url, credentials).then(data =>
+        {
+          console.log(data["data"]["config"]["available_variables"]["interfaces"]);
+          this.setState({
+            interfaceData: data["data"]["config"]["available_variables"]["interfaces"]
+          });
+        }
+      ).catch(error => {
+        console.log(error);
+      });
+
+    } else {
+      console.error("Unsupported device type: "+this.device_type);
+    }
   }
 
   getInterfaceStatusData() {
@@ -189,22 +215,6 @@ class InterfaceConfig extends React.Component {
 
   getDeviceData() {
     const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname;
-    getData(url, credentials).then(data =>
-      {
-        let newState = {
-          deviceData: data['data']['devices'][0],
-          editDisabled: !data['data']['devices'][0]['synchronized']
-        };
-        if (this.state.initialSyncState == null) {
-          newState.initialSyncState = data['data']['devices'][0]['synchronized'];
-          newState.initialConfHash = data['data']['devices'][0]['confhash'];
-        }
-        this.setState(newState);
-      }
-    ).catch(error => {
-      console.log(error);
-    });
     url = process.env.API_URL + "/api/v1.0/settings?hostname=" + this.hostname;
     getData(url, credentials).then(data =>
       {
@@ -219,7 +229,23 @@ class InterfaceConfig extends React.Component {
           vlanOptions: vlanOptions,
           untaggedVlanOptions: untaggedVlanOptions
         });
-//        console.log(this.vlanOptions);
+      }
+    ).catch(error => {
+      console.log(error);
+    });
+    let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname;
+    return getData(url, credentials).then(data =>
+      {
+        let newState = {
+          deviceData: data['data']['devices'][0],
+          editDisabled: !data['data']['devices'][0]['synchronized']
+        };
+        if (this.state.initialSyncState == null) {
+          newState.initialSyncState = data['data']['devices'][0]['synchronized'];
+          newState.initialConfHash = data['data']['devices'][0]['confhash'];
+        }
+        this.setState(newState);
+        this.device_type = newState.deviceData["device_type"];
       }
     ).catch(error => {
       console.log(error);
@@ -402,22 +428,39 @@ class InterfaceConfig extends React.Component {
     return interfaceData.map((item, index) => {
       let ifData = item.data;
       let ifDataUpdated = null;
-      let editDisabled = !(this.configTypesEnabled.includes(item.configtype));
+      let editDisabled = true;
+      if (this.device_type == "ACCESS") {
+        editDisabled = !(this.configTypesEnabled.includes(item.configtype));
+      } else if (this.device_type == "DIST") {
+        editDisabled = !(this.ifClassesEnabled.includes(item.ifclass));
+      }
       let updated = false;
-      let fields = {
-        "description": "",
-        "untagged_vlan": null,
-        "tagged_vlan_list": null,
-        "tags": [],
-        "enabled": true,
-        "aggregate_id": null,
-        "bpdu_filter": false
-      };
+      let fields = {};
+      if (this.device_type == "ACCESS") {
+        fields = {
+          "description": "",
+          "untagged_vlan": null,
+          "tagged_vlan_list": null,
+          "tags": [],
+          "enabled": true,
+          "aggregate_id": null,
+          "bpdu_filter": false
+        };
+      } else if (this.device_type == "DIST") {
+        fields = {
+          "description": "",
+          "untagged_vlan": null,
+          "tagged_vlan_list": null
+        };
+        if ('peer_hostname' in item) {
+          fields['description'] = item['peer_hostname'];
+        }
+      }
       if (item.name in interfaceDataUpdated) {
         updated = true;
         ifDataUpdated = interfaceDataUpdated[item.name];
       }
-      if (ifData === null) {
+      if (ifData === undefined || ifData === null) {
         if (ifDataUpdated !== null) {
           const check_updated_fields = ['untagged_vlan', 'tagged_vlan_list', 'enabled', 'tags', 'aggregate_id', 'bpdu_filter'];
           check_updated_fields.forEach((field_name) => {
@@ -478,15 +521,20 @@ class InterfaceConfig extends React.Component {
         }
       }
 
-      let currentConfigtype = item.configtype;
-      if (item.name in this.state.interfaceDataUpdated && "configtype" in this.state.interfaceDataUpdated[item.name]) {
-        currentConfigtype = this.state.interfaceDataUpdated[item.name].configtype;
+      let currentConfigtype = null;
+      let currentIfClass = null;
+      if (this.device_type == "ACCESS") {
+        currentConfigtype = item.configtype;
+        if (item.name in this.state.interfaceDataUpdated && "configtype" in this.state.interfaceDataUpdated[item.name]) {
+          currentConfigtype = this.state.interfaceDataUpdated[item.name].configtype;
+        }
+      } else if (this.device_type == "DIST") {
+        currentIfClass = item.ifclass;
       }
       let displayVlanTagged = currentConfigtype === "ACCESS_TAGGED";
       if (item.name in this.state.interfaceToggleUntagged) {
         displayVlanTagged = !displayVlanTagged;
       }
-      // if state button
 
       let optionalColumns = this.state.displayColumns.map((columnName) => {
         let colData = [];
@@ -585,6 +633,16 @@ class InterfaceConfig extends React.Component {
               }
             />
           ];
+        } else if (columnName == "config") {
+          colData = [
+            <textarea
+              key="config"
+              defaultValue={item.config}
+              rows={3}
+              cols={50}
+              readOnly={true}
+            />
+          ];
         }
         return <Table.Cell collapsing key={columnName}>{colData}</Table.Cell>;
       });
@@ -650,6 +708,33 @@ class InterfaceConfig extends React.Component {
         }
       }
 
+      let portType = null;
+      if (this.device_type == "ACCESS") {
+        portType = <Table.Cell>
+            <Dropdown
+              key={"configtype|"+item.name}
+              name={"configtype|"+item.name}
+              selection
+              options={this.configTypeOptions}
+              defaultValue={item.configtype}
+              disabled={editDisabled}
+              onChange={this.updateFieldData}
+            />
+          </Table.Cell>;
+      } else if (this.device_type == "DIST") {
+        portType = <Table.Cell>
+            <Dropdown
+              key={"ifclass|"+item.name}
+              name={"ifclass|"+item.name}
+              selection
+              options={this.ifClassOptions}
+              defaultValue={currentIfClass}
+              disabled={editDisabled}
+              onChange={this.updateFieldData}
+            />
+          </Table.Cell>;
+      }
+
       return [
         <Table.Row key={"tr_"+index} warning={updated}>
           <Table.Cell>{statusIcon}   {item.name}</Table.Cell>
@@ -662,17 +747,7 @@ class InterfaceConfig extends React.Component {
               onChange={this.updateFieldData}
             />
           </Table.Cell>
-          <Table.Cell>
-            <Dropdown
-              key={"configtype|"+item.name}
-              name={"configtype|"+item.name}
-              selection
-              options={this.configTypeOptions}
-              defaultValue={item.configtype}
-              disabled={editDisabled}
-              onChange={this.updateFieldData}
-            />
-          </Table.Cell>
+          {portType}
           {optionalColumns}
         </Table.Row>
       ];
@@ -716,13 +791,22 @@ class InterfaceConfig extends React.Component {
       stateWarning = <p><Icon name="warning sign" color="orange" size="large" />Device is not synchronized, use dry_run and verify diff to apply changes.</p>;
     }
 
-    const allowedColumns = {
-      "vlans": "VLANs",
-      "tags": "Tags",
-      "json": "Raw JSON",
-      "aggregate_id": "LACP aggregate ID",
-      "bpdu_filter": "BPDU filter"
-    };
+    let allowedColumns = {};
+
+    if (this.device_type == "ACCESS") {
+      allowedColumns = {
+        "vlans": "VLANs",
+        "tags": "Tags",
+        "json": "Raw JSON",
+        "aggregate_id": "LACP aggregate ID",
+        "bpdu_filter": "BPDU filter"
+      };
+    } else if (this.device_type == "DIST") {
+      allowedColumns = {
+        "vlans": "VLANs",
+        "config": "Custom config"
+      };
+    }
 
     let columnHeaders = this.state.displayColumns.map(columnName => {
       return <Table.HeaderCell width={this.columnWidths[columnName]} key={columnName}>{allowedColumns[columnName]}</Table.HeaderCell>;
@@ -777,7 +861,7 @@ class InterfaceConfig extends React.Component {
               <Table.Row>
                 <Table.HeaderCell width={3}>Name</Table.HeaderCell>
                 <Table.HeaderCell width={6}>Description</Table.HeaderCell>
-                <Table.HeaderCell width={3}>Configtype</Table.HeaderCell>
+                <Table.HeaderCell width={3}>{this.device_type == "DIST" ? "Interface class" : "Configtype"}</Table.HeaderCell>
                 {columnHeaders}
               </Table.Row>
             </Table.Header>
