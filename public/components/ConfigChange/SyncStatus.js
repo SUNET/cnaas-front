@@ -130,7 +130,7 @@ class SyncStatus extends React.Component {
         Target: { commitTargetName }
         <Popup
           content="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized."
-          trigger={<Icon name="question circle" size="small" />}
+          trigger={<Icon name="question circle outline" size="small" />}
           wide
           />
         </h2>

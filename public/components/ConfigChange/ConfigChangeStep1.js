@@ -124,7 +124,7 @@ class ConfigChangeStep1 extends React.Component {
             Optional: Refresh repositories (1/4)
             <Popup
               content="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository."
-              trigger={<Icon name="question circle" size="small" />}
+              trigger={<Icon name="question circle outline" size="small" />}
               wide
               />
           </h2>

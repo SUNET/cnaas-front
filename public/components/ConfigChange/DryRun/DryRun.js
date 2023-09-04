@@ -66,7 +66,7 @@ class DryRun extends React.Component {
             <Popup
               content={"This step will generate new configurations and send them to the targeted devices, and the devices will then compare their currently running configuration to the newly generated and return a diff."+
               " No configuration will be changed. If any device has been configured outside of NMS you will get a configuration hash mismatch error, and need to do a force retry to see which local changes a commit would overwrite."}
-              trigger={<Icon name="question circle" size="small" />}
+              trigger={<Icon name="question circle outline" size="small" />}
               wide="very"
               />
           </h2>

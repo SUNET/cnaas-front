@@ -160,7 +160,7 @@ class ConfigChangeStep4 extends React.Component {
             Commit configuration (4/4)
             <Popup
               content="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log."
-              trigger={<Icon name="question circle" size="small" />}
+              trigger={<Icon name="question circle outline" size="small" />}
               wide="very"
               />
           </h2>
