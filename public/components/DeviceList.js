@@ -75,7 +75,7 @@ class DeviceList extends React.Component {
         }
       });
       if (!found) {
-        callback();
+        callback({filterField: null, filterValue: null});
       }
     } 
   }
