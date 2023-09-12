@@ -5,6 +5,7 @@ import queryString from 'query-string';
 import getData from "../../utils/getData";
 import { putData, postData } from "../../utils/sendData";
 import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup, Checkbox, TableCell } from "semantic-ui-react";
+import YAML from 'yaml';
 const io = require("socket.io-client");
 var socket = null;
 
@@ -27,6 +28,7 @@ class InterfaceConfig extends React.Component {
     awaitingDeviceSynchronization: false,
     displayColumns: ["vlans"],
     tagOptions: [],
+    portTemplateOptions: [],
     interfaceBounceRunning: {},
     mlagPeerHostname: null,
     interfaceToggleUntagged: {}
@@ -179,9 +181,23 @@ class InterfaceConfig extends React.Component {
       let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/generate_config?variables_only=true";
       return getData(url, credentials).then(data =>
         {
-          console.log(data["data"]["config"]["available_variables"]["interfaces"]);
+          let usedTags = [];
+          let usedPortTemplates = [];
+          data["data"]["config"]["available_variables"]["interfaces"].map((item, index) => {
+            if (item.tags !== undefined) {
+              item.tags.map((tag) => {
+                usedTags.push({text: tag, value: tag})
+              });
+            }
+            if (item.ifclass.startsWith("port_template")) {
+              let templateName = item.ifclass.substring("port_template_".length);
+              usedPortTemplates.push({text: templateName, value: templateName});
+            }
+          });
+
           this.setState({
-            interfaceData: data["data"]["config"]["available_variables"]["interfaces"]
+            interfaceData: data["data"]["config"]["available_variables"]["interfaces"],
+            portTemplateOptions: usedPortTemplates
           });
         }
       ).catch(error => {
@@ -275,6 +291,45 @@ class InterfaceConfig extends React.Component {
     return sendData;
   }
 
+  prepareYaml(interfaceData) {
+    let sendData = {"interfaces": []};
+    Object.entries(interfaceData).map(([interfaceName, formData]) => {
+      let ifData = {"name": interfaceName};
+      this.state.interfaceData.forEach((intf) => {
+        if (intf.name == interfaceName) {
+          Object.entries(intf).map(([prevKey, prevValue]) => {
+            if (prevKey == "indexnum") {
+            } else if (prevValue === null) {
+            } else if (prevValue === "") {
+            } else if (prevKey == "redundant_link" && prevValue === true) {
+            } else {
+              ifData[prevKey] = prevValue;
+            }
+          });
+        }
+      });
+      let skipIfClass = false;
+      Object.entries(formData).map(([formKey, formValue]) => {
+        // port_template is not a separate value in the result yaml, but a suffix on ifclass
+        if (formKey == "port_template") {
+          if (formData["ifclass"] == "port_template" || !("ifclass" in formData)) {
+            ifData["ifclass"] = "port_template_"+formData["port_template"];
+            skipIfClass = true;
+          }
+        } else if (formKey == "ifclass") {
+          if (skipIfClass === false) {
+            ifData["ifclass"] = formData["ifclass"];
+          }
+        } else {
+          ifData[formKey] = formValue;
+        }
+      });
+      sendData.interfaces.push(ifData);
+    });
+    
+    return sendData;
+  }
+
   sendInterfaceData() {
     const credentials = localStorage.getItem("token");
     const url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/interfaces";
@@ -346,6 +401,13 @@ class InterfaceConfig extends React.Component {
     }))
   }
 
+  addPortTemplateOption = (e, data) => {
+    let value = data.value;
+    this.setState((prevState) => ({
+      portTemplateOptions: [{ text: value, value }, ...prevState.portTemplateOptions],
+    }))
+  }
+
   updateFieldData = (e, data) => {
     const nameSplit = data.name.split('|', 2);
     const interfaceName = nameSplit[1];
@@ -358,6 +420,14 @@ class InterfaceConfig extends React.Component {
     } else {
       defaultValue = data.defaultValue;
       val = data.value;
+    }
+    if (this.device_type == "DIST" && ["untagged_vlan", "tagged_vlan_list"].includes(json_key)) {
+      // Get VLAN ID instead of name by looking in the description field of the options
+      if (data.value instanceof Array) {
+        val = data.value.map((opt) => { return data.options.filter((e) => {return e.value == opt})[0].description; });
+      } else {
+        val = data.options.filter((e) => {return e.value == data.value})[0].description;
+      }
     }
     if (["aggregate_id"].includes(json_key)) {
       val = parseInt(val);
@@ -381,6 +451,13 @@ class InterfaceConfig extends React.Component {
       }
       if (Object.keys(newData[interfaceName]).length == 0) {
         delete newData[interfaceName];
+      }
+    }
+    if (json_key == "ifclass") {
+      console.log(val);
+      if (val != "port_template") {
+        delete newData[interfaceName]["port_template"];
+        console.log(newData);
       }
     }
     this.setState({
@@ -432,7 +509,11 @@ class InterfaceConfig extends React.Component {
       if (this.device_type == "ACCESS") {
         editDisabled = !(this.configTypesEnabled.includes(item.configtype));
       } else if (this.device_type == "DIST") {
-        editDisabled = !(this.ifClassesEnabled.includes(item.ifclass));
+        if (item.ifclass.startsWith("port_template")) {
+          editDisabled = !(this.ifClassesEnabled.includes("port_template"));
+        } else {
+          editDisabled = !(this.ifClassesEnabled.includes(item.ifclass));
+        }
       }
       let updated = false;
       let fields = {};
@@ -447,13 +528,22 @@ class InterfaceConfig extends React.Component {
           "bpdu_filter": false
         };
       } else if (this.device_type == "DIST") {
+        ifData = {};
         fields = {
           "description": "",
           "untagged_vlan": null,
-          "tagged_vlan_list": null
+          "tagged_vlan_list": []
         };
+        Object.entries(fields).forEach(([key, value]) => {
+          if (item[key] !== undefined && item[key] !== null) {
+            ifData[key] = item[key];
+          } else {
+            ifData[key] = value;
+          }
+        });
         if ('peer_hostname' in item) {
-          fields['description'] = item['peer_hostname'];
+          ifData["description"] = item['peer_hostname'];
+//          fields['description'] = item['peer_hostname'];
         }
       }
       if (item.name in interfaceDataUpdated) {
@@ -493,9 +583,13 @@ class InterfaceConfig extends React.Component {
             fields['untagged_vlan'] = ifData['untagged_vlan'];
           }
         }
+        console.log("DEBUG00");
+        console.log(ifData);
         if (ifDataUpdated !== null && 'tagged_vlan_list' in ifDataUpdated) {
           fields['tagged_vlan_list'] = ifDataUpdated['tagged_vlan_list'];
+          console.log("DEBUG01");
         } else if ('tagged_vlan_list' in ifData) {
+          console.log("DEBUG02");
           fields['tagged_vlan_list'] = ifData['tagged_vlan_list'].map((vlan_item) => {
             if (typeof(vlan_item) === "number") {
               let vlan_mapped = vlanOptions.filter(item => item.description == vlan_item);
@@ -523,17 +617,36 @@ class InterfaceConfig extends React.Component {
 
       let currentConfigtype = null;
       let currentIfClass = null;
+      let displayVlanTagged = false;
+      let portTemplate = null;
       if (this.device_type == "ACCESS") {
         currentConfigtype = item.configtype;
         if (item.name in this.state.interfaceDataUpdated && "configtype" in this.state.interfaceDataUpdated[item.name]) {
           currentConfigtype = this.state.interfaceDataUpdated[item.name].configtype;
         }
+        displayVlanTagged = currentConfigtype === "ACCESS_TAGGED";
+        if (item.name in this.state.interfaceToggleUntagged) {
+          displayVlanTagged = !displayVlanTagged;
+        }
       } else if (this.device_type == "DIST") {
-        currentIfClass = item.ifclass;
-      }
-      let displayVlanTagged = currentConfigtype === "ACCESS_TAGGED";
-      if (item.name in this.state.interfaceToggleUntagged) {
-        displayVlanTagged = !displayVlanTagged;
+        if (item.ifclass.startsWith("port_template")) {
+          currentIfClass = "port_template";
+        } else {
+          currentIfClass = item.ifclass;
+        }
+        if (item.name in this.state.interfaceDataUpdated && "ifclass" in this.state.interfaceDataUpdated[item.name]) {
+          currentIfClass = this.state.interfaceDataUpdated[item.name].ifclass;
+        }
+        if (currentIfClass.startsWith("port_template")) {
+          displayVlanTagged = true;
+          portTemplate = item.ifclass.substring("port_template_".length);
+        } else {
+          displayVlanTagged = false;
+        }
+        if (item.name in this.state.interfaceToggleUntagged) {
+          displayVlanTagged = !displayVlanTagged;
+        }
+
       }
 
       let optionalColumns = this.state.displayColumns.map((columnName) => {
@@ -543,7 +656,7 @@ class InterfaceConfig extends React.Component {
             colData = [<Loader key="loading" inline active />];
           } else if (vlanOptions.length == 0 ) {
             colData = [<p>No VLANs available</p>];
-          } else if (currentConfigtype === "ACCESS_TAGGED" || currentConfigtype === "ACCESS_UNTAGGED") {
+          } else if (currentConfigtype === "ACCESS_TAGGED" || currentConfigtype === "ACCESS_UNTAGGED" || (typeof currentIfClass === 'string' && currentIfClass.startsWith("port_template"))) {
             if (displayVlanTagged) {
               colData = [
                 <Dropdown
@@ -571,12 +684,14 @@ class InterfaceConfig extends React.Component {
                 onChange={this.updateFieldData}
               />];
             }
-            if (currentConfigtype === "ACCESS_TAGGED") {
+            if (currentConfigtype === "ACCESS_TAGGED" || currentIfClass === "port_template") {
               colData.push(
                 <Popup
                   key="untagged_button"
-                  content="Change untagged VLAN"
-                  trigger={<Button id={item.name} compact size="small" icon onClick={this.untaggedClick.bind(this)} active={item.name in this.state.interfaceToggleUntagged}><Icon size="small" name='underline' /></Button>}
+                  content={item.name in this.state.interfaceToggleUntagged ? "Change tagged VLANs" : "Change untagged VLAN"}
+                  trigger={<Button id={item.name} compact size="small" icon onClick={this.untaggedClick.bind(this)} active={item.name in this.state.interfaceToggleUntagged}>
+                    <Icon size="small" name={item.name in this.state.interfaceToggleUntagged ? 'tags' : 'underline' } />
+                  </Button>}
                 />
               );
             }
@@ -641,7 +756,17 @@ class InterfaceConfig extends React.Component {
               rows={3}
               cols={50}
               readOnly={true}
-            />
+            />,
+            <Popup on='click' pinned position='top right' trigger={<Button compact size="small"><Icon name="arrow alternate circle down outline" /></Button>} >
+              <p key="title">Current running config:</p>
+              <textarea
+                key="config"
+                defaultValue={item.config}
+                rows={3}
+                cols={50}
+                readOnly={true}
+              />
+            </Popup>
           ];
         }
         return <Table.Cell collapsing key={columnName}>{colData}</Table.Cell>;
@@ -732,6 +857,17 @@ class InterfaceConfig extends React.Component {
               disabled={editDisabled}
               onChange={this.updateFieldData}
             />
+            { currentIfClass == "port_template" ?
+            <Dropdown
+              key={"port_template|"+item.name}
+              name={"port_template|"+item.name}
+              fluid selection search allowAdditions
+              options={this.state.portTemplateOptions}
+              defaultValue={portTemplate}
+              disabled={editDisabled}
+              onAddItem={this.addPortTemplateOption}
+              onChange={this.updateFieldData}
+            /> : null }
           </Table.Cell>;
       }
 
@@ -842,6 +978,68 @@ class InterfaceConfig extends React.Component {
       mlagPeerInfo = <p>MLAG peer hostname: <a href={"/interface-config?hostname="+this.state.mlagPeerHostname}>{this.state.mlagPeerHostname}</a></p>;
     }
 
+    let commitModal = null;
+    if (this.device_type == "ACCESS") {
+      commitModal = <Modal.Content>
+        <Modal.Description>
+          <Accordion>
+            <Accordion.Title
+              active={accordionActiveIndex === 1}
+              index={1}
+              onClick={this.accordionClick}
+            >
+              <Icon name='dropdown' />
+              POST JSON: 
+            </Accordion.Title>
+            <Accordion.Content active={accordionActiveIndex === 1}>
+              <pre>{JSON.stringify(this.prepareSendJson(this.state.interfaceDataUpdated), null, 2)}</pre>
+            </Accordion.Content>
+            <Accordion.Title
+              active={accordionActiveIndex === 2}
+              index={2}
+              onClick={this.accordionClick}
+            >
+              <Icon name='dropdown' />
+              POST error: 
+            </Accordion.Title>
+            <Accordion.Content active={accordionActiveIndex === 2}>
+              <p>{this.state.errorMessage}</p>
+            </Accordion.Content>
+            <Accordion.Title
+              active={accordionActiveIndex === 3}
+              index={3}
+              onClick={this.accordionClick}
+            >
+              <Icon name='dropdown' />
+              Job output: 
+            </Accordion.Title>
+            <Accordion.Content active={accordionActiveIndex === 3}>
+              <ul>{autoPushJobsHTML}</ul>
+            </Accordion.Content>
+          </Accordion>
+        </Modal.Description>
+      </Modal.Content>;
+    } else if (this.device_type == "DIST") {
+      commitModal = <Modal.Content>
+        <Modal.Description>
+          <Accordion>
+            <Accordion.Title
+              active={accordionActiveIndex === 1}
+              index={1}
+              onClick={this.accordionClick}
+            >
+              <Icon name='dropdown' />
+              YAML: 
+            </Accordion.Title>
+            <Accordion.Content active={accordionActiveIndex === 1}>
+              <pre>{YAML.stringify(this.prepareYaml(this.state.interfaceDataUpdated), null, 2)}</pre>
+              <p><a href="https://platform.sunet.se/CNaaS/cnaas-norpan-settings/_edit/main/devices/d1/interfaces.yml" target='_blank'>Edit</a></p>
+            </Accordion.Content>
+          </Accordion>
+        </Modal.Description>
+      </Modal.Content>;
+    }
+
     return (
       <section>
         <div id="device_list">
@@ -883,52 +1081,15 @@ class InterfaceConfig extends React.Component {
                     }
                   >
                     <Modal.Header>Save & commit</Modal.Header>
-                    <Modal.Content>
-                      <Modal.Description>
-                        <Accordion>
-                          <Accordion.Title
-                            active={accordionActiveIndex === 1}
-                            index={1}
-                            onClick={this.accordionClick}
-                          >
-                            <Icon name='dropdown' />
-                            POST JSON: 
-                          </Accordion.Title>
-                          <Accordion.Content active={accordionActiveIndex === 1}>
-                            <pre>{JSON.stringify(this.prepareSendJson(this.state.interfaceDataUpdated), null, 2)}</pre>
-                          </Accordion.Content>
-                          <Accordion.Title
-                            active={accordionActiveIndex === 2}
-                            index={2}
-                            onClick={this.accordionClick}
-                          >
-                            <Icon name='dropdown' />
-                            POST error: 
-                          </Accordion.Title>
-                          <Accordion.Content active={accordionActiveIndex === 2}>
-                            <p>{this.state.errorMessage}</p>
-                          </Accordion.Content>
-                          <Accordion.Title
-                            active={accordionActiveIndex === 3}
-                            index={3}
-                            onClick={this.accordionClick}
-                          >
-                            <Icon name='dropdown' />
-                            Job output: 
-                          </Accordion.Title>
-                          <Accordion.Content active={accordionActiveIndex === 3}>
-                            <ul>{autoPushJobsHTML}</ul>
-                          </Accordion.Content>
-                        </Accordion>
-                      </Modal.Description>
-                    </Modal.Content>
+                    {commitModal}
                     <Modal.Actions>
                       <Button key="close" color='black' onClick={() => this.setState({save_modal_open: false, autoPushJobs: [], errorMessage: null, accordionActiveIndex: 0})}>
                         Close
                       </Button>
+                      { this.device_type == "ACCESS" && 
                       <Button key="submit" onClick={this.saveAndCommitChanges.bind(this)} disabled={commitAutopushDisabled} color="yellow">
                         Save and commit now
-                      </Button>
+                      </Button> }
                       <Button key="dryrun" onClick={this.saveChanges.bind(this)} disabled={this.state.working} positive>
                         Save and dry run...
                       </Button>
