@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import React from "react";
 import { Link } from "react-router-dom";
 import queryString from 'query-string';
@@ -13,6 +14,7 @@ class InterfaceConfig extends React.Component {
     interfaceDataUpdated: {},
     interfaceStatusData: {},
     deviceData: {},
+    deviceSettings: null,
     editDisabled: false,
     vlanOptions: [],
     autoPushJobs: [],
@@ -264,7 +266,7 @@ class InterfaceConfig extends React.Component {
         return false;
       }
     }).catch(error => {
-      this.setState({errorMessage: error.message});
+      this.setState({errorMessage: error.message.errors.join(", ")});
       return false;
     });
   }
@@ -468,9 +470,9 @@ class InterfaceConfig extends React.Component {
           const check_updated_fields = ['enabled', 'tags', 'aggregate_id', 'bpdu_filter'];
           check_updated_fields.forEach((field_name) => {
             if (field_name in ifDataUpdated) {
-              field[field_name] = ifDataUpdated[field_name];
+              fields[field_name] = ifDataUpdated[field_name];
             } else if (field_name in ifData) {
-              field[field_name] = ifData[field_name];
+              fields[field_name] = ifData[field_name];
             }
           });
         }
@@ -489,15 +491,20 @@ class InterfaceConfig extends React.Component {
       let optionalColumns = this.state.displayColumns.map((columnName) => {
         let colData = [];
         if (columnName == "vlans") {
-          if (vlanOptions.length == 0 ) {
+          if (this.state.deviceSettings === null) {
             colData = [<Loader key="loading" inline active />];
+          } else if (vlanOptions.length == 0 ) {
+            colData = [<p>No VLANs available</p>];
           } else if (currentConfigtype === "ACCESS_TAGGED" || currentConfigtype === "ACCESS_UNTAGGED") {
             if (displayVlanTagged) {
               colData = [
                 <Dropdown
                   key={"tagged_vlan_list|"+item.name}
                   name={"tagged_vlan_list|"+item.name}
-                  fluid multiple selection
+                  fluid multiple selection search={(filteredOptions, searchQuery) => {
+                    const re = new RegExp(_.escapeRegExp(searchQuery), 'i');
+                    return _.filter(filteredOptions, (opt) => (re.test(opt.text) || re.test(opt.description.toString())));
+                  }}
                   options={this.state.vlanOptions}
                   defaultValue={fields['tagged_vlan_list']}
                   onChange={this.updateFieldData}
@@ -507,7 +514,10 @@ class InterfaceConfig extends React.Component {
               colData = [<Dropdown
                 key={"untagged_vlan|"+item.name}
                 name={"untagged_vlan|"+item.name}
-                fluid selection
+                fluid selection search={(filteredOptions, searchQuery) => {
+                  const re = new RegExp(_.escapeRegExp(searchQuery), 'i');
+                  return _.filter(filteredOptions, (opt) => (re.test(opt.text) || re.test(opt.description.toString())));
+                }}
                 options={this.state.untaggedVlanOptions}
                 defaultValue={fields['untagged_vlan']}
                 onChange={this.updateFieldData}

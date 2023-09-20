@@ -1,7 +1,7 @@
 import React from "react";
 import getData from "../../utils/getData";
 import { putData } from "../../utils/sendData";
-import { Popup } from "semantic-ui-react";
+import { Popup, Icon } from "semantic-ui-react";
 
 class ConfigChangeStep1 extends React.Component {
   state = {
@@ -9,8 +9,13 @@ class ConfigChangeStep1 extends React.Component {
     commitUpdateInfo: {
       'settings': null,
       'templates': null,
-    }
+    },
+    expanded: true
   };
+
+  toggleExpand = (e, props) => {
+    this.setState({expanded: !this.state.expanded});
+  }
 
   getRepoStatus = (repo_name) => {
     const credentials = localStorage.getItem("token");
@@ -114,9 +119,17 @@ class ConfigChangeStep1 extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2>Refresh repositories (1/4)</h2>
+          <h2>
+            <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
+            Optional: Refresh repositories (1/4)
+            <Popup
+              content="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository."
+              trigger={<Icon name="question circle outline" size="small" />}
+              wide
+              />
+          </h2>
         </div>
-        <div className="task-collapsable">
+        <div className="task-collapsable" hidden={!this.state.expanded}>
           <div className="info">
             <p>Latest settings repo commit: </p>
             {this.prettifyCommit(this.state.commitInfo['settings'])}

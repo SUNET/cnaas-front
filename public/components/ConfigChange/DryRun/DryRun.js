@@ -2,13 +2,18 @@ import React from "react";
 import DryRunProgressBar from "./DryRunProgressBar";
 import DryRunProgressInfo from "./DryRunProgressInfo";
 import DryRunError from "./DryRunError";
-import { Form, Checkbox } from "semantic-ui-react";
+import { Form, Checkbox, Popup, Icon } from "semantic-ui-react";
 
 class DryRun extends React.Component {
   state = {
     "resync": false,
-    "dryrunButtonDisabled": false
+    "dryrunButtonDisabled": false,
+    expanded: true
   };
+
+  toggleExpand = (e, props) => {
+    this.setState({expanded: !this.state.expanded});
+  }
 
   checkboxChangeHandler = (event, data) => {
     this.setState({ [data.name]: data.checked }, () => { 
@@ -55,9 +60,18 @@ class DryRun extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2 id="dry_run_section">Dry run (2/4)</h2>
+          <h2 id="dry_run_section">
+            <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
+            Dry run (2/4)
+            <Popup
+              content={"This step will generate new configurations and send them to the targeted devices, and the devices will then compare their currently running configuration to the newly generated and return a diff."+
+              " No configuration will be changed. If any device has been configured outside of NMS you will get a configuration hash mismatch error, and need to do a force retry to see which local changes a commit would overwrite."}
+              trigger={<Icon name="question circle outline" size="small" />}
+              wide="very"
+              />
+          </h2>
         </div>
-        <div className="task-collapsable">
+        <div className="task-collapsable" hidden={!this.state.expanded}>
           <p>
             Step 2 of 4: Sending generated configuration to devices to calculate
             diff and check sanity
@@ -68,7 +82,7 @@ class DryRun extends React.Component {
             </div>
             <div className="info">
               <button id="dryrunButton" disabled={dryrunButtonDisabled} onClick={() => this.dryrunButtonOnclick()}>
-                Start config dry run
+                Dry run
               </button>
               <button id="resetButton" disabled={resetButtonDisabled} onClick={() => this.resetButtonOnclick()}>
                 Start over
