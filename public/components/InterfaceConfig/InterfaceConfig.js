@@ -64,8 +64,8 @@ class InterfaceConfig extends React.Component {
     if (this.hostname !== null) {
       this.getDeviceData().then(() => {
         this.getInterfaceData();
+        this.getInterfaceStatusData();
       });
-      this.getInterfaceStatusData();
     }
     const credentials = localStorage.getItem("token");
     socket = io(process.env.API_URL, {query: {jwt: credentials}});
