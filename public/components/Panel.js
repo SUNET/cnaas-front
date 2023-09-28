@@ -9,6 +9,7 @@ import LoginForm from "./LoginForm";
 import ErrorBoundary from "./ErrorBoundary"
 import Dashboard from "./Dashboard"
 import InterfaceConfig from "./InterfaceConfig/InterfaceConfig";
+import Callback from "./Callback"
 import { Route } from "react-router-dom";
 
 // passible base64 encode function?
@@ -31,9 +32,15 @@ class Panel extends React.Component {
               logout={this.props.logout}
               show={!this.props.loggedIn}
               errorMessage={this.props.loginMessage}
+              oauth={this.props.oauth}
             />
           )}
         />
+          <Route
+            exact
+            path="/callback"
+            component={Callback}
+          />
         <ErrorBoundary>
           <Route
             exact

@@ -1,71 +1,85 @@
-import React from "react";
-import Header from "./Header";
-import Panel from "./Panel";
-import Footer from "./Footer";
+import React from 'react'
+import Header from './Header'
+import Panel from './Panel'
+import Footer from './Footer'
 // needed for routing
-import { BrowserRouter } from "react-router-dom";
-import checkResponseStatus from "../utils/checkResponseStatus";
-import "../styles/reset.css";
-import "../styles/main.css";
+import { BrowserRouter } from 'react-router-dom'
+import checkResponseStatus from '../utils/checkResponseStatus'
+import '../styles/reset.css'
+import '../styles/main.css'
 // import "../styles/prism.css";
 
 class App extends React.Component {
   state = {
-    loginMessage: "",
+    loginMessage: '',
     loggedIn: false
-  };
+  }
 
   login = (email, password) => {
-    event.preventDefault();
-    const url = process.env.API_URL + "/api/v1.0/auth";
+    event.preventDefault()
+    const url = process.env.API_URL + '/api/v1.0/auth'
     fetch(url, {
-      method: "POST",
-      headers: {"Authorization": 'Basic ' + btoa(email + ":" + password) }
+      method: 'POST',
+      headers: { Authorization: 'Basic ' + btoa(email + ':' + password) }
     })
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json())
-    .then(data => {
-      localStorage.setItem("token", data['access_token']);
-      this.setState({
-        loginMessage: "Login successful",
-        loggedIn: true
-      });
-    })
-    .catch(error => {
-      localStorage.removeItem("token");
-      this.setState({
-        loginMessage: error.message,
-        loggedIn: false
-      });
-      console.log(error);
-    });
-  };
+      .then(response => checkResponseStatus(response))
+      .then(response => response.json())
+      .then(data => {
+        localStorage.setItem('token', data['access_token'])
+        this.setState({
+          loginMessage: 'Login successful',
+          loggedIn: true
+        })
+      })
+      .catch(error => {
+        localStorage.removeItem('token')
+        this.setState({
+          loginMessage: error.message,
+          loggedIn: false
+        })
+        console.log(error)
+      })
+  }
+
+  oauth = () => {
+    event.preventDefault()
+    const url = process.env.API_URL + '/api/v1.0/auth/login'
+    window.location.replace(url)
+    console.log('OAUTH')
+    console.log(url)
+  }
 
   logout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem('token')
     this.setState({
-      loginMessage: "You have been logged out",
+      loginMessage: 'You have been logged out',
       loggedIn: false
-    });
-  };
+    })
+  }
 
-  componentDidMount() {
-    if (localStorage.getItem("token") !== null) {
-      this.setState({loggedIn: true});
+  componentDidMount () {
+    if (localStorage.getItem('token') !== null) {
+      this.setState({ loggedIn: true })
     }
   }
 
-  render() {
+  render () {
     return (
-      <div className="container">
+      <div className='container'>
         <BrowserRouter>
           <Header loggedIn={this.state.loggedIn} />
-          <Panel login={this.login} logout={this.logout} loginMessage={this.state.loginMessage} loggedIn={this.state.loggedIn} />
+          <Panel
+            login={this.login}
+            oauth={this.oauth}
+            logout={this.logout}
+            loginMessage={this.state.loginMessage}
+            loggedIn={this.state.loggedIn}
+          />
         </BrowserRouter>
         <Footer />
       </div>
-    );
+    )
   }
 }
 
-export default App;
+export default App
