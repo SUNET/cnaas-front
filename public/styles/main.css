@@ -366,3 +366,9 @@ progress::-moz-progress-bar {
 .job_ticket_ref {
   width: 15em;
 }
+
+/* login form */
+.form-title {
+  display: block;
+  margin: 0.25em;
+}

@@ -22,6 +22,18 @@ class LoginForm extends React.Component {
         </div>
       )
     }
+
+    if (process.env.OIDC_ENABLED == "true"){
+      return (
+        <div className='container'>
+          <form onSubmit={event => this.props.oauth()}>
+            <button className='submit' type='submit'>
+              Login with OAUTH
+            </button>
+          </form>
+        </div>
+      )
+    }
     return (
       <div className='container'>
         <form
@@ -29,32 +41,27 @@ class LoginForm extends React.Component {
             this.props.login(this.state.email, this.state.password)
           }
         >
-          <label className='title'>
-            Email
+          <label className='form-title'>
+            Email</label>
             <input
               type='text'
               name='email'
               onChange={this.handleInput}
               required
             />
-          </label>
-          <label className='title'>
-            Password
+
+          <label className='form-title'>
+            Password</label>
             <input
               type='password'
               name='password'
               onChange={this.handleInput}
               required
             />
-          </label>
+
           <p className='title error'>{this.props.errorMessage}</p>
           <button className='submit' type='submit'>
             Login
-          </button>
-        </form>
-        <form onSubmit={event => this.props.oauth()}>
-          <button className='submit' type='submit'>
-            Login with OAUTH
           </button>
         </form>
       </div>

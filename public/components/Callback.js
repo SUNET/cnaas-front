@@ -10,7 +10,7 @@ class Callback extends React.Component {
     let token = ''
     if (params.has('token')) {
       token = params.get('token')
-      const url = process.env.API_URL + '/api/v1.0/auth/test'
+      const url = process.env.API_URL + '/api/v1.0/auth/identity'
       fetch(url, {
         method: 'GET',
         headers: { Authorization: 'Bearer ' + token },
@@ -19,7 +19,7 @@ class Callback extends React.Component {
         .then(response => {
           if (response.ok) {
             localStorage.setItem('token', token)
-            window.location.replace('http://localhost:1234')
+            window.location.replace('/')
             return (
               <div className='container'>
                 <Container>
