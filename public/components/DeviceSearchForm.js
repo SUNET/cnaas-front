@@ -1,4 +1,5 @@
 import React from "react";
+import { withRouter } from 'react-router';
 import PropTypes from 'prop-types'
 import { Button, Select, Input, Icon } from 'semantic-ui-react'
 import queryString from 'query-string';
@@ -96,4 +97,4 @@ DeviceSearchForm.propTypes = {
   location: PropTypes.object.isRequired
 }
 
-export default DeviceSearchForm;
+export default withRouter(DeviceSearchForm);

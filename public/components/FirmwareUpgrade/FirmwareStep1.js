@@ -47,7 +47,7 @@ class FirmwareStep1 extends React.Component {
 
   renderHostname(hostname) {
     return (
-      <li><a href={"/devices?filterstring=filter%5Bhostname%5D%3D"+hostname}>{hostname}</a></li>
+      <li><a href={"/devices?filter[hostname]="+hostname}>{hostname}</a></li>
     );
   }
 

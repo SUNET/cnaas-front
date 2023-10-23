@@ -3,10 +3,13 @@ import React from "react";
 import PropTypes from 'prop-types'
 import { Button, Icon } from 'semantic-ui-react'
 import checkResponseStatus from "../utils/checkResponseStatus";
+const io = require("socket.io-client");
+var socket = null;
 
 class FirmwareCopyForm extends React.Component {
   state = {
       copyJobId: null,
+      copyJobStatus: null,
       removeDisabled: false,
   };
 
@@ -14,6 +17,20 @@ class FirmwareCopyForm extends React.Component {
     e.preventDefault();
     console.log("copy submitted: "+this.props.filename);
     const credentials = localStorage.getItem("token");
+    socket = io(process.env.API_URL, {query: {jwt: credentials}});
+    socket.on('connect', function(data) {
+      console.log('Websocket connected!');
+      var ret = socket.emit('events', {'update': 'job'});
+    });
+    socket.on('events', (data) => {
+      console.log(data);
+      if (data.job_id !== undefined && data.job_id == this.state.copyJobId) {
+        if (data.status == "FINISHED" || data.status == "EXCEPTION") {
+          this.setState({copyJobStatus: data.status});
+        }
+      }
+    });
+
     let url = process.env.API_URL + "/api/v1.0/firmware";
     let dataToSend = {
       url: process.env.FIRMWARE_REPO_URL+this.props.filename,
@@ -35,7 +52,8 @@ class FirmwareCopyForm extends React.Component {
       console.log("firmware post response data", data);
       if (data.job_id !== undefined && typeof data.job_id === "number") {
         this.setState({
-          copyJobId: data.job_id
+          copyJobId: data.job_id,
+          copyJobStatus: "RUNNING"
         });
       } else {
         console.log("error when submitting firmware post job", data.job_id);
@@ -80,11 +98,15 @@ class FirmwareCopyForm extends React.Component {
         </form>
       );
     } else {
-      return (
-        <form onSubmit={this.submitCopy.bind(this)}>
+      let ret = [
+        <form key="button" onSubmit={this.submitCopy.bind(this)}>
           <Button disabled={copyDisabled}>Copy to NMS <Icon name="cloud download" /></Button>
         </form>
-      );
+      ];
+      if (this.state.copyJobStatus !== null) {
+        ret.push(<p key="status">Copy job id #{this.state.copyJobId} status: {this.state.copyJobStatus}</p>);
+      }
+      return ret;
     }
   }
 }

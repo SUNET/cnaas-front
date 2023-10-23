@@ -1,30 +1,35 @@
 import React from "react";
-import { Input } from 'semantic-ui-react';
+import { Input, Popup, Icon } from 'semantic-ui-react';
 import DryRunProgressBar from "./DryRun/DryRunProgressBar";
 import DryRunProgressInfo from "./DryRun/DryRunProgressInfo";
-import { Confirm, Popup, Icon, Select } from 'semantic-ui-react';
+import { Confirm, Select } from 'semantic-ui-react';
 import getData from "../../utils/getData";
 
 class ConfigChangeStep4 extends React.Component {
   state = {
     confirmDiagOpen: false,
-    commitModeDefault: -1,
-    commitMode: -1,
+    confirmModeDefault: -1,
+    confirmMode: -1,
     job_comment: "",
-    job_ticket_ref: ""
+    job_ticket_ref: "",
+    expanded: true
   };
-  commitModeOptions = [
-    {'value': -1, 'text': "use server default commit mode"},
+  confirmModeOptions = [
+    {'value': -1, 'text': "use server default commit confirm mode"},
     {'value': 0, 'text': "mode 0: no confirm"},
     {'value': 1, 'text': "mode 1: per-device confirm"},
     {'value': 2, 'text': "mode 2: per-job confirm"},
   ]; 
 
+  toggleExpand = (e, props) => {
+    this.setState({expanded: !this.state.expanded});
+  }
+
   openConfirm = () => { this.setState({confirmDiagOpen: true}) };
   closeConfirm = () => { this.setState({confirmDiagOpen: false}) };
   okConfirm = () => {
     this.setState({confirmDiagOpen: false});
-    this.props.liveRunSyncStart({"dry_run": false, "comment": this.state.job_comment, "ticket_ref": this.state.job_ticket_ref, "commit_mode": this.state.commitMode});
+    this.props.liveRunSyncStart({"dry_run": false, "comment": this.state.job_comment, "ticket_ref": this.state.job_ticket_ref, "confirm_mode": this.state.confirmMode});
     var confirmButtonElem = document.getElementById("confirmButton");
     confirmButtonElem.disabled = true;
   };
@@ -52,14 +57,14 @@ class ConfigChangeStep4 extends React.Component {
       {
         if (data['api']['COMMIT_CONFIRMED_MODE'] >= 0) {
           this.setState({
-            commitModeDefault: data['api']['COMMIT_CONFIRMED_MODE'],
-            commitMode: data['api']['COMMIT_CONFIRMED_MODE'],
+            confirmModeDefault: data['api']['COMMIT_CONFIRMED_MODE'],
+            confirmMode: data['api']['COMMIT_CONFIRMED_MODE'],
           });
-          this.commitModeOptions.map((option, index) => {
+          this.confirmModeOptions.map((option, index) => {
             if (option.value == data['api']['COMMIT_CONFIRMED_MODE']) {
               let newOption = option;
               newOption.text = option.text + " (server default)";
-              this.commitModeOptions[index] = newOption;
+              this.confirmModeOptions[index] = newOption;
             }
           })
         }
@@ -72,10 +77,10 @@ class ConfigChangeStep4 extends React.Component {
   updateCommitMode(e, option) {
     let val = option.value;
     if (val == -1) {
-      val = this.state.commitModeDefault;
+      val = this.state.confirmModeDefault;
     }
     this.setState({
-      commitMode: val
+      confirmMode: val
     });
   }
 
@@ -150,9 +155,17 @@ class ConfigChangeStep4 extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2>Commit configuration (4/4)</h2>
+          <h2>
+            <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
+            Commit configuration (4/4)
+            <Popup
+              content="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log."
+              trigger={<Icon name="question circle outline" size="small" />}
+              wide="very"
+              />
+          </h2>
         </div>
-        <div className="task-collapsable">
+        <div className="task-collapsable" hidden={!this.state.expanded}>
           <p>Step 4 of 4: Final step, commit new configuration to devices</p>
           <p>Describe the change:</p>
           <div className="info">
@@ -172,12 +185,12 @@ class ConfigChangeStep4 extends React.Component {
           />
           <br />
           <button id="confirmButton" disabled={commitButtonDisabled} onClick={e => this.openConfirm(e)}>
-           Confirm commit
+           Deploy change (live run)
           </button> {warnings}
           <Select
-            disabled={this.state.commitModeDefault == -1}
-            placeholder="commit mode (use server default)"
-            options={this.commitModeOptions}
+            disabled={this.state.confirmModeDefault == -1}
+            placeholder="commit confirm mode (use server default)"
+            options={this.confirmModeOptions}
             onChange={this.updateCommitMode.bind(this)}
           />
           <Confirm
@@ -200,16 +213,16 @@ class ConfigChangeStep4 extends React.Component {
             logLines={this.props.logLines}
             keyNum={1}
           />
-          <p hidden={this.state.commitMode != 2}>Confirm progress: </p>
+          <p hidden={this.state.confirmMode != 2}>Confirm progress: </p>
           <DryRunProgressBar
-            hidden={this.state.commitMode != 2}
+            hidden={this.state.confirmMode != 2}
             dryRunJobStatus={confirmJobStatus}
             dryRunProgressData={confirmRunProgressData}
             totalDevices={this.props.totalCount}
             keyNum={2}
           />
           <DryRunProgressInfo
-            hidden={this.state.commitMode != 2}
+            hidden={this.state.confirmMode != 2}
             dryRunJobStatus={confirmJobStatus}
             dryRunProgressData={confirmRunProgressData}
             jobId={confirmJobId}

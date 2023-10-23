@@ -130,7 +130,6 @@ footer {
 .task-container {
   border: solid gray 1px;
   margin: 16px 0;
-  padding-bottom: 16px;
 }
 
 .task-container h2,
@@ -169,6 +168,10 @@ footer {
 
 .task-collapsable {
   margin-top: 16px;
+}
+
+.task-collapsable .tablecontainer {
+  margin: 16px;
 }
 
 .task-collapsable .info {

@@ -101,7 +101,7 @@ class Dashboard extends React.Component {
     if (match) {
       let branch = match.groups.branch;
       if (process.env.SETTINGS_WEB_URL) {
-        branch = <a href={process.env.SETTINGS_WEB_URL} target="_blank">{match.groups.branch}</a>;
+        branch = <a key="settings" href={process.env.SETTINGS_WEB_URL} target="_blank">{match.groups.branch}</a>;
       }
       settingsInfo = ["Settings (", branch, ") updated at ", match.groups.date.slice(0, -3), " by ", match.groups.name];
     }
@@ -109,7 +109,7 @@ class Dashboard extends React.Component {
     if (match) {
       let branch = match.groups.branch;
       if (process.env.TEMPLATES_WEB_URL) {
-        branch = <a href={process.env.TEMPLATES_WEB_URL} target="_blank">{match.groups.branch}</a>;
+        branch = <a key="templates" href={process.env.TEMPLATES_WEB_URL} target="_blank">{match.groups.branch}</a>;
       }
       templatesInfo = ["Templates (", branch, ") updated at ", match.groups.date.slice(0, -3), " by ", match.groups.name];
     }
@@ -124,8 +124,8 @@ class Dashboard extends React.Component {
               <p>{templatesInfo}</p>
             </Grid.Column>
             <Grid.Column width={8}>
-              <p>Managed devices: <a href={"/devices?filterstring=filter%5Bstate%5D%3DMANAGED"}>{this.state.deviceCount["managed"]}</a></p>
-              <p>Unsynchronized devices: <a href={"/devices?filterstring=filter%5Bsynchronized%5D%3Dfalse"}>{this.state.deviceCount["unsynchronized"]}</a></p>
+              <p>Managed devices: <a href={"/devices?filter[state]=MANAGED"}>{this.state.deviceCount["managed"]}</a></p>
+              <p>Unsynchronized devices: <a href={"/devices?filter[synchronized]=false"}>{this.state.deviceCount["unsynchronized"]}</a></p>
             </Grid.Column>
             <Grid.Column width={8}>
               <p>
