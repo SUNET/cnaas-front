@@ -41,7 +41,7 @@ class App extends React.Component {
       })
   }
 
-  oauth = () => {
+  oauth = event => {
     event.preventDefault()
     const url = process.env.API_URL + '/api/v1.0/auth/login'
     window.location.replace(url)
