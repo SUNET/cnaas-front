@@ -11,6 +11,7 @@ import Dashboard from "./Dashboard"
 import InterfaceConfig from "./InterfaceConfig/InterfaceConfig";
 import Callback from "./Callback"
 import { Route } from "react-router-dom";
+import PropTypes from 'prop-types';
 
 // passible base64 encode function?
 function btoaUTF16 (sString) {
@@ -87,5 +88,9 @@ class Panel extends React.Component {
     );
   }
 }
-
+Panel.props.login.propTypes = PropTypes.func;
+Panel.props.oauthLogin.propTypes = PropTypes.func;
+Panel.props.logout.propTypes = PropTypes.func;
+Panel.props.loggedIn.propTypes = PropTypes.string;
+Panel.props.loginMessage.propTypes = PropTypes.bool;
 export default Panel;

@@ -19,9 +19,10 @@ class App extends React.Component {
   login = (event, email, password) => {
     event.preventDefault()
     const url = process.env.API_URL + '/api/v1.0/auth'
+    const loginString = email + ':' + password
     fetch(url, {
       method: 'POST',
-      headers: { Authorization: 'Basic ' + btoa(email + ':' + password) }
+      headers: { Authorization: 'Basic ' + btoa(loginString) }
     })
       .then(response => checkResponseStatus(response))
       .then(response => response.json())
@@ -82,30 +83,18 @@ class App extends React.Component {
   }
 }
 
-App.propTypes ={
-  login: PropTypes.func,
-  oauthLogin: PropTypes.func,
-  logout: PropTypes.func,
-  errorMessage: PropTypes.string,
-  loginMessage: PropTypes.string,
-  loggedIn: PropTypes.bool,
-  show: PropTypes.bool,
-}
-
-
 App.login.propTypes = {
   event: PropTypes.event,
   email: PropTypes.string, 
   password: PropTypes.string,
 };
-
 App.oauthLogin.propTypes = {
-  event: PropTypes.event,
+  //event: PropTypes.event
 };
 App.logout.propTypes = {};
-App.show.propTypes = {};
-App.errorMessage.propTypes = {};
-App.loggedIn.propTypes = {};
-App.loginMessage.propTypes = {};
+App.show.propTypes = PropTypes.bool;
+App.errorMessage.propTypes = PropTypes.string;
+App.loggedIn.propTypes = PropTypes.bool;
+App.loginMessage.propTypes = PropTypes.string;
 
 export default App
