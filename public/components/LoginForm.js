@@ -70,9 +70,9 @@ class LoginForm extends React.Component {
     )
   }
 }
-Panel.props.login.propTypes = PropTypes.func;
-Panel.props.oauthLogin.propTypes = PropTypes.func;
-Panel.props.logout.propTypes = PropTypes.func;
-Panel.props.show.propTypes = PropTypes.bool;
-Panel.props.errorMessage.propTypes = PropTypes.string;
+LoginForm.props.login.propTypes = PropTypes.func;
+LoginForm.props.oauthLogin.propTypes = PropTypes.func;
+LoginForm.props.logout.propTypes = PropTypes.func;
+LoginForm.props.show.propTypes = PropTypes.bool;
+LoginForm.props.errorMessage.propTypes = PropTypes.string;
 export default LoginForm
