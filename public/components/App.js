@@ -57,7 +57,6 @@ class App extends React.Component {
     })
   }
 
-
   componentDidMount () {
     if (localStorage.getItem('token') !== null) {
       this.setState({ loggedIn: true })
@@ -94,5 +93,19 @@ App.propTypes ={
 }
 
 
+App.login.propTypes = {
+  event: PropTypes.event,
+  email: PropTypes.string, 
+  password: PropTypes.string,
+};
+
+App.oauthLogin.propTypes = {
+  event: PropTypes.event,
+};
+App.logout.propTypes = {};
+App.show.propTypes = {};
+App.errorMessage.propTypes = {};
+App.loggedIn.propTypes = {};
+App.loginMessage.propTypes = {};
 
 export default App
