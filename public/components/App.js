@@ -83,15 +83,9 @@ class App extends React.Component {
   }
 }
 
-App.login.propTypes = {
-  event: PropTypes.event,
-  email: PropTypes.string, 
-  password: PropTypes.string,
-};
-App.oauthLogin.propTypes = {
-  //event: PropTypes.event
-};
-App.logout.propTypes = {};
+App.login.propTypes = PropTypes.func;
+App.oauthLogin.propTypes = PropTypes.func;
+App.logout.propTypes = PropTypes.func;
 App.show.propTypes = PropTypes.bool;
 App.errorMessage.propTypes = PropTypes.string;
 App.loggedIn.propTypes = PropTypes.bool;
