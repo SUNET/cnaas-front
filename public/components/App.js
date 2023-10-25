@@ -15,7 +15,7 @@ class App extends React.Component {
     loggedIn: false
   }
 
-  login = (email, password) => {
+  login = (event, email, password) => {
     event.preventDefault()
     const url = process.env.API_URL + '/api/v1.0/auth'
     fetch(url, {
@@ -41,11 +41,13 @@ class App extends React.Component {
       })
   }
 
-  oauth = event => {
+
+  oauthLogin = event => {
     event.preventDefault()
     const url = process.env.API_URL + '/api/v1.0/auth/login'
     window.location.replace(url)
   }
+
 
   logout = () => {
     localStorage.removeItem('token')
@@ -54,6 +56,7 @@ class App extends React.Component {
       loggedIn: false
     })
   }
+
 
   componentDidMount () {
     if (localStorage.getItem('token') !== null) {
@@ -68,8 +71,8 @@ class App extends React.Component {
           <Header loggedIn={this.state.loggedIn} />
           <Panel
             login={this.login}
-            oauth={this.oauth}
             logout={this.logout}
+            oauthLogin={this.oauthLogin}
             loginMessage={this.state.loginMessage}
             loggedIn={this.state.loggedIn}
           />

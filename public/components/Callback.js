@@ -5,6 +5,12 @@ import '../styles/reset.css'
 import '../styles/main.css'
 
 class Callback extends React.Component {
+
+  componentDidMount () {
+    if (localStorage.getItem('token') !== null) {
+      this.setState({ loggedIn: true })
+    }
+  }
   render () {
     let params = new URLSearchParams(location.search)
     let token = ''
@@ -51,7 +57,7 @@ class Callback extends React.Component {
       return (
         <div className='container'>
           <Container>
-            Something went wrong, please try to login again.
+            <p className='title error'>{this.props.errorMessage}</p>
           </Container>
         </div>
       )

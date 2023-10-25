@@ -32,7 +32,7 @@ class Panel extends React.Component {
               logout={this.props.logout}
               show={!this.props.loggedIn}
               errorMessage={this.props.loginMessage}
-              oauth={this.props.oauth}
+              oauthLogin={this.props.oauthLogin}
             />
           )}
         />

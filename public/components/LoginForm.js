@@ -12,6 +12,7 @@ class LoginForm extends React.Component {
     })
   }
 
+
   render () {
     if (this.props.show !== true) {
       return (
@@ -26,7 +27,8 @@ class LoginForm extends React.Component {
     if (process.env.OIDC_ENABLED == "true"){
       return (
         <div className='container'>
-          <form onSubmit={this.props.oauth}>
+          <form onSubmit={this.oauthLogin}>
+            <p className='title error'>{this.props.errorMessage}</p>
             <button className='submit' type='submit'>
               Login with OAUTH
             </button>
@@ -38,7 +40,7 @@ class LoginForm extends React.Component {
       <div className='container'>
         <form
           onSubmit={event =>
-            this.props.login(this.state.email, this.state.password)
+            this.props.login(event, this.state.email, this.state.password)
           }
         >
           <label className='form-title'>
