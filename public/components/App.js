@@ -8,6 +8,7 @@ import checkResponseStatus from '../utils/checkResponseStatus'
 import '../styles/reset.css'
 import '../styles/main.css'
 // import "../styles/prism.css";
+import PropTypes from 'prop-types';
 
 class App extends React.Component {
   state = {
@@ -40,7 +41,6 @@ class App extends React.Component {
         console.log(error)
       })
   }
-
 
   oauthLogin = event => {
     event.preventDefault()
@@ -82,5 +82,17 @@ class App extends React.Component {
     )
   }
 }
+
+App.propTypes ={
+  login: PropTypes.func,
+  oauthLogin: PropTypes.func,
+  logout: PropTypes.func,
+  errorMessage: PropTypes.string,
+  loginMessage: PropTypes.string,
+  loggedIn: PropTypes.bool,
+  show: PropTypes.bool,
+}
+
+
 
 export default App
