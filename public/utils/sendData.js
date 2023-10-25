@@ -26,4 +26,17 @@ const postData = (url, credentials, dataToSend) => {
     .then(response => response.json());
 };
 
-module.exports = { putData, postData };
+const deleteData = (url, credentials, dataToSend) => {
+  return fetch(url, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${credentials}`
+    },
+    body: JSON.stringify(dataToSend)
+  })
+    .then(response => checkResponseStatus(response))
+    .then(response => response.json());
+};
+
+module.exports = { putData, postData, deleteData };

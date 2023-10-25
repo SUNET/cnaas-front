@@ -1,15 +1,19 @@
 import React from "react";
 import { Prompt } from 'react-router';
-import { Input } from 'semantic-ui-react';
+import { Link } from 'react-router-dom';
 import ConfigChangeStep1 from "./ConfigChangeStep1";
 import DryRun from "./DryRun/DryRun";
 import VerifyDiff from "./VerifyDiff/VerifyDiff";
 import ConfigChangeStep4 from "./ConfigChangeStep4";
 import checkResponseStatus from "../../utils/checkResponseStatus";
+import SyncStatus from "./SyncStatus";
 // import { postData } from "../../utils/sendData";
 import getData from "../../utils/getData";
 import queryString from 'query-string';
 import Prism from "prismjs";
+import { SemanticToastContainer, toast } from 'react-semantic-toasts-2';
+import '../../styles/react-semantic-alert.css';
+
 const io = require("socket.io-client");
 var socket = null;
 
@@ -27,21 +31,29 @@ class ConfigChange extends React.Component {
       confirmRunProgressData: {},
       logLines: [],
       blockNavigation: false,
-      repoWorking: false
+      repoWorking: false,
+      syncEventCounter: 0
     }
   };
 
   constructor() {
     super();
     this.state = this.getInitialState();
+    this.syncstatuschild = React.createRef();
   }
 
   resetState = () => {
     console.log(this.getInitialState());
     this.setState(this.getInitialState());
+    this.syncstatuschild.current.getDeviceList();
+    this.syncstatuschild.current.getSyncHistory();
   }
 
   setRepoWorking = (working_status) => {
+    if (this.state.repoWorking === true && working_status === false) {
+      this.syncstatuschild.current.getDeviceList();
+      this.syncstatuschild.current.getSyncHistory();
+    }
     this.setState({repoWorking: working_status});
   }
 
@@ -84,8 +96,8 @@ class ConfigChange extends React.Component {
       if (options.ticket_ref !== undefined) {
         dataToSend["ticket_ref"] = options.ticket_ref;
       }
-      if (options.commit_mode !== undefined && options.commit_mode >= 0) {
-        dataToSend["commit_mode"] = options.commit_mode;
+      if (options.confirm_mode !== undefined && options.confirm_mode >= 0) {
+        dataToSend["confirm_mode"] = options.confirm_mode;
       }
     } else {
      options = {};
@@ -202,18 +214,6 @@ class ConfigChange extends React.Component {
     }
   };
 
-  getCommitTargetName(target) {
-    if (target.all !== undefined) {
-      return "All unsynchronized devices";
-    } else if (target.hostname !== undefined) {
-      return "Hostname: " + target.hostname
-    } else if (target.group !== undefined) {
-      return "Group: " + target.group
-    } else {
-      return "Unknown"
-    }
-  };
-
   componentDidMount(){
     let queryParams = queryString.parse(this.props.location.search);
     if (queryParams.scrollTo !== undefined) {
@@ -229,20 +229,56 @@ class ConfigChange extends React.Component {
       console.log('Websocket connected!');
       var ret = socket.emit('events', {'loglevel': 'DEBUG'});
       console.log(ret);
+      ret = socket.emit('events', {'sync': 'all'});
+      console.log(ret);
     });
     socket.on('events', (data) => {
-      var newLogLines = this.state.logLines;
-      if (newLogLines.length >= 1000) {
-        newLogLines.shift();
-      }
-      newLogLines.push(data + "\n");
-      this.setState({logLines: newLogLines});
-      // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
-      if (data.includes("refresh repo") === true) {
-        this.setState({dryRunProgressData: []});
-        console.log("Refresh repo event, reset dryrun status: ", data);
+      // sync events
+      if (data.syncevent_hostname !== undefined && data.syncevent_data !== undefined) {
+        let target = this.getCommitTarget();
+        let showEvent = false;
+        if (target.hostname !== undefined) {
+          if (target.hostname == data.syncevent_hostname) {
+            showEvent = true;
+          }
+        } else {
+          showEvent = true;
+        }
+        // don't show events while refreshing settings/templates via buttons
+        if (this.state.repoWorking === true) {
+          if (data.syncevent_data.cause.startsWith('refresh_')) {
+            showEvent = false;
+          }
+        }
+        if (showEvent) {
+          this.setState({ syncEventCounter: this.state.syncEventCounter + 1 });
+          console.log("syncevent for:" + data.syncevent_hostname);
+          console.log(data.syncevent_data);
+          toast({
+            type: 'warning',
+            icon: 'paper plane',
+            title: ('Sync event ('+this.state.syncEventCounter+'): '+data.syncevent_hostname),
+            description: <p>{data.syncevent_data.cause} by {data.syncevent_data.by} <br /><Link onClick={() => window.location.reload()}>Reload page</Link></p>,
+            animation: 'bounce',
+            time: 0
+          });
+        }
+      // log events
+      } else if (typeof data === 'string' || data instanceof String) {
+        var newLogLines = this.state.logLines;
+        if (newLogLines.length >= 1000) {
+          newLogLines.shift();
+        }
+        newLogLines.push(data + "\n");
+        this.setState({logLines: newLogLines});
+        // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
+        if (data.includes("refresh repo") === true) {
+          this.setState({dryRunProgressData: []});
+          console.log("Refresh repo event, reset dryrun status: ", data);
+        }
       }
     });
+    socket.on('')
   };
 
   componentWillUnmount() {
@@ -272,7 +308,6 @@ class ConfigChange extends React.Component {
     let confirmRunProgressData = this.state.confirmRunProgressData;
     let confirmRunJobStatus = "";
     let confirmRunJobId = "NA";
-    let commitTargetName = this.getCommitTargetName(this.getCommitTarget());
 
     if (Object.keys(dryRunProgressData).length > 0) {
       dryRunJobStatus = dryRunProgressData.status;
@@ -304,9 +339,9 @@ class ConfigChange extends React.Component {
           when={this.state.blockNavigation}
           message="A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave."
           />
+        <SemanticToastContainer position="top-right" maxToasts={3} />
         <section>
-          <h1>Commit changes (syncto)</h1>
-          <p>Commit changes to: { commitTargetName }</p>
+          <SyncStatus target={this.getCommitTarget()} ref={this.syncstatuschild} />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}
             setRepoWorking={this.setRepoWorking}
