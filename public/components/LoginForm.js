@@ -27,7 +27,7 @@ class LoginForm extends React.Component {
     if (process.env.OIDC_ENABLED == "true"){
       return (
         <div className='container'>
-          <form onSubmit={this.oauthLogin}>
+          <form onSubmit={this.props.oauthLogin}>
             <p className='title error'>{this.props.errorMessage}</p>
             <button className='submit' type='submit'>
               Login with OAUTH

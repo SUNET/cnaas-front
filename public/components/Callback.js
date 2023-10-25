@@ -5,63 +5,38 @@ import '../styles/reset.css'
 import '../styles/main.css'
 
 class Callback extends React.Component {
+  errorMessage = "Please be patient, you will be logged in."
 
   componentDidMount () {
+    // First check if logged in
     if (localStorage.getItem('token') !== null) {
       this.setState({ loggedIn: true })
+      this.errorMessage = "You're logged in."
+      window.location.replace('/')
+      return
+    }
+    // Check if the token is in the url
+    let params = new URLSearchParams(location.search)
+    if (params.has('token')) {
+      // Add the token as a parameter in local storage and communicate with the user they are logged in
+      // We don't check the validity of the token as this is done with every API call to get any information
+      let token = params.get('token')
+      localStorage.setItem('token', token)
+      this.errorMessage = "You're logged in."
+      window.location.replace('/')
+    } else {
+      this.errorMessage = "Something went wrong. Retry the login."
     }
   }
   render () {
-    let params = new URLSearchParams(location.search)
-    let token = ''
-    if (params.has('token')) {
-      token = params.get('token')
-      const url = process.env.API_URL + '/api/v1.0/auth/identity'
-      fetch(url, {
-        method: 'GET',
-        headers: { Authorization: 'Bearer ' + token },
-        redirect: 'follow'
-      })
-        .then(response => {
-          if (response.ok) {
-            localStorage.setItem('token', token)
-            window.location.replace('/')
-            return (
-              <div className='container'>
-                <Container>
-                  Please be patient, you will be sent to the next page if the
-                  login is successful.
-                </Container>
-              </div>
-            )
-          } else {
-            return (
-              <div className='container'>
-                <Container>
-                  Something went wrong, please try to login again.
-                </Container>
-              </div>
-            )
-          }
-        })
-        .catch(error => console.log('error', error))
       return (
         <div className='container'>
           <Container>
-            Please be patient, you will be sent to the next page if the login is
-            successful.
+            <p className='title error'>{this.errorMessage}</p>
           </Container>
         </div>
       )
-    } else {
-      return (
-        <div className='container'>
-          <Container>
-            <p className='title error'>{this.props.errorMessage}</p>
-          </Container>
-        </div>
-      )
-    }
+  //  }
   }
 }
 
