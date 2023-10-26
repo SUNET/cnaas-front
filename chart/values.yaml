@@ -1,0 +1,4 @@
+dns:
+  prefix: test 
+front:
+  image: "registry.test.automation.surf.net/josephine/cnaas-front-cnaas-front:okteto"

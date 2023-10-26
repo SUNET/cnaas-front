@@ -1,0 +1,18 @@
+name: cnaas-front
+build:
+  cnaas-front:
+    context: .
+    dockerfile: Dockerfile
+#     target: dev
+
+deploy:
+  image: git.ia.surfsara.nl:5050/netdev/public-build-containers/okteto-pipeline-runner
+  commands:
+    - name: Deploy with Helm
+      command: >
+        helm upgrade --install
+        -f .gitlab/helm/okteto-values.yaml
+        cnaas-front chart
+
+
+
