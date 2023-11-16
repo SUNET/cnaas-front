@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types';
 
 class LoginForm extends React.Component {
   state = {
@@ -70,4 +71,12 @@ class LoginForm extends React.Component {
     )
   }
 }
+
+LoginForm.propTypes = {
+  login: PropTypes.func,
+  oauthLogin: PropTypes.func,
+  logout: PropTypes.func,
+  show: PropTypes.bool,
+  errorMessage: PropTypes.string
+};
 export default LoginForm
