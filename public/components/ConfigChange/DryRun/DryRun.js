@@ -3,6 +3,7 @@ import DryRunProgressBar from "./DryRunProgressBar";
 import DryRunProgressInfo from "./DryRunProgressInfo";
 import DryRunError from "./DryRunError";
 import { Form, Checkbox, Popup, Icon } from "semantic-ui-react";
+import permissionsCheck from "../../../utils/permissions/permissionsCheck";
 
 class DryRun extends React.Component {
   state = {
@@ -81,10 +82,10 @@ class DryRun extends React.Component {
               <Checkbox label="Re-sync devices (check for local changes made outside of NMS)" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} /> 
             </div>
             <div className="info">
-              <button id="dryrunButton" disabled={dryrunButtonDisabled} onClick={() => this.dryrunButtonOnclick()}>
+              <button id="dryrunButton" hidden={!permissionsCheck("Config change", "write")} disabled={dryrunButtonDisabled} onClick={() => this.dryrunButtonOnclick()}>
                 Dry run
               </button>
-              <button id="resetButton" disabled={resetButtonDisabled} onClick={() => this.resetButtonOnclick()}>
+              <button id="resetButton" hidden={!permissionsCheck("Config change", "write")} disabled={resetButtonDisabled} onClick={() => this.resetButtonOnclick()}>
                 Start over
               </button>
             </div>

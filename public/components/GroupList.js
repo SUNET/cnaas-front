@@ -1,6 +1,7 @@
 import React from "react";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import { Icon } from 'semantic-ui-react'
+import permissionsCheck from "../utils/permissions/permissionsCheck"
 
 class GroupList extends React.Component {
   state = {
@@ -57,10 +58,10 @@ class GroupList extends React.Component {
         <tr>
           <td>{ key }</td>
           <td>{ this.state.groupData[key].join(", ") }</td>
-          <td>
+          <td hidden= {!permissionsCheck("Groups", "read")}>
             <div>
-              <a href={"/config-change?group=" + key } title="Go to config change/sync to page"><Icon name="sync" />Sync...</a><br />
-              <a href={"/firmware-upgrade?group=" + key } title="Go to firmware upgrade page"><Icon name="microchip" />Firmware upgrade...</a>
+              <a href={"/config-change?group=" + key } hidden= {!permissionsCheck("Config change", "write")} title="Go to config change/sync to page"><Icon name="sync" />Sync...</a><br />
+              <a href={"/firmware-upgrade?group=" + key } hidden= {!permissionsCheck("Firmware", "write")} title="Go to firmware upgrade page"><Icon name="microchip" />Firmware upgrade...</a>
             </div>
           </td>
         </tr>
@@ -90,7 +91,7 @@ class GroupList extends React.Component {
                   <th>
                     Group members
                   </th>
-                  <th>
+                  <th hidden={!permissionsCheck("Groups", "read")}>
                     Actions
                   </th>
                 </tr>

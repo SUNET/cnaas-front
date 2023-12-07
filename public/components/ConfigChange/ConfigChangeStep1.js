@@ -2,6 +2,7 @@ import React from "react";
 import getData from "../../utils/getData";
 import { putData } from "../../utils/sendData";
 import { Popup, Icon } from "semantic-ui-react";
+import permissionsCheck from "../../utils/permissions/permissionsCheck"
 
 class ConfigChangeStep1 extends React.Component {
   state = {
@@ -139,13 +140,13 @@ class ConfigChangeStep1 extends React.Component {
             {this.prettifyCommit(this.state.commitInfo['templates'])}
           </div>
           <div className="info">
-            <button disabled={buttonsDisabled} onClick={ () => this.refreshRepo('settings')}>
+            <button hidden={!permissionsCheck("Config change", "write")} disabled={buttonsDisabled} onClick={ () => this.refreshRepo('settings')}>
               Refresh settings
             </button>
             <p>{this.state.commitUpdateInfo['settings']}</p>
           </div>
           <div className="info">
-            <button disabled={buttonsDisabled} onClick={ () => this.refreshRepo('templates')}>
+            <button hidden= {!permissionsCheck("Config change", "write")} disabled={buttonsDisabled} onClick={ () => this.refreshRepo('templates')}>
               Refresh templates
             </button>
             <p>{this.state.commitUpdateInfo['templates']}</p>

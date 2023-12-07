@@ -8,6 +8,7 @@ import getData from "../utils/getData";
 import { deleteData } from "../utils/sendData";
 import { SemanticToastContainer, toast } from 'react-semantic-toasts-2';
 import formatISODate from "../utils/formatters";
+import permissionsCheck from "../utils/permissions/permissionsCheck"
 const io = require("socket.io-client");
 var socket = null;
 
@@ -807,7 +808,7 @@ class DeviceList extends React.Component {
           hidden
         >
           <td>
-            <div>
+            <div hidden={!permissionsCheck("Devices", "write")} >
               <Dropdown text="Actions" button={true} >
                 <Dropdown.Menu>
                   {menuActions}
