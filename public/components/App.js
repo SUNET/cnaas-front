@@ -53,6 +53,7 @@ class App extends React.Component {
   logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('permissions')
+    localStorage.removeItem('expiration_time')
     this.setState({
       loginMessage: 'You have been logged out',
       loggedIn: false
@@ -83,13 +84,14 @@ class App extends React.Component {
     )
   }
 }
-
-App.login.propTypes = PropTypes.func;
-App.oauthLogin.propTypes = PropTypes.func;
-App.logout.propTypes = PropTypes.func;
-App.show.propTypes = PropTypes.bool;
-App.errorMessage.propTypes = PropTypes.string;
-App.loggedIn.propTypes = PropTypes.bool;
-App.loginMessage.propTypes = PropTypes.string;
+App.propTypes = {
+  login: PropTypes.func,
+  oauthLogin: PropTypes.func,
+  logout: PropTypes.func,
+  show: PropTypes.bool,
+  errorMessage: PropTypes.string,
+  loggedIn: PropTypes.bool,
+  loginMessage: PropTypes.string
+}
 
 export default App

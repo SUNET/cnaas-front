@@ -88,9 +88,11 @@ class Panel extends React.Component {
     );
   }
 }
-Panel.props.login.propTypes = PropTypes.func;
-Panel.props.oauthLogin.propTypes = PropTypes.func;
-Panel.props.logout.propTypes = PropTypes.func;
-Panel.props.loggedIn.propTypes = PropTypes.bool;
-Panel.props.loginMessage.propTypes = PropTypes.string;
+Panel.propTypes = {
+  login: PropTypes.func,
+  oauthLogin: PropTypes.func,
+  logout: PropTypes.func,
+  loggedIn: PropTypes.bool,
+  loginMessage: PropTypes.string
+};
 export default Panel;

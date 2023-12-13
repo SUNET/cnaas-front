@@ -1,5 +1,5 @@
-import React from 'react'
-
+import React from 'react';
+import PropTypes from 'prop-types';
 class LoginForm extends React.Component {
   state = {
     email: '',
@@ -70,9 +70,11 @@ class LoginForm extends React.Component {
     )
   }
 }
-LoginForm.props.login.propTypes = PropTypes.func;
-LoginForm.props.oauthLogin.propTypes = PropTypes.func;
-LoginForm.props.logout.propTypes = PropTypes.func;
-LoginForm.props.show.propTypes = PropTypes.bool;
-LoginForm.props.errorMessage.propTypes = PropTypes.string;
+LoginForm.propTypes = {
+  login: PropTypes.func,
+  oauthLogin: PropTypes.func,
+  logout: PropTypes.func,
+  show: PropTypes.bool,
+  errorMessage: PropTypes.string
+};
 export default LoginForm

@@ -45,14 +45,14 @@ class Callback extends React.Component {
         token = params.get('token')
         let decoded_token = this.parseJwt(token)
         localStorage.setItem('token', token)
-        localStorage.setItem('expire', decoded_token['exp'])
+        localStorage.setItem('expiration_time', decoded_token['exp'])
       } else {
         this.errorMessage = "Something went wrong. Retry the login."
         return
       }
     }
-    if(localStorage.getItem('expire') > Date.now()){
-      this.errorMessage = "Token expired. Logout"
+    if(localStorage.getItem('expiration_time') > Date.now()){
+      this.errorMessage = "Token expiration_timed. Logout"
       this.setState({ loggedIn: false })
       return
     }
