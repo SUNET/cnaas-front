@@ -8,7 +8,6 @@ import checkResponseStatus from '../utils/checkResponseStatus'
 import '../styles/reset.css'
 import '../styles/main.css'
 // import "../styles/prism.css";
-import PropTypes from 'prop-types';
 
 class App extends React.Component {
   state = {
