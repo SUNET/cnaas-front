@@ -370,8 +370,3 @@ progress::-moz-progress-bar {
   width: 15em;
 }
 
-/* login form */
-.form-title {
-  display: block;
-  margin: 0.25em;
-}

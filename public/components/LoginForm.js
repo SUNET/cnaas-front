@@ -47,24 +47,24 @@ class LoginForm extends React.Component {
             this.props.login(event, this.state.email, this.state.password)
           }
         >
-          <label className='form-title'>
-            Email</label>
+          <label>
+            Email
             <input
               type='text'
               name='email'
               onChange={this.handleInput}
               required
             />
-
-          <label className='form-title'>
-            Password</label>
+          </label>
+          <label>
+            Password
             <input
               type='password'
               name='password'
               onChange={this.handleInput}
               required
             />
-
+          </label>
           <p className='title error'>{this.props.errorMessage}</p>
           <button className='submit' type='submit'>
             Login
