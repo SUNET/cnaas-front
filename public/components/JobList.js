@@ -5,6 +5,7 @@ import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import formatISODate from "../utils/formatters";
 import Prism from "prismjs";
+import { getData } from '../utils/getData'
 const io = require("socket.io-client");
 var socket = null;
 
@@ -169,24 +170,13 @@ class JobList extends React.Component {
         "=" +
         filterValue;
     }
-    fetch(
-      process.env.API_URL +
+    getData(process.env.API_URL +
       "/api/v1.0/jobs?sort=" +
       sortField +
       filterParams +
       "&page=" +
       pageNum +
-      "&per_page=20",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${credentials}`
-        }
-      }
-    )
-      .then(response => checkResponseStatus(response))
-      .then(response => this.readHeaders(response))
-      .then(response => response.json())
+      "&per_page=20", credentials)
       .then(data => {
         console.log("this should be data", data);
         {

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { Popup, Table, Icon } from "semantic-ui-react";
 import formatISODate from "../../utils/formatters";
 
-import getData from "../../utils/getData";
+import { getData } from "../../utils/getData";
 
 class SyncStatus extends React.Component {
   state = {

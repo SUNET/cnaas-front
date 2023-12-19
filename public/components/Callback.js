@@ -2,26 +2,24 @@ import React from 'react'
 import { Container } from 'semantic-ui-react'
 import '../styles/reset.css'
 import '../styles/main.css'
-import getData from "../utils/getData";
+import { getData } from "../utils/getData";
 
 class Callback extends React.Component {
-  errorMessage = "Please be patient, you will be logged in."
 
-  
+  errorMessage = "Please be patient, you will be logged in."
   getPermissions = (token) => {
     this.setState({loading: true, error: null});
-
     getData(process.env.API_URL + "/api/v1.0/auth/permissions", token)
     .then(data => {
       localStorage.setItem('permissions', JSON.stringify(data))
-      this.setState({ loggedIn: true })
-      window.location.replace('/')
-      return true
+      this.errorMessage = "Permissions are retrieved."
+      this.checkSuccess()
+      return
     })
     .catch((error) => {
       console.log(error)
-      return false
-    });
+    }); 
+    this.errorMessage = "There is an error with collecting the permissions. Please try to reload this page or login again."
   };
 
   parseJwt = (token)  =>{
@@ -30,44 +28,37 @@ class Callback extends React.Component {
     var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
-
     return JSON.parse(jsonPayload);
-}
-  componentDidMount () {
-    // First check if logged in
-    let token = localStorage.getItem('token');
-    if (token == null) {
-      // Check if the token is in the url
-      let params = new URLSearchParams(location.search)
-      if (params.has('token')) {
-        // Add the token as a parameter in local storage and communicate with the user they are logged in
-        // We don't check the validity of the token as this is done with every API call to get any information
-        token = params.get('token')
-        let decoded_token = this.parseJwt(token)
-        localStorage.setItem('token', token)
-        localStorage.setItem('expiration_time', decoded_token['exp'])
-      } else {
-        this.errorMessage = "Something went wrong. Retry the login."
-        return
-      }
-    }
-    if(localStorage.getItem('expiration_time') > Date.now()){
-      this.errorMessage = "Token expiration_timed. Logout"
-      this.setState({ loggedIn: false })
-      return
-    }
-    if (localStorage.getItem('permissions') == null){
-      if(!this.getPermissions(token)) {
-        this.errorMessage = "Error with permissions"
-        this.setState({ loggedIn: false })
-      }
-    }
-
-    
-
-
   }
-  render () {
+
+  checkSuccess = () => {
+    if (localStorage.hasOwnProperty('permissions') && localStorage.getItem('expiration_time') * 1000 > new Date() && localStorage.hasOwnProperty('token')) {
+      this.errorMessage = "Everything is loaded, you should be sent to the homepage in a second."
+      this.setState({ loggedIn: true })
+      window.location.replace('/')
+      return true
+    } else if (localStorage.getItem('expiration_time') * 1000 < new Date()){
+      this.errorMessage = "The token has expired. Please login again."
+      return false
+    }
+    return false
+  }
+
+  componentDidMount () {
+    if(localStorage.hasOwnProperty('token')){ 
+      if(this.checkSuccess()){
+        return;
+      }
+    }
+    let params = new URLSearchParams(location.search)
+    let token = params.get('token')
+    localStorage.setItem('token', token)
+
+    let decoded_token = this.parseJwt(token)
+    localStorage.setItem('expiration_time', decoded_token['exp'])
+    this.getPermissions(token)
+  }
+  render () { 
       return (
         <div className='container'>
           <Container>

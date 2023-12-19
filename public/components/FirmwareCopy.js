@@ -1,8 +1,6 @@
 import React from "react";
-import formatISODate from "../utils/formatters";
-import checkResponseStatus from "../utils/checkResponseStatus";
 import { Icon, Popup } from "semantic-ui-react";
-import getData from "../utils/getData";
+import { getData } from "../utils/getData";
 import FirmwareCopyForm from "./FirmwareCopyForm";
 import permissionsCheck from "../utils/permissions/permissionsCheck";
 

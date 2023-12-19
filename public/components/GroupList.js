@@ -1,7 +1,7 @@
 import React from "react";
-import checkResponseStatus from "../utils/checkResponseStatus";
 import { Icon } from 'semantic-ui-react'
 import permissionsCheck from "../utils/permissions/permissionsCheck"
+import { getData } from "../utils/getData"
 
 class GroupList extends React.Component {
   state = {
@@ -19,19 +19,8 @@ class GroupList extends React.Component {
     const credentials = localStorage.getItem("token");
     // Build filter part of the URL to only return specific devices from the API
     // TODO: filterValue should probably be urlencoded?
-    fetch(
-      process.env.API_URL + "/api/v1.0/groups",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${credentials}`
-        }
-      }
-    )
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json())
-    .then(data => {
-      console.log("this should be data", data);
+    getData(process.env.API_URL + "/api/v1.0/groups", credentials)
+    .then(data => 
       {
         this.setState(
           {
@@ -41,21 +30,24 @@ class GroupList extends React.Component {
             console.log("this is new state", this.state.devicesData);
           }
         );
+        return;
       }
-    })
-    .catch((error) => {
+      
+    ).catch((error) => {
       this.setState({
         groupData: [],
         loading: false,
         error: error
       })
     });
+
+
   };
 
   render() {
     let groupTable = Object.keys(this.state.groupData).map((key, index) => {
       return [
-        <tr>
+        <tr key={ key }>
           <td>{ key }</td>
           <td>{ this.state.groupData[key].join(", ") }</td>
           <td hidden= {!permissionsCheck("Groups", "read")}>
@@ -63,15 +55,15 @@ class GroupList extends React.Component {
               <a href={"/config-change?group=" + key } hidden= {!permissionsCheck("Config change", "write")} title="Go to config change/sync to page"><Icon name="sync" />Sync...</a><br />
               <a href={"/firmware-upgrade?group=" + key } hidden= {!permissionsCheck("Firmware", "write")} title="Go to firmware upgrade page"><Icon name="microchip" />Firmware upgrade...</a>
             </div>
-          </td>
+          </td> 
         </tr>
       ]
     })
     if (this.state.error) {
-      groupTable = [<tr><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+      groupTable = [<tr key="error"><td colSpan="5">API error: {this.state.error.message}</td></tr>];
     } else if (!Array.isArray(groupTable) || !groupTable.length) {
       if (this.state.loading) {
-        groupTable = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading groups...</td></tr>];
+        groupTable = [<tr key="Loading"><td colSpan="5"><Icon name="spinner" loading={true} />Loading groups...</td></tr>];
       } else {
         groupTable = [<tr><td colSpan="5">Empty result</td></tr>];
       }

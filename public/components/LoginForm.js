@@ -15,8 +15,12 @@ class LoginForm extends React.Component {
 
   render () {
     if (this.props.show !== true) {
+      if(localStorage.getItem('expiration_time') * 1000 < new Date()){
+        this.errorMessage = "Your token has expired. ";
+      }
       return (
         <div>
+          <p className='title error'>{this.errorMessage}</p>
           <button className='logout' onClick={ev => this.props.logout()}>
             Logout
           </button>

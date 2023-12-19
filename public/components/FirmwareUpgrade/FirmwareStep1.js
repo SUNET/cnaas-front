@@ -1,5 +1,5 @@
 import React from "react";
-import getData from "../../utils/getData";
+import { getData } from "../../utils/getData";
 
 class FirmwareStep1 extends React.Component {
   state = {

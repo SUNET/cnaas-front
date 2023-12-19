@@ -1,5 +1,5 @@
 import React from "react";
-import getData from "../../utils/getData";
+import { getData } from "../../utils/getData";
 import { putData } from "../../utils/sendData";
 import { Popup, Icon } from "semantic-ui-react";
 import permissionsCheck from "../../utils/permissions/permissionsCheck"
