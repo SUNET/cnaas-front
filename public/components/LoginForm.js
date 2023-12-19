@@ -47,7 +47,7 @@ class LoginForm extends React.Component {
             this.props.login(event, this.state.email, this.state.password)
           }
         >
-          <label>
+          <label className='title'>
             Email
             <input
               type='text'
@@ -56,7 +56,7 @@ class LoginForm extends React.Component {
               required
             />
           </label>
-          <label>
+          <label className='title'>
             Password
             <input
               type='password'
