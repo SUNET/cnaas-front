@@ -14,12 +14,11 @@ class Callback extends React.Component {
       localStorage.setItem('permissions', JSON.stringify(data))
       this.errorMessage = "Permissions are retrieved."
       this.checkSuccess()
-      return
     })
     .catch((error) => {
+      this.errorMessage = "There is an error with collecting the permissions. Please try to reload this page or login again."
       console.log(error)
     }); 
-    this.errorMessage = "There is an error with collecting the permissions. Please try to reload this page or login again."
   };
 
   parseJwt = (token)  =>{
@@ -47,7 +46,7 @@ class Callback extends React.Component {
   componentDidMount () {
     if(localStorage.hasOwnProperty('token')){ 
       if(this.checkSuccess()){
-        return;
+        return
       }
     }
     let params = new URLSearchParams(location.search)
