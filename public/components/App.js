@@ -84,14 +84,5 @@ class App extends React.Component {
     )
   }
 }
-App.propTypes = {
-  login: PropTypes.func,
-  oauthLogin: PropTypes.func,
-  logout: PropTypes.func,
-  show: PropTypes.bool,
-  errorMessage: PropTypes.string,
-  loggedIn: PropTypes.bool,
-  loginMessage: PropTypes.string
-}
 
 export default App
