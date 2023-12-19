@@ -20,7 +20,7 @@ import { SemanticToastContainer, toast } from 'react-semantic-toasts-2'
 import formatISODate from '../utils/formatters'
 import permissionsCheck from '../utils/permissions/permissionsCheck'
 const io = require('socket.io-client')
-var socket = null
+let socket = null
 
 class DeviceList extends React.Component {
   state = {
