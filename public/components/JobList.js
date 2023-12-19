@@ -280,7 +280,7 @@ class JobList extends React.Component {
       if (job.exception !== undefined && job.exception !== null) {
         return [
           <p key={"exch_"+index}>Exception message: {job.exception.message}</p>,
-          <p key={"excth_"+index}><a onClick={() => this.showException(index)}>Show exception traceback</a></p>,
+          <p key={"excth_"+index}><a href="#" onClick={() => this.showException(index)}>Show exception traceback</a></p>,
           <pre key={"exct_"+index} id={"exception_traceback_"+index} hidden>{job.exception.traceback}</pre>
         ];
       } else {
