@@ -59,14 +59,13 @@ class Callback extends React.Component {
     this.getPermissions(token)
   }
   render () { 
-      return (
-        <div className='container'>
-          <Container>
-            <p className='title error'>{this.errorMessage}</p>
-          </Container>
-        </div>
-      )
-  //  }
+    return (
+      <div className='container'>
+        <Container>
+          <p className='title error'>{this.errorMessage}</p>
+        </Container>
+      </div>
+    )
   }
 }
 
