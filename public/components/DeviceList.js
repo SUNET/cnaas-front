@@ -125,9 +125,9 @@ class DeviceList extends React.Component {
       this.getDevicesData(options).then(() => {
         window.scrollTo(0, 0)
         // Expand results when looking up device
-        var deviceDetails =
+        const deviceDetails =
           document.getElementsByClassName('device_details_row')
-        for (var i = 0; i < deviceDetails.length; i++) {
+        for (let i = 0; i < deviceDetails.length; i++) {
           deviceDetails[i].hidden = false
           this.getInterfacesData(deviceDetails[i].previousElementSibling.id)
         }
@@ -140,8 +140,8 @@ class DeviceList extends React.Component {
       this.getDevicesData(options)
       window.scrollTo(0, 0)
       // Close all expanded table rows when changing results
-      var deviceDetails = document.getElementsByClassName('device_details_row')
-      for (var i = 0; i < deviceDetails.length; i++) {
+      const deviceDetails = document.getElementsByClassName('device_details_row')
+      for (let i = 0; i < deviceDetails.length; i++) {
         deviceDetails[i].hidden = true
       }
     })
@@ -202,8 +202,8 @@ class DeviceList extends React.Component {
     this.setState(newState)
     this.getDevicesData({ sortField: sortField })
     // Close all expanded table rows when resorting the table
-    var deviceDetails = document.getElementsByClassName('device_details_row')
-    for (var i = 0; i < deviceDetails.length; i++) {
+    const deviceDetails = document.getElementsByClassName('device_details_row')
+    for (let i = 0; i < deviceDetails.length; i++) {
       deviceDetails[i].hidden = true
     }
   }
@@ -231,9 +231,9 @@ class DeviceList extends React.Component {
     socket = io(process.env.API_URL, { query: { jwt: credentials } })
     socket.on('connect', function (data) {
       console.log('Websocket connected!')
-      var ret = socket.emit('events', { update: 'device' })
-      var ret = socket.emit('events', { update: 'job' })
-      var ret = socket.emit('events', { loglevel: 'DEBUG' })
+      // var ret = socket.emit('events', { update: 'device' })
+      // var ret = socket.emit('events', { update: 'job' })
+      // var ret = socket.emit('events', { loglevel: 'DEBUG' })
     })
     socket.on('events', data => {
       // device update event
@@ -325,7 +325,7 @@ class DeviceList extends React.Component {
         }
         // job update event
       } else if (data.job_id !== undefined) {
-        var newLogLines = this.state.logLines
+        const newLogLines = this.state.logLines
         if (data.status === 'EXCEPTION') {
           newLogLines.push(
             'job #' +
@@ -362,7 +362,7 @@ class DeviceList extends React.Component {
         }
         // log events
       } else if (typeof data === 'string' || data instanceof String) {
-        var newLogLines = this.state.logLines
+        const newLogLines = this.state.logLines
         if (newLogLines.length >= 1000) {
           newLogLines.shift()
         }
@@ -533,8 +533,8 @@ class DeviceList extends React.Component {
       this.getDevicesData({ numPage: data.activePage })
       window.scrollTo(0, 0)
       // Close all expanded table rows when changing page
-      var deviceDetails = document.getElementsByClassName('device_details_row')
-      for (var i = 0; i < deviceDetails.length; i++) {
+      const deviceDetails = document.getElementsByClassName('device_details_row')
+      for (let i = 0; i < deviceDetails.length; i++) {
         deviceDetails[i].hidden = true
       }
     })
@@ -980,7 +980,7 @@ class DeviceList extends React.Component {
         this.state.deviceJobs[device_id].map(job_id => {
           this.state.logLines.filter(this.checkJobId(job_id)).map(logLine => {
             log[device_id] = log[device_id] + logLine
-            var element = document.getElementById(
+            const element = document.getElementById(
               'logoutputdiv_device_id_' + device_id
             )
             if (element !== null) {
