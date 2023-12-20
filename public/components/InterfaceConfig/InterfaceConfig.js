@@ -576,6 +576,10 @@ class InterfaceConfig extends React.Component {
           fields['tags'] = ifData['tags'];
         }
 
+        if ('bpdu_filter' in ifData) {
+          fields['bpdu_filter'] = ifData['bpdu_filter'];
+        }
+
         if (ifDataUpdated !== null && 'untagged_vlan' in ifDataUpdated) {
           fields['untagged_vlan'] = ifDataUpdated['untagged_vlan'];
         } else if ('untagged_vlan' in ifData) {
