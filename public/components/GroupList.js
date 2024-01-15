@@ -1,5 +1,5 @@
 import React from "react";
-import checkResponseStatus from "../utils/checkResponseStatus";
+import checkJsonResponse from "../utils/checkJsonResponse";
 import { Icon } from 'semantic-ui-react'
 
 class GroupList extends React.Component {
@@ -27,8 +27,7 @@ class GroupList extends React.Component {
         }
       }
     )
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json())
+    .then(response => checkJsonResponse(response))
     .then(data => {
       console.log("this should be data", data);
       {

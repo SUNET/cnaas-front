@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Select, Input, Icon, Pagination, TableBody } from "semantic-ui-react";
-import checkResponseStatus from "../utils/checkResponseStatus";
+import checkJsonResponse from "../utils/checkJsonResponse";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import formatISODate from "../utils/formatters";
@@ -184,9 +184,7 @@ class JobList extends React.Component {
         }
       }
     )
-      .then(response => checkResponseStatus(response))
-      .then(response => this.readHeaders(response))
-      .then(response => response.json())
+      .then(response => checkJsonResponse(response))
       .then(data => {
         console.log("this should be data", data);
         {

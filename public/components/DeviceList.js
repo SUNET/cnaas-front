@@ -1,7 +1,7 @@
 import React from "react";
 import { Dropdown, Icon, Pagination, Popup, Button, Select, Checkbox, Modal, Input } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
-import checkResponseStatus from "../utils/checkResponseStatus";
+import checkJsonResponse from "../utils/checkJsonResponse";
 import DeviceInitForm from "./DeviceInitForm";
 import queryString from 'query-string';
 import getData from "../utils/getData";
@@ -380,9 +380,7 @@ class DeviceList extends React.Component {
         }
       }
     )
-    .then(response => checkResponseStatus(response))
-    .then(response => this.readHeaders(response))
-    .then(response => response.json())
+    .then(response => checkJsonResponse(response))
     .then(data => {
       console.log("this should be data", data);
       {
