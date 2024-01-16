@@ -19,13 +19,13 @@ const findPermission = (permissions, page, right) => {
 }
 
 const permissionsCheck = (page, right) => {
-    if (process.env.PERMISSIONS_DISABLED){
+    if (process.env.PERMISSIONS_DISABLED === true){
         return true
     }
     // get the permissions
     let permissions = JSON.parse(localStorage.getItem('permissions'));
     // check if filled. Else request the permissions
-    if (!permissions || (permissions.length == 0)) {
+    if (!permissions) {
         const token = localStorage.getItem('token');
         console.log(token)
         if (token || (token.length =! 0)) {
@@ -48,8 +48,5 @@ const permissionsCheck = (page, right) => {
     } else {
         return findPermission(permissions, page, right)
     }
-    
-
-    
 }
 export default permissionsCheck;
