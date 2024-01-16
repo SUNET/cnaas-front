@@ -19,8 +19,9 @@ const findPermission = (permissions, page, right) => {
 }
 
 const permissionsCheck = (page, right) => {
-    if (process.env.PERMISSIONS_DISABLED === true){
+    if (process.env.PERMISSIONS_DISABLED === 'true'){
         return true
+
     }
     // get the permissions
     let permissions = JSON.parse(localStorage.getItem('permissions'));
