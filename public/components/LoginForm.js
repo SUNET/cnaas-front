@@ -18,6 +18,9 @@ class LoginForm extends React.Component {
       if(localStorage.getItem('expiration_time') * 1000 < new Date()){
         this.errorMessage = "Your token has expired. ";
       }
+      if(process.env.PERMISSIONS_DISABLED !== 'true'  && JSON.parse(localStorage.getItem('permissions')).length == 0){
+        this.errorMessage = "You don't seem to have any permissions. Check with an administrator if this is correct. ";
+      }
       return (
         <div>
           <p className='title error'>{this.errorMessage}</p>
@@ -27,8 +30,7 @@ class LoginForm extends React.Component {
         </div>
       )
     }
-
-    if (process.env.OIDC_ENABLED == "true"){
+    if (process.env.OIDC_ENABLED === 'true'){
       return (
         <div className='container'>
           <form onSubmit={this.props.oauthLogin}>
