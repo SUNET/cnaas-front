@@ -36,7 +36,11 @@ class Callback extends React.Component {
   }
 
   checkSuccess = () => {
-    if ((localStorage.hasOwnProperty('permissions') || process.env.PERMISSIONS_DISABLED === 'true') && localStorage.getItem('expiration_time') * 1000 > new Date() && localStorage.hasOwnProperty('token')) {
+    if (
+      (localStorage.hasOwnProperty('permissions') || process.env.PERMISSIONS_DISABLED === 'true') && 
+      localStorage.getItem('expiration_time') * 1000 > new Date() && 
+      localStorage.hasOwnProperty('token')
+      ) {
       this.errorMessage = "Everything is loaded, you should be sent to the homepage in a second."
       this.setState({ loggedIn: true })
       window.location.replace('/')
