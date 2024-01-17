@@ -29,7 +29,7 @@ const permissionsCheck = (page, right) => {
     if (!permissions) {
         const token = localStorage.getItem('token');
         console.log(token)
-        if (token || (token.length =! 0)) {
+        if (token || (token.length != 0)) {
             getData(process.env.API_URL + "/api/v1.0/auth/permissions", token)
             .then(data => {
                 localStorage.setItem('permissions', JSON.stringify(data))
