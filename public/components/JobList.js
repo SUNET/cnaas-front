@@ -1,6 +1,5 @@
 import React from "react";
-import { Button, Select, Input, Icon, Pagination, TableBody } from "semantic-ui-react";
-import checkResponseStatus from "../utils/checkResponseStatus";
+import { Icon, Pagination } from "semantic-ui-react";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import formatISODate from "../utils/formatters";

@@ -127,9 +127,9 @@ class DeviceList extends React.Component {
         // Expand results when looking up device
         const deviceDetails =
           document.getElementsByClassName('device_details_row')
-        for (let i = 0; i < deviceDetails.length; i++) {
-          deviceDetails[i].hidden = false
-          this.getInterfacesData(deviceDetails[i].previousElementSibling.id)
+          for (let deviceDetail of deviceDetails) {
+          deviceDetail.hidden = false
+          this.getInterfacesData(deviceDetail.previousElementSibling.id)
         }
       })
     })
@@ -141,8 +141,8 @@ class DeviceList extends React.Component {
       window.scrollTo(0, 0)
       // Close all expanded table rows when changing results
       const deviceDetails = document.getElementsByClassName('device_details_row')
-      for (let i = 0; i < deviceDetails.length; i++) {
-        deviceDetails[i].hidden = true
+      for (let deviceDetail of deviceDetails) {
+        deviceDetail.hidden = true
       }
     })
   }
@@ -203,8 +203,8 @@ class DeviceList extends React.Component {
     this.getDevicesData({ sortField: sortField })
     // Close all expanded table rows when resorting the table
     const deviceDetails = document.getElementsByClassName('device_details_row')
-    for (let i = 0; i < deviceDetails.length; i++) {
-      deviceDetails[i].hidden = true
+    for (let deviceDetail of deviceDetails) {
+      deviceDetail.hidden = true
     }
   }
 
@@ -534,8 +534,8 @@ class DeviceList extends React.Component {
       window.scrollTo(0, 0)
       // Close all expanded table rows when changing page
       const deviceDetails = document.getElementsByClassName('device_details_row')
-      for (let i = 0; i < deviceDetails.length; i++) {
-        deviceDetails[i].hidden = true
+      for (let deviceDetail of deviceDetails) {
+        deviceDetail.hidden = true
       }
     })
   }

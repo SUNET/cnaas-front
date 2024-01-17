@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import queryString from 'query-string';
 import { getData } from "../../utils/getData";
 import { putData, postData } from "../../utils/sendData";
-import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup, Checkbox, TableCell } from "semantic-ui-react";
+import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup, Checkbox } from "semantic-ui-react";
 import YAML from 'yaml';
 const io = require("socket.io-client");
 var socket = null;
@@ -543,7 +543,6 @@ class InterfaceConfig extends React.Component {
         });
         if ('peer_hostname' in item) {
           ifData["description"] = item['peer_hostname'];
-//          fields['description'] = item['peer_hostname'];
         }
       }
       if (item.name in interfaceDataUpdated) {

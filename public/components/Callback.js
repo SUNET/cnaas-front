@@ -12,7 +12,6 @@ class Callback extends React.Component {
     this.setState({loading: true, error: null});
     if (process.env.PERMISSIONS_DISABLED === 'true'){
       this.checkSuccess()
-      return
     } else {
       getData(process.env.API_URL + "/api/v1.0/auth/permissions", token)
       .then(data => {

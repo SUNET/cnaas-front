@@ -30,9 +30,7 @@ class GroupList extends React.Component {
             console.log("this is new state", this.state.devicesData);
           }
         );
-        return;
       }
-      
     ).catch((error) => {
       this.setState({
         groupData: [],
@@ -40,8 +38,6 @@ class GroupList extends React.Component {
         error: error
       })
     });
-
-
   };
 
   render() {
