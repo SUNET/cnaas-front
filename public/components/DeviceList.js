@@ -231,9 +231,9 @@ class DeviceList extends React.Component {
     socket = io(process.env.API_URL, { query: { jwt: credentials } })
     socket.on('connect', function (data) {
       console.log('Websocket connected!')
-      // var ret = socket.emit('events', { update: 'device' })
-      // var ret = socket.emit('events', { update: 'job' })
-      // var ret = socket.emit('events', { loglevel: 'DEBUG' })
+      var ret = socket.emit('events', { update: 'device' })
+      var ret = socket.emit('events', { update: 'job' })
+      var ret = socket.emit('events', { loglevel: 'DEBUG' })
     })
     socket.on('events', data => {
       // device update event
