@@ -31,7 +31,7 @@ class LoginForm extends React.Component {
           <form onSubmit={this.props.oauthLogin}>
             <p className='title error'>{this.props.errorMessage}</p>
             <button className='submit' type='submit'>
-              Login with OAUTH
+              Login with SSO
             </button>
           </form>
         </div>
