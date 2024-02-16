@@ -583,8 +583,6 @@ class InterfaceConfig extends React.Component {
             fields['untagged_vlan'] = ifData['untagged_vlan'];
           }
         }
-        console.log("DEBUG00");
-        console.log(ifData);
         if (ifDataUpdated !== null && 'tagged_vlan_list' in ifDataUpdated) {
           fields['tagged_vlan_list'] = ifDataUpdated['tagged_vlan_list'];
           console.log("DEBUG01");

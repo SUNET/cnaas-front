@@ -537,8 +537,7 @@ class DeviceList extends React.Component {
       },
       body: JSON.stringify(dataToSend)
     })
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json())
+    .then(response => checkJsonResponse(response))
     .then(data => {
       if (data.job_id !== undefined && typeof data.job_id === "number") {
         this.addDeviceJob(device_id, data.job_id);
