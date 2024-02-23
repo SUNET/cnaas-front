@@ -2,6 +2,7 @@ import React from "react";
 import { Dropdown, Icon, Pagination, Popup, Button, Select, Checkbox, Modal, Input } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
 import checkJsonResponse from "../utils/checkJsonResponse";
+import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
 import queryString from 'query-string';
 import getData from "../utils/getData";
