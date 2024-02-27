@@ -20,8 +20,8 @@ class Callback extends React.Component {
     if (params.has('refresh_token')) {
       document.cookie = "REFRESH_TOKEN="+params.get('refresh_token')+"; SameSite=None; Secure; HttpOnly; Path=/api/v1.0/auth/refresh";
     }
-    if (params.has('email')) {
-      localStorage.setItem('email', params.get('email'));
+    if (params.has('username')) {
+      localStorage.setItem('username', params.get('username'));
     }
     if (params.has('token')) {
       // Add the token as a parameter in local storage and communicate with the user they are logged in

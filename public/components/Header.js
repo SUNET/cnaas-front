@@ -48,12 +48,12 @@ class Header extends React.Component {
       expiryString = `Token valid for ${Math.round(Math.abs(secondsUntilExpiry) / 60)} more minutes`;
     }
 
-    const email = localStorage.getItem('email');
+    const username = localStorage.getItem('username');
     var userinfo = "";
-    if (email !== null) {
-      userinfo = `Logged in as ${email}`;
+    if (username !== null) {
+      userinfo = `Logged in as ${username}`;
     } else {
-      userinfo = "Unknown user, email attribute missing";
+      userinfo = "Unknown user, username attribute missing";
     }
     const credentials = localStorage.getItem("token");
 
