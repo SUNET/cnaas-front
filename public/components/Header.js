@@ -53,7 +53,7 @@ class Header extends React.Component {
     if (username !== null) {
       userinfo = `Logged in as ${username}`;
     } else {
-      userinfo = "Unknown user, username attribute missing";
+      userinfo = "Unknown user (username attribute missing)";
     }
     const credentials = localStorage.getItem("token");
 
@@ -91,7 +91,7 @@ class Header extends React.Component {
 
   renderLinks = () => {
     if (localStorage.getItem("token") !== null) {
-      if (this.tokenExpireTimer === null) {
+      if (this.tokenExpireTimer === null && process.env.OIDC_ENABLED == "true") {
         if (this.triggerTokenRefresh === true) {
           var secondsUntilExpiry = 0;
         } else {
