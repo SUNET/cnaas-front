@@ -381,6 +381,7 @@ class DeviceList extends React.Component {
         }
       }
     )
+    .then(response => this.readHeaders(response))
     .then(response => checkJsonResponse(response))
     .then(data => {
       console.log("this should be data", data);
