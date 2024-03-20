@@ -20,7 +20,8 @@ const postData = (url, credentials, dataToSend) => {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials}`
     },
-    body: JSON.stringify(dataToSend)
+    body: JSON.stringify(dataToSend),
+    credentials: 'include'
   })
     .then(response => checkResponseStatus(response))
     .then(response => response.json());

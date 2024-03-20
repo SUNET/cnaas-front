@@ -42,7 +42,11 @@ nav ul {
 }
 
 nav li {
-  margin-right: 16px;
+  margin-right: 8px;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 a {
@@ -75,6 +79,11 @@ p {
   margin: 16px 0;
   line-height: 1.2;
   font-weight: 400;
+}
+
+p.tokenexpired {
+  font-weight: bold;
+  color: #ff0000;
 }
 
 /* p:first-child {

@@ -1,6 +1,7 @@
 import React from "react";
 import { Dropdown, Icon, Pagination, Popup, Button, Select, Checkbox, Modal, Input } from "semantic-ui-react";
 import DeviceSearchForm from "./DeviceSearchForm";
+import checkJsonResponse from "../utils/checkJsonResponse";
 import checkResponseStatus from "../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
 import queryString from 'query-string';
@@ -380,9 +381,8 @@ class DeviceList extends React.Component {
         }
       }
     )
-    .then(response => checkResponseStatus(response))
     .then(response => this.readHeaders(response))
-    .then(response => response.json())
+    .then(response => checkJsonResponse(response))
     .then(data => {
       console.log("this should be data", data);
       {
@@ -539,8 +539,7 @@ class DeviceList extends React.Component {
       },
       body: JSON.stringify(dataToSend)
     })
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json())
+    .then(response => checkJsonResponse(response))
     .then(data => {
       if (data.job_id !== undefined && typeof data.job_id === "number") {
         this.addDeviceJob(device_id, data.job_id);

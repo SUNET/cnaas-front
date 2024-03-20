@@ -155,7 +155,7 @@ class ConfigChange extends React.Component {
   };
 
   pollJobStatus = (job_id, jobtype) => {
-    const credentials = localStorage.getItem("token");
+    let credentials = localStorage.getItem("token");
     let url = process.env.API_URL + `/api/v1.0/job/${job_id}`;
     let repeatInterval = null;
     let stateProperty = null;
@@ -182,6 +182,7 @@ class ConfigChange extends React.Component {
       }
     });
     repeatInterval = setInterval(() => {
+      let credentials = localStorage.getItem("token");
       getData(url, credentials).then(data => {
         {
           let jobdata = data.data.jobs[0];

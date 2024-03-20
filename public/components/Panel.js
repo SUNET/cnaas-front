@@ -9,7 +9,9 @@ import LoginForm from "./LoginForm";
 import ErrorBoundary from "./ErrorBoundary"
 import Dashboard from "./Dashboard"
 import InterfaceConfig from "./InterfaceConfig/InterfaceConfig";
+import Callback from "./Callback"
 import { Route } from "react-router-dom";
+import PropTypes from 'prop-types';
 
 // passible base64 encode function?
 function btoaUTF16 (sString) {
@@ -31,9 +33,15 @@ class Panel extends React.Component {
               logout={this.props.logout}
               show={!this.props.loggedIn}
               errorMessage={this.props.loginMessage}
+              oauthLogin={this.props.oauthLogin}
             />
           )}
         />
+          <Route
+            exact
+            path="/callback"
+            component={Callback}
+          />
         <ErrorBoundary>
           <Route
             exact
@@ -80,5 +88,11 @@ class Panel extends React.Component {
     );
   }
 }
-
+Panel.propTypes = {
+  login: PropTypes.func,
+  oauthLogin: PropTypes.func,
+  logout: PropTypes.func,
+  loggedIn: PropTypes.bool,
+  loginMessage: PropTypes.string
+};
 export default Panel;
