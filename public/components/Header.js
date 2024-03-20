@@ -1,7 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { Popup, Loader, Button, Modal, Header as SemanticHeader, ModalContent, ModalActions, Icon } from "semantic-ui-react";
-import getData from "../utils/getData";
 import { postData } from "../utils/sendData";
 import { jwtDecode } from "jwt-decode";
 
@@ -18,10 +17,10 @@ class Header extends React.Component {
   getJwtInfo = () => {
     try {
       const credentials = localStorage.getItem("token");
-      var decoded_token = jwtDecode(credentials);
+      const decoded_token = jwtDecode(credentials);
 
-      var now = Math.round(Date.now() / 1000);
-      var secondsUntilExpiry = decoded_token.exp - now;
+      let now = Math.round(Date.now() / 1000);
+      let secondsUntilExpiry = decoded_token.exp - now;
       this.tokenExpiryTimestamp = decoded_token.exp;
 
       return secondsUntilExpiry;
@@ -39,9 +38,9 @@ class Header extends React.Component {
   }
   
   putJwtInfo = () => {
-    var secondsUntilExpiry = this.getJwtInfo();
+    let secondsUntilExpiry = this.getJwtInfo();
 
-    var expiryString = "";
+    let expiryString = "";
     if (secondsUntilExpiry < 0) {
       expiryString = `Token exired ${(Math.round(Math.abs(secondsUntilExpiry) / 60))} minutes ago`;
     } else {
@@ -49,7 +48,7 @@ class Header extends React.Component {
     }
 
     const username = localStorage.getItem('username');
-    var userinfo = "";
+    let userinfo = "";
     if (username !== null) {
       userinfo = `Logged in as ${username}`;
     } else {
@@ -92,10 +91,11 @@ class Header extends React.Component {
   renderLinks = () => {
     if (localStorage.getItem("token") !== null) {
       if (this.tokenExpireTimer === null && process.env.OIDC_ENABLED == "true") {
+        let secondsUntilExpiry = null;
         if (this.triggerTokenRefresh === true) {
-          var secondsUntilExpiry = 0;
+          secondsUntilExpiry = 0;
         } else {
-          var secondsUntilExpiry = this.getJwtInfo();
+          secondsUntilExpiry = this.getJwtInfo();
         }
         this.tokenExpireTimer = setTimeout(() => {
           // try to refresh token silently first
@@ -103,7 +103,7 @@ class Header extends React.Component {
           const credentials = localStorage.getItem("token");
           postData(url, credentials, {}).then(data => {
             localStorage.setItem('token', data.data["access_token"]);
-            var oldExpiry = this.tokenExpiryTimestamp;
+            let oldExpiry = this.tokenExpiryTimestamp;
             this.getJwtInfo();
             if (oldExpiry == this.tokenExpiryTimestamp) {
               console.log("Refresh of access token failed, session will time out");
@@ -165,10 +165,10 @@ class Header extends React.Component {
   }
 
   render() {
+    let expireString = "";
     if (this.tokenExpiryTimestamp != 0) {
-      var now = Math.round(Date.now() / 1000);
-      var secondsUntilExpiry = this.tokenExpiryTimestamp - now;
-      var expireString = "";
+      let now = Math.round(Date.now() / 1000);
+      let secondsUntilExpiry = this.tokenExpiryTimestamp - now;
       if (secondsUntilExpiry < 1) {
         expireString = "Your session has expired and you will now be logged out";
       } else {
