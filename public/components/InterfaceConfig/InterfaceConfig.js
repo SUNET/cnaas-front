@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import queryString from 'query-string';
 import getData from "../../utils/getData";
+import InterfaceCurrentConfig from './InterfaceCurrentConfig';
 import { putData, postData } from "../../utils/sendData";
 import { Input, Dropdown, Icon, Table, Loader, Modal, Button, Accordion, Popup, Checkbox, TableCell } from "semantic-ui-react";
 import YAML from 'yaml';
@@ -50,7 +51,7 @@ class InterfaceConfig extends React.Component {
     {'value': "port_template", 'text': "Port template"}
   ];
   configTypesEnabled = ["ACCESS_AUTO", "ACCESS_UNTAGGED", "ACCESS_TAGGED", "ACCESS_DOWNLINK"];
-  ifClassesEnabled = ["custom", "port_template"];
+  ifClassesEnabled = ["custom", "downlink"]; // anything starting with port_template is also allowed
   columnWidths = {
     "vlans": 4,
     "tags": 3,
@@ -178,13 +179,13 @@ class InterfaceConfig extends React.Component {
         console.log(error);
       });
     } else if (this.device_type == "DIST") {
-      let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/generate_config?variables_only=true";
-      return getData(url, credentials).then(data =>
+      let url = process.env.API_URL + "/api/v1.0/device/" + this.hostname + "/generate_config";
+      return getData(url, credentials, {"X-Fields": "available_variables{interfaces}"}).then(data =>
         {
           let usedTags = [];
           let usedPortTemplates = [];
           data["data"]["config"]["available_variables"]["interfaces"].map((item, index) => {
-            if (item.tags !== undefined) {
+            if (item.tags !== undefined && item.tags) {
               item.tags.map((tag) => {
                 usedTags.push({text: tag, value: tag})
               });
@@ -197,7 +198,8 @@ class InterfaceConfig extends React.Component {
 
           this.setState({
             interfaceData: data["data"]["config"]["available_variables"]["interfaces"],
-            portTemplateOptions: usedPortTemplates
+            portTemplateOptions: usedPortTemplates,
+            tagOptions: usedTags
           });
         }
       ).catch(error => {
@@ -510,7 +512,7 @@ class InterfaceConfig extends React.Component {
         editDisabled = !(this.configTypesEnabled.includes(item.configtype));
       } else if (this.device_type == "DIST") {
         if (item.ifclass.startsWith("port_template")) {
-          editDisabled = !(this.ifClassesEnabled.includes("port_template"));
+          editDisabled = false;
         } else {
           editDisabled = !(this.ifClassesEnabled.includes(item.ifclass));
         }
@@ -532,7 +534,9 @@ class InterfaceConfig extends React.Component {
         fields = {
           "description": "",
           "untagged_vlan": null,
-          "tagged_vlan_list": []
+          "tagged_vlan_list": [],
+          "tags": [],
+          "enabled": true
         };
         Object.entries(fields).forEach(([key, value]) => {
           if (item[key] !== undefined && item[key] !== null) {
@@ -543,7 +547,6 @@ class InterfaceConfig extends React.Component {
         });
         if ('peer_hostname' in item) {
           ifData["description"] = item['peer_hostname'];
-//          fields['description'] = item['peer_hostname'];
         }
       }
       if (item.name in interfaceDataUpdated) {
@@ -569,6 +572,14 @@ class InterfaceConfig extends React.Component {
           fields['description'] = "MLAG peer link";
         }
 
+        if ('tags' in ifData) {
+          fields['tags'] = ifData['tags'];
+        }
+
+        if ('bpdu_filter' in ifData) {
+          fields['bpdu_filter'] = ifData['bpdu_filter'];
+        }
+
         if (ifDataUpdated !== null && 'untagged_vlan' in ifDataUpdated) {
           fields['untagged_vlan'] = ifDataUpdated['untagged_vlan'];
         } else if ('untagged_vlan' in ifData) {
@@ -585,9 +596,7 @@ class InterfaceConfig extends React.Component {
         }
         if (ifDataUpdated !== null && 'tagged_vlan_list' in ifDataUpdated) {
           fields['tagged_vlan_list'] = ifDataUpdated['tagged_vlan_list'];
-          console.log("DEBUG01");
         } else if ('tagged_vlan_list' in ifData) {
-          console.log("DEBUG02");
           fields['tagged_vlan_list'] = ifData['tagged_vlan_list'].map((vlan_item) => {
             if (typeof(vlan_item) === "number") {
               let vlan_mapped = vlanOptions.filter(item => item.description == vlan_item);
@@ -753,16 +762,13 @@ class InterfaceConfig extends React.Component {
               defaultValue={item.config}
               rows={3}
               cols={50}
-              readOnly={true}
+              hidden={currentIfClass!="custom"}
             />,
             <Popup on='click' pinned position='top right' trigger={<Button compact size="small"><Icon name="arrow alternate circle down outline" /></Button>} >
               <p key="title">Current running config:</p>
-              <textarea
-                key="config"
-                defaultValue={item.config}
-                rows={3}
-                cols={50}
-                readOnly={true}
+              <InterfaceCurrentConfig
+                hostname={this.hostname}
+                interface={item.name}
               />
             </Popup>
           ];
@@ -791,14 +797,17 @@ class InterfaceConfig extends React.Component {
             statusMessage = <p key="message">{this.state.interfaceBounceRunning[item.name]}</p>;
           }
         }
-        let bounceInterfaceButton = <Button 
-          key={"bounce"}
-          disabled={(editDisabled || bounceDisabled)}
-          loading={(bounceDisabled)}
-          icon labelPosition='right'
-          onClick={() => this.submitBounce(item.name)}
-          size="small"
-          >Bounce interface {bounceButtonIcon}</Button>;
+        let bounceInterfaceButton = null;
+        if (this.device_type == "ACCESS") {
+          let bounceInterfaceButton = <Button 
+            key={"bounce"}
+            disabled={(editDisabled || bounceDisabled)}
+            loading={(bounceDisabled)}
+            icon labelPosition='right'
+            onClick={() => this.submitBounce(item.name)}
+            size="small"
+            >Bounce interface {bounceButtonIcon}</Button>;
+        }
         if (this.state.interfaceStatusData[item.name]['is_up'] == true) {
           statusIcon = <Popup
                          header={item.name}
@@ -938,6 +947,7 @@ class InterfaceConfig extends React.Component {
     } else if (this.device_type == "DIST") {
       allowedColumns = {
         "vlans": "VLANs",
+        "tags": "Tags",
         "config": "Custom config"
       };
     }
@@ -1031,7 +1041,7 @@ class InterfaceConfig extends React.Component {
             </Accordion.Title>
             <Accordion.Content active={accordionActiveIndex === 1}>
               <pre>{YAML.stringify(this.prepareYaml(this.state.interfaceDataUpdated), null, 2)}</pre>
-              <p><a href="https://platform.sunet.se/CNaaS/cnaas-norpan-settings/_edit/main/devices/d1/interfaces.yml" target='_blank'>Edit</a></p>
+              <p><a href={"https://platform.sunet.se/CNaaS/cnaas-norpan-settings/_edit/main/devices/"+this.hostname+"/interfaces.yml"} target='_blank'>Edit</a></p>
             </Accordion.Content>
           </Accordion>
         </Modal.Description>
