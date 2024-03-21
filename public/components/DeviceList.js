@@ -781,7 +781,10 @@ class DeviceList extends React.Component {
       let mgmtip = [];
       if (device.management_ip) {
         mgmtip.push(<i key="mgmt_ip">{device.management_ip} </i>);
-        mgmtip.push(<Button key="copy" basic compact size="mini" icon="copy" onClick={() => {navigator.clipboard.writeText(device.management_ip)}} />);
+        mgmtip.push(
+          <Button key="copy" basic compact size="mini" icon="copy" title={device.management_ip}
+            onClick={() => {navigator.clipboard.writeText(device.management_ip)}} />
+        );
         const isIPv6 = device.management_ip.includes(":");
         const ssh_address = isIPv6
           ? 'ssh://[' + device.management_ip + ']'
@@ -793,7 +796,10 @@ class DeviceList extends React.Component {
       }
       if (device.secondary_management_ip) {
         mgmtip.push(<i key="secondary_mgmt_ip"> {device.secondary_management_ip} </i>);
-        mgmtip.push(<Button key="secondary_copy" basic compact size="mini" icon="copy" onClick={() => {navigator.clipboard.writeText(device.secondary_management_ip)}} />);
+        mgmtip.push(
+          <Button key="secondary_copy" basic compact size="mini" icon="copy" title={device.secondary_management_ip}
+            onClick={() => {navigator.clipboard.writeText(device.secondary_management_ip)}} />
+        );
         const isIPv6 = device.secondary_management_ip.includes(":");
         const ssh_address = isIPv6
           ? 'ssh://[' + device.secondary_management_ip + ']'
