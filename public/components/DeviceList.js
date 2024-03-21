@@ -675,7 +675,7 @@ class DeviceList extends React.Component {
   }
 
   createMgmtIP(mgmt_ip, key_prefix="") {
-    const mgmtip = []
+    const mgmtip = [];
     mgmtip.push(<i key={`${key_prefix}mgmt_ip`}>{mgmt_ip} </i>);
     mgmtip.push(
       <Button key={`${key_prefix}copy`} basic compact size="mini" icon="copy" title={mgmt_ip}
@@ -690,7 +690,7 @@ class DeviceList extends React.Component {
       onClick={() => {window.location = ssh_address}} />
     );
 
-    return mgmtip
+    return mgmtip;
   }
 
   render() {
