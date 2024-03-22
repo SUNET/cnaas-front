@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon, Pagination } from "semantic-ui-react";
+import { Button, Select, Input, Icon, Pagination, TableBody } from "semantic-ui-react";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import formatISODate from "../utils/formatters";
@@ -175,7 +175,16 @@ class JobList extends React.Component {
       filterParams +
       "&page=" +
       pageNum +
-      "&per_page=20", credentials)
+      "&per_page=20",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${credentials}`
+        }
+      }
+    )
+      .then(response => this.readHeaders(response))
+      .then(response => checkJsonResponse(response))
       .then(data => {
         console.log("this should be data", data);
         {

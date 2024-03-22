@@ -1,7 +1,7 @@
 import React from "react";
+import checkJsonResponse from "../utils/checkJsonResponse";
 import { Icon } from 'semantic-ui-react'
 import permissionsCheck from "../utils/permissions/permissionsCheck"
-import { getData } from "../utils/getData"
 
 class GroupList extends React.Component {
   state = {
@@ -19,8 +19,18 @@ class GroupList extends React.Component {
     const credentials = localStorage.getItem("token");
     // Build filter part of the URL to only return specific devices from the API
     // TODO: filterValue should probably be urlencoded?
-    getData(process.env.API_URL + "/api/v1.0/groups", credentials)
-    .then(data => 
+    fetch(
+      process.env.API_URL + "/api/v1.0/groups",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${credentials}`
+        }
+      }
+    )
+    .then(response => checkJsonResponse(response))
+    .then(data => {
+      console.log("this should be data", data);
       {
         this.setState(
           {
@@ -31,6 +41,7 @@ class GroupList extends React.Component {
           }
         );
       }
+    }
     ).catch((error) => {
       this.setState({
         groupData: [],

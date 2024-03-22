@@ -73,8 +73,8 @@ class FirmwareUpgrade extends React.Component {
   };
 
   pollJobStatus = (job_id, step) => {
-    const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + `/api/v1.0/job/${job_id}`;
+    let credentials = localStorage.getItem("token");
+    const url = process.env.API_URL + `/api/v1.0/job/${job_id}`;
 
     if (step == 2) {
       getData(url, credentials).then(data => {
@@ -89,6 +89,7 @@ class FirmwareUpgrade extends React.Component {
         }
       });
       this.repeatingStep2interval = setInterval(() => {
+        let credentials = localStorage.getItem("token");
         getData(url, credentials).then(data => {
           {
             this.setState({
@@ -118,6 +119,7 @@ class FirmwareUpgrade extends React.Component {
         }
       });
       this.repeatingStep3interval = setInterval(() => {
+        let credentials = localStorage.getItem("token");
         getData(url, credentials).then(data => {
           {
             this.setState({

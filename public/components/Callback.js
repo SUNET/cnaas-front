@@ -59,14 +59,28 @@ class Callback extends React.Component {
       }
     }
     let params = new URLSearchParams(location.search)
-    let token = params.get('token')
-    localStorage.setItem('token', token)
+    if (params.has('refresh_token')) {
+      document.cookie = "REFRESH_TOKEN="+params.get('refresh_token')+"; SameSite=None; Secure; HttpOnly; Path=/api/v1.0/auth/refresh";
+    }
+    if (params.has('username')) {
+      localStorage.setItem('username', params.get('username'));
+    }
+    if (params.has('token')) {
+      // Add the token as a parameter in local storage and communicate with the user they are logged in
+      // We don't check the validity of the token as this is done with every API call to get any information
+      let token = params.get('token')
+      localStorage.setItem('token', token)
 
-    let decoded_token = this.parseJwt(token)
-    localStorage.setItem('expiration_time', decoded_token['exp'])
-    
-    this.getPermissions(token)
-
+      let decoded_token = this.parseJwt(token)
+      localStorage.setItem('expiration_time', decoded_token['exp'])
+      
+      this.getPermissions(token)
+      
+      this.errorMessage = "You're logged in."
+      window.location.replace('/')
+    } else {
+      this.errorMessage = "Something went wrong. Retry the login."
+    }
   }
   render () { 
     return (

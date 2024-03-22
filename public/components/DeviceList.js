@@ -782,8 +782,27 @@ class DeviceList extends React.Component {
     this.setState({ displayColumns: newDisplayColumns })
   }
 
-  render () {
-    const devicesData = this.state.devicesData
+  createMgmtIP(mgmt_ip, key_prefix="") {
+    const mgmtip = [];
+    mgmtip.push(<i key={`${key_prefix}mgmt_ip`}>{mgmt_ip} </i>);
+    mgmtip.push(
+      <Button key={`${key_prefix}copy`} basic compact size="mini" icon="copy" title={mgmt_ip}
+        onClick={() => {navigator.clipboard.writeText(mgmt_ip)}} />
+    );
+    const isIPv6 = mgmt_ip.includes(":");
+    const ssh_address = isIPv6
+      ? 'ssh://[' + mgmt_ip + ']'
+      : 'ssh://' + mgmt_ip;
+    mgmtip.push(
+      <Button key={`${key_prefix}ssh`} basic compact size="mini" icon="terminal" title={ssh_address}
+      onClick={() => {window.location = ssh_address}} />
+    );
+
+    return mgmtip;
+  }
+
+  render() {
+    const devicesData = this.state.devicesData;
     let deviceInfo = devicesData.map((device, index) => {
       let syncStatus = ''
       if (device.state === 'MANAGED') {
@@ -989,35 +1008,14 @@ class DeviceList extends React.Component {
         })
       })
       let columnData = this.state.displayColumns.map((columnName, colIndex) => {
-        return <td key={100 + colIndex}>{device[columnName]}</td>
-      })
-      let mgmtip = []
-      if (device.management_ip !== null) {
-        mgmtip.push(<i key='mgmt_ip'>{device.management_ip} </i>)
-        mgmtip.push(
-          <Button
-            key='copy'
-            basic
-            compact
-            size='mini'
-            icon='copy'
-            onClick={() => {
-              navigator.clipboard.writeText(device.management_ip)
-            }}
-          />
-        )
-        mgmtip.push(
-          <Button
-            key='ssh'
-            basic
-            compact
-            size='mini'
-            icon='terminal'
-            onClick={() => {
-              window.location = 'ssh://' + device.management_ip
-            }}
-          />
-        )
+        return <td key={100 + colIndex}>{device[columnName]}</td>;
+      });
+      const mgmtip = [];
+      if (device.management_ip) {
+        mgmtip.push(...this.createMgmtIP(device.management_ip));
+      }
+      if (device.secondary_management_ip) {
+        mgmtip.push(...this.createMgmtIP(device.secondary_management_ip, "secondary_"));
       }
       if (device.dhcp_ip !== null) {
         mgmtip.push(<i key='dhcp_ip'>(DHCP IP: {device.dhcp_ip})</i>)

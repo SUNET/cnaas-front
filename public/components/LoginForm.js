@@ -1,5 +1,6 @@
-import React from 'react';
+import React from 'react'
 import PropTypes from 'prop-types';
+
 class LoginForm extends React.Component {
   state = {
     email: '',
@@ -36,7 +37,7 @@ class LoginForm extends React.Component {
           <form onSubmit={this.props.oauthLogin}>
             <p className='title error'>{this.props.errorMessage}</p>
             <button className='submit' type='submit'>
-              Login with OAUTH
+              Login with SSO
             </button>
           </form>
         </div>
