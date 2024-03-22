@@ -28,7 +28,6 @@ const permissionsCheck = (page, right) => {
     // check if filled. Else request the permissions
     if (!permissions) {
         const token = localStorage.getItem('token');
-        console.log(token)
         if (token || (token.length != 0)) {
             getData(process.env.API_URL + "/api/v1.0/auth/permissions", token)
             .then(data => {
