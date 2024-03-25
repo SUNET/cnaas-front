@@ -1,18 +1,17 @@
+import Prism from "prismjs";
+import queryString from 'query-string';
 import React from "react";
 import { Prompt } from 'react-router';
 import { Link } from 'react-router-dom';
-import ConfigChangeStep1 from "./ConfigChangeStep1";
-import DryRun from "./DryRun/DryRun";
-import VerifyDiff from "./VerifyDiff/VerifyDiff";
-import ConfigChangeStep4 from "./ConfigChangeStep4";
-import checkResponseStatus from "../../utils/checkResponseStatus";
-import SyncStatus from "./SyncStatus";
-// import { postData } from "../../utils/sendData";
-import getData from "../../utils/getData";
-import queryString from 'query-string';
-import Prism from "prismjs";
 import { SemanticToastContainer, toast } from 'react-semantic-toasts-2';
 import '../../styles/react-semantic-alert.css';
+import checkResponseStatus from "../../utils/checkResponseStatus";
+import getData from "../../utils/getData";
+import ConfigChangeStep1 from "./ConfigChangeStep1";
+import ConfigChangeStep4 from "./ConfigChangeStep4";
+import DryRun from "./DryRun/DryRun";
+import SyncStatus from "./SyncStatus";
+import VerifyDiff from "./VerifyDiff/VerifyDiff";
 
 const io = require("socket.io-client");
 var socket = null;
@@ -24,6 +23,7 @@ class ConfigChange extends React.Component {
       dryRunSyncJobid: null,
       dryRunProgressData: {},
       dryRunTotalCount: 0,
+      dryRunDisable: false,
       synctoForce: false,
       liveRunSyncData: [],
       liveRunProgressData: {},
@@ -39,7 +39,7 @@ class ConfigChange extends React.Component {
   constructor() {
     super();
     this.state = this.getInitialState();
-    this.syncstatuschild = React.createRef();
+        this.syncstatuschild = React.createRef();
   }
 
   resetState = () => {
@@ -54,7 +54,14 @@ class ConfigChange extends React.Component {
       this.syncstatuschild.current.getDeviceList();
       this.syncstatuschild.current.getSyncHistory();
     }
-    this.setState({repoWorking: working_status});
+    this.setState({ repoWorking: working_status });
+  }
+
+  handleDryRunReady() {
+    const element = document.getElementById('dryrunButton');
+    element.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    this.deviceSyncStart({ "resync": this.state.resync })
+    this.setState({ dryRunDisable: true })
   }
 
   readHeaders = (response, dry_run) => {
@@ -78,14 +85,14 @@ class ConfigChange extends React.Component {
     let url = process.env.API_URL + "/api/v1.0/device_syncto";
     let dataToSend = this.getCommitTarget();
     dataToSend["dry_run"] = true;
-   
+
     if (options !== undefined) {
       if (options.resync !== undefined) {
         dataToSend["resync"] = options.resync;
       }
       if (options.force !== undefined) {
         dataToSend["force"] = options.force;
-        this.setState({synctoForce: true});
+        this.setState({ synctoForce: true });
       }
       if (options.dry_run !== undefined) {
         dataToSend["dry_run"] = options.dry_run;
@@ -100,7 +107,7 @@ class ConfigChange extends React.Component {
         dataToSend["confirm_mode"] = options.confirm_mode;
       }
     } else {
-     options = {};
+      options = {};
     }
 
     if (dataToSend["dry_run"] === false) {
@@ -110,7 +117,7 @@ class ConfigChange extends React.Component {
       }
     }
 
-    console.log("now it will post the data: "+JSON.stringify(dataToSend));
+    console.log("now it will post the data: " + JSON.stringify(dataToSend));
     fetch(url, {
       method: "POST",
       headers: {
@@ -191,7 +198,7 @@ class ConfigChange extends React.Component {
           });
           if (jobdata.status === "FINISHED" || jobdata.status === "EXCEPTION" || jobdata.status === "ABORTED") {
             clearInterval(repeatInterval);
-            this.setState({blockNavigation: false});
+            this.setState({ blockNavigation: false });
             if (jobtype === "live_run" && jobdata.status === "FINISHED" && typeof jobdata.next_job_id === "number") {
               this.pollJobStatus(jobdata.next_job_id, "confirm_run");
               console.log("Config change with next_job_id detected (commitmode 2): " + jobdata.next_job_id);
@@ -206,31 +213,31 @@ class ConfigChange extends React.Component {
   getCommitTarget() {
     let queryParams = queryString.parse(this.props.location.search);
     if (queryParams.hostname !== undefined) {
-      return {hostname: queryParams.hostname}
+      return { hostname: queryParams.hostname }
     }
     else if (queryParams.group !== undefined) {
-      return {group: queryParams.group}
+      return { group: queryParams.group }
     } else {
-      return {all: true};
+      return { all: true };
     }
   };
 
-  componentDidMount(){
+  componentDidMount() {
     let queryParams = queryString.parse(this.props.location.search);
     if (queryParams.scrollTo !== undefined) {
-      const element = document.getElementById(queryParams.scrollTo+'_section');
+      const element = document.getElementById(queryParams.scrollTo + '_section');
       if (element) {
         element.scrollIntoView({ alignToTop: true, behavior: 'smooth' });
       }
     }
 
     const credentials = localStorage.getItem("token");
-    socket = io(process.env.API_URL, {query: {jwt: credentials}});
-    socket.on('connect', function(data) {
+    socket = io(process.env.API_URL, { query: { jwt: credentials } });
+    socket.on('connect', function (data) {
       console.log('Websocket connected!');
-      var ret = socket.emit('events', {'loglevel': 'DEBUG'});
+      var ret = socket.emit('events', { 'loglevel': 'DEBUG' });
       console.log(ret);
-      ret = socket.emit('events', {'sync': 'all'});
+      ret = socket.emit('events', { 'sync': 'all' });
       console.log(ret);
     });
     socket.on('events', (data) => {
@@ -258,23 +265,23 @@ class ConfigChange extends React.Component {
           toast({
             type: 'warning',
             icon: 'paper plane',
-            title: ('Sync event ('+this.state.syncEventCounter+'): '+data.syncevent_hostname),
+            title: ('Sync event (' + this.state.syncEventCounter + '): ' + data.syncevent_hostname),
             description: <p>{data.syncevent_data.cause} by {data.syncevent_data.by} <br /><Link onClick={() => window.location.reload()}>Reload page</Link></p>,
             animation: 'bounce',
             time: 0
           });
         }
-      // log events
+        // log events
       } else if (typeof data === 'string' || data instanceof String) {
         var newLogLines = this.state.logLines;
         if (newLogLines.length >= 1000) {
           newLogLines.shift();
         }
         newLogLines.push(data + "\n");
-        this.setState({logLines: newLogLines});
+        this.setState({ logLines: newLogLines });
         // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
         if (data.includes("refresh repo") === true) {
-          this.setState({dryRunProgressData: []});
+          this.setState({ dryRunProgressData: [] });
           console.log("Refresh repo event, reset dryrun status: ", data);
         }
       }
@@ -328,7 +335,7 @@ class ConfigChange extends React.Component {
     if (liveRunJobStatus === "FINISHED") {
       liveRunResults = liveRunProgressData.result.devices;
     }
-    
+
     if (Object.keys(confirmRunProgressData).length > 0) {
       confirmRunJobStatus = confirmRunProgressData.status;
       confirmRunJobId = confirmRunProgressData.id;
@@ -339,15 +346,17 @@ class ConfigChange extends React.Component {
         <Prompt
           when={this.state.blockNavigation}
           message="A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave."
-          />
+        />
         <SemanticToastContainer position="top-right" maxToasts={3} />
         <section>
           <SyncStatus target={this.getCommitTarget()} ref={this.syncstatuschild} />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}
-            setRepoWorking={this.setRepoWorking}
+            setRepoWorking={this.setRepoWorking.bind(this)}
+            onDryRunReady={this.handleDryRunReady.bind(this)}
           />
           <DryRun
+            dryRunDisable={this.state.dryRunDisable}
             dryRunSyncStart={this.deviceSyncStart}
             dryRunProgressData={dryRunProgressData}
             dryRunJobStatus={dryRunJobStatus}

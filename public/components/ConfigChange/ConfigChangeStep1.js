@@ -1,7 +1,7 @@
 import React from "react";
+import { Icon, Popup } from "semantic-ui-react";
 import getData from "../../utils/getData";
 import { putData } from "../../utils/sendData";
-import { Popup, Icon } from "semantic-ui-react";
 
 class ConfigChangeStep1 extends React.Component {
   state = {
@@ -13,8 +13,8 @@ class ConfigChangeStep1 extends React.Component {
     expanded: true
   };
 
-  toggleExpand = (e, props) => {
-    this.setState({expanded: !this.state.expanded});
+  toggleExpand = () => {
+    this.setState({ expanded: !this.state.expanded });
   }
 
   getRepoStatus = (repo_name) => {
@@ -37,11 +37,20 @@ class ConfigChangeStep1 extends React.Component {
     });
   };
 
+  refreshRepoAndDryRun = async (repo_name) => {
+    await this.refreshRepo(repo_name)
+    if (this.state.commitUpdateInfo.settings === 'success') {
+      this.props.onDryRunReady();
+    } else {
+      console.log("Refresh error occured. Status" + JSON.stringify(this.state.commitUpdateInfo));
+    }
+  }
+
   // this request takes some time, perhaps work in a "loading..."
-  refreshRepo = (repo_name) => {
+  refreshRepo = async (repo_name) => {
     let newCommitUpdateInfo = this.state.commitUpdateInfo;
     newCommitUpdateInfo[repo_name] = "updating...";
-    this.setState({commitUpdateInfo: newCommitUpdateInfo});
+    this.setState({ commitUpdateInfo: newCommitUpdateInfo });
     this.props.setRepoWorking(true);
 
     const credentials = localStorage.getItem("token");
@@ -49,9 +58,9 @@ class ConfigChangeStep1 extends React.Component {
     let dataToSend = { action: "REFRESH" };
     let newCommitInfo = this.state.commitInfo;
 
-    putData(url, credentials, dataToSend).then(data => {
-      // console.log("this should be data", data);
-      if ( data.status === "success" ) {
+    // need to return a Promise in order to allow await
+    return putData(url, credentials, dataToSend).then(data => {
+      if (data.status === "success") {
         newCommitUpdateInfo[repo_name] = "success";
         newCommitInfo[repo_name] = data.data;
         this.props.setRepoWorking(false);
@@ -91,19 +100,17 @@ class ConfigChangeStep1 extends React.Component {
   }
 
   prettifyCommit(commitStr) {
-//    const p = 'Commit addce6b8e7e62fbf0e6cf0adf6c05ccdab5fe24d master by Johan Marcusson at 2020-11-30 10:55:54+01:00';
-
-
+    // const p = 'Commit addce6b8e7e62fbf0e6cf0adf6c05ccdab5fe24d master by Johan Marcusson at 2020-11-30 10:55:54+01:00';
     const gitCommitRegex = /Commit ([a-z0-9]{8})([a-z0-9]{32}) (\w+) by (.+) at ([0-9:-\s]+)/i;
     const match = gitCommitRegex.exec(commitStr);
     try {
       let commitPopup = <Popup
-                    content={match[1] + match[2]}
-                    position="top center"
-                    hoverable={true}
-                    trigger={<u>{match[1]}</u>} />;
+        content={match[1] + match[2]}
+        position="top center"
+        hoverable={true}
+        trigger={<u>{match[1]}</u>} />;
       return <p>Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}</p>;
-    } catch(err) {
+    } catch (err) {
       return <p>{commitStr}</p>;
     }
   }
@@ -112,21 +119,21 @@ class ConfigChangeStep1 extends React.Component {
     let buttonsDisabled = false;
     if (this.props.dryRunJobStatus) {
       buttonsDisabled = true;
-    } else if (this.state.commitUpdateInfo['settings'] == 'updating...' || 
-            this.state.commitUpdateInfo['templates'] == 'updating...') {
+    } else if (this.state.commitUpdateInfo['settings'] == 'updating...' ||
+      this.state.commitUpdateInfo['templates'] == 'updating...') {
       buttonsDisabled = true;
     }
     return (
       <div className="task-container">
         <div className="heading">
           <h2>
-            <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
+            <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded ? null : "counterclockwise"} />
             Optional: Refresh repositories (1/4)
             <Popup
               content="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository."
               trigger={<Icon name="question circle outline" size="small" />}
               wide
-              />
+            />
           </h2>
         </div>
         <div className="task-collapsable" hidden={!this.state.expanded}>
@@ -139,13 +146,17 @@ class ConfigChangeStep1 extends React.Component {
             {this.prettifyCommit(this.state.commitInfo['templates'])}
           </div>
           <div className="info">
-            <button disabled={buttonsDisabled} onClick={ () => this.refreshRepo('settings')}>
+            <button disabled={buttonsDisabled} onClick={() => this.refreshRepo('settings')}>
               Refresh settings
+            </button>
+            <p>{this.state.commitUpdateInfo['settings']}</p>
+            <button disabled={buttonsDisabled} onClick={() => this.refreshRepoAndDryRun('settings')}>
+              Refresh settings + dry run
             </button>
             <p>{this.state.commitUpdateInfo['settings']}</p>
           </div>
           <div className="info">
-            <button disabled={buttonsDisabled} onClick={ () => this.refreshRepo('templates')}>
+            <button disabled={buttonsDisabled} onClick={() => this.refreshRepo('templates')}>
               Refresh templates
             </button>
             <p>{this.state.commitUpdateInfo['templates']}</p>
