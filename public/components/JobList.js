@@ -4,7 +4,8 @@ import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import formatISODate from "../utils/formatters";
 import Prism from "prismjs";
-import { getData } from '../utils/getData'
+import { getResponse } from '../utils/getData';
+import checkJsonResponse from '../utils/checkJsonResponse';
 const io = require("socket.io-client");
 var socket = null;
 
@@ -169,19 +170,14 @@ class JobList extends React.Component {
         "=" +
         filterValue;
     }
-    getData(process.env.API_URL +
+    getResponse(process.env.API_URL +
       "/api/v1.0/jobs?sort=" +
       sortField +
       filterParams +
       "&page=" +
       pageNum +
       "&per_page=20",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${credentials}`
-        }
-      }
+      credentials
     )
       .then(response => this.readHeaders(response))
       .then(response => checkJsonResponse(response))
@@ -200,11 +196,23 @@ class JobList extends React.Component {
         }
       })
       .catch((error) => {
-        this.setState({
-          jobsData: [],
-          loading: false,
-          error: error
-        })
+        if (typeof error.json === 'function') {
+          error
+            .json()
+            .then(jsonError => {
+              this.setState({
+                jobsData: [],
+                loading: false,
+                error: jsonError.message
+              });
+            })
+        } else {
+          this.setState({
+            jobsData: [],
+            loading: false,
+            error: error.message
+          });
+        }
       });
   };
 
@@ -419,7 +427,7 @@ class JobList extends React.Component {
       ];
     });
     if (this.state.error) {
-      jobTableBody = [<tr key="error"><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+      jobTableBody = [<tr key="error"><td colSpan="5">API error: {this.state.error}</td></tr>];
     } else if (!Array.isArray(jobTableBody) || !jobTableBody.length) {
       if (this.state.loading) {
         jobTableBody = [<tr key="loading"><td colSpan="5"><Icon name="spinner" loading={true} />Loading jobs...</td></tr>];
