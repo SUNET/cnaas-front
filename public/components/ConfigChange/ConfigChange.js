@@ -39,7 +39,7 @@ class ConfigChange extends React.Component {
   constructor() {
     super();
     this.state = this.getInitialState();
-        this.syncstatuschild = React.createRef();
+    this.syncstatuschild = React.createRef();
   }
 
   resetState = () => {
