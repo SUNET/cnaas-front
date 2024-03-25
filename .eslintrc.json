@@ -1,4 +1,31 @@
 {
-  "parser": "babel-eslint",
-  "extends": ["eslint:recommended", "plugin:react/recommended"]
+  "parser": "@babel/eslint-parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "airbnb",
+    "airbnb/hooks",
+    "plugin:prettier/recommended" // needs to be last
+  ],
+  "env": {
+    "browser": true
+  },
+  "rules": {
+    "camelcase": "warn",
+    "eqeqeq": "warn",
+    "no-console": "warn",
+    "no-lone-block": "off", // conflicts with setState
+    "prettier/prettier": ["error"],
+    "react/destructuring-assignment": "warn",
+    "react/jsx-filename-extension": "off", // allow .js file suffix
+    "react/jsx-no-bind": "off",
+    "react/prop-types": "off",
+    "react/prefer-stateless-function": "warn", // allow class components
+    "react/sort-comp": "warn"
+  },
+  "settings": {
+    "react": {
+      "version": "detect" // eslint-plugin-react
+    }
+  }
 }
