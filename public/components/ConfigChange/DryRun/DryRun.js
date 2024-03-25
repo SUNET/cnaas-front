@@ -32,6 +32,10 @@ class DryRun extends React.Component {
     this.setState({"dryrunButtonDisabled": false});
   }
 
+  componentWillReceiveProps = () => {
+    this.setState({ dryrunButtonDisabled: this.props.dryRunDisable })
+  }
+
   render() {
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
@@ -61,7 +65,7 @@ class DryRun extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2 id="dry_run_section">
+          <h2>
             <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
             Dry run (2/4)
             <Popup

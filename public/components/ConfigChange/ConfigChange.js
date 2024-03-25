@@ -23,6 +23,7 @@ class ConfigChange extends React.Component {
       dryRunSyncJobid: null,
       dryRunProgressData: {},
       dryRunTotalCount: 0,
+      dryRunDisable: false,
       synctoForce: false,
       liveRunSyncData: [],
       liveRunProgressData: {},
@@ -54,6 +55,13 @@ class ConfigChange extends React.Component {
       this.syncstatuschild.current.getSyncHistory();
     }
     this.setState({repoWorking: working_status});
+  }
+
+  handleDryRunReady() {
+    const element = document.getElementById('dryrunButton');
+    element.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    this.deviceSyncStart({ "resync": this.state.resync })
+    this.setState({ dryRunDisable: true })
   }
 
   readHeaders = (response, dry_run) => {
@@ -344,9 +352,11 @@ class ConfigChange extends React.Component {
           <SyncStatus target={this.getCommitTarget()} ref={this.syncstatuschild} />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}
-            setRepoWorking={this.setRepoWorking}
+            setRepoWorking={this.setRepoWorking.bind(this)}
+            onDryRunReady={this.handleDryRunReady.bind(this)}
           />
           <DryRun
+            dryRunDisable={this.state.dryRunDisable}
             dryRunSyncStart={this.deviceSyncStart}
             dryRunProgressData={dryRunProgressData}
             dryRunJobStatus={dryRunJobStatus}
