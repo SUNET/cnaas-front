@@ -470,6 +470,7 @@ class DeviceList extends React.Component {
   }
 
   getInterfacesData (hostname) {
+    const credentials = localStorage.getItem("token");
     getData(
       process.env.API_URL + '/api/v1.0/device/' + hostname + '/interfaces',
       credentials
