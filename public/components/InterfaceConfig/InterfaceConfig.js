@@ -799,7 +799,7 @@ class InterfaceConfig extends React.Component {
         }
         let bounceInterfaceButton = null;
         if (this.device_type == "ACCESS") {
-          let bounceInterfaceButton = <Button 
+          bounceInterfaceButton = <Button 
             key={"bounce"}
             disabled={(editDisabled || bounceDisabled)}
             loading={(bounceDisabled)}
