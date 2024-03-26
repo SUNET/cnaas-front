@@ -7,7 +7,6 @@ import { BrowserRouter } from 'react-router-dom'
 import checkResponseStatus from '../utils/checkResponseStatus'
 import '../styles/reset.css'
 import '../styles/main.css'
-// import "../styles/prism.css";
 
 class App extends React.Component {
   state = {
