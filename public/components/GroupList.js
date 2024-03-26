@@ -1,6 +1,7 @@
 import React from "react";
 import checkJsonResponse from "../utils/checkJsonResponse";
 import { Icon } from 'semantic-ui-react'
+import permissionsCheck from "../utils/permissions/permissionsCheck"
 
 class GroupList extends React.Component {
   state = {
@@ -40,8 +41,8 @@ class GroupList extends React.Component {
           }
         );
       }
-    })
-    .catch((error) => {
+    }
+    ).catch((error) => {
       this.setState({
         groupData: [],
         loading: false,
@@ -53,23 +54,23 @@ class GroupList extends React.Component {
   render() {
     let groupTable = Object.keys(this.state.groupData).map((key, index) => {
       return [
-        <tr>
+        <tr key={ key }>
           <td>{ key }</td>
           <td>{ this.state.groupData[key].join(", ") }</td>
-          <td>
+          <td hidden= {!permissionsCheck("Groups", "read")}>
             <div>
-              <a href={"/config-change?group=" + key } title="Go to config change/sync to page"><Icon name="sync" />Sync...</a><br />
-              <a href={"/firmware-upgrade?group=" + key } title="Go to firmware upgrade page"><Icon name="microchip" />Firmware upgrade...</a>
+              <a href={"/config-change?group=" + key } hidden= {!permissionsCheck("Config change", "write")} title="Go to config change/sync to page"><Icon name="sync" />Sync...</a><br />
+              <a href={"/firmware-upgrade?group=" + key } hidden= {!permissionsCheck("Firmware", "write")} title="Go to firmware upgrade page"><Icon name="microchip" />Firmware upgrade...</a>
             </div>
-          </td>
+          </td> 
         </tr>
       ]
     })
     if (this.state.error) {
-      groupTable = [<tr><td colSpan="5">API error: {this.state.error.message}</td></tr>];
+      groupTable = [<tr key="error"><td colSpan="5">API error: {this.state.error.message}</td></tr>];
     } else if (!Array.isArray(groupTable) || !groupTable.length) {
       if (this.state.loading) {
-        groupTable = [<tr><td colSpan="5"><Icon name="spinner" loading={true} />Loading groups...</td></tr>];
+        groupTable = [<tr key="Loading"><td colSpan="5"><Icon name="spinner" loading={true} />Loading groups...</td></tr>];
       } else {
         groupTable = [<tr><td colSpan="5">Empty result</td></tr>];
       }
@@ -89,7 +90,7 @@ class GroupList extends React.Component {
                   <th>
                     Group members
                   </th>
-                  <th>
+                  <th hidden={!permissionsCheck("Groups", "read")}>
                     Actions
                   </th>
                 </tr>

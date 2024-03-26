@@ -7,9 +7,6 @@ import { BrowserRouter } from 'react-router-dom'
 import checkResponseStatus from '../utils/checkResponseStatus'
 import '../styles/reset.css'
 import '../styles/main.css'
-import "../styles/prism.css";
-
-
 
 class App extends React.Component {
   state = {
@@ -53,6 +50,7 @@ class App extends React.Component {
 
   logout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('permissions')
     this.setState({
       loginMessage: 'You have been logged out',
       loggedIn: false
@@ -83,4 +81,5 @@ class App extends React.Component {
     )
   }
 }
+
 export default App

@@ -16,16 +16,19 @@ class LoginForm extends React.Component {
 
   render () {
     if (this.props.show !== true) {
+      if(process.env.PERMISSIONS_DISABLED !== 'true'  && JSON.parse(localStorage.getItem('permissions')).length == 0){
+        this.errorMessage = "You don't seem to have any permissions. Check with an administrator if this is correct. ";
+      }
       return (
         <div>
+          <p className='title error'>{this.errorMessage}</p>
           <button className='logout' onClick={ev => this.props.logout()}>
             Logout
           </button>
         </div>
       )
     }
-
-    if (process.env.OIDC_ENABLED == "true"){
+    if (process.env.OIDC_ENABLED === 'true'){
       return (
         <div className='container'>
           <form onSubmit={this.props.oauthLogin}>
@@ -71,7 +74,6 @@ class LoginForm extends React.Component {
     )
   }
 }
-
 LoginForm.propTypes = {
   login: PropTypes.func,
   oauthLogin: PropTypes.func,

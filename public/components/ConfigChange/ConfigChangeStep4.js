@@ -1,9 +1,8 @@
 import React from "react";
-import { Input, Popup, Icon } from 'semantic-ui-react';
+import { Input, Popup, Icon, Confirm, Select } from 'semantic-ui-react';
 import DryRunProgressBar from "./DryRun/DryRunProgressBar";
 import DryRunProgressInfo from "./DryRun/DryRunProgressInfo";
-import { Confirm, Select } from 'semantic-ui-react';
-import getData from "../../utils/getData";
+import { getData } from "../../utils/getData";
 
 class ConfigChangeStep4 extends React.Component {
   state = {

@@ -1,7 +1,6 @@
 import React from "react";
 import { Container, Grid, Popup } from "semantic-ui-react";
-import checkResponseStatus from "../utils/checkResponseStatus";
-import getData from "../utils/getData";
+import { getResponse, getData } from "../utils/getData";
 
 class Dashboard extends React.Component {
   state = {
@@ -40,17 +39,8 @@ class Dashboard extends React.Component {
 
   getDeviceCount(name, filter) {
     const credentials = localStorage.getItem("token");
-    fetch(
-      process.env.API_URL +
-      "/api/v1.0/devices?" + filter,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${credentials}`
-        }
-      }
-    )
-    .then(response => checkResponseStatus(response))
+    getResponse(process.env.API_URL +
+      "/api/v1.0/devices?" + filter, credentials)
     .then(response => this.headerCount(response))
     .then(count => {
       let deviceCount = this.state.deviceCount;

@@ -6,7 +6,7 @@ import FirmwareStep1 from './FirmwareStep1';
 import FirmwareStep2 from './FirmwareStep2';
 import FirmwareStep3 from './FirmwareStep3';
 import checkResponseStatus from "../../utils/checkResponseStatus";
-import getData from "../../utils/getData";
+import { getData } from "../../utils/getData";
 const io = require("socket.io-client");
 var socket = null;
 

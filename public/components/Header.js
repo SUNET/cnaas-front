@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import permissionsCheck from "../utils/permissions/permissionsCheck"
 import { Popup, Loader, Button, Modal, Header as SemanticHeader, ModalContent, ModalActions, Icon } from "semantic-ui-react";
 import { postData } from "../utils/sendData";
 import { jwtDecode } from "jwt-decode";
@@ -128,22 +129,22 @@ class Header extends React.Component {
         }, (secondsUntilExpiry - 120)*1000);
       }
       return [
-        <NavLink exact activeClassName="active" to={`/dashboard`} key="nav1">
+        <NavLink exact activeClassName="active" hidden={!permissionsCheck("Dashboard", "read")} to={`/dashboard`} key="nav1">
           <li>Dashboard</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/devices`} key="nav2">
+        <NavLink exact activeClassName="active" hidden={!permissionsCheck("Devices", "read")} to={`/devices`} key="nav2">
           <li>Devices</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/groups`} key="nav3">
+        <NavLink exact activeClassName="active" hidden={!permissionsCheck("Groups", "read")} to={`/groups`} key="nav3">
           <li>Groups</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/jobs`} key="nav4">
+        <NavLink exact activeClassName="active" hidden={!permissionsCheck("Jobs", "read")} to={`/jobs`} key="nav4">
           <li>Jobs</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/firmware-copy`} key="nav5">
+        <NavLink exact activeClassName="active" hidden={!permissionsCheck("Firmware", "read")} to={`/firmware-copy`} key="nav5">
           <li>Firmware</li>
         </NavLink>,
-        <NavLink exact activeClassName="active" to={`/config-change`} key="nav6">
+        <NavLink exact activeClassName="active" hidden={!permissionsCheck("Config change", "read")} to={`/config-change`} key="nav6">
           <li>Config change</li>
         </NavLink>,
         <Popup

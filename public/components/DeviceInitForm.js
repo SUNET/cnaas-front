@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import { Button, Select, Input, Icon, Modal, Accordion } from 'semantic-ui-react'
 import checkResponseStatus from "../utils/checkResponseStatus";
 import checkJsonResponse from "../utils/checkJsonResponse";
+import { getData } from "../utils/getData"
 
 class DeviceInitForm extends React.Component {
   state = {
@@ -140,19 +141,9 @@ class DeviceInitForm extends React.Component {
 
   getMlagPeerCandidates(device_id) {
     const credentials = localStorage.getItem("token");
-    fetch(
-      process.env.API_URL +
+    getData(process.env.API_URL +
       "/api/v1.0/devices?filter[state]=DISCOVERED" +
-      "&per_page=100",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${credentials}`
-        }
-      }
-    )
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json())
+      "&per_page=100", credentials)
     .then(data => {
       console.log("this should be mlag peer candidate data", data);
       {

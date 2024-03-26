@@ -1,9 +1,8 @@
 import React from "react";
-import formatISODate from "../utils/formatters";
-import checkResponseStatus from "../utils/checkResponseStatus";
 import { Icon, Popup } from "semantic-ui-react";
-import getData from "../utils/getData";
+import { getData } from "../utils/getData";
 import FirmwareCopyForm from "./FirmwareCopyForm";
+import permissionsCheck from "../utils/permissions/permissionsCheck";
 
 class FirmwareCopy extends React.Component {
   state = {
@@ -189,8 +188,8 @@ class FirmwareCopy extends React.Component {
               <tbody>{firmwareTableBody}</tbody>
             </table>
           </div>
-          <h2>Firmware upgrade</h2>
-          <p><a href="/groups">Select a group for firmware upgrade</a></p>
+          <h2 hidden={!permissionsCheck("Groups", "read")}>Firmware upgrade</h2>
+          <p hidden={!permissionsCheck("Groups", "read")}><a href="/groups">Select a group for firmware upgrade</a></p>
         </div>
       </section>
     );
