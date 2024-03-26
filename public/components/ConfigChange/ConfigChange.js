@@ -47,6 +47,7 @@ class ConfigChange extends React.Component {
     this.setState(this.getInitialState());
     this.syncstatuschild.current.getDeviceList();
     this.syncstatuschild.current.getSyncHistory();
+    this.setState({ dryRunDisable: false });
   }
 
   setRepoWorking = (working_status) => {
@@ -60,8 +61,7 @@ class ConfigChange extends React.Component {
   handleDryRunReady() {
     const element = document.getElementById('dryrunButton');
     element.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    this.deviceSyncStart({ "resync": this.state.resync })
-    this.setState({ dryRunDisable: true })
+    this.deviceSyncStart({ "resync": false })
   }
 
   readHeaders = (response, dry_run) => {
@@ -159,6 +159,7 @@ class ConfigChange extends React.Component {
           }
         }
       });
+      this.setState({ dryRunDisable: true });
   };
 
   pollJobStatus = (job_id, jobtype) => {

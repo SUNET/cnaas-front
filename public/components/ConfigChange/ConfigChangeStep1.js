@@ -152,8 +152,7 @@ class ConfigChangeStep1 extends React.Component {
             <button hidden={!permissionsCheck("Config change", "write")} disabled={buttonsDisabled} onClick={ () => this.refreshRepo('settings')}>
               Refresh settings
             </button>
-            <p>{this.state.commitUpdateInfo['settings']}</p>
-            <button disabled={buttonsDisabled} onClick={() => this.refreshRepoAndDryRun('settings')}>
+            <button hidden={!permissionsCheck("Config change", "write")} disabled={buttonsDisabled} onClick={() => this.refreshRepoAndDryRun('settings')}>
               Refresh settings + dry run
             </button>
             <p>{this.state.commitUpdateInfo['settings']}</p>
