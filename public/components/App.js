@@ -52,7 +52,6 @@ class App extends React.Component {
   logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('permissions')
-    localStorage.removeItem('expiration_time')
     this.setState({
       loginMessage: 'You have been logged out',
       loggedIn: false

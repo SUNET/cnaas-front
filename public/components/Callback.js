@@ -26,28 +26,15 @@ class Callback extends React.Component {
     }
   };
 
-  parseJwt = (token)  =>{
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  }
-
   checkSuccess = () => {
     if (
       (localStorage.hasOwnProperty('permissions') || process.env.PERMISSIONS_DISABLED === 'true') && 
-      localStorage.getItem('expiration_time') * 1000 > new Date() && 
       localStorage.hasOwnProperty('token')
       ) {
       this.errorMessage = "Everything is loaded, you should be sent to the homepage in a second."
       this.setState({ loggedIn: true })
       window.location.replace('/')
       return true
-    } else if (localStorage.getItem('expiration_time') * 1000 < new Date()){
-      this.errorMessage = "The token has expired. Please login again."
-      return false
     }
     return false
   }
@@ -71,9 +58,6 @@ class Callback extends React.Component {
       let token = params.get('token')
       localStorage.setItem('token', token)
 
-      let decoded_token = this.parseJwt(token)
-      localStorage.setItem('expiration_time', decoded_token['exp'])
-      
       this.getPermissions(token)
       
       this.errorMessage = "You're logged in."
