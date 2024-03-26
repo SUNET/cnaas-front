@@ -40,8 +40,7 @@ class Callback extends React.Component {
   }
 
   componentDidMount () {
-    if(localStorage.hasOwnProperty('token')){ 
-      if(this.checkSuccess()){
+    if(localStorage.hasOwnProperty('token') && this.checkSuccess()){
         return
       }
     }
