@@ -40,9 +40,8 @@ class Callback extends React.Component {
   }
 
   componentDidMount () {
-    if(localStorage.hasOwnProperty('token') && this.checkSuccess()){
-        return
-      }
+    if(localStorage.hasOwnProperty('token') && this.checkSuccess()) {
+      return
     }
     let params = new URLSearchParams(location.search)
     if (params.has('refresh_token')) {
