@@ -38,8 +38,17 @@ class ConfigChangeStep1 extends React.Component {
     });
   };
 
+  refreshRepoAndDryRun = async (repo_name) => {
+    await this.refreshRepo(repo_name)
+    if (this.state.commitUpdateInfo.settings === 'success') {
+      this.props.onDryRunReady();
+    } else {
+      console.log("Refresh error occured. Status" + JSON.stringify(this.state.commitUpdateInfo));
+    }
+  }
+
   // this request takes some time, perhaps work in a "loading..."
-  refreshRepo = (repo_name) => {
+  refreshRepo = async (repo_name) => {
     let newCommitUpdateInfo = this.state.commitUpdateInfo;
     newCommitUpdateInfo[repo_name] = "updating...";
     this.setState({commitUpdateInfo: newCommitUpdateInfo});
@@ -50,8 +59,8 @@ class ConfigChangeStep1 extends React.Component {
     let dataToSend = { action: "REFRESH" };
     let newCommitInfo = this.state.commitInfo;
 
-    putData(url, credentials, dataToSend).then(data => {
-      // console.log("this should be data", data);
+    // need to return a Promise in order to allow await
+    return putData(url, credentials, dataToSend).then(data => {
       if ( data.status === "success" ) {
         newCommitUpdateInfo[repo_name] = "success";
         newCommitInfo[repo_name] = data.data;
@@ -142,6 +151,9 @@ class ConfigChangeStep1 extends React.Component {
           <div className="info">
             <button hidden={!permissionsCheck("Config change", "write")} disabled={buttonsDisabled} onClick={ () => this.refreshRepo('settings')}>
               Refresh settings
+            </button>
+            <button hidden={!permissionsCheck("Config change", "write")} disabled={buttonsDisabled} onClick={() => this.refreshRepoAndDryRun('settings')}>
+              Refresh settings + dry run
             </button>
             <p>{this.state.commitUpdateInfo['settings']}</p>
           </div>

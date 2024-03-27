@@ -8,7 +8,6 @@ import permissionsCheck from "../../../utils/permissions/permissionsCheck";
 class DryRun extends React.Component {
   state = {
     "resync": false,
-    "dryrunButtonDisabled": false,
     expanded: true
   };
 
@@ -24,20 +23,14 @@ class DryRun extends React.Component {
 
   dryrunButtonOnclick() {
     this.props.dryRunSyncStart({"resync": this.state.resync});
-    this.setState({"dryrunButtonDisabled": true});
   };
-
-  resetButtonOnclick() {
-    this.props.resetState();
-    this.setState({"dryrunButtonDisabled": false});
-  }
 
   render() {
     let dryRunProgressData = this.props.dryRunProgressData;
     let dryRunJobStatus = this.props.dryRunJobStatus;
     let jobId = this.props.jobId;
     let error = "";
-    let dryrunButtonDisabled = this.state.dryrunButtonDisabled;
+    let dryrunButtonDisabled = this.props.dryRunDisable;
     let resetButtonDisabled = true;
 
     if (dryRunJobStatus === "EXCEPTION") {
@@ -61,7 +54,7 @@ class DryRun extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2 id="dry_run_section">
+          <h2>
             <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
             Dry run (2/4)
             <Popup
@@ -85,7 +78,7 @@ class DryRun extends React.Component {
               <button id="dryrunButton" hidden={!permissionsCheck("Config change", "write")} disabled={dryrunButtonDisabled} onClick={() => this.dryrunButtonOnclick()}>
                 Dry run
               </button>
-              <button id="resetButton" hidden={!permissionsCheck("Config change", "write")} disabled={resetButtonDisabled} onClick={() => this.resetButtonOnclick()}>
+              <button id="resetButton" hidden={!permissionsCheck("Config change", "write")} disabled={resetButtonDisabled} onClick={() => this.props.resetState()}>
                 Start over
               </button>
             </div>
