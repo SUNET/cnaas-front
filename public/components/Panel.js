@@ -1,5 +1,5 @@
 import React from "react";
-import DeviceList from "./DeviceList";
+import DeviceList from "./DeviceList/DeviceList";
 import GroupList from "./GroupList";
 import JobList from "./JobList";
 import ConfigChange from "./ConfigChange/ConfigChange";

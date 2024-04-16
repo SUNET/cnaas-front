@@ -10,15 +10,15 @@ import {
   Modal,
   Input
 } from 'semantic-ui-react'
-import DeviceSearchForm from './DeviceSearchForm'
-import checkResponseStatus from '../utils/checkResponseStatus'
-import DeviceInitForm from './DeviceInitForm'
+import DeviceSearchForm from '../DeviceSearchForm'
+import checkResponseStatus from '../../utils/checkResponseStatus'
+import DeviceInitForm from '../DeviceInitForm'
 import queryString from 'query-string'
-import { getData, getResponse } from '../utils/getData'
-import { deleteData } from '../utils/sendData'
+import { getData, getResponse } from '../../utils/getData'
+import { deleteData } from '../../utils/sendData'
 import { SemanticToastContainer, toast } from 'react-semantic-toasts-2'
-import formatISODate from '../utils/formatters'
-import permissionsCheck from '../utils/permissions/permissionsCheck'
+import formatISODate from '../../utils/formatters'
+import permissionsCheck from '../../utils/permissions/permissionsCheck'
 const io = require('socket.io-client')
 let socket = null
 
