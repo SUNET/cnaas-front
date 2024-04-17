@@ -10,9 +10,9 @@ import {
   Modal,
   Input
 } from 'semantic-ui-react'
-import DeviceSearchForm from '../DeviceSearchForm'
+import DeviceSearchForm from './DeviceSearchForm'
 import checkResponseStatus from '../../utils/checkResponseStatus'
-import DeviceInitForm from '../DeviceInitForm'
+import DeviceInitForm from './DeviceInitForm'
 import queryString from 'query-string'
 import { getData, getResponse } from '../../utils/getData'
 import { deleteData } from '../../utils/sendData'
@@ -802,9 +802,8 @@ class DeviceList extends React.Component {
     return mgmtip;
   }
 
-  render() {
-    const devicesData = this.state.devicesData;
-    let deviceInfo = devicesData.map((device, index) => {
+  mangleDeviceData(devicesData) {
+    return devicesData.map((device, index) => {
       let syncStatus = ''
       if (device.state === 'MANAGED') {
         if (device.synchronized === true) {
@@ -830,8 +829,7 @@ class DeviceList extends React.Component {
         <Dropdown.Item
           key='noaction'
           text='No actions allowed in this state'
-          disabled={true}
-        />
+          disabled={true} />
       ]
       let hostnameExtra = []
       if (device.state == 'DHCP_BOOT') {
@@ -839,37 +837,30 @@ class DeviceList extends React.Component {
           <Dropdown.Item
             key='delete'
             text='Delete device...'
-            onClick={() =>
-              this.deleteModalOpen(
-                device.id,
-                device.hostname,
-                device.state,
-                device.device_type
-              )
-            }
-          />
+            onClick={() => this.deleteModalOpen(
+              device.id,
+              device.hostname,
+              device.state,
+              device.device_type
+            )} />
         ]
       } else if (device.state == 'DISCOVERED') {
         deviceStateExtra.push(
           <DeviceInitForm
             key={device.id + '_initform'}
             deviceId={device.id}
-            jobIdCallback={this.addDeviceJob.bind(this)}
-          />
+            jobIdCallback={this.addDeviceJob.bind(this)} />
         )
         menuActions = [
           <Dropdown.Item
             key='delete'
             text='Delete device...'
-            onClick={() =>
-              this.deleteModalOpen(
-                device.id,
-                device.hostname,
-                device.state,
-                device.device_type
-              )
-            }
-          />
+            onClick={() => this.deleteModalOpen(
+              device.id,
+              device.hostname,
+              device.state,
+              device.device_type
+            )} />
         ]
       } else if (device.state == 'INIT') {
         if (device.id in this.state.deviceJobs) {
@@ -884,43 +875,35 @@ class DeviceList extends React.Component {
           <Dropdown.Item
             key='sync'
             text='Sync device...'
-            onClick={() => this.syncDeviceAction(device.hostname)}
-          />,
+            onClick={() => this.syncDeviceAction(device.hostname)} />,
           <Dropdown.Item
             key='fwupgrade'
             text='Firmware upgrade...'
-            onClick={() => this.upgradeDeviceAction(device.hostname)}
-          />,
+            onClick={() => this.upgradeDeviceAction(device.hostname)} />,
           <Dropdown.Item
             key='facts'
             text='Update facts'
-            onClick={() => this.updateFactsAction(device.hostname, device.id)}
-          />,
+            onClick={() => this.updateFactsAction(device.hostname, device.id)} />,
           <Dropdown.Item
             key='makeunmanaged'
             text='Make unmanaged'
-            onClick={() => this.changeStateAction(device.id, 'UNMANAGED')}
-          />,
+            onClick={() => this.changeStateAction(device.id, 'UNMANAGED')} />,
           <Dropdown.Item
             key='delete'
             text='Delete device...'
-            onClick={() =>
-              this.deleteModalOpen(
-                device.id,
-                device.hostname,
-                device.state,
-                device.device_type
-              )
-            }
-          />
+            onClick={() => this.deleteModalOpen(
+              device.id,
+              device.hostname,
+              device.state,
+              device.device_type
+            )} />
         ]
         if (device.device_type === 'ACCESS') {
           menuActions.push(
             <Dropdown.Item
               key='configports'
               text='Configure ports'
-              onClick={() => this.configurePortsAction(device.hostname)}
-            />
+              onClick={() => this.configurePortsAction(device.hostname)} />
           )
           hostnameExtra.push(
             <a
@@ -936,25 +919,20 @@ class DeviceList extends React.Component {
           <Dropdown.Item
             key='facts'
             text='Update facts'
-            onClick={() => this.updateFactsAction(device.hostname, device.id)}
-          />,
+            onClick={() => this.updateFactsAction(device.hostname, device.id)} />,
           <Dropdown.Item
             key='makemanaged'
             text='Make managed'
-            onClick={() => this.changeStateAction(device.id, 'MANAGED')}
-          />,
+            onClick={() => this.changeStateAction(device.id, 'MANAGED')} />,
           <Dropdown.Item
             key='delete'
             text='Delete device...'
-            onClick={() =>
-              this.deleteModalOpen(
-                device.id,
-                device.hostname,
-                device.state,
-                device.device_type
-              )
-            }
-          />
+            onClick={() => this.deleteModalOpen(
+              device.id,
+              device.hostname,
+              device.state,
+              device.device_type
+            )} />
         ]
       }
       if (device.deleted !== undefined && device.deleted === true) {
@@ -964,8 +942,7 @@ class DeviceList extends React.Component {
           <Dropdown.Item
             key='noaction'
             text='No actions allowed for deleted device'
-            disabled={true}
-          />
+            disabled={true} />
         ]
       }
       let deviceInterfaceData = ''
@@ -1009,14 +986,14 @@ class DeviceList extends React.Component {
         })
       })
       let columnData = this.state.displayColumns.map((columnName, colIndex) => {
-        return <td key={100 + colIndex}>{device[columnName]}</td>;
-      });
-      const mgmtip = [];
+        return <td key={100 + colIndex}>{device[columnName]}</td>
+      })
+      const mgmtip = []
       if (device.management_ip) {
-        mgmtip.push(...this.createMgmtIP(device.management_ip));
+        mgmtip.push(...this.createMgmtIP(device.management_ip))
       }
       if (device.secondary_management_ip) {
-        mgmtip.push(...this.createMgmtIP(device.secondary_management_ip, "secondary_"));
+        mgmtip.push(...this.createMgmtIP(device.secondary_management_ip, "secondary_"))
       }
       if (device.dhcp_ip !== null) {
         mgmtip.push(<i key='dhcp_ip'>(DHCP IP: {device.dhcp_ip})</i>)
@@ -1107,6 +1084,10 @@ class DeviceList extends React.Component {
         </tr>
       ]
     })
+  }
+
+  render() {
+    let deviceInfo = this.mangleDeviceData(this.state.devicesData)
     if (this.state.error) {
       deviceInfo = [
         <tr key={'errorrow'}>
