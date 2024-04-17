@@ -17,8 +17,40 @@ export default function DeviceInfoBlock({
   deviceInterfaceData,
   log,
 }) {
+  function toggleHidden(target) {
+    const closestTrParent = target.closest("tr");
+    const isHidden = closestTrParent.nextElementSibling.hidden;
+    if (isHidden) {
+      closestTrParent.nextElementSibling.hidden = false;
+      try {
+        closestTrParent.firstElementChild.firstElementChild.className =
+          "angle down icon";
+        return closestTrParent.id;
+      } catch (error) {
+        console.log("Could not change icon for expanded row");
+      }
+    } else {
+      closestTrParent.nextElementSibling.hidden = true;
+      try {
+        closestTrParent.firstElementChild.firstElementChild.className =
+          "angle right icon";
+      } catch (error) {
+        console.log("Could not change icon for collapsed row");
+      }
+    }
+
+    return undefined;
+  }
+
+  function handleClick(e) {
+    const expandedId = toggleHidden(e.target);
+    if (expandedId) {
+      clickRow(expandedId);
+    }
+  }
+
   return [
-    <tr id={device.hostname} key={`${device.id}_row`} onClick={clickRow}>
+    <tr id={device.hostname} key={`${device.id}_row`} onClick={handleClick}>
       <td key={`${device.id}_hostname`}>
         <Icon name="angle right" />
         {device.hostname}

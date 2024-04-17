@@ -498,33 +498,9 @@ class DeviceList extends React.Component {
       })
   }
 
-  /**
-   * Handle expand/collapse of device details when clicking a row in the table
-   */
-  clickRow (e) {
-    const curState = e.target.closest('tr').nextElementSibling.hidden
-    if (curState) {
-      e.target.closest('tr').nextElementSibling.hidden = false
-      if (
-        e.target.closest('tr').id in this.state.deviceInterfaceData ===
-        false
-      ) {
-        this.getInterfacesData(e.target.closest('tr').id)
-      }
-      try {
-        e.target.closest('tr').firstElementChild.firstElementChild.className =
-          'angle down icon'
-      } catch (error) {
-        console.log('Could not change icon for expanded row')
-      }
-    } else {
-      e.target.closest('tr').nextElementSibling.hidden = true
-      try {
-        e.target.closest('tr').firstElementChild.firstElementChild.className =
-          'angle right icon'
-      } catch (error) {
-        console.log('Could not change icon for collapsed row')
-      }
+  clickRow(closestTrParentId) {
+    if (closestTrParentId in this.state.deviceInterfaceData === false) {
+      this.getInterfacesData(closestTrParentId);
     }
   }
 
