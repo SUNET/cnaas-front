@@ -17,8 +17,8 @@ import queryString from 'query-string'
 import { getData, getResponse } from '../../utils/getData'
 import { deleteData } from '../../utils/sendData'
 import { SemanticToastContainer, toast } from 'react-semantic-toasts-2'
-import formatISODate from '../../utils/formatters'
-import permissionsCheck from '../../utils/permissions/permissionsCheck'
+import DeviceInfoBlock from "./DeviceInfoBlock"
+
 const io = require('socket.io-client')
 let socket = null
 
@@ -998,91 +998,20 @@ class DeviceList extends React.Component {
       if (device.dhcp_ip !== null) {
         mgmtip.push(<i key='dhcp_ip'>(DHCP IP: {device.dhcp_ip})</i>)
       }
-      return [
-        <tr
-          id={device.hostname}
-          key={device.id + '_row'}
-          onClick={this.clickRow.bind(this)}
-        >
-          <td key={device.id + '_hostname'}>
-            <Icon name='angle right' />
-            {device.hostname}
-            {hostnameExtra}
-          </td>
-          <td key={device.id + '_device_type'}>{device.device_type}</td>
-          {syncStatus}
-          {columnData}
-          <td key={device.id + '_id'}>{device.id}</td>
-        </tr>,
-        <tr
-          key={device.id + '_content'}
-          colSpan={4 + this.state.displayColumns.length}
-          className='device_details_row'
-          hidden
-        >
-          <td>
-            <div hidden={!permissionsCheck('Devices', 'write')}>
-              <Dropdown text='Actions' button={true}>
-                <Dropdown.Menu>{menuActions}</Dropdown.Menu>
-              </Dropdown>
-            </div>
-            <table className='device_details_table'>
-              <tbody>
-                <tr key={'detail_mgmtip'}>
-                  <td key='name'>Management IP</td>
-                  <td key='value'>
-                    <div>{mgmtip}</div>
-                  </td>
-                </tr>
-                <tr key={'detail_infraip'}>
-                  <td key='name'>Infra IP</td>
-                  <td key='value'>{device.infra_ip}</td>
-                </tr>
-                <tr key={'detail_mac'}>
-                  <td key='name'>MAC</td>
-                  <td key='value'>{device.ztp_mac}</td>
-                </tr>
-                <tr key={'detail_vendor'}>
-                  <td key='name'>Vendor</td>
-                  <td key='value'>{device.vendor}</td>
-                </tr>
-                <tr key={'detail_model'}>
-                  <td key='name'>Model</td>
-                  <td key='value'>{device.model}</td>
-                </tr>
-                <tr key={'detail_osversion'}>
-                  <td key='name'>OS Version</td>
-                  <td key='value'>{device.os_version}</td>
-                </tr>
-                <tr key={'detail_serial'}>
-                  <td key='name'>Serial</td>
-                  <td key='value'>{device.serial}</td>
-                </tr>
-                <tr key={'detail_state'}>
-                  <td key='name'>State</td>
-                  <td key='value'>{device.state}</td>
-                </tr>
-                <tr key={'primary_group'}>
-                  <td key='name'>Primary group</td>
-                  <td key='value'>{device.primary_group}</td>
-                </tr>
-                <tr key={'seen'}>
-                  <td key='name'>Last seen</td>
-                  <td key='value'>{formatISODate(device.last_seen)}</td>
-                </tr>
-              </tbody>
-            </table>
-            {deviceStateExtra}
-            {deviceInterfaceData}
-            <div
-              id={'logoutputdiv_device_id_' + device.id}
-              className='logoutput'
-            >
-              <pre>{log[device.id]}</pre>
-            </div>
-          </td>
-        </tr>
-      ]
+      return <DeviceInfoBlock
+        key={device.id + "_device_info"}
+        device={device}
+        hostnameExtra={hostnameExtra}
+        syncStatus={syncStatus}
+        columnData={columnData}
+        clickRow={this.clickRow.bind(this)}
+        colLength={this.state.displayColumns.length}
+        menuActions={menuActions}
+        mgmtip={mgmtip}
+        deviceStateExtra={deviceStateExtra}
+        deviceInterfaceData={deviceInterfaceData}
+        log={log}
+      ></DeviceInfoBlock>
     })
   }
 
