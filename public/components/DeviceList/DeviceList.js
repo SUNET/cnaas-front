@@ -800,7 +800,7 @@ class DeviceList extends React.Component {
       } else {
         syncStatus = <td key={device.id + '_state'}>{device.state}</td>
       }
-      let deviceStateExtra = []
+      const deviceStateExtra = []
       let menuActions = [
         <Dropdown.Item
           key='noaction'
@@ -921,7 +921,6 @@ class DeviceList extends React.Component {
             disabled={true} />
         ]
       }
-      let deviceInterfaceData = ''
       if (device.hostname in this.state.deviceInterfaceData !== false) {
         let deviceButtons = []
         let mlagPeerLink = this.renderMlagLink(
@@ -985,7 +984,6 @@ class DeviceList extends React.Component {
         menuActions={menuActions}
         mgmtip={mgmtip}
         deviceStateExtra={deviceStateExtra}
-        deviceInterfaceData={deviceInterfaceData}
         log={log}
       ></DeviceInfoBlock>
     })
