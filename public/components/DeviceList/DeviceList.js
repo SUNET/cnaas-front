@@ -899,29 +899,31 @@ class DeviceList extends React.Component {
     return hostnameExtra;
   }
 
+  createSyncStatusForDevice(device) {
+    if (device?.deleted === true) {
+      return <td key={device.id + "_state"}>DELETED</td>
+    }
+
+    let syncStatus = ""
+    if (device.state === "MANAGED") {
+      const isSynchronized = device.synchronized === true;
+      syncStatus = (
+        <td key={device.id + "_state"}>
+          MANAGED / SYNC=
+          <Icon
+            name={isSynchronized ? "check" : "delete"}
+            color={isSynchronized ? "green" : "red"} />
+        </td>
+      )
+    } else {
+      syncStatus = <td key={device.id + "_state"}>{device.state}</td>
+    }
+
+    return syncStatus;
+  }
+
   mangleDeviceData(devicesData) {
     return devicesData.map((device, index) => {
-      let syncStatus = ''
-      if (device.state === 'MANAGED') {
-        if (device.synchronized === true) {
-          syncStatus = (
-            <td key={device.id + '_state'}>
-              MANAGED / SYNC=
-              <Icon name='check' color='green' />
-            </td>
-          )
-        } else {
-          syncStatus = (
-            <td key={device.id + '_state'}>
-              MANAGED / SYNC=
-              <Icon name='delete' color='red' />
-            </td>
-          )
-        }
-      } else {
-        syncStatus = <td key={device.id + '_state'}>{device.state}</td>
-      }
-
       const deviceStateExtra = []
       if (device.state == 'DISCOVERED') {
         deviceStateExtra.push(
@@ -938,10 +940,6 @@ class DeviceList extends React.Component {
             </p>
           )
         }
-      }
-
-      if (device.deleted !== undefined && device.deleted === true) {
-        syncStatus = <td key={device.id + '_state'}>DELETED</td>
       }
 
       if (device.hostname in this.state.deviceInterfaceData !== false) {
@@ -1004,7 +1002,7 @@ class DeviceList extends React.Component {
         key={device.id + "_device_info"}
         device={device}
         hostnameExtra={this.createHostnameExtraForDevice(device)}
-        syncStatus={syncStatus}
+        syncStatus={this.createSyncStatusForDevice(device)}
         columnData={columnData}
         clickRow={this.clickRow.bind(this)}
         colLength={this.state.displayColumns.length}
