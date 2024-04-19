@@ -879,6 +879,26 @@ class DeviceList extends React.Component {
     return menuActions;
   }
 
+  createHostnameExtraForDevice(device) {
+    if (device?.deleted) {
+      return [<Icon key='deleted' name='delete' color='red' />]
+    }
+
+    const hostnameExtra = []
+    if (device.state == "MANAGED" && device.device_type === "ACCESS") {
+      hostnameExtra.push(
+        <a
+          key="interfaceconfig"
+          href={"/interface-config?hostname=" + device.hostname}
+        >
+          <Icon name="plug" link />
+        </a>
+      )
+    }
+
+    return hostnameExtra;
+  }
+
   mangleDeviceData(devicesData) {
     return devicesData.map((device, index) => {
       let syncStatus = ''
@@ -901,8 +921,8 @@ class DeviceList extends React.Component {
       } else {
         syncStatus = <td key={device.id + '_state'}>{device.state}</td>
       }
+
       const deviceStateExtra = []
-      let hostnameExtra = []
       if (device.state == 'DISCOVERED') {
         deviceStateExtra.push(
           <DeviceInitForm
@@ -918,20 +938,10 @@ class DeviceList extends React.Component {
             </p>
           )
         }
-      } else if (device.state == 'MANAGED' && device.device_type === 'ACCESS') {
-        hostnameExtra.push(
-          <a
-            key='interfaceconfig'
-            href={'/interface-config?hostname=' + device.hostname}
-          >
-            <Icon name='plug' link />
-          </a>
-        )
       }
 
       if (device.deleted !== undefined && device.deleted === true) {
         syncStatus = <td key={device.id + '_state'}>DELETED</td>
-        hostnameExtra = [<Icon key='deleted' name='delete' color='red' />]
       }
 
       if (device.hostname in this.state.deviceInterfaceData !== false) {
@@ -993,7 +1003,7 @@ class DeviceList extends React.Component {
       return <DeviceInfoBlock
         key={device.id + "_device_info"}
         device={device}
-        hostnameExtra={hostnameExtra}
+        hostnameExtra={this.createHostnameExtraForDevice(device)}
         syncStatus={syncStatus}
         columnData={columnData}
         clickRow={this.clickRow.bind(this)}
