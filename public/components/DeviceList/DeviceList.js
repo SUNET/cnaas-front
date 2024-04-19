@@ -922,6 +922,28 @@ class DeviceList extends React.Component {
     return syncStatus;
   }
 
+  createDeviceButtonsExtraForDevice(device) {
+    const deviceButtons = [];
+
+    if (device.hostname in this.state.deviceInterfaceData !== false) {
+      const mlagPeerLink = this.renderMlagLink(
+        this.state.deviceInterfaceData[device.hostname]
+      )
+      if (mlagPeerLink !== null) {
+        deviceButtons.push.apply(deviceButtons, mlagPeerLink)
+      }
+
+      const uplinkLink = this.renderUplinkLink(
+        this.state.deviceInterfaceData[device.hostname]
+      )
+      if (uplinkLink !== null) {
+        deviceButtons.push.apply(deviceButtons, uplinkLink)
+      }
+    }
+
+    return deviceButtons;
+  }
+
   mangleDeviceData(devicesData) {
     return devicesData.map((device, index) => {
       const deviceStateExtra = []
@@ -942,29 +964,15 @@ class DeviceList extends React.Component {
         }
       }
 
-      if (device.hostname in this.state.deviceInterfaceData !== false) {
-        let deviceButtons = []
-        let mlagPeerLink = this.renderMlagLink(
-          this.state.deviceInterfaceData[device.hostname]
+      const deviceButtonsExtra = this.createDeviceButtonsExtraForDevice(device);
+      if (deviceButtonsExtra.length > 0) {
+        deviceStateExtra.push(
+          <div key='btngroup'>
+            <Button.Group vertical labeled icon>
+              {deviceButtonsExtra}
+            </Button.Group>
+          </div>
         )
-        if (mlagPeerLink !== null) {
-          deviceButtons.push.apply(deviceButtons, mlagPeerLink)
-        }
-        let uplinkLink = this.renderUplinkLink(
-          this.state.deviceInterfaceData[device.hostname]
-        )
-        if (uplinkLink !== null) {
-          deviceButtons.push.apply(deviceButtons, uplinkLink)
-        }
-        if (deviceButtons.length > 0) {
-          deviceStateExtra.push(
-            <div key='btngroup'>
-              <Button.Group vertical labeled icon>
-                {deviceButtons}
-              </Button.Group>
-            </div>
-          )
-        }
       }
 
       let log = {}
