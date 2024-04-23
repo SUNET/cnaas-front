@@ -123,3 +123,21 @@ This should return a list of two test devices.
 Point your browser to http://127.0.0.1:8083.
 You should be able to log into the frontend with the user credentials mentioned
 [earlier](#set-up-the-auth-container) and click through the tabs.
+
+## Linting
+
+This project uses ESLint and Prettier. Prettier is for formatting rules, while ESLint is for code quality rules.
+
+The extended ESLint rules in use are
+
+- [eslint-config-airbnb](https://github.com/airbnb/javascript/tree/master/packages/eslint-config-airbnb) for widely used React standards.
+- [eslint-config-prettier](https://github.com/prettier/eslint-config-prettier) turns off ESLint rules that conflict with Prettier.
+- [eslint-plugin-prettier](https://github.com/prettier/eslint-plugin-prettier) creates ESLint rules from prettier.
+
+The last two rules are for compitability with Prettier and are both set up with the line `"plugin:prettier/recommended"` in _.eslintrc.json_, please note that it needs to be the last entry to properly override previous rules.
+
+To use prettier on file, use
+
+```
+npx prettier <file name> --write
+```
