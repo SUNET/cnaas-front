@@ -15,6 +15,8 @@ sed -e "s|^\(.*API_URL=\)CNAAS_FRONT_URL$|\1$CNAAS_FRONT_URL|" \
     -e "s|^\(.*TEMPLATES_WEB_URL=\)TEMPLATES_WEB_URL$|\1$TEMPLATES_WEB_URL|" \
     -e "s|^\(.*SETTINGS_WEB_URL=\)SETTINGS_WEB_URL$|\1$SETTINGS_WEB_URL|" \
     -e "s|^\(.*MONITORING_WEB_URL=\)MONITORING_WEB_URL$|\1$MONITORING_WEB_URL|" \
+    -e "s|^\(.*OIDC_ENABLED=\)OIDC_ENABLED$|\1$OIDC_ENABLED|" \
+    -e "s|^\(.*PERMISSIONS_DISABLED=\)PERMISSIONS_DISABLED$|\1$PERMISSIONS_DISABLED|" \
   < /opt/cnaas/.env > /tmp/.env \
   && cat /tmp/.env > /opt/cnaas/cnaas-front/.env
 
