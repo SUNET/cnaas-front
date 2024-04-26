@@ -599,13 +599,15 @@ class DeviceList extends React.Component {
   }
 
   renderMgmtDomainsButton(device) {
+    const includeCore = process.env.MGMT_DOMAIN_CORE_ENABLED === "true";
     const mgmtDomainForDevice = this.getMgmgtDomainForDevice(device.hostname);
-    const isDist = (dev) => dev.device_type === "DIST";
+    const isCorrectDeviceType = (dev) =>
+      dev.device_type === "DIST" || (includeCore && dev.device_type === "CORE");
     const isNotInMgmgtDomain = (dev) =>
       !this.getMgmgtDomainForDevice(dev.hostname).length;
     if (!mgmtDomainForDevice.length) {
       const deviceBCandidates = this.state.devicesData
-        .filter(isDist)
+        .filter(isCorrectDeviceType)
         .filter(isNotInMgmgtDomain);
       return (
         <Button
@@ -1102,7 +1104,8 @@ class DeviceList extends React.Component {
       }
     }
 
-    if (device.device_type === "DIST") {
+    const includeCore = process.env.MGMT_DOMAIN_CORE_ENABLED === "true";
+    if (device.device_type === "DIST" || (includeCore && device.device_type === "CORE")) {
       deviceButtons.push(this.renderMgmtDomainsButton(device));
     }
 
