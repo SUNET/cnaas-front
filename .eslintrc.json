@@ -8,7 +8,8 @@
     "plugin:prettier/recommended" // needs to be last
   ],
   "env": {
-    "browser": true
+    "browser": true,
+    "jest": true
   },
   "rules": {
     "camelcase": "warn",
