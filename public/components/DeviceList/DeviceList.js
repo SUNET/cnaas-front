@@ -15,9 +15,12 @@ import checkResponseStatus from '../../utils/checkResponseStatus'
 import DeviceInitForm from './DeviceInitForm'
 import queryString from 'query-string'
 import { getData, getResponse } from '../../utils/getData'
-import { deleteData } from '../../utils/sendData'
+import { deleteData, postData, putData } from '../../utils/sendData'
 import { SemanticToastContainer, toast } from 'react-semantic-toasts-2'
 import DeviceInfoBlock from "./DeviceInfoBlock"
+import AddMgmtDomainModal from "./AddMgmtDomainModal"
+import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal"
+
 
 const io = require('socket.io-client')
 let socket = null
@@ -49,7 +52,12 @@ class DeviceList extends React.Component {
     delete_modal_device_type: null,
     delete_modal_confirm_name: '',
     delete_modal_factory_default: false,
-    delete_modal_error: null
+    delete_modal_error: null,
+    mgmtAddModalOpen: false,
+    mgmtUpdateModalOpen: false,
+    mgmtUpdateModalInput: {},
+    mgmtAddModalInput: {},
+    mgmtDomainsData: []
   }
 
   discovered_device_ids = new Set()
@@ -71,6 +79,20 @@ class DeviceList extends React.Component {
         error: error
       })
     })
+  }
+
+  getAllMgmtDomainsData() {
+    const credentials = localStorage.getItem("token");
+    getData(`${process.env.API_URL}/api/v1.0/mgmtdomains`, credentials)
+      .then((resp) => {
+        this.setState({ mgmtDomainsData: resp.data.mgmtdomains });
+      })
+      .catch((error) => {
+        this.setState({
+          loading: false,
+          error,
+        });
+      });
   }
 
   parseQueryParams (callback) {
@@ -227,7 +249,8 @@ class DeviceList extends React.Component {
     } else {
       this.getDevicesData()
     }
-    this.populateDiscoveredDevices()
+    this.populateDiscoveredDevices();
+    this.getAllMgmtDomainsData();
     socket = io(process.env.API_URL, { query: { jwt: credentials } })
     socket.on('connect', function (data) {
       console.log('Websocket connected!')
@@ -569,6 +592,96 @@ class DeviceList extends React.Component {
       })
   }
 
+  getMgmgtDomainForDevice(hostname) {
+    return this.state.mgmtDomainsData.filter(
+      (data) => hostname === data.device_a || hostname === data.device_b,
+    );
+  }
+
+  renderMgmtDomainsButton(device) {
+    const mgmtDomainForDevice = this.getMgmgtDomainForDevice(device.hostname);
+    const isDist = (dev) => dev.device_type === "DIST";
+    const isNotInMgmgtDomain = (dev) =>
+      !this.getMgmgtDomainForDevice(dev.hostname).length;
+    if (!mgmtDomainForDevice.length) {
+      const deviceBCandidates = this.state.devicesData
+        .filter(isDist)
+        .filter(isNotInMgmgtDomain);
+      return (
+        <Button
+          compact
+          icon="plus"
+          key={`${device.id}_mgmgt_add`}
+          onClick={() =>
+            this.mgmtAddModalOpen(device.hostname, deviceBCandidates)
+          }
+          content="Add management domain"
+        />
+      );
+    }
+
+    if (mgmtDomainForDevice.length > 1) {
+      // TODO: is this correct behavior?
+      throw new Error("multiple mgmt domains for device");
+    }
+
+    return (
+      <Button
+        compact
+        icon="arrow up"
+        key={`${device.id}_mgmgt_add`}
+        onClick={() => this.mgmtUpdateModalOpen(mgmtDomainForDevice[0])}
+        content="Management domain"
+      />
+    );
+  }
+
+  handleAddMgmtDomains(mgmtDomainAddPayload) {
+    const credentials = localStorage.getItem("token");
+    postData(
+      `${process.env.API_URL}/api/v1.0/mgmtdomains`,
+      credentials,
+      mgmtDomainAddPayload,
+    ).then(() => {
+      toast({ type: "success", title: "Management domain added" });
+      this.getAllMgmtDomainsData();
+    }).catch(() => {
+      toast({ type: "error", title: "Failed to add management domain" });
+      this.getAllMgmtDomainsData();
+    })
+    this.setState({ mgmtAddModalOpen: false });
+  }
+
+  handleDeleteMgmtDomain(id) {
+    const credentials = localStorage.getItem("token");
+    deleteData(`${process.env.API_URL}/api/v1.0/mgmtdomain/${id}`, credentials)
+      .then(() => {
+        toast({ type: "success", title: "Management domain deleted" });
+        this.getAllMgmtDomainsData();
+      })
+      .catch((e) => {
+        toast({ type: "error", title: "Failed to delete management domain", description: e.message });
+      });
+    this.setState({ mgmtUpdateModalOpen: false });
+  }
+
+  handleUpdateMgmtDomains(mgmtDomainUpdatePayload) {
+    const credentials = localStorage.getItem("token");
+    putData(
+      `${process.env.API_URL}/api/v1.0/mgmtdomain/${mgmtDomainUpdatePayload.id}`,
+      credentials,
+      mgmtDomainUpdatePayload,
+    )
+      .then(() => {
+        toast({ type: "success", title: "Management domain updated" });
+        this.getAllMgmtDomainsData();
+      })
+      .catch(() => {
+        toast({ type: "error", title: "Failed to update management domain" });
+      });
+    this.setState({ mgmtUpdateModalOpen: false });
+  }
+
   renderSortButton (key) {
     if (key === '↑') {
       return <Icon name='sort up' />
@@ -707,6 +820,54 @@ class DeviceList extends React.Component {
           this.setState({ delete_modal_error: 'Fetch error: ' + error })
         }
       })
+  }
+
+  mgmtAddModalOpen(deviceA, deviceBCandidates) {
+    this.setState({
+      mgmtAddModalInput: {
+        deviceA,
+        deviceBCandidates,
+      },
+      mgmtAddModalOpen: true
+    });
+  }
+
+  mgmtAddDomainModalClose() {
+    this.setState({
+      mgmtAddModalInput: {
+        deviceA: null,
+        deviceBCandidates: null,
+      },
+      mgmtAddModalOpen: false,
+    });
+  }
+
+  mgmtUpdateModalOpen({id, device_a, device_b, ipv4_gw, ipv6_gw, vlan}) {
+    this.setState({
+      mgmtUpdateModalInput: {
+        mgmtId: id,
+        deviceA: device_a,
+        deviceB: device_b,
+        ipv4Default: ipv4_gw,
+        ipv6Default: ipv6_gw,
+        vlanDefault: vlan
+      },
+      mgmtUpdateModalOpen: true
+    });
+  }
+
+  mgmtUpdateModalClose() {
+    this.setState({
+      mgmtUpdateModalInput: {
+        mgmtId: null,
+        deviceA: null,
+        deviceB: null,
+        ipv4Default: null,
+        ipv6Default: null,
+        vlanDefault: null
+      },
+      mgmtUpdateModalOpen: false
+    });
   }
 
   changeStateAction (device_id, state) {
@@ -941,6 +1102,10 @@ class DeviceList extends React.Component {
       }
     }
 
+    if (device.device_type === "DIST") {
+      deviceButtons.push(this.renderMgmtDomainsButton(device));
+    }
+
     return deviceButtons;
   }
 
@@ -1154,6 +1319,19 @@ class DeviceList extends React.Component {
               </Button>
             </Modal.Actions>
           </Modal>
+          <AddMgmtDomainModal
+            {...this.state.mgmtAddModalInput}
+            isOpen={this.state.mgmtAddModalOpen}
+            closeAction={() => this.mgmtAddDomainModalClose()}
+            onAdd={(v) => this.handleAddMgmtDomains(v)}
+          />
+          <UpdateMgmtDomainModal
+            {...this.state.mgmtUpdateModalInput}
+            isOpen={this.state.mgmtUpdateModalOpen}
+            closeAction={() => this.mgmtUpdateModalClose()}
+            onDelete={(v) => this.handleDeleteMgmtDomain(v)}
+            onUpdate={(v) => this.handleUpdateMgmtDomains(v)}
+          />
           <div className='table_options'>
             <Popup
               on='click'
