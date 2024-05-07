@@ -15,7 +15,7 @@ import checkResponseStatus from '../../utils/checkResponseStatus'
 import DeviceInitForm from './DeviceInitForm'
 import queryString from 'query-string'
 import { getData, getResponse } from '../../utils/getData'
-import { deleteData, postData, putData } from '../../utils/sendData'
+import { deleteData } from '../../utils/sendData'
 import { SemanticToastContainer, toast } from 'react-semantic-toasts-2'
 import DeviceInfoBlock from "./DeviceInfoBlock"
 import AddMgmtDomainModal from "./AddMgmtDomainModal"
@@ -623,7 +623,6 @@ class DeviceList extends React.Component {
     }
 
     if (mgmtDomainForDevice.length > 1) {
-      // TODO: is this correct behavior?
       throw new Error("multiple mgmt domains for device");
     }
 
@@ -638,49 +637,22 @@ class DeviceList extends React.Component {
     );
   }
 
-  handleAddMgmtDomains(mgmtDomainAddPayload) {
-    const credentials = localStorage.getItem("token");
-    postData(
-      `${process.env.API_URL}/api/v1.0/mgmtdomains`,
-      credentials,
-      mgmtDomainAddPayload,
-    ).then(() => {
-      toast({ type: "success", title: "Management domain added" });
-      this.getAllMgmtDomainsData();
-    }).catch(() => {
-      toast({ type: "error", title: "Failed to add management domain" });
-      this.getAllMgmtDomainsData();
-    })
+  handleAddMgmtDomains(id) {
+    toast({ type: "success", title: `Management domain ${id} added` });
+    this.getAllMgmtDomainsData();
     this.setState({ mgmtAddModalOpen: false });
   }
 
   handleDeleteMgmtDomain(id) {
-    const credentials = localStorage.getItem("token");
-    deleteData(`${process.env.API_URL}/api/v1.0/mgmtdomain/${id}`, credentials)
-      .then(() => {
-        toast({ type: "success", title: "Management domain deleted" });
-        this.getAllMgmtDomainsData();
-      })
-      .catch((e) => {
-        toast({ type: "error", title: "Failed to delete management domain", description: e.message });
-      });
+    toast({ type: "success", title: `Management domain ${id} deleted` });
+    this.getAllMgmtDomainsData();
     this.setState({ mgmtUpdateModalOpen: false });
   }
 
-  handleUpdateMgmtDomains(mgmtDomainUpdatePayload) {
+  handleUpdateMgmtDomains(id) {
     const credentials = localStorage.getItem("token");
-    putData(
-      `${process.env.API_URL}/api/v1.0/mgmtdomain/${mgmtDomainUpdatePayload.id}`,
-      credentials,
-      mgmtDomainUpdatePayload,
-    )
-      .then(() => {
-        toast({ type: "success", title: "Management domain updated" });
-        this.getAllMgmtDomainsData();
-      })
-      .catch(() => {
-        toast({ type: "error", title: "Failed to update management domain" });
-      });
+    toast({ type: "success", title: `Management domain ${id} updated` });
+    this.getAllMgmtDomainsData();
     this.setState({ mgmtUpdateModalOpen: false });
   }
 
@@ -850,9 +822,9 @@ class DeviceList extends React.Component {
         mgmtId: id,
         deviceA: device_a,
         deviceB: device_b,
-        ipv4Default: ipv4_gw,
-        ipv6Default: ipv6_gw,
-        vlanDefault: vlan
+        ipv4Initial: ipv4_gw,
+        ipv6Initial: ipv6_gw,
+        vlanInitial: vlan
       },
       mgmtUpdateModalOpen: true
     });
@@ -864,9 +836,9 @@ class DeviceList extends React.Component {
         mgmtId: null,
         deviceA: null,
         deviceB: null,
-        ipv4Default: null,
-        ipv6Default: null,
-        vlanDefault: null
+        ipv4Initial: null,
+        ipv6Initial: null,
+        vlanInitial: null
       },
       mgmtUpdateModalOpen: false
     });

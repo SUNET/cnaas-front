@@ -11,8 +11,6 @@ import {
 } from "../../utils/getData";
 import {
   deleteData as mockDeleteData,
-  postData as mockPostData,
-  putData as mockPutData,
 } from "../../utils/sendData";
 
 const io = require("socket.io-client");
@@ -24,8 +22,6 @@ io.mockReturnValue({ on: jest.fn(), off: jest.fn() });
 mockGetData.mockResolvedValue({ data: { devices: [], inferfaces: [] } });
 mockGetResponse.mockResolvedValue({ data: "mock_get_response_value" });
 mockDeleteData.mockResolvedValue({ data: "mock_delete_data_value" });
-mockPostData.mockResolvedValue({ data: "mock_post_data_value" });
-mockPutData.mockResolvedValue({ data: "mock_put_data_value" });
 
 function MockDeviceList({ deviceListProps }) {
   return (
@@ -42,8 +38,6 @@ beforeEach(() => {
   mockGetData.mockClear();
   mockDeleteData.mockClear();
   mockGetResponse.mockClear();
-  mockPostData.mockClear();
-  mockPutData.mockClear();
   jest
     .spyOn(Storage.prototype, "getItem")
     .mockResolvedValue("localStorageMockValue");

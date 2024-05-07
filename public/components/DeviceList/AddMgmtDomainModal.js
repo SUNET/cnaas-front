@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 import {
   Button,
-  Dropdown,
+  Form,
+  FormField,
+  FormGroup,
+  FormInput,
+  FormSelect,
   Icon,
-  Input,
   Modal,
   ModalActions,
   ModalContent,
   ModalDescription,
   ModalHeader,
 } from "semantic-ui-react";
+import { postData } from "../../utils/sendData";
 
 function AddMgmtDomainModal({
   deviceA,
@@ -18,21 +22,10 @@ function AddMgmtDomainModal({
   onAdd,
   closeAction,
 }) {
-  const [deviceB, setDeviceB] = useState("");
-  const [ipv4, setIpv4] = useState("");
-  const [ipv6, setIpv6] = useState("");
-  const [vlan, setVlan] = useState("");
+  const [formData, setFormData] = useState({ ipv4: "", ipv6: "", vlan: "" });
+  const [errors, setErrors] = useState([]);
 
-  function handleAdd() {
-    const updatedData = {
-      device_a: deviceA,
-      device_b: deviceB,
-      ipv4_gw: ipv4,
-      ipv6_gw: ipv6,
-      vlan,
-    };
-    onAdd(updatedData);
-  }
+  const { deviceB, ipv4, ipv6, vlan } = formData;
 
   const deviceBOptions =
     deviceBCandidates?.map((device, index) => ({
@@ -41,78 +34,129 @@ function AddMgmtDomainModal({
       value: index,
     })) || [];
 
-  function handleSelected(e, data) {
-    const selectedValue = data.value;
-    setDeviceB(deviceBOptions[selectedValue].key);
+  function clearForm() {
+    setErrors([]);
+    setFormData({ ipv4: "", ipv6: "", vlan: "" });
   }
 
-  function handleClose() {
-    setDeviceB("");
-    setIpv4("");
-    setIpv6("");
-    setVlan("");
+  async function handleAdd() {
+    const credentials = localStorage.getItem("token");
+    const payload = {
+      device_a: deviceA,
+      device_b: deviceB,
+      ipv4_gw: ipv4,
+      ipv6_gw: ipv6,
+      vlan,
+    };
+    postData(
+      `${process.env.API_URL}/api/v1.0/mgmtdomains`,
+      credentials,
+      payload,
+    )
+      .then((resp) => {
+        clearForm();
+        console.log(resp)
+        onAdd(resp.data.added_mgmtdomain.id);
+      })
+      .catch(async (errResp) => {
+        console.log(errResp)
+        const errObj = await errResp.json();
+        setErrors(errObj.message);
+      });
+  }
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function handleSelected(e, data) {
+    const selectedValue = data.value;
+    setFormData((prev) => ({
+      ...prev,
+      deviceB: deviceBOptions[selectedValue].key,
+    }));
+  }
+
+  function handleCancel() {
+    setFormData({ ipv4: "", ipv6: "", vlan: "" });
+    setErrors([]);
     closeAction();
   }
 
   return (
-    <Modal open={isOpen} onClose={handleClose}>
+    <Modal open={isOpen} onClose={handleCancel}>
       <ModalHeader>Add Management Domain</ModalHeader>
       <ModalContent>
         <ModalDescription>
-          <span style={{ fontWeight: "lighter" }}>
-            Devices in managament domain:{" "}
-          </span>
-          <span>
-            {`${deviceA}  `}
-            <Dropdown
-              aria-label="device_b_dropdown"
-              placeholder="device_b"
-              selection
-              options={deviceBOptions}
-              onChange={handleSelected}
-            />
-          </span>
-          <table>
-            <tbody>
-              <tr>
-                <td>IPv4 Gateway</td>
-                <td aria-label="ipv4-input">
-                  <Input
-                    type="text"
-                    value={ipv4}
-                    onChange={(e) => setIpv4(e.target.value)}
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td>IPv6 Gateway</td>
-                <td aria-label="ipv6-input">
-                  <Input
-                    type="text"
-                    value={ipv6}
-                    onChange={(e) => setIpv6(e.target.value)}
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td>VLAN Gateway</td>
-                <td aria-label="vlan-input">
-                  <Input
-                    type="text"
-                    value={vlan}
-                    onChange={(e) => setVlan(e.target.value)}
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <Form>
+            <FormGroup grouped>
+              <FormField>
+                <FormSelect
+                  inline
+                  id="mgmt_add_domain_b_select"
+                  name="domainB"
+                  label={
+                    <>
+                      <span style={{ fontWeight: "lighter" }}>
+                        Devices in managament domain:
+                      </span>
+                      {deviceA},{" "}
+                    </>
+                  }
+                  placeholder="device_b"
+                  selection
+                  options={deviceBOptions}
+                  onChange={handleSelected}
+                />
+              </FormField>
+
+              <FormField>
+                <FormInput
+                  id="mgmt_add_ipv4_input"
+                  label="IPv4 Gateway"
+                  name="ipv4"
+                  type="text"
+                  value={ipv4}
+                  onChange={handleChange}
+                />
+              </FormField>
+
+              <FormField>
+                <FormInput
+                  id="mgmt_add_ipv6_input"
+                  label="IPv6 Gateway"
+                  name="ipv6"
+                  type="text"
+                  value={ipv6}
+                  onChange={handleChange}
+                />
+              </FormField>
+
+              <FormField>
+                <FormInput
+                  id="mgmt_add_vlan_input"
+                  label="VLAN ID"
+                  name="vlan"
+                  type="text"
+                  value={vlan}
+                  onChange={handleChange}
+                />
+              </FormField>
+            </FormGroup>
+          </Form>
+          <ul id="mgmt_add_error_list" style={{ color: "red" }}>
+            {errors.map((err) => (
+              <li key={err}>{err}</li>
+            ))}
+          </ul>
         </ModalDescription>
       </ModalContent>
       <ModalActions>
-        <Button color="yellow" onClick={handleClose}>
+        <Button color="yellow" onClick={handleCancel}>
           Cancel <Icon name="cancel" />
         </Button>
-        <Button color="green" onClick={() => handleAdd()}>
+        <Button color="green" onClick={handleAdd}>
           Add <Icon name="checkmark" />
         </Button>
       </ModalActions>
