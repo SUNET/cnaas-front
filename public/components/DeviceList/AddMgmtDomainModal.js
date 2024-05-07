@@ -55,11 +55,11 @@ function AddMgmtDomainModal({
     )
       .then((resp) => {
         clearForm();
-        console.log(resp)
+        console.log(resp);
         onAdd(resp.data.added_mgmtdomain.id);
       })
       .catch(async (errResp) => {
-        console.log(errResp)
+        console.log(errResp);
         const errObj = await errResp.json();
         setErrors(errObj.message);
       });

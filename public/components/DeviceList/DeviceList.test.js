@@ -9,9 +9,7 @@ import {
   getData as mockGetData,
   getResponse as mockGetResponse,
 } from "../../utils/getData";
-import {
-  deleteData as mockDeleteData,
-} from "../../utils/sendData";
+import { deleteData as mockDeleteData } from "../../utils/sendData";
 
 const io = require("socket.io-client");
 
