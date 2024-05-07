@@ -89,7 +89,7 @@ class Dashboard extends React.Component {
     let settingsInfo = "Unknown";
     let templatesInfo = "Unknown";
     const repoDataRegex =
-      /Commit (?<commit_id>\w+) (?<branch>[a-zA-Z0-9.-_]+) by (?<name>.+) at (?<date>[0-9- :]+)/;
+      /Commit (?<commit_id>\w+) (?<branch>[-a-zA-Z0-9._]+) by (?<name>.+) at (?<date>[0-9- :]+)/;
     let match = repoDataRegex.exec(this.state.commitInfo.settings);
     if (match) {
       let { branch } = match.groups;
