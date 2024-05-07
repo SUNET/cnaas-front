@@ -638,20 +638,31 @@ class DeviceList extends React.Component {
   }
 
   handleAddMgmtDomains(id) {
-    toast({ type: "success", title: `Management domain ${id} added` });
+    toast({
+      type: "success",
+      title: `Management domain ${id} added`,
+      time: 5000,
+    });
     this.getAllMgmtDomainsData();
     this.setState({ mgmtAddModalOpen: false });
   }
 
   handleDeleteMgmtDomain(id) {
-    toast({ type: "success", title: `Management domain ${id} deleted` });
+    toast({
+      type: "success",
+      title: `Management domain ${id} deleted`,
+      time: 5000,
+    });
     this.getAllMgmtDomainsData();
     this.setState({ mgmtUpdateModalOpen: false });
   }
 
   handleUpdateMgmtDomains(id) {
-    const credentials = localStorage.getItem("token");
-    toast({ type: "success", title: `Management domain ${id} updated` });
+    toast({
+      type: "success",
+      title: `Management domain ${id} updated`,
+      time: 5000,
+    });
     this.getAllMgmtDomainsData();
     this.setState({ mgmtUpdateModalOpen: false });
   }

@@ -152,6 +152,9 @@ function UpdateMgmtDomainModal({
         </ModalDescription>
       </ModalContent>
       <ModalActions>
+        <Button color="black" onClick={handleCancel}>
+          Cancel
+        </Button>
         <Button color="red" onClick={() => setConfirmOpen(true)}>
           Delete <Icon name="remove" />
         </Button>

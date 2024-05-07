@@ -153,7 +153,7 @@ function AddMgmtDomainModal({
         </ModalDescription>
       </ModalContent>
       <ModalActions>
-        <Button color="yellow" onClick={handleCancel}>
+        <Button color="black" onClick={handleCancel}>
           Cancel <Icon name="cancel" />
         </Button>
         <Button color="green" onClick={handleAdd}>
