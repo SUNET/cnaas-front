@@ -3,9 +3,9 @@ import ProgressBar from "../ProgressBar";
 
 class FirmwareProgressBar extends React.Component {
   render() {
-    const jobFinishedDevices = this.props.jobFinishedDevices;
-    const jobStatus = this.props.jobStatus;
-    const totalCount = this.props.totalCount;
+    const { jobFinishedDevices } = this.props;
+    const { jobStatus } = this.props;
+    const { totalCount } = this.props;
 
     let finishedDevicesNum = 0;
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { Progress } from "semantic-ui-react";
-import PropTypes from 'prop-types'
+import PropTypes from "prop-types";
 
 class ProgressBar extends React.Component {
   render() {
@@ -9,7 +9,7 @@ class ProgressBar extends React.Component {
     let success = false;
     let error = false;
     if (this.props.jobStatus !== undefined) {
-      if (this.props.jobStatus === "SCHEDULED"){
+      if (this.props.jobStatus === "SCHEDULED") {
         disabled = false;
       } else if (this.props.jobStatus === "RUNNING") {
         disabled = false;
@@ -23,13 +23,22 @@ class ProgressBar extends React.Component {
       } else if (this.props.jobStatus === "EXCEPTION") {
         error = true;
       }
-
     }
 
     return (
       <div>
         <div id="progressbar" hidden={this.props.hidden}>
-          <Progress value={this.props.value} total={this.props.total} progress precision={0} color='orange' disabled={disabled} active={active} success={success} error={error} />
+          <Progress
+            value={this.props.value}
+            total={this.props.total}
+            progress
+            precision={0}
+            color="orange"
+            disabled={disabled}
+            active={active}
+            success={success}
+            error={error}
+          />
           <label>
             {this.props.value}/{this.props.total} devices finished
           </label>
@@ -43,7 +52,7 @@ ProgressBar.propTypes = {
   value: PropTypes.number,
   total: PropTypes.number,
   jobStatus: PropTypes.string,
-  hidden: PropTypes.bool
-}
+  hidden: PropTypes.bool,
+};
 
 export default ProgressBar;

@@ -8,34 +8,30 @@ class FirmwareCopy extends React.Component {
   state = {
     firmwareRepoData: [],
     firmwareNmsData: [],
-    firmwareCopyJobIds: {}
-  }
+    firmwareCopyJobIds: {},
+  };
 
   getFirmwareRepoData = () => {
-    let url = process.env.FIRMWARE_REPO_METADATA_URL;
-    getData(url).then(data => {
+    const url = process.env.FIRMWARE_REPO_METADATA_URL;
+    getData(url).then((data) => {
       console.log("this should be REPO data", data);
       {
-        this.setState(
-          {
-            firmwareRepoData: data.firmwares
-          }
-        );
+        this.setState({
+          firmwareRepoData: data.firmwares,
+        });
       }
     });
   };
 
   getFirmwareFiles() {
     const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + "/api/v1.0/firmware";
-    getData(url, credentials).then(data => {
+    const url = `${process.env.API_URL}/api/v1.0/firmware`;
+    getData(url, credentials).then((data) => {
       console.log("this should be NMS data", data);
       {
-        this.setState(
-          {
-            firmwareNmsData: data.data.files
-          }
-        );
+        this.setState({
+          firmwareNmsData: data.data.files,
+        });
       }
     });
   }
@@ -50,34 +46,38 @@ class FirmwareCopy extends React.Component {
     if (curState) {
       e.target.closest("tr").nextElementSibling.hidden = false;
       try {
-        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle down icon";
-      } catch(error) {
-        console.log("Could not change icon for expanded row")
+        e.target.closest("tr").firstElementChild.firstElementChild.className =
+          "angle down icon";
+      } catch (error) {
+        console.log("Could not change icon for expanded row");
       }
     } else {
       e.target.closest("tr").nextElementSibling.hidden = true;
       try {
-        e.target.closest("tr").firstElementChild.firstElementChild.className = "angle right icon";
-      } catch(error) {
-        console.log("Could not change icon for collapsed row")
+        e.target.closest("tr").firstElementChild.firstElementChild.className =
+          "angle right icon";
+      } catch (error) {
+        console.log("Could not change icon for collapsed row");
       }
     }
   }
 
   render() {
-    let firmwareNmsData = this.state.firmwareNmsData;
-    let firmwareData = this.state.firmwareRepoData.map((repoFirmware, index) => {
-      let newRepoFirmware = repoFirmware;
-      newRepoFirmware["present_in_repo"] = true;
-      let popIndex = firmwareNmsData.indexOf(repoFirmware.filename);
-      if (popIndex > -1) {
-        newRepoFirmware["already_downloaded"] = true;
-        firmwareNmsData.splice(popIndex, 1);
-      } else {
-        newRepoFirmware["already_downloaded"] = false;
-      }
-      return newRepoFirmware;
-    });
+    const { firmwareNmsData } = this.state;
+    const firmwareData = this.state.firmwareRepoData.map(
+      (repoFirmware, index) => {
+        const newRepoFirmware = repoFirmware;
+        newRepoFirmware.present_in_repo = true;
+        const popIndex = firmwareNmsData.indexOf(repoFirmware.filename);
+        if (popIndex > -1) {
+          newRepoFirmware.already_downloaded = true;
+          firmwareNmsData.splice(popIndex, 1);
+        } else {
+          newRepoFirmware.already_downloaded = false;
+        }
+        return newRepoFirmware;
+      },
+    );
     console.log("matched firmwares: ", firmwareData);
     firmwareNmsData.map((firmware) => {
       firmwareData.push({
@@ -88,39 +88,51 @@ class FirmwareCopy extends React.Component {
         approved_date: "",
         end_of_life_date: "",
         os_version: "",
-        already_downloaded: true
+        already_downloaded: true,
       });
-    })
+    });
     console.log("unmatched firmwares: ", firmwareNmsData);
 
-    let firmwareTableBody = firmwareData.map((firmware, index) => {
-      let ico = [];
+    const firmwareTableBody = firmwareData.map((firmware, index) => {
+      const ico = [];
       if (firmware.present_in_repo) {
-        ico.push(<Popup
-                   key="present_repo"
-                   content="This firmware is present in the central firmware repository"
-                   position="top center"
-                   trigger={<Icon name="cloud" />} />);
+        ico.push(
+          <Popup
+            key="present_repo"
+            content="This firmware is present in the central firmware repository"
+            position="top center"
+            trigger={<Icon name="cloud" />}
+          />,
+        );
       }
       if (firmware.already_downloaded) {
-        ico.push(<Popup
-                   key="present_local"
-                   content="This firmware is present on this local NMS instance"
-                   position="top center"
-                   trigger={<Icon name="disk" />} />);
+        ico.push(
+          <Popup
+            key="present_local"
+            content="This firmware is present on this local NMS instance"
+            position="top center"
+            trigger={<Icon name="disk" />}
+          />,
+        );
       }
       if (firmware.approved) {
-        ico.push(<Popup
-                   key="approved"
-                   content="This firmware is verified/approved"
-                   position="top center"
-                   trigger={<Icon name="check" color="green" />} />);
+        ico.push(
+          <Popup
+            key="approved"
+            content="This firmware is verified/approved"
+            position="top center"
+            trigger={<Icon name="check" color="green" />}
+          />,
+        );
       } else {
-        ico.push(<Popup
-                   key="not_approved"
-                   content="Warning! This firmware is not verified/approved"
-                   position="top center"
-                   trigger={<Icon name="delete" color="red" />} />);
+        ico.push(
+          <Popup
+            key="not_approved"
+            content="Warning! This firmware is not verified/approved"
+            position="top center"
+            trigger={<Icon name="delete" color="red" />}
+          />,
+        );
       }
 
       return [
@@ -132,7 +144,7 @@ class FirmwareCopy extends React.Component {
           </td>
         </tr>,
         <tr
-          key={index + "_content"}
+          key={`${index}_content`}
           colSpan="1"
           className="device_details_row"
           hidden
@@ -168,7 +180,7 @@ class FirmwareCopy extends React.Component {
               already_downloaded={firmware.already_downloaded}
             />
           </td>
-        </tr>
+        </tr>,
       ];
     });
 
@@ -180,16 +192,16 @@ class FirmwareCopy extends React.Component {
             <table className="firmware_list">
               <thead>
                 <tr>
-                  <th>
-                    Firmwares
-                  </th>
+                  <th>Firmwares</th>
                 </tr>
               </thead>
               <tbody>{firmwareTableBody}</tbody>
             </table>
           </div>
           <h2 hidden={!permissionsCheck("Groups", "read")}>Firmware upgrade</h2>
-          <p hidden={!permissionsCheck("Groups", "read")}><a href="/groups">Select a group for firmware upgrade</a></p>
+          <p hidden={!permissionsCheck("Groups", "read")}>
+            <a href="/groups">Select a group for firmware upgrade</a>
+          </p>
         </div>
       </section>
     );

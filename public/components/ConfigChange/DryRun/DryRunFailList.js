@@ -2,7 +2,7 @@ import React from "react";
 
 class DryRunFailList extends React.Component {
   render() {
-    let devicesObj = this.props.devices;
+    const devicesObj = this.props.devices;
     // split device object up into a key array and a values array
     const deviceNames = Object.keys(devicesObj);
     const deviceData = Object.values(devicesObj);
@@ -20,7 +20,7 @@ class DryRunFailList extends React.Component {
         return false;
       })
       // filter out non-index values
-      .filter(status => status !== false)
+      .filter((status) => status !== false)
       // create a new object using the index array and the name array
       .reduce((obj, key) => {
         obj[key] = deviceNames[key];
@@ -30,7 +30,7 @@ class DryRunFailList extends React.Component {
 
     // pull out the names into an array and render
     const failedDeviceNames = Object.values(failedDeviceNameObj);
-    let failedDeviceNameList = failedDeviceNames.map((name, i) => {
+    const failedDeviceNameList = failedDeviceNames.map((name, i) => {
       return (
         <li key={i}>
           <p className="error" key="0">

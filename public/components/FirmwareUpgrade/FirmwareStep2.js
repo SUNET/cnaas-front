@@ -1,9 +1,9 @@
 import React from "react";
+import { Form, Confirm, Select } from "semantic-ui-react";
 import FirmwareProgressBar from "./FirmwareProgressBar";
 import FirmwareProgressInfo from "./FirmwareProgressInfo";
 import { getData } from "../../utils/getData";
 import FirmwareError from "./FirmwareError";
-import { Form, Confirm, Select } from "semantic-ui-react";
 
 class FirmwareStep2 extends React.Component {
   state = {
@@ -11,13 +11,19 @@ class FirmwareStep2 extends React.Component {
     firmware_options: [],
     firmware_locked: false,
     firmware_selected: false,
-    confirmDiagOpen: false
+    confirmDiagOpen: false,
   };
 
-  openConfirm = () => { this.setState({confirmDiagOpen: true}) };
-  closeConfirm = () => { this.setState({confirmDiagOpen: false}) };
+  openConfirm = () => {
+    this.setState({ confirmDiagOpen: true });
+  };
+
+  closeConfirm = () => {
+    this.setState({ confirmDiagOpen: false });
+  };
+
   okConfirm = () => {
-    this.setState({confirmDiagOpen: false, firmware_locked: true});
+    this.setState({ confirmDiagOpen: false, firmware_locked: true });
     this.props.skipStep2();
   };
 
@@ -25,41 +31,41 @@ class FirmwareStep2 extends React.Component {
     if (this.state.firmware_locked === false) {
       const val = option.value;
       this.setState({
-        filename: val
+        filename: val,
       });
     }
-    this.setState({firmware_selected: true});
+    this.setState({ firmware_selected: true });
   }
 
   onClickStep2 = (e) => {
-    this.setState({firmware_locked: true});
+    this.setState({ firmware_locked: true });
     this.props.firmwareUpgradeStart(2, this.state.filename, null);
-    var confirmButtonElem = document.getElementById("step2button");
+    const confirmButtonElem = document.getElementById("step2button");
     confirmButtonElem.disabled = true;
   };
 
   onClickStep2Abort = (e) => {
     this.props.firmwareUpgradeAbort(2);
-    var confirmButtonElem = document.getElementById("step2abortButton");
+    const confirmButtonElem = document.getElementById("step2abortButton");
     confirmButtonElem.disabled = true;
   };
 
   getFirmwareFiles() {
     const credentials = localStorage.getItem("token");
-    let url = process.env.API_URL + "/api/v1.0/firmware";
-    getData(url, credentials).then(data => {
+    const url = `${process.env.API_URL}/api/v1.0/firmware`;
+    getData(url, credentials).then((data) => {
       console.log("this should be data", data);
       {
-        var firmware_options = data.data.files.map((filename, index) => {
-          return {'key': index, 'value': filename, 'text': filename};
-        })
+        const firmware_options = data.data.files.map((filename, index) => {
+          return { key: index, value: filename, text: filename };
+        });
         this.setState(
           {
-            firmware_options: firmware_options
+            firmware_options,
           },
           () => {
             console.log("this is new state", this.state.firmwareInfo);
-          }
+          },
         );
       }
     });
@@ -70,21 +76,17 @@ class FirmwareStep2 extends React.Component {
   }
 
   render() {
-    let jobData = this.props.jobData;
-    let jobStatus = this.props.jobStatus;
-    let jobId = this.props.jobId;
-    let jobFinishedDevices = this.props.jobFinishedDevices;
+    const { jobData } = this.props;
+    const { jobStatus } = this.props;
+    const { jobId } = this.props;
+    const { jobFinishedDevices } = this.props;
     let error = "";
     let step2abortDisabled = true;
     let step2disabled = true;
 
     if (jobStatus === "EXCEPTION") {
       // console.log("jobStatus errored");
-      error = [
-        <FirmwareError
-          devices={this.props.jobResult.devices}
-        />
-      ];
+      error = [<FirmwareError devices={this.props.jobResult.devices} />];
     } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
       step2abortDisabled = false;
     }
@@ -107,7 +109,8 @@ class FirmwareStep2 extends React.Component {
         </div>
         <div className="task-collapsable">
           <p>
-            Step 2 of 3: Download firmware to device and activate it for next reboot
+            Step 2 of 3: Download firmware to device and activate it for next
+            reboot
           </p>
           <Form>
             <Select
@@ -117,13 +120,25 @@ class FirmwareStep2 extends React.Component {
               disabled={this.state.firmware_locked}
             />
             <div className="info">
-              <button id="step2button" disabled={step2disabled} onClick={e => this.onClickStep2(e)}>
+              <button
+                id="step2button"
+                disabled={step2disabled}
+                onClick={(e) => this.onClickStep2(e)}
+              >
                 Start activate firmware
               </button>
-              <button id="step2skipButton" disabled={step2disabled} onClick={e => this.openConfirm(e)}>
+              <button
+                id="step2skipButton"
+                disabled={step2disabled}
+                onClick={(e) => this.openConfirm(e)}
+              >
                 Skip to step 3
               </button>
-              <button id="step2abortButton" disabled={step2abortDisabled} onClick={e => this.onClickStep2Abort(e)}>
+              <button
+                id="step2abortButton"
+                disabled={step2abortDisabled}
+                onClick={(e) => this.onClickStep2Abort(e)}
+              >
                 Abort!
               </button>
             </div>
