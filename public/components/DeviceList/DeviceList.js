@@ -11,14 +11,17 @@ import {
   Input
 } from 'semantic-ui-react'
 import DeviceSearchForm from './DeviceSearchForm'
-import checkResponseStatus from '../utils/checkResponseStatus'
+import checkResponseStatus from '../../utils/checkResponseStatus'
 import DeviceInitForm from './DeviceInitForm'
 import queryString from 'query-string'
-import { getData, getResponse } from '../utils/getData'
-import { deleteData } from '../utils/sendData'
+import { getData, getResponse } from '../../utils/getData'
+import { deleteData } from '../../utils/sendData'
 import { SemanticToastContainer, toast } from 'react-semantic-toasts-2'
-import formatISODate from '../utils/formatters'
-import permissionsCheck from '../utils/permissions/permissionsCheck'
+import DeviceInfoBlock from "./DeviceInfoBlock"
+import AddMgmtDomainModal from "./AddMgmtDomainModal"
+import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal"
+
+
 const io = require('socket.io-client')
 let socket = null
 
@@ -49,7 +52,12 @@ class DeviceList extends React.Component {
     delete_modal_device_type: null,
     delete_modal_confirm_name: '',
     delete_modal_factory_default: false,
-    delete_modal_error: null
+    delete_modal_error: null,
+    mgmtAddModalOpen: false,
+    mgmtUpdateModalOpen: false,
+    mgmtUpdateModalInput: {},
+    mgmtAddModalInput: {},
+    mgmtDomainsData: []
   }
 
   discovered_device_ids = new Set()
@@ -71,6 +79,20 @@ class DeviceList extends React.Component {
         error: error
       })
     })
+  }
+
+  getAllMgmtDomainsData() {
+    const credentials = localStorage.getItem("token");
+    getData(`${process.env.API_URL}/api/v1.0/mgmtdomains`, credentials)
+      .then((resp) => {
+        this.setState({ mgmtDomainsData: resp.data.mgmtdomains });
+      })
+      .catch((error) => {
+        this.setState({
+          loading: false,
+          error,
+        });
+      });
   }
 
   parseQueryParams (callback) {
@@ -227,7 +249,8 @@ class DeviceList extends React.Component {
     } else {
       this.getDevicesData()
     }
-    this.populateDiscoveredDevices()
+    this.populateDiscoveredDevices();
+    this.getAllMgmtDomainsData();
     socket = io(process.env.API_URL, { query: { jwt: credentials } })
     socket.on('connect', function (data) {
       console.log('Websocket connected!')
@@ -498,33 +521,9 @@ class DeviceList extends React.Component {
       })
   }
 
-  /**
-   * Handle expand/collapse of device details when clicking a row in the table
-   */
-  clickRow (e) {
-    const curState = e.target.closest('tr').nextElementSibling.hidden
-    if (curState) {
-      e.target.closest('tr').nextElementSibling.hidden = false
-      if (
-        e.target.closest('tr').id in this.state.deviceInterfaceData ===
-        false
-      ) {
-        this.getInterfacesData(e.target.closest('tr').id)
-      }
-      try {
-        e.target.closest('tr').firstElementChild.firstElementChild.className =
-          'angle down icon'
-      } catch (error) {
-        console.log('Could not change icon for expanded row')
-      }
-    } else {
-      e.target.closest('tr').nextElementSibling.hidden = true
-      try {
-        e.target.closest('tr').firstElementChild.firstElementChild.className =
-          'angle right icon'
-      } catch (error) {
-        console.log('Could not change icon for collapsed row')
-      }
+  clickRow(closestTrParentId) {
+    if (closestTrParentId in this.state.deviceInterfaceData === false) {
+      this.getInterfacesData(closestTrParentId);
     }
   }
 
@@ -591,6 +590,81 @@ class DeviceList extends React.Component {
           />
         )
       })
+  }
+
+  getMgmgtDomainForDevice(hostname) {
+    return this.state.mgmtDomainsData.filter(
+      (data) => hostname === data.device_a || hostname === data.device_b,
+    );
+  }
+
+  renderMgmtDomainsButton(device) {
+    const includeCore = process.env.MGMT_DOMAIN_CORE_ENABLED === "true";
+    const mgmtDomainForDevice = this.getMgmgtDomainForDevice(device.hostname);
+    const isCorrectDeviceType = (dev) =>
+      dev.device_type === "DIST" || (includeCore && dev.device_type === "CORE");
+    const isNotInMgmgtDomain = (dev) =>
+      !this.getMgmgtDomainForDevice(dev.hostname).length;
+    if (!mgmtDomainForDevice.length) {
+      const deviceBCandidates = this.state.devicesData
+        .filter(isCorrectDeviceType)
+        .filter(isNotInMgmgtDomain);
+      return (
+        <Button
+          compact
+          icon="plus"
+          key={`${device.id}_mgmgt_add`}
+          onClick={() =>
+            this.mgmtAddModalOpen(device.hostname, deviceBCandidates)
+          }
+          content="Add management domain"
+        />
+      );
+    }
+
+    if (mgmtDomainForDevice.length > 1) {
+      throw new Error("multiple mgmt domains for device");
+    }
+
+    return (
+      <Button
+        compact
+        icon="arrow up"
+        key={`${device.id}_mgmgt_add`}
+        onClick={() => this.mgmtUpdateModalOpen(mgmtDomainForDevice[0])}
+        content="Management domain"
+      />
+    );
+  }
+
+  handleAddMgmtDomains(id) {
+    toast({
+      type: "success",
+      title: `Management domain ${id} added`,
+      time: 5000,
+    });
+    this.getAllMgmtDomainsData();
+    this.setState({ mgmtAddModalOpen: false });
+  }
+
+  handleDeleteMgmtDomain(id) {
+    toast({
+      type: "success",
+      title: `Management domain ${id} deleted`,
+      time: 5000,
+    });
+    this.getAllMgmtDomainsData();
+    this.setState({ mgmtUpdateModalOpen: false });
+  }
+
+  handleUpdateMgmtDomains(id) {
+    toast({
+      type: "success",
+      title: `Management domain ${id} updated`,
+      time: 5000,
+    });
+    this.getAllMgmtDomainsData();
+    this.setState({ mgmtUpdateModalOpen: false });
   }
 
   renderSortButton (key) {
@@ -733,6 +807,54 @@ class DeviceList extends React.Component {
       })
   }
 
+  mgmtAddModalOpen(deviceA, deviceBCandidates) {
+    this.setState({
+      mgmtAddModalInput: {
+        deviceA,
+        deviceBCandidates,
+      },
+      mgmtAddModalOpen: true
+    });
+  }
+
+  mgmtAddDomainModalClose() {
+    this.setState({
+      mgmtAddModalInput: {
+        deviceA: null,
+        deviceBCandidates: null,
+      },
+      mgmtAddModalOpen: false,
+    });
+  }
+
+  mgmtUpdateModalOpen({id, device_a, device_b, ipv4_gw, ipv6_gw, vlan}) {
+    this.setState({
+      mgmtUpdateModalInput: {
+        mgmtId: id,
+        deviceA: device_a,
+        deviceB: device_b,
+        ipv4Initial: ipv4_gw,
+        ipv6Initial: ipv6_gw,
+        vlanInitial: vlan
+      },
+      mgmtUpdateModalOpen: true
+    });
+  }
+
+  mgmtUpdateModalClose() {
+    this.setState({
+      mgmtUpdateModalInput: {
+        mgmtId: null,
+        deviceA: null,
+        deviceB: null,
+        ipv4Initial: null,
+        ipv6Initial: null,
+        vlanInitial: null
+      },
+      mgmtUpdateModalOpen: false
+    });
+  }
+
   changeStateAction (device_id, state) {
     console.log('Change state for device_id: ' + device_id)
     const credentials = localStorage.getItem('token')
@@ -802,75 +924,187 @@ class DeviceList extends React.Component {
     return mgmtip;
   }
 
-  render() {
-    const devicesData = this.state.devicesData;
-    let deviceInfo = devicesData.map((device, index) => {
-      let syncStatus = ''
-      if (device.state === 'MANAGED') {
-        if (device.synchronized === true) {
-          syncStatus = (
-            <td key={device.id + '_state'}>
-              MANAGED / SYNC=
-              <Icon name='check' color='green' />
-            </td>
-          )
-        } else {
-          syncStatus = (
-            <td key={device.id + '_state'}>
-              MANAGED / SYNC=
-              <Icon name='delete' color='red' />
-            </td>
-          )
-        }
-      } else {
-        syncStatus = <td key={device.id + '_state'}>{device.state}</td>
+  createMenuActionsForDevice(device) {
+    let menuActions = [
+      <Dropdown.Item
+        key='noaction'
+        text='No actions allowed in this state'
+        disabled={true} />
+    ]
+    if (device.state == 'DHCP_BOOT') {
+      menuActions = [
+        <Dropdown.Item
+          key='delete'
+          text='Delete device...'
+          onClick={() => this.deleteModalOpen(
+            device.id,
+            device.hostname,
+            device.state,
+            device.device_type
+          )} />
+      ]
+    } else if (device.state == 'DISCOVERED') {
+      menuActions = [
+        <Dropdown.Item
+          key='delete'
+          text='Delete device...'
+          onClick={() => this.deleteModalOpen(
+            device.id,
+            device.hostname,
+            device.state,
+            device.device_type
+          )} />
+      ]
+    } else if (device.state == 'MANAGED') {
+      menuActions = [
+        <Dropdown.Item
+          key='sync'
+          text='Sync device...'
+          onClick={() => this.syncDeviceAction(device.hostname)} />,
+        <Dropdown.Item
+          key='fwupgrade'
+          text='Firmware upgrade...'
+          onClick={() => this.upgradeDeviceAction(device.hostname)} />,
+        <Dropdown.Item
+          key='facts'
+          text='Update facts'
+          onClick={() => this.updateFactsAction(device.hostname, device.id)} />,
+        <Dropdown.Item
+          key='makeunmanaged'
+          text='Make unmanaged'
+          onClick={() => this.changeStateAction(device.id, 'UNMANAGED')} />,
+        <Dropdown.Item
+          key='delete'
+          text='Delete device...'
+          onClick={() => this.deleteModalOpen(
+            device.id,
+            device.hostname,
+            device.state,
+            device.device_type
+          )} />
+      ]
+      if (device.device_type === 'ACCESS') {
+        menuActions.push(
+          <Dropdown.Item
+            key='configports'
+            text='Configure ports'
+            onClick={() => this.configurePortsAction(device.hostname)} />
+        )
       }
-      let deviceStateExtra = []
-      let menuActions = [
+    } else if (device.state == 'UNMANAGED') {
+      menuActions = [
+        <Dropdown.Item
+          key='facts'
+          text='Update facts'
+          onClick={() => this.updateFactsAction(device.hostname, device.id)} />,
+        <Dropdown.Item
+          key='makemanaged'
+          text='Make managed'
+          onClick={() => this.changeStateAction(device.id, 'MANAGED')} />,
+        <Dropdown.Item
+          key='delete'
+          text='Delete device...'
+          onClick={() => this.deleteModalOpen(
+            device.id,
+            device.hostname,
+            device.state,
+            device.device_type
+          )} />
+      ]
+    }
+
+    if (device?.deleted === true) {
+      menuActions = [
         <Dropdown.Item
           key='noaction'
-          text='No actions allowed in this state'
-          disabled={true}
-        />
+          text='No actions allowed for deleted device'
+          disabled={true} />
       ]
-      let hostnameExtra = []
-      if (device.state == 'DHCP_BOOT') {
-        menuActions = [
-          <Dropdown.Item
-            key='delete'
-            text='Delete device...'
-            onClick={() =>
-              this.deleteModalOpen(
-                device.id,
-                device.hostname,
-                device.state,
-                device.device_type
-              )
-            }
-          />
-        ]
-      } else if (device.state == 'DISCOVERED') {
+    }
+
+    return menuActions;
+  }
+
+  createHostnameExtraForDevice(device) {
+    if (device?.deleted) {
+      return [<Icon key='deleted' name='delete' color='red' />]
+    }
+
+    const hostnameExtra = []
+    if (device.state == "MANAGED" && device.device_type === "ACCESS") {
+      hostnameExtra.push(
+        <a
+          key="interfaceconfig"
+          href={"/interface-config?hostname=" + device.hostname}
+        >
+          <Icon name="plug" link />
+        </a>
+      )
+    }
+
+    return hostnameExtra;
+  }
+
+  createSyncStatusForDevice(device) {
+    if (device?.deleted === true) {
+      return <td key={device.id + "_state"}>DELETED</td>
+    }
+
+    let syncStatus = ""
+    if (device.state === "MANAGED") {
+      const isSynchronized = device.synchronized === true;
+      syncStatus = (
+        <td key={device.id + "_state"}>
+          MANAGED / SYNC=
+          <Icon
+            name={isSynchronized ? "check" : "delete"}
+            color={isSynchronized ? "green" : "red"} />
+        </td>
+      )
+    } else {
+      syncStatus = <td key={device.id + "_state"}>{device.state}</td>
+    }
+
+    return syncStatus;
+  }
+
+  createDeviceButtonsExtraForDevice(device) {
+    const deviceButtons = [];
+
+    if (device.hostname in this.state.deviceInterfaceData !== false) {
+      const mlagPeerLink = this.renderMlagLink(
+        this.state.deviceInterfaceData[device.hostname]
+      )
+      if (mlagPeerLink !== null) {
+        deviceButtons.push.apply(deviceButtons, mlagPeerLink)
+      }
+
+      const uplinkLink = this.renderUplinkLink(
+        this.state.deviceInterfaceData[device.hostname]
+      )
+      if (uplinkLink !== null) {
+        deviceButtons.push.apply(deviceButtons, uplinkLink)
+      }
+    }
+
+    const includeCore = process.env.MGMT_DOMAIN_CORE_ENABLED === "true";
+    if (device.device_type === "DIST" || (includeCore && device.device_type === "CORE")) {
+      deviceButtons.push(this.renderMgmtDomainsButton(device));
+    }
+
+    return deviceButtons;
+  }
+
+  mangleDeviceData(devicesData) {
+    return devicesData.map((device, index) => {
+      const deviceStateExtra = []
+      if (device.state == 'DISCOVERED') {
         deviceStateExtra.push(
           <DeviceInitForm
             key={device.id + '_initform'}
             deviceId={device.id}
-            jobIdCallback={this.addDeviceJob.bind(this)}
-          />
+            jobIdCallback={this.addDeviceJob.bind(this)} />
         )
-        menuActions = [
-          <Dropdown.Item
-            key='delete'
-            text='Delete device...'
-            onClick={() =>
-              this.deleteModalOpen(
-                device.id,
-                device.hostname,
-                device.state,
-                device.device_type
-              )
-            }
-          />
-        ]
       } else if (device.state == 'INIT') {
         if (device.id in this.state.deviceJobs) {
           deviceStateExtra.push(
@@ -879,120 +1113,19 @@ class DeviceList extends React.Component {
             </p>
           )
         }
-      } else if (device.state == 'MANAGED') {
-        menuActions = [
-          <Dropdown.Item
-            key='sync'
-            text='Sync device...'
-            onClick={() => this.syncDeviceAction(device.hostname)}
-          />,
-          <Dropdown.Item
-            key='fwupgrade'
-            text='Firmware upgrade...'
-            onClick={() => this.upgradeDeviceAction(device.hostname)}
-          />,
-          <Dropdown.Item
-            key='facts'
-            text='Update facts'
-            onClick={() => this.updateFactsAction(device.hostname, device.id)}
-          />,
-          <Dropdown.Item
-            key='makeunmanaged'
-            text='Make unmanaged'
-            onClick={() => this.changeStateAction(device.id, 'UNMANAGED')}
-          />,
-          <Dropdown.Item
-            key='delete'
-            text='Delete device...'
-            onClick={() =>
-              this.deleteModalOpen(
-                device.id,
-                device.hostname,
-                device.state,
-                device.device_type
-              )
-            }
-          />
-        ]
-        if (device.device_type === 'ACCESS') {
-          menuActions.push(
-            <Dropdown.Item
-              key='configports'
-              text='Configure ports'
-              onClick={() => this.configurePortsAction(device.hostname)}
-            />
-          )
-          hostnameExtra.push(
-            <a
-              key='interfaceconfig'
-              href={'/interface-config?hostname=' + device.hostname}
-            >
-              <Icon name='plug' link />
-            </a>
-          )
-        }
-      } else if (device.state == 'UNMANAGED') {
-        menuActions = [
-          <Dropdown.Item
-            key='facts'
-            text='Update facts'
-            onClick={() => this.updateFactsAction(device.hostname, device.id)}
-          />,
-          <Dropdown.Item
-            key='makemanaged'
-            text='Make managed'
-            onClick={() => this.changeStateAction(device.id, 'MANAGED')}
-          />,
-          <Dropdown.Item
-            key='delete'
-            text='Delete device...'
-            onClick={() =>
-              this.deleteModalOpen(
-                device.id,
-                device.hostname,
-                device.state,
-                device.device_type
-              )
-            }
-          />
-        ]
       }
-      if (device.deleted !== undefined && device.deleted === true) {
-        syncStatus = <td key={device.id + '_state'}>DELETED</td>
-        hostnameExtra = [<Icon key='deleted' name='delete' color='red' />]
-        menuActions = [
-          <Dropdown.Item
-            key='noaction'
-            text='No actions allowed for deleted device'
-            disabled={true}
-          />
-        ]
-      }
-      let deviceInterfaceData = ''
-      if (device.hostname in this.state.deviceInterfaceData !== false) {
-        let deviceButtons = []
-        let mlagPeerLink = this.renderMlagLink(
-          this.state.deviceInterfaceData[device.hostname]
+
+      const deviceButtonsExtra = this.createDeviceButtonsExtraForDevice(device);
+      if (deviceButtonsExtra.length > 0) {
+        deviceStateExtra.push(
+          <div key='btngroup'>
+            <Button.Group vertical labeled icon>
+              {deviceButtonsExtra}
+            </Button.Group>
+          </div>
         )
-        if (mlagPeerLink !== null) {
-          deviceButtons.push.apply(deviceButtons, mlagPeerLink)
-        }
-        let uplinkLink = this.renderUplinkLink(
-          this.state.deviceInterfaceData[device.hostname]
-        )
-        if (uplinkLink !== null) {
-          deviceButtons.push.apply(deviceButtons, uplinkLink)
-        }
-        if (deviceButtons.length > 0) {
-          deviceStateExtra.push(
-            <div key='btngroup'>
-              <Button.Group vertical labeled icon>
-                {deviceButtons}
-              </Button.Group>
-            </div>
-          )
-        }
       }
+
       let log = {}
       Object.keys(this.state.deviceJobs).map(device_id => {
         log[device_id] = ''
@@ -1008,105 +1141,40 @@ class DeviceList extends React.Component {
           })
         })
       })
+
       let columnData = this.state.displayColumns.map((columnName, colIndex) => {
-        return <td key={100 + colIndex}>{device[columnName]}</td>;
-      });
-      const mgmtip = [];
+        return <td key={100 + colIndex}>{device[columnName]}</td>
+      })
+
+      const mgmtip = []
       if (device.management_ip) {
-        mgmtip.push(...this.createMgmtIP(device.management_ip));
+        mgmtip.push(...this.createMgmtIP(device.management_ip))
       }
       if (device.secondary_management_ip) {
-        mgmtip.push(...this.createMgmtIP(device.secondary_management_ip, "secondary_"));
+        mgmtip.push(...this.createMgmtIP(device.secondary_management_ip, "secondary_"))
       }
       if (device.dhcp_ip !== null) {
         mgmtip.push(<i key='dhcp_ip'>(DHCP IP: {device.dhcp_ip})</i>)
       }
-      return [
-        <tr
-          id={device.hostname}
-          key={device.id + '_row'}
-          onClick={this.clickRow.bind(this)}
-        >
-          <td key={device.id + '_hostname'}>
-            <Icon name='angle right' />
-            {device.hostname}
-            {hostnameExtra}
-          </td>
-          <td key={device.id + '_device_type'}>{device.device_type}</td>
-          {syncStatus}
-          {columnData}
-          <td key={device.id + '_id'}>{device.id}</td>
-        </tr>,
-        <tr
-          key={device.id + '_content'}
-          colSpan={4 + this.state.displayColumns.length}
-          className='device_details_row'
-          hidden
-        >
-          <td>
-            <div hidden={!permissionsCheck('Devices', 'write')}>
-              <Dropdown text='Actions' button={true}>
-                <Dropdown.Menu>{menuActions}</Dropdown.Menu>
-              </Dropdown>
-            </div>
-            <table className='device_details_table'>
-              <tbody>
-                <tr key={'detail_mgmtip'}>
-                  <td key='name'>Management IP</td>
-                  <td key='value'>
-                    <div>{mgmtip}</div>
-                  </td>
-                </tr>
-                <tr key={'detail_infraip'}>
-                  <td key='name'>Infra IP</td>
-                  <td key='value'>{device.infra_ip}</td>
-                </tr>
-                <tr key={'detail_mac'}>
-                  <td key='name'>MAC</td>
-                  <td key='value'>{device.ztp_mac}</td>
-                </tr>
-                <tr key={'detail_vendor'}>
-                  <td key='name'>Vendor</td>
-                  <td key='value'>{device.vendor}</td>
-                </tr>
-                <tr key={'detail_model'}>
-                  <td key='name'>Model</td>
-                  <td key='value'>{device.model}</td>
-                </tr>
-                <tr key={'detail_osversion'}>
-                  <td key='name'>OS Version</td>
-                  <td key='value'>{device.os_version}</td>
-                </tr>
-                <tr key={'detail_serial'}>
-                  <td key='name'>Serial</td>
-                  <td key='value'>{device.serial}</td>
-                </tr>
-                <tr key={'detail_state'}>
-                  <td key='name'>State</td>
-                  <td key='value'>{device.state}</td>
-                </tr>
-                <tr key={'primary_group'}>
-                  <td key='name'>Primary group</td>
-                  <td key='value'>{device.primary_group}</td>
-                </tr>
-                <tr key={'seen'}>
-                  <td key='name'>Last seen</td>
-                  <td key='value'>{formatISODate(device.last_seen)}</td>
-                </tr>
-              </tbody>
-            </table>
-            {deviceStateExtra}
-            {deviceInterfaceData}
-            <div
-              id={'logoutputdiv_device_id_' + device.id}
-              className='logoutput'
-            >
-              <pre>{log[device.id]}</pre>
-            </div>
-          </td>
-        </tr>
-      ]
+
+      return <DeviceInfoBlock
+        key={device.id + "_device_info"}
+        device={device}
+        hostnameExtra={this.createHostnameExtraForDevice(device)}
+        syncStatus={this.createSyncStatusForDevice(device)}
+        columnData={columnData}
+        clickRow={this.clickRow.bind(this)}
+        colLength={this.state.displayColumns.length}
+        menuActions={this.createMenuActionsForDevice(device)}
+        mgmtip={mgmtip}
+        deviceStateExtra={deviceStateExtra}
+        log={log}
+      ></DeviceInfoBlock>
     })
+  }
+
+  render() {
+    let deviceInfo = this.mangleDeviceData(this.state.devicesData)
     if (this.state.error) {
       deviceInfo = [
         <tr key={'errorrow'}>
@@ -1237,6 +1305,19 @@ class DeviceList extends React.Component {
               </Button>
             </Modal.Actions>
           </Modal>
+          <AddMgmtDomainModal
+            {...this.state.mgmtAddModalInput}
+            isOpen={this.state.mgmtAddModalOpen}
+            closeAction={() => this.mgmtAddDomainModalClose()}
+            onAdd={(v) => this.handleAddMgmtDomains(v)}
+          />
+          <UpdateMgmtDomainModal
+            {...this.state.mgmtUpdateModalInput}
+            isOpen={this.state.mgmtUpdateModalOpen}
+            closeAction={() => this.mgmtUpdateModalClose()}
+            onDelete={(v) => this.handleDeleteMgmtDomain(v)}
+            onUpdate={(v) => this.handleUpdateMgmtDomains(v)}
+          />
           <div className='table_options'>
             <Popup
               on='click'

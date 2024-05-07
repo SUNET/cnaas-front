@@ -2,9 +2,9 @@
 import React from "react";
 import PropTypes from 'prop-types'
 import { Button, Select, Input, Icon, Modal, Accordion } from 'semantic-ui-react'
-import checkResponseStatus from "../utils/checkResponseStatus";
-import checkJsonResponse from "../utils/checkJsonResponse";
-import { getData } from "../utils/getData"
+import checkResponseStatus from "../../utils/checkResponseStatus";
+import checkJsonResponse from "../../utils/checkJsonResponse";
+import { getData } from "../../utils/getData"
 
 class DeviceInitForm extends React.Component {
   state = {
