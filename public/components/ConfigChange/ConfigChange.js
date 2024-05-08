@@ -310,6 +310,10 @@ class ConfigChange extends React.Component {
       }
     });
     socket.on("");
+
+    if (queryParams.scrollTo !== undefined) {
+      this.handleDryRunReady();
+    }
   }
 
   componentWillUnmount() {
