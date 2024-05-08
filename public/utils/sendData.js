@@ -6,11 +6,10 @@ const putData = (url, credentials, dataToSend) => {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${credentials}`
+      Authorization: `Bearer ${credentials}`,
     },
-    body: JSON.stringify(dataToSend)
-  })
-    .then(response => checkJsonResponse(response));
+    body: JSON.stringify(dataToSend),
+  }).then((response) => checkJsonResponse(response));
 };
 
 const postData = (url, credentials, dataToSend) => {
@@ -18,13 +17,13 @@ const postData = (url, credentials, dataToSend) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${credentials}`
+      Authorization: `Bearer ${credentials}`,
     },
     body: JSON.stringify(dataToSend),
-    credentials: 'include'
+    credentials: "include",
   })
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json());
+    .then((response) => checkResponseStatus(response))
+    .then((response) => response.json());
 };
 
 const deleteData = (url, credentials, dataToSend) => {
@@ -32,12 +31,12 @@ const deleteData = (url, credentials, dataToSend) => {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${credentials}`
+      Authorization: `Bearer ${credentials}`,
     },
-    body: JSON.stringify(dataToSend)
+    body: JSON.stringify(dataToSend),
   })
-    .then(response => checkResponseStatus(response))
-    .then(response => response.json());
+    .then((response) => checkResponseStatus(response))
+    .then((response) => response.json());
 };
 
 module.exports = { putData, postData, deleteData };

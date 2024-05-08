@@ -9,7 +9,6 @@
 5. run: `npm start` to bundle the js files
 6. navigate to `http://localhost:1234` in browser
 
-
 ## full interactive dev setup with docker-compose
 
 This guide will show you how to set up cnaas-nms on your local machine for development.
@@ -18,14 +17,12 @@ The components will run in Docker-containers.
 The cnaas-nms frontend will also run inside a Docker container and update interactively with
 every code change.
 
-
 ### clone the repositories
 
 Clone the source code for frontend and API. Both should be in the same parent directory.
 
     git clone https://github.com/SUNET/cnaas-front.git cnaas-front
     git clone https://github.com/SUNET/cnaas-nms.git cnaas-nms
-
 
 ### setup and run docker-compose
 
@@ -41,7 +38,6 @@ This file is used to run docker-compose and build all containers. This takes for
 
 As soon as the built is finished, docker-compose will start the containers.
 
-
 ### set up the auth container
 
 A script will set up the auth container for you.
@@ -51,7 +47,6 @@ It will also create a user named "cnaas" with password "cnaascnaascnaas".
     docker cp docker/front-dev/setup_auth.sh cnaas-front_auth_1:/opt/auth-server-poc/
     docker exec -t cnaas-front_auth_1 /bin/chmod u+x /opt/auth-server-poc/setup_auth.sh
     docker exec -t cnaas-front_auth_1 /opt/auth-server-poc/setup_auth.sh
-
 
 ### copy the key for JWT authentication
 
@@ -71,19 +66,16 @@ Alternatively, you can restart the whole API container.
 
     docker-compose restart api
 
-
 ### add some devices to the database
 
     docker exec -i cnaas-front_postgres_1 /usr/bin/psql -U cnaas cnaas < docker/front-dev/cnaas.pgdump
 
 Some errors and warnings will appear. You can ignore those.
 
-
 ### check it's all working
 
 On the host system (that's your computer), you can now run the following commands to ensure that
 everything is working: auth, API and frontend.
-
 
 #### auth
 
@@ -102,7 +94,6 @@ exceedingly.ridiculouslyrandomlylookinglongstring without the JSON wrapper) as `
 
     echo 'JWT_AUTH_TOKEN="exceedingly.ridiculouslyrandomlylookinglongstring"' > .env
 
-
 #### API
 
 Next, load the token into the `JWT_AUTH_TOKEN` environment variable with `source` and define an
@@ -116,7 +107,6 @@ alias command that allows you to authenticate with the cnaas-nms REST API using 
     curlJ https://localhost/api/v1.0/devices | jq
 
 This should return a list of two test devices.
-
 
 #### frontend
 

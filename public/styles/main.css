@@ -192,14 +192,14 @@ footer {
   margin: 16px;
 }
 
-.task-container .ui.input.job_comment, .task-container .ui.input.job_ticket_ref {
+.task-container .ui.input.job_comment,
+.task-container .ui.input.job_ticket_ref {
   margin-left: 16px;
 }
 
 .task-container .job_comment {
   width: 50em;
 }
-
 
 table,
 thead,
@@ -245,11 +245,11 @@ progress {
   width: 100%;
   border-radius: 10px;
 
-    /* Reset the default appearance */
+  /* Reset the default appearance */
   -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
-  
+  -moz-appearance: none;
+  appearance: none;
+
   /* Get rid of default border in Firefox. */
   border: none;
 }
@@ -347,7 +347,7 @@ progress::-moz-progress-bar {
   margin: 0;
 }
 
-#diff-box pre{
+#diff-box pre {
   padding-left: 1rem;
 }
 

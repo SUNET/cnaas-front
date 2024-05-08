@@ -3,9 +3,9 @@ import ProgressBar from "../../ProgressBar";
 
 class DryRunProgressBar extends React.Component {
   render() {
-    let progressData = this.props.dryRunProgressData;
-    let jobStatus = this.props.dryRunJobStatus;
-    let totalDevices = this.props.totalDevices;
+    const progressData = this.props.dryRunProgressData;
+    const jobStatus = this.props.dryRunJobStatus;
+    const { totalDevices } = this.props;
 
     let finishedDevicesData = [];
     let finishedDevicesNum = 0;
@@ -23,15 +23,15 @@ class DryRunProgressBar extends React.Component {
         value={finishedDevicesNum}
         total={totalDevices}
         jobStatus={jobStatus}
-        key={200+this.props.keyNum}
+        key={200 + this.props.keyNum}
       />
     );
   }
-  
+
   static defaultProps = {
     hidden: false,
-    keyNum: 1
-  }
+    keyNum: 1,
+  };
 }
 
 export default DryRunProgressBar;

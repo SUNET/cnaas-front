@@ -1,34 +1,34 @@
 import React from "react";
+import { Form, Checkbox, Popup, Icon } from "semantic-ui-react";
 import DryRunProgressBar from "./DryRunProgressBar";
 import DryRunProgressInfo from "./DryRunProgressInfo";
 import DryRunError from "./DryRunError";
-import { Form, Checkbox, Popup, Icon } from "semantic-ui-react";
 import permissionsCheck from "../../../utils/permissions/permissionsCheck";
 
 class DryRun extends React.Component {
   state = {
-    "resync": false,
-    expanded: true
+    resync: false,
+    expanded: true,
   };
 
   toggleExpand = (e, props) => {
-    this.setState({expanded: !this.state.expanded});
-  }
+    this.setState({ expanded: !this.state.expanded });
+  };
 
   checkboxChangeHandler = (event, data) => {
-    this.setState({ [data.name]: data.checked }, () => { 
-      console.log("resync:" + this.state.resync);
+    this.setState({ [data.name]: data.checked }, () => {
+      console.log(`resync:${this.state.resync}`);
     });
   };
 
   dryrunButtonOnclick() {
-    this.props.dryRunSyncStart({"resync": this.state.resync});
-  };
+    this.props.dryRunSyncStart({ resync: this.state.resync });
+  }
 
   render() {
-    let dryRunProgressData = this.props.dryRunProgressData;
-    let dryRunJobStatus = this.props.dryRunJobStatus;
-    let jobId = this.props.jobId;
+    const { dryRunProgressData } = this.props;
+    const { dryRunJobStatus } = this.props;
+    const { jobId } = this.props;
     let error = "";
     let dryrunButtonDisabled = this.props.dryRunDisable;
     let resetButtonDisabled = true;
@@ -41,7 +41,7 @@ class DryRun extends React.Component {
           dryRunProgressData={dryRunProgressData}
           devices={this.props.devices}
           resync={this.state.resync}
-        />
+        />,
       ];
     }
     if (dryRunJobStatus === "FINISHED") {
@@ -55,14 +55,20 @@ class DryRun extends React.Component {
       <div className="task-container">
         <div className="heading">
           <h2>
-            <Icon name='dropdown' onClick={this.toggleExpand} rotated={this.state.expanded?null:"counterclockwise"} />
+            <Icon
+              name="dropdown"
+              onClick={this.toggleExpand}
+              rotated={this.state.expanded ? null : "counterclockwise"}
+            />
             Dry run (2/4)
             <Popup
-              content={"This step will generate new configurations and send them to the targeted devices, and the devices will then compare their currently running configuration to the newly generated and return a diff."+
-              " No configuration will be changed. If any device has been configured outside of NMS you will get a configuration hash mismatch error, and need to do a force retry to see which local changes a commit would overwrite."}
+              content={
+                "This step will generate new configurations and send them to the targeted devices, and the devices will then compare their currently running configuration to the newly generated and return a diff." +
+                " No configuration will be changed. If any device has been configured outside of NMS you will get a configuration hash mismatch error, and need to do a force retry to see which local changes a commit would overwrite."
+              }
               trigger={<Icon name="question circle outline" size="small" />}
               wide="very"
-              />
+            />
           </h2>
         </div>
         <div className="task-collapsable" hidden={!this.state.expanded}>
@@ -72,13 +78,28 @@ class DryRun extends React.Component {
           </p>
           <Form>
             <div className="info">
-              <Checkbox label="Re-sync devices (check for local changes made outside of NMS)" name="resync" checked={this.state.resync} onChange={this.checkboxChangeHandler} /> 
+              <Checkbox
+                label="Re-sync devices (check for local changes made outside of NMS)"
+                name="resync"
+                checked={this.state.resync}
+                onChange={this.checkboxChangeHandler}
+              />
             </div>
             <div className="info">
-              <button id="dryrunButton" hidden={!permissionsCheck("Config change", "write")} disabled={dryrunButtonDisabled} onClick={() => this.dryrunButtonOnclick()}>
+              <button
+                id="dryrunButton"
+                hidden={!permissionsCheck("Config change", "write")}
+                disabled={dryrunButtonDisabled}
+                onClick={() => this.dryrunButtonOnclick()}
+              >
                 Dry run
               </button>
-              <button id="resetButton" hidden={!permissionsCheck("Config change", "write")} disabled={resetButtonDisabled} onClick={() => this.props.resetState()}>
+              <button
+                id="resetButton"
+                hidden={!permissionsCheck("Config change", "write")}
+                disabled={resetButtonDisabled}
+                onClick={() => this.props.resetState()}
+              >
                 Start over
               </button>
             </div>
