@@ -311,7 +311,7 @@ class ConfigChange extends React.Component {
     });
     socket.on("");
 
-    if (queryParams.scrollTo !== undefined) {
+    if (queryParams.autoDryRun !== undefined) {
       this.handleDryRunReady();
     }
   }
