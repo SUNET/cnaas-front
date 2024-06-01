@@ -31,16 +31,16 @@ const permissionsCheck = (page, right) => {
 
   // else check and set permissions via token
   const token = localStorage.getItem("token");
-  if (token?.length === 0) {
+  if (!token) {
     return false;
   }
   getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
     .then((data) => {
-      localStorage.setItem("permissions", JSON.stringify(data));
-      if (!data?.length === 0) {
-        return findPermission(data, page, right);
+      if (!data) {
+        return false;
       }
-      return false;
+      localStorage.setItem("permissions", JSON.stringify(data));
+      return findPermission(data, page, right);
     })
     .catch((error) => {
       console.log(error);
