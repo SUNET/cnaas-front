@@ -465,7 +465,7 @@ class InterfaceConfig extends React.Component {
     this.sendInterfaceData().then((saveStatus) => {
       if (saveStatus === true) {
         this.props.history.push(
-          `/config-change?hostname=${this.hostname}&scrollTo=dry_run`,
+          `/config-change?hostname=${this.hostname}&scrollTo=dry_run&autoDryRun=true`,
         );
       } else {
         this.setState({ accordionActiveIndex: 2 });
