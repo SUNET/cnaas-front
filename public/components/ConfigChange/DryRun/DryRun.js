@@ -1,9 +1,9 @@
 import React from "react";
-import { Form, Checkbox, Popup, Icon } from "semantic-ui-react";
+import { Checkbox, Form, Icon, Popup } from "semantic-ui-react";
+import permissionsCheck from "../../../utils/permissions/permissionsCheck";
+import DryRunError from "./DryRunError";
 import DryRunProgressBar from "./DryRunProgressBar";
 import DryRunProgressInfo from "./DryRunProgressInfo";
-import DryRunError from "./DryRunError";
-import permissionsCheck from "../../../utils/permissions/permissionsCheck";
 
 class DryRun extends React.Component {
   state = {
@@ -37,6 +37,7 @@ class DryRun extends React.Component {
       // console.log("jobStatus errored");
       error = [
         <DryRunError
+          key="dryrunerror"
           dryRunSyncStart={this.props.dryRunSyncStart}
           dryRunProgressData={dryRunProgressData}
           devices={this.props.devices}

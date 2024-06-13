@@ -1,17 +1,16 @@
+import queryString from "query-string";
 import React from "react";
 import { Prompt } from "react-router";
 import { Link } from "react-router-dom";
-import queryString from "query-string";
-import Prism from "prismjs";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
-import ConfigChangeStep1 from "./ConfigChangeStep1";
-import DryRun from "./DryRun/DryRun";
-import VerifyDiff from "./VerifyDiff/VerifyDiff";
-import ConfigChangeStep4 from "./ConfigChangeStep4";
-import checkResponseStatus from "../../utils/checkResponseStatus";
-import SyncStatus from "./SyncStatus";
-import { getData } from "../../utils/getData";
 import "../../styles/react-semantic-alert.css";
+import checkResponseStatus from "../../utils/checkResponseStatus";
+import { getData } from "../../utils/getData";
+import ConfigChangeStep1 from "./ConfigChangeStep1";
+import ConfigChangeStep4 from "./ConfigChangeStep4";
+import DryRun from "./DryRun/DryRun";
+import SyncStatus from "./SyncStatus";
+import VerifyDiff from "./VerifyDiff/VerifyDiff";
 
 const io = require("socket.io-client");
 
@@ -132,32 +131,30 @@ class ConfigChange extends React.Component {
       .then((response) => response.json())
       .then((data) => {
         console.log("this should be data", data);
-        {
-          if (dataToSend.dry_run === true) {
-            this.setState(
-              {
-                dryRunSyncData: data,
-              },
-              () => {
-                this.pollJobStatus(data.job_id, "dry_run");
-              },
-              () => {
-                console.log("this is new state", this.state.dryRunSyncData);
-              },
-            );
-          } else {
-            this.setState(
-              {
-                liveRunSyncData: data,
-              },
-              () => {
-                this.pollJobStatus(data.job_id, "live_run");
-              },
-              () => {
-                console.log("this is new state", this.state.liveRunSyncData);
-              },
-            );
-          }
+        if (dataToSend.dry_run === true) {
+          this.setState(
+            {
+              dryRunSyncData: data,
+            },
+            () => {
+              this.pollJobStatus(data.job_id, "dry_run");
+            },
+            () => {
+              console.log("this is new state", this.state.dryRunSyncData);
+            },
+          );
+        } else {
+          this.setState(
+            {
+              liveRunSyncData: data,
+            },
+            () => {
+              this.pollJobStatus(data.job_id, "live_run");
+            },
+            () => {
+              console.log("this is new state", this.state.liveRunSyncData);
+            },
+          );
         }
       });
     this.setState({ dryRunDisable: true });
@@ -170,52 +167,44 @@ class ConfigChange extends React.Component {
     let stateProperty = null;
 
     if (jobtype === "dry_run") {
-      repeatInterval = this.repeatingDryrunJobData;
       stateProperty = "dryRunProgressData";
     } else if (jobtype === "live_run") {
-      repeatInterval = this.repeatingLiverunJobData;
       stateProperty = "liveRunProgressData";
     } else if (jobtype === "confirm_run") {
-      repeatInterval = this.repeatingConfirmrunJobData;
       stateProperty = "confirmRunProgressData";
     } else {
       throw new Error("pollJobStatus called with unknown jobtype");
     }
 
     getData(url, credentials).then((data) => {
-      {
-        this.setState({
-          [stateProperty]: data.data.jobs,
-          blockNavigation: true,
-        });
-      }
+      this.setState({
+        [stateProperty]: data.data.jobs,
+        blockNavigation: true,
+      });
     });
     repeatInterval = setInterval(() => {
       const credentials = localStorage.getItem("token");
       getData(url, credentials).then((data) => {
-        {
-          const jobdata = data.data.jobs[0];
-          this.setState({
-            [stateProperty]: jobdata,
-          });
+        const jobdata = data.data.jobs[0];
+        this.setState({
+          [stateProperty]: jobdata,
+        });
+        if (
+          jobdata.status === "FINISHED" ||
+          jobdata.status === "EXCEPTION" ||
+          jobdata.status === "ABORTED"
+        ) {
+          clearInterval(repeatInterval);
+          this.setState({ blockNavigation: false });
           if (
-            jobdata.status === "FINISHED" ||
-            jobdata.status === "EXCEPTION" ||
-            jobdata.status === "ABORTED"
+            jobtype === "live_run" &&
+            jobdata.status === "FINISHED" &&
+            typeof jobdata.next_job_id === "number"
           ) {
-            clearInterval(repeatInterval);
-            this.setState({ blockNavigation: false });
-            if (
-              jobtype === "live_run" &&
-              jobdata.status === "FINISHED" &&
-              typeof jobdata.next_job_id === "number"
-            ) {
-              this.pollJobStatus(jobdata.next_job_id, "confirm_run");
-              console.log(
-                `Config change with next_job_id detected (commitmode 2): ${jobdata.next_job_id}`,
-              );
-            }
-            Prism.highlightAll();
+            this.pollJobStatus(jobdata.next_job_id, "confirm_run");
+            console.log(
+              `Config change with next_job_id detected (commitmode 2): ${jobdata.next_job_id}`,
+            );
           }
         }
       });

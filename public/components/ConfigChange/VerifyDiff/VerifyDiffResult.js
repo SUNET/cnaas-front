@@ -1,3 +1,4 @@
+import Prism from "prismjs";
 import React from "react";
 import SyntaxHighlight from "../../SyntaxHighlight";
 
@@ -11,7 +12,7 @@ class VerifyDiffResult extends React.Component {
     const deviceNameAndDiffArray = deviceData.map((jobsObj, i) => {
       const jobTasks = jobsObj.job_tasks;
       return jobTasks
-        .map((subTasks, j) => {
+        .map((subTasks) => {
           return subTasks.diff;
         })
         .filter((diff) => diff !== "")
@@ -40,10 +41,9 @@ class VerifyDiffResult extends React.Component {
     );
     // Check if we get a result back, but the result contains only empty diffs
     if (
-      deviceData !== undefined &&
-      deviceData.length != 0 &&
+      deviceData?.length !== 0 &&
       (deviceNameAndDiffList === undefined ||
-        (deviceNameAndDiffList.length == 1 &&
+        (deviceNameAndDiffList.length === 1 &&
           deviceNameAndDiffList[0] === undefined))
     ) {
       deviceNameAndDiffList = (
@@ -51,13 +51,15 @@ class VerifyDiffResult extends React.Component {
           <p>All devices returned empty diffs</p>
         </li>
       );
+    } else {
+      Prism.highlightAll();
     }
     // creates a 2D array that pairs device name and their exceptions
     const deviceNameAndExceptionArray = deviceData.map((jobsObj, i) => {
       const jobTasks = jobsObj.job_tasks;
       return jobTasks
         .filter((subTask) => subTask.failed === true)
-        .map((subTasks, j) => {
+        .map((subTasks) => {
           return subTasks.result;
         })
         .reduce((arr, result, n) => {
