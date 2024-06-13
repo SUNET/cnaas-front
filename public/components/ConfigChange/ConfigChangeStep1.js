@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Popup, Icon } from "semantic-ui-react";
+import { Icon, Popup } from "semantic-ui-react";
 import { getData } from "../../utils/getData";
-import { putData } from "../../utils/sendData";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
+import { putData } from "../../utils/sendData";
 
 function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
   const [commitInfo, setCommitInfo] = useState({});
@@ -10,6 +10,7 @@ function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
     settings: null,
     templates: null,
   });
+  const [triggerDryRun, setTriggerDryRun] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const [buttonsDisabled, setButtonsDisabled] = useState(false);
 
@@ -33,6 +34,21 @@ function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
     getRepoStatus("settings");
     getRepoStatus("templates");
   }, []);
+
+  useEffect(() => {
+    if (!triggerDryRun) {
+      return;
+    }
+    if (commitUpdateInfo.settings === "success") {
+      onDryRunReady();
+    } else {
+      console.log(
+        `Refresh error occured. Status${JSON.stringify(commitUpdateInfo)}`,
+      );
+    }
+
+    setTriggerDryRun(false);
+  }, [commitUpdateInfo, onDryRunReady, triggerDryRun]);
 
   // this request takes some time, perhaps work in a "loading..."
   async function refreshRepo(repoName) {
@@ -63,15 +79,8 @@ function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
       });
   }
 
-  async function refreshRepoAndDryRun(repoName) {
-    await refreshRepo(repoName);
-    if (commitUpdateInfo.settings === "success") {
-      onDryRunReady();
-    } else {
-      console.log(
-        `Refresh error occured. Status${JSON.stringify(commitUpdateInfo)}`,
-      );
-    }
+  function handleRefreshAndDryRun(repoName) {
+    refreshRepo(repoName).then(() => setTriggerDryRun(true));
   }
 
   function prettifyCommit(commitStr) {
@@ -137,7 +146,7 @@ function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
             type="button"
             hidden={!permissionsCheck("Config change", "write")}
             disabled={buttonsDisabled}
-            onClick={() => refreshRepoAndDryRun("settings")}
+            onClick={() => handleRefreshAndDryRun("settings")}
           >
             Refresh settings + dry run
           </button>
