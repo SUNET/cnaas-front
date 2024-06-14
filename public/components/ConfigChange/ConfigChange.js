@@ -1,7 +1,7 @@
 import queryString from "query-string";
 import React from "react";
 import { Prompt } from "react-router";
-import { Link } from "react-router-dom";
+import { Button } from "semantic-ui-react";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import "../../styles/react-semantic-alert.css";
 import checkResponseStatus from "../../utils/checkResponseStatus";
@@ -38,6 +38,7 @@ class ConfigChange extends React.Component {
       logLines: [],
       blockNavigation: false,
       repoWorking: false,
+      repoJob: null,
       syncEventCounter: 0,
     };
   }
@@ -72,8 +73,34 @@ class ConfigChange extends React.Component {
     });
     socket.on("events", (data) => {
       // job events
-      // sync events
-      if (
+      if (data.job_id !== undefined) {
+        const { repoWorking, repoJob } = this.state;
+        if (
+          ((repoJob === null && repoWorking === true) || repoJob === -1) &&
+          data.status === "RUNNING"
+        ) {
+          console.log(
+            `New refresh repo job: ${data.job_id} status ${data.status}`,
+          );
+          this.setState({ repoJob: data.job_id });
+        } else if (
+          repoJob !== null &&
+          (data.status === "FINISHED" || data.status === "EXCEPTION")
+        ) {
+          // delay setting repoJob to null since sync events might be delayed/arrive after jobupdate event
+          setTimeout(() => {
+            console.log(
+              `Stopped refresh repo job: ${data.job_id} status ${data.status}`,
+            );
+            this.setState({ repoJob: null });
+          }, 1000);
+        } else {
+          console.log(repoWorking);
+          console.log(repoJob);
+          console.log(data);
+        }
+        // sync events
+      } else if (
         data.syncevent_hostname !== undefined &&
         data.syncevent_data !== undefined
       ) {
@@ -86,16 +113,42 @@ class ConfigChange extends React.Component {
         } else {
           showEvent = true;
         }
-        // don't show events while refreshing settings/templates via buttons
-        if (this.state.repoWorking === true) {
-          if (data.syncevent_data.cause.startsWith("refresh_")) {
+        if (data.syncevent_data.job_id !== undefined) {
+          // repoJob -1 signals we are waiting to get the job id
+          const { repoJob } = this.state;
+          if (repoJob === -1) {
             showEvent = false;
+            setTimeout(() => {
+              // https://stackoverflow.com/questions/65253665/settimeout-for-this-state-vs-usestate case6 ?
+              this.setState((prevState) => {
+                if (data.syncevent_data.job_id === prevState.repoJob) {
+                  toast({
+                    type: "info",
+                    icon: "paper plane",
+                    title: `Refresh affected: ${data.syncevent_hostname}`,
+                    time: 2000,
+                  });
+                } else {
+                  console.log("ERROR unhandled syncevent");
+                  console.log(data.syncevent_data.job_id);
+                  console.log(prevState.repoJob);
+                }
+                return prevState;
+              });
+            }, 500);
+          } else if (data.syncevent_data.job_id === this.state.repoJob) {
+            showEvent = false;
+            toast({
+              type: "info",
+              icon: "paper plane",
+              title: `Refresh affected: ${data.syncevent_hostname}`,
+              time: 2000,
+            });
           }
         }
         if (showEvent) {
-          this.setState({ syncEventCounter: this.state.syncEventCounter + 1 });
-          console.log(`syncevent for:${data.syncevent_hostname}`);
-          console.log(data.syncevent_data);
+          const { syncEventCounter } = this.state;
+          this.setState({ syncEventCounter: syncEventCounter + 1 });
           toast({
             type: "warning",
             icon: "paper plane",
@@ -103,9 +156,9 @@ class ConfigChange extends React.Component {
             description: (
               <p>
                 {data.syncevent_data.cause} by {data.syncevent_data.by} <br />
-                <Link onClick={() => window.location.reload()}>
+                <Button onClick={() => window.location.reload()}>
                   Reload page
-                </Link>
+                </Button>
               </p>
             ),
             animation: "bounce",
@@ -114,12 +167,16 @@ class ConfigChange extends React.Component {
         }
         // log events
       } else if (typeof data === "string" || data instanceof String) {
-        const newLogLines = this.state.logLines;
-        if (newLogLines.length >= 1000) {
-          newLogLines.shift();
-        }
-        newLogLines.push(`${data}\n`);
-        this.setState({ logLines: newLogLines });
+        this.setState((prevState) => ({
+          logLines: () => {
+            const newLogLines = prevState.logLines;
+            newLogLines.push(`${data}\n`);
+            if (newLogLines.length >= 1000) {
+              newLogLines.shift();
+            }
+            return newLogLines;
+          },
+        }));
         // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
         if (data.includes("refresh repo") === true) {
           this.setState({ dryRunProgressData: [] });
@@ -173,12 +230,22 @@ class ConfigChange extends React.Component {
     this.setState({ dryRunDisable: false });
   };
 
-  setRepoWorking = (working_status) => {
-    if (this.state.repoWorking === true && working_status === false) {
+  setRepoWorking = (workingStatus) => {
+    if (this.state.repoWorking === true && workingStatus === false) {
       this.syncstatuschild.current.getDeviceList();
       this.syncstatuschild.current.getSyncHistory();
+      setTimeout(() => {
+        this.setState({ repoWorking: workingStatus });
+      }, 1000);
+    } else {
+      this.setState((prevState) => {
+        let jobId = prevState.repoJob;
+        if (jobId === null) {
+          jobId = -1; // signal that we should start looking for jobs in events job updates
+        }
+        return { ...prevState, repoJob: jobId, repoWorking: workingStatus };
+      });
     }
-    this.setState({ repoWorking: working_status });
   };
 
   readHeaders = (response, dry_run) => {
