@@ -2,6 +2,7 @@ import queryString from "query-string";
 import React from "react";
 import { Prompt } from "react-router";
 import { Button } from "semantic-ui-react";
+import { Link } from "react-router-dom";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import "../../styles/react-semantic-alert.css";
 import checkResponseStatus from "../../utils/checkResponseStatus";
@@ -39,6 +40,7 @@ class ConfigChange extends React.Component {
       blockNavigation: false,
       repoWorking: false,
       repoJob: null,
+      prevRepoJobs: [],
       syncEventCounter: 0,
     };
   }
@@ -85,15 +87,45 @@ class ConfigChange extends React.Component {
           this.setState({ repoJob: data.job_id });
         } else if (
           repoJob !== null &&
-          (data.status === "FINISHED" || data.status === "EXCEPTION")
+          (data.status === "FINISHED" ||
+            data.status === "EXCEPTION" ||
+            data.status === "ABORTED")
         ) {
-          // delay setting repoJob to null since sync events might be delayed/arrive after jobupdate event
-          setTimeout(() => {
-            console.log(
-              `Stopped refresh repo job: ${data.job_id} status ${data.status}`,
-            );
-            this.setState({ repoJob: null });
-          }, 1000);
+          // add finished job to list of previous jobs so we can catch events that come after job status has changed
+          console.log(
+            `Stopped refresh repo job: ${data.job_id} status ${data.status}`,
+          );
+          this.setState((prevState) => ({
+            prevRepoJobs: () => {
+              const newRepoJobs = prevState.prevRepoJobs;
+              newRepoJobs.push(prevState.repoJob);
+              return newRepoJobs;
+            },
+            repoJob: null,
+          }));
+        } else if (
+          data.status === "RUNNING" &&
+          data.function_name === "refresh_repo"
+        ) {
+          const { dryRunProgressData } = this.state;
+          if (dryRunProgressData.length !== 0) {
+            this.setState({ dryRunProgressData: [] });
+            console.log("Refresh repo event, reset dryrun status: ", data);
+            toast({
+              type: "warning",
+              icon: "paper plane",
+              title: `Another session did refresh`,
+              description: (
+                <p>
+                  Dry run progress reset because refresh repo job {data.job_id}
+                  <br />
+                  <Link to="/jobs">job log</Link>
+                </p>
+              ),
+              animation: "bounce",
+              time: 0,
+            });
+          }
         } else {
           console.log(repoWorking);
           console.log(repoJob);
@@ -115,28 +147,31 @@ class ConfigChange extends React.Component {
         }
         if (data.syncevent_data.job_id !== undefined) {
           // repoJob -1 signals we are waiting to get the job id
-          const { repoJob } = this.state;
+          const { repoJob, prevRepoJobs } = this.state;
           if (repoJob === -1) {
             showEvent = false;
             setTimeout(() => {
               // https://stackoverflow.com/questions/65253665/settimeout-for-this-state-vs-usestate case6 ?
               this.setState((prevState) => {
-                if (data.syncevent_data.job_id === prevState.repoJob) {
+                if (
+                  data.syncevent_data.job_id === prevState.repoJob ||
+                  data.syncevent_data.job_id in prevState.prevRepoJobs
+                ) {
                   toast({
                     type: "info",
                     icon: "paper plane",
                     title: `Refresh affected: ${data.syncevent_hostname}`,
                     time: 2000,
                   });
-                } else {
-                  console.log("ERROR unhandled syncevent");
-                  console.log(data.syncevent_data.job_id);
-                  console.log(prevState.repoJob);
                 }
                 return prevState;
               });
             }, 500);
-          } else if (data.syncevent_data.job_id === this.state.repoJob) {
+            // or if job_id in list of previous jobs
+          } else if (
+            data.syncevent_data.job_id === repoJob ||
+            data.syncevent_data.job_id in prevRepoJobs
+          ) {
             showEvent = false;
             toast({
               type: "info",
@@ -177,11 +212,6 @@ class ConfigChange extends React.Component {
             return newLogLines;
           },
         }));
-        // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
-        if (data.includes("refresh repo") === true) {
-          this.setState({ dryRunProgressData: [] });
-          console.log("Refresh repo event, reset dryrun status: ", data);
-        }
       }
     });
     socket.on("");
@@ -231,14 +261,13 @@ class ConfigChange extends React.Component {
   };
 
   setRepoWorking = (workingStatus) => {
+    let ret = null;
     if (this.state.repoWorking === true && workingStatus === false) {
       this.syncstatuschild.current.getDeviceList();
       this.syncstatuschild.current.getSyncHistory();
-      setTimeout(() => {
-        this.setState({ repoWorking: workingStatus });
-      }, 1000);
+      ret = this.setState({ repoWorking: workingStatus });
     } else {
-      this.setState((prevState) => {
+      ret = this.setState((prevState) => {
         let jobId = prevState.repoJob;
         if (jobId === null) {
           jobId = -1; // signal that we should start looking for jobs in events job updates
@@ -246,6 +275,7 @@ class ConfigChange extends React.Component {
         return { ...prevState, repoJob: jobId, repoWorking: workingStatus };
       });
     }
+    return ret;
   };
 
   readHeaders = (response, dry_run) => {
