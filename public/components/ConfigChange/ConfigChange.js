@@ -1,6 +1,7 @@
 import queryString from "query-string";
 import React from "react";
 import { Prompt } from "react-router";
+import { Button } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import "../../styles/react-semantic-alert.css";
@@ -17,6 +18,12 @@ const io = require("socket.io-client");
 let socket = null;
 
 class ConfigChange extends React.Component {
+  constructor() {
+    super();
+    this.state = this.getInitialState();
+    this.syncstatuschild = React.createRef();
+  }
+
   getInitialState() {
     return {
       dryRunSyncData: [],
@@ -32,14 +39,212 @@ class ConfigChange extends React.Component {
       logLines: [],
       blockNavigation: false,
       repoWorking: false,
+      repoJob: null,
+      prevRepoJobs: [],
       syncEventCounter: 0,
     };
   }
 
-  constructor() {
-    super();
-    this.state = this.getInitialState();
-    this.syncstatuschild = React.createRef();
+  componentDidMount() {
+    const queryParams = queryString.parse(this.props.location.search);
+    if (queryParams.scrollTo !== undefined) {
+      const element = document.getElementById(
+        `${queryParams.scrollTo}_section`,
+      );
+      if (element) {
+        element.scrollIntoView({ alignToTop: true, behavior: "smooth" });
+      }
+    }
+
+    const credentials = localStorage.getItem("token");
+    socket = io(process.env.API_URL, { query: { jwt: credentials } });
+    socket.on("connect", function (data) {
+      console.log("Websocket connected!");
+      let ret = socket.emit("events", { loglevel: "DEBUG" });
+      if (ret !== undefined && ret.connected) {
+        console.log("Listening to log events");
+      }
+      ret = socket.emit("events", { sync: "all" });
+      if (ret !== undefined && ret.connected) {
+        console.log("Listening to sync events");
+      }
+      ret = socket.emit("events", { update: "job" });
+      if (ret !== undefined && ret.connected) {
+        console.log("Listening to job update events");
+      }
+    });
+    socket.on("events", (data) => {
+      // job events
+      if (data.job_id !== undefined) {
+        const { repoWorking, repoJob } = this.state;
+        if (
+          ((repoJob === null && repoWorking === true) || repoJob === -1) &&
+          data.status === "RUNNING"
+        ) {
+          console.log(
+            `New refresh repo job: ${data.job_id} status ${data.status}`,
+          );
+          this.setState({ repoJob: data.job_id });
+        } else if (
+          repoJob !== null &&
+          (data.status === "FINISHED" ||
+            data.status === "EXCEPTION" ||
+            data.status === "ABORTED")
+        ) {
+          // add finished job to list of previous jobs so we can catch events that come after job status has changed
+          console.log(
+            `Stopped refresh repo job: ${data.job_id} status ${data.status}`,
+          );
+          this.setState((prevState) => ({
+            prevRepoJobs: () => {
+              const newRepoJobs = prevState.prevRepoJobs;
+              newRepoJobs.push(prevState.repoJob);
+              return newRepoJobs;
+            },
+            repoJob: null,
+          }));
+        } else if (
+          data.status === "RUNNING" &&
+          data.function_name === "refresh_repo"
+        ) {
+          const { dryRunProgressData } = this.state;
+          if (dryRunProgressData.length !== 0) {
+            this.setState({ dryRunProgressData: [] });
+            toast({
+              type: "warning",
+              icon: "paper plane",
+              title: `Another session did refresh`,
+              description: (
+                <p>
+                  Dry run progress reset because refresh repo job {data.job_id}
+                  <br />
+                  <Link to="/jobs">job log</Link>
+                </p>
+              ),
+              animation: "bounce",
+              time: 0,
+            });
+          }
+        }
+        // sync events
+      } else if (
+        data.syncevent_hostname !== undefined &&
+        data.syncevent_data !== undefined
+      ) {
+        const target = this.getCommitTarget();
+        let showEvent = false;
+        if (target.hostname !== undefined) {
+          if (target.hostname == data.syncevent_hostname) {
+            showEvent = true;
+          }
+        } else {
+          showEvent = true;
+        }
+        if (data.syncevent_data.job_id !== undefined) {
+          // repoJob -1 signals we are waiting to get the job id, delay a bit and check repoJob again
+          const { repoJob, prevRepoJobs } = this.state;
+          if (repoJob === -1) {
+            showEvent = false;
+            setTimeout(() => {
+              // https://stackoverflow.com/questions/65253665/settimeout-for-this-state-vs-usestate case6 ?
+              this.setState((prevState) => {
+                if (
+                  data.syncevent_data.job_id === prevState.repoJob ||
+                  prevState.prevRepoJobs.incudes(data.syncevent_data.job_id)
+                ) {
+                  toast({
+                    type: "info",
+                    icon: "paper plane",
+                    title: `Refresh affected: ${data.syncevent_hostname}`,
+                    time: 2000,
+                  });
+                }
+                return prevState;
+              });
+            }, 500);
+            // show non-warning toast for events generated by user in current or previous jobs
+          } else if (
+            data.syncevent_data.job_id === repoJob ||
+            prevRepoJobs.incudes(data.syncevent_data.job_id)
+          ) {
+            showEvent = false;
+            toast({
+              type: "info",
+              icon: "paper plane",
+              title: `Refresh affected: ${data.syncevent_hostname}`,
+              time: 2000,
+            });
+          }
+        }
+        if (showEvent) {
+          const { syncEventCounter } = this.state;
+          this.setState({ syncEventCounter: syncEventCounter + 1 });
+          toast({
+            type: "warning",
+            icon: "paper plane",
+            title: `Sync event (${syncEventCounter}): ${data.syncevent_hostname}`,
+            description: (
+              <p>
+                {data.syncevent_data.cause} by {data.syncevent_data.by} <br />
+                <Button onClick={() => window.location.reload()}>
+                  Reload page
+                </Button>
+              </p>
+            ),
+            animation: "bounce",
+            time: 0,
+          });
+        }
+        // log events
+      } else if (typeof data === "string" || data instanceof String) {
+        this.setState((prevState) => ({
+          logLines: () => {
+            const newLogLines = prevState.logLines;
+            newLogLines.push(`${data}\n`);
+            if (newLogLines.length >= 1000) {
+              newLogLines.shift();
+            }
+            return newLogLines;
+          },
+        }));
+      }
+    });
+    socket.on("");
+
+    if (queryParams.autoDryRun !== undefined) {
+      this.handleDryRunReady();
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.state.blockNavigation) {
+      window.onbeforeunload = () => true;
+    } else {
+      window.onbeforeunload = undefined;
+    }
+  }
+
+  componentWillUnmount() {
+    if (socket !== null) {
+      socket.off("events");
+    }
+  }
+
+  handleDryRunReady() {
+    const element = document.getElementById("dryrunButton");
+    element.scrollIntoView({ block: "start", behavior: "smooth" });
+    this.deviceSyncStart({ resync: false });
+  }
+
+  getCommitTarget() {
+    const queryParams = queryString.parse(this.props.location.search);
+    if (queryParams.hostname !== undefined) {
+      return { hostname: queryParams.hostname };
+    }
+    if (queryParams.group !== undefined) {
+      return { group: queryParams.group };
+    }
+    return { all: true };
   }
 
   resetState = () => {
@@ -50,19 +255,23 @@ class ConfigChange extends React.Component {
     this.setState({ dryRunDisable: false });
   };
 
-  setRepoWorking = (working_status) => {
-    if (this.state.repoWorking === true && working_status === false) {
+  setRepoWorking = (workingStatus) => {
+    let ret = null;
+    if (this.state.repoWorking === true && workingStatus === false) {
       this.syncstatuschild.current.getDeviceList();
       this.syncstatuschild.current.getSyncHistory();
+      ret = this.setState({ repoWorking: workingStatus });
+    } else {
+      ret = this.setState((prevState) => {
+        let jobId = prevState.repoJob;
+        if (jobId === null) {
+          jobId = -1; // signal that we should start looking for jobs in events job updates
+        }
+        return { ...prevState, repoJob: jobId, repoWorking: workingStatus };
+      });
     }
-    this.setState({ repoWorking: working_status });
+    return ret;
   };
-
-  handleDryRunReady() {
-    const element = document.getElementById("dryrunButton");
-    element.scrollIntoView({ block: "start", behavior: "smooth" });
-    this.deviceSyncStart({ resync: false });
-  }
 
   readHeaders = (response, dry_run) => {
     const totalCountHeader = Number(response.headers.get("X-Total-Count"));
@@ -210,114 +419,6 @@ class ConfigChange extends React.Component {
       });
     }, 1000);
   };
-
-  getCommitTarget() {
-    const queryParams = queryString.parse(this.props.location.search);
-    if (queryParams.hostname !== undefined) {
-      return { hostname: queryParams.hostname };
-    }
-    if (queryParams.group !== undefined) {
-      return { group: queryParams.group };
-    }
-    return { all: true };
-  }
-
-  componentDidMount() {
-    const queryParams = queryString.parse(this.props.location.search);
-    if (queryParams.scrollTo !== undefined) {
-      const element = document.getElementById(
-        `${queryParams.scrollTo}_section`,
-      );
-      if (element) {
-        element.scrollIntoView({ alignToTop: true, behavior: "smooth" });
-      }
-    }
-
-    const credentials = localStorage.getItem("token");
-    socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", function (data) {
-      console.log("Websocket connected!");
-      let ret = socket.emit("events", { loglevel: "DEBUG" });
-      console.log(ret);
-      ret = socket.emit("events", { sync: "all" });
-      console.log(ret);
-    });
-    socket.on("events", (data) => {
-      // sync events
-      if (
-        data.syncevent_hostname !== undefined &&
-        data.syncevent_data !== undefined
-      ) {
-        const target = this.getCommitTarget();
-        let showEvent = false;
-        if (target.hostname !== undefined) {
-          if (target.hostname == data.syncevent_hostname) {
-            showEvent = true;
-          }
-        } else {
-          showEvent = true;
-        }
-        // don't show events while refreshing settings/templates via buttons
-        if (this.state.repoWorking === true) {
-          if (data.syncevent_data.cause.startsWith("refresh_")) {
-            showEvent = false;
-          }
-        }
-        if (showEvent) {
-          this.setState({ syncEventCounter: this.state.syncEventCounter + 1 });
-          console.log(`syncevent for:${data.syncevent_hostname}`);
-          console.log(data.syncevent_data);
-          toast({
-            type: "warning",
-            icon: "paper plane",
-            title: `Sync event (${this.state.syncEventCounter}): ${data.syncevent_hostname}`,
-            description: (
-              <p>
-                {data.syncevent_data.cause} by {data.syncevent_data.by} <br />
-                <Link onClick={() => window.location.reload()}>
-                  Reload page
-                </Link>
-              </p>
-            ),
-            animation: "bounce",
-            time: 0,
-          });
-        }
-        // log events
-      } else if (typeof data === "string" || data instanceof String) {
-        const newLogLines = this.state.logLines;
-        if (newLogLines.length >= 1000) {
-          newLogLines.shift();
-        }
-        newLogLines.push(`${data}\n`);
-        this.setState({ logLines: newLogLines });
-        // Disable confirm commit by reseting dryrun jobstatus if someone else refreshes repos
-        if (data.includes("refresh repo") === true) {
-          this.setState({ dryRunProgressData: [] });
-          console.log("Refresh repo event, reset dryrun status: ", data);
-        }
-      }
-    });
-    socket.on("");
-
-    if (queryParams.autoDryRun !== undefined) {
-      this.handleDryRunReady();
-    }
-  }
-
-  componentWillUnmount() {
-    if (socket !== null) {
-      socket.off("events");
-    }
-  }
-
-  componentDidUpdate() {
-    if (this.state.blockNavigation) {
-      window.onbeforeunload = () => true;
-    } else {
-      window.onbeforeunload = undefined;
-    }
-  }
 
   render() {
     const { dryRunProgressData } = this.state;

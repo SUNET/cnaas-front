@@ -29,9 +29,11 @@ class DryRunProgressInfo extends React.Component {
     let jobFinishTime = "";
     let exceptionMessage = "";
     let log = "";
-    this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
-      log += logLine;
-    });
+    if (this.props.logLines !== undefined && this.props.logLines.length > 0) {
+      this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
+        log += logLine;
+      });
+    }
 
     if (Object.keys(progressData).length > 0) {
       jobStartTime = progressData.start_time;

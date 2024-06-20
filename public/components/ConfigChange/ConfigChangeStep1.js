@@ -53,7 +53,7 @@ function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
   // this request takes some time, perhaps work in a "loading..."
   async function refreshRepo(repoName) {
     setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "updating..." }));
-    setRepoWorking(true);
+    await setRepoWorking(true);
 
     const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
