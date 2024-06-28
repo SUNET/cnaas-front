@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Icon } from "semantic-ui-react";
-import getData from "../../utils/getData";
+import { getData } from "../../utils/getData";
 
 class InterfaceCurrentConfig extends React.Component {
   state = {
