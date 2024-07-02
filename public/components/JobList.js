@@ -343,7 +343,13 @@ class JobList extends React.Component {
         const results = deviceResult[0].job_tasks
           .map((task) => {
             if (task.task_name === "napalm_get") {
-              if (task.failed === true) {
+              // before v1.6 failed init jobs would have napalm_get output in result and failed = false on napalm_get task
+              if (
+                (typeof task.result === "string" &&
+                  task.result.length === 0 &&
+                  task.failed === true) ||
+                (typeof task.result === "object" && task.failed === false)
+              ) {
                 return "Error: Device kept old management IP";
               }
               return "New management IP set";
@@ -357,8 +363,12 @@ class JobList extends React.Component {
             if (task.task_name === "ztp_device_cert") {
               return task.result;
             }
+            // push config will have status failed pre v1.6 because timeout after changing IP, ignore failed status and look at exception type
             if (task.task_name === "Push base management config") {
-              if (task.failed === true) {
+              if (
+                typeof task.result === "string" &&
+                task.result.includes("ReplaceConfigException")
+              ) {
                 return `Error: Failed to push configuration: ${task.result}`;
               }
               return "Pushed base configuration";
