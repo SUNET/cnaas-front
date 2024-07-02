@@ -335,21 +335,33 @@ class JobList extends React.Component {
           />,
         ];
       }
-      if (job.function_name === "init_access_device_step1") {
+      if (
+        job.function_name === "init_access_device_step1" ||
+        job.function_name === "init_fabric_device_step1"
+      ) {
         const deviceResult = Object.values(job.result.devices);
         const results = deviceResult[0].job_tasks
           .map((task) => {
             if (task.task_name === "napalm_get") {
               if (task.failed === true) {
-                return "Device changed management IP";
+                return "Error: Device kept old management IP";
               }
-              return "Error: Device kept old management IP";
+              return "New management IP set";
             }
             if (task.task_name === "Generate initial device config") {
               if (task.failed === true) {
-                return "Error: Failed to generate config";
+                return `Error: Failed to generate configuration from template: ${task.result}`;
               }
-              return "Config generated successfully";
+              return "Configuration was generated successfully from template";
+            }
+            if (task.task_name === "ztp_device_cert") {
+              return task.result;
+            }
+            if (task.task_name === "Push base management config") {
+              if (task.failed === true) {
+                return `Error: Failed to push configuration: ${task.result}`;
+              }
+              return "Pushed base configuration";
             }
           })
           .filter((result) => {
