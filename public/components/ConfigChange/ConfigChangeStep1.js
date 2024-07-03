@@ -4,7 +4,13 @@ import { getData } from "../../utils/getData";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { putData } from "../../utils/sendData";
 
-function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady, repoJobs, logLines }) {
+function ConfigChangeStep1({
+  setRepoWorking,
+  dryRunJobStatus,
+  onDryRunReady,
+  repoJobs,
+  logLines,
+}) {
   const [commitInfo, setCommitInfo] = useState({});
   const [commitUpdateInfo, setCommitUpdateInfo] = useState({
     settings: null,
