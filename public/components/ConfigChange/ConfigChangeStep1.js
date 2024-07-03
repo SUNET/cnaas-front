@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
+import PropTypes from "prop-types";
 import { getData } from "../../utils/getData";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { putData } from "../../utils/sendData";
@@ -196,5 +197,19 @@ function ConfigChangeStep1({
     </div>
   );
 }
+
+ConfigChangeStep1.propTypes = {
+  setRepoWorking: PropTypes.func.isRequired,
+  dryRunJobStatus: PropTypes.string,
+  onDryRunReady: PropTypes.func.isRequired,
+  repoJobs: PropTypes.arrayOf(PropTypes.number),
+  logLines: PropTypes.arrayOf(PropTypes.string),
+};
+
+ConfigChangeStep1.defaultProps = {
+  dryRunJobStatus: null,
+  repoJobs: [],
+  logLines: [],
+};
 
 export default ConfigChangeStep1;
