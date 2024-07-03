@@ -95,14 +95,24 @@ class ConfigChange extends React.Component {
           console.log(
             `Stopped refresh repo job: ${data.job_id} status ${data.status}`,
           );
-          this.setState((prevState) => ({
-            prevRepoJobs: () => {
-              const newRepoJobs = prevState.prevRepoJobs;
+          this.setState((prevState) => {
+            const newRepoJobs = prevState.prevRepoJobs;
+            if (
+              Array.isArray(newRepoJobs) &&
+              newRepoJobs.indexOf(prevState.repoJob) === -1 &&
+              Number.isInteger(prevState.repoJob) &&
+              prevState.repoJob !== -1
+            ) {
               newRepoJobs.push(prevState.repoJob);
-              return newRepoJobs;
-            },
-            repoJob: null,
-          }));
+              return {
+                prevRepoJobs: newRepoJobs,
+                repoJob: null,
+              };
+            } else {
+              console.log(prevState);
+            }
+            return prevState;
+          });
         } else if (
           data.status === "RUNNING" &&
           data.function_name === "refresh_repo"
@@ -197,16 +207,17 @@ class ConfigChange extends React.Component {
         }
         // log events
       } else if (typeof data === "string" || data instanceof String) {
-        this.setState((prevState) => ({
-          logLines: () => {
-            const newLogLines = prevState.logLines;
-            newLogLines.push(`${data}\n`);
-            if (newLogLines.length >= 1000) {
-              newLogLines.shift();
-            }
-            return newLogLines;
-          },
-        }));
+        this.setState((prevState) => {
+          const newLogLines = prevState.logLines;
+          newLogLines.push(`${data}\n`);
+          if (newLogLines.length >= 1000) {
+            newLogLines.shift();
+          }
+
+          return {
+            logLines: newLogLines,
+          };
+        });
       }
     });
     socket.on("");
@@ -458,6 +469,12 @@ class ConfigChange extends React.Component {
       confirmRunJobId = confirmRunProgressData.id;
     }
 
+    const { prevRepoJobs, repoJob } = this.state;
+    const allRepoJobs = prevRepoJobs.slice(); // make a copy
+    if (Array.isArray(allRepoJobs) && repoJob !== null) {
+      allRepoJobs.push(repoJob);
+    }
+
     return (
       <>
         <Prompt
@@ -474,6 +491,8 @@ class ConfigChange extends React.Component {
             dryRunJobStatus={dryRunJobStatus}
             setRepoWorking={this.setRepoWorking.bind(this)}
             onDryRunReady={this.handleDryRunReady.bind(this)}
+            repoJobs={allRepoJobs}
+            logLines={this.state.logLines}
           />
           <DryRun
             dryRunDisable={this.state.dryRunDisable}
