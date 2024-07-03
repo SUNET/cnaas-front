@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
+import PropTypes from "prop-types";
 import { getData } from "../../utils/getData";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { putData } from "../../utils/sendData";
 
-function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
+function ConfigChangeStep1({
+  setRepoWorking,
+  dryRunJobStatus,
+  onDryRunReady,
+  repoJobs,
+  logLines,
+}) {
   const [commitInfo, setCommitInfo] = useState({});
   const [commitUpdateInfo, setCommitUpdateInfo] = useState({
     settings: null,
@@ -49,6 +56,15 @@ function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
 
     setTriggerDryRun(false);
   }, [commitUpdateInfo, onDryRunReady, triggerDryRun]);
+
+  // function that returns a function that filters the log lines to only return ones which includes any of the specified job ids
+  function checkJobIds(jobIds) {
+    return function filterLogLines(logLine) {
+      return jobIds.some((v) => logLine.toLowerCase().includes(`job #${v}`))
+        ? logLine
+        : null;
+    };
+  }
 
   // this request takes some time, perhaps work in a "loading..."
   async function refreshRepo(repoName) {
@@ -107,6 +123,17 @@ function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
     }
   }
 
+  let log = "";
+  if (logLines !== undefined && logLines.length > 0) {
+    logLines.filter(checkJobIds(repoJobs)).forEach((logLine) => {
+      log += logLine;
+      const element = document.getElementById(`logoutputdiv_refreshrepo`);
+      if (element !== null) {
+        element.scrollTop = element.scrollHeight;
+      }
+    });
+  }
+
   return (
     <div className="task-container">
       <div className="heading">
@@ -163,9 +190,26 @@ function ConfigChangeStep1({ setRepoWorking, dryRunJobStatus, onDryRunReady }) {
           </button>
           <p>{commitUpdateInfo.templates}</p>
         </div>
+        <div id="logoutputdiv_refreshrepo" className="logoutput">
+          <pre>{log}</pre>
+        </div>
       </div>
     </div>
   );
 }
+
+ConfigChangeStep1.propTypes = {
+  setRepoWorking: PropTypes.func.isRequired,
+  dryRunJobStatus: PropTypes.string,
+  onDryRunReady: PropTypes.func.isRequired,
+  repoJobs: PropTypes.arrayOf(PropTypes.number),
+  logLines: PropTypes.arrayOf(PropTypes.string),
+};
+
+ConfigChangeStep1.defaultProps = {
+  dryRunJobStatus: null,
+  repoJobs: [],
+  logLines: [],
+};
 
 export default ConfigChangeStep1;
