@@ -20,7 +20,6 @@ import { deleteData } from "../../utils/sendData";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import AddMgmtDomainModal from "./AddMgmtDomainModal";
 import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
-import ShowConfigModal from "./ShowConfigModal";
 
 const io = require("socket.io-client");
 
@@ -59,9 +58,6 @@ class DeviceList extends React.Component {
     mgmtUpdateModalInput: {},
     mgmtAddModalInput: {},
     mgmtDomainsData: [],
-    showConfigModalOpen: false,
-    showConfigModalHostname: null,
-    showConfigModalState: null,
   };
 
   discovered_device_ids = new Set();
@@ -844,22 +840,6 @@ class DeviceList extends React.Component {
     });
   }
 
-  showConfigModalOpen(hostname, state) {
-    this.setState({
-      showConfigModalOpen: true,
-      showConfigModalHostname: hostname,
-      showConfigModalState: state,
-    });
-  }
-
-  showConfigModalClose() {
-    this.setState({
-      showConfigModalOpen: false,
-      showConfigModalHostname: null,
-      showConfigModalState: null,
-    });
-  }
-
   changeStateAction(device_id, state) {
     console.log(`Change state for device_id: ${device_id}`);
     const credentials = localStorage.getItem("token");
@@ -1006,13 +986,6 @@ class DeviceList extends React.Component {
           onClick={() => this.changeStateAction(device.id, "UNMANAGED")}
         />,
         <Dropdown.Item
-          key="showconfig"
-          text="Show configuration"
-          onClick={() =>
-            this.showConfigModalOpen(device.hostname, device.state)
-          }
-        />,
-        <Dropdown.Item
           key="delete"
           text="Delete device..."
           onClick={() =>
@@ -1045,13 +1018,6 @@ class DeviceList extends React.Component {
           key="makemanaged"
           text="Make managed"
           onClick={() => this.changeStateAction(device.id, "MANAGED")}
-        />,
-        <Dropdown.Item
-          key="showconfig"
-          text="Show configuration"
-          onClick={() =>
-            this.showConfigModalOpen(device.hostname, device.state)
-          }
         />,
         <Dropdown.Item
           key="delete"
@@ -1384,12 +1350,6 @@ class DeviceList extends React.Component {
             closeAction={() => this.mgmtUpdateModalClose()}
             onDelete={(v) => this.handleDeleteMgmtDomain(v)}
             onUpdate={(v) => this.handleUpdateMgmtDomains(v)}
-          />
-          <ShowConfigModal
-            hostname={this.state.showConfigModalHostname}
-            state={this.state.showConfigModalState}
-            isOpen={this.state.showConfigModalOpen}
-            closeAction={() => this.showConfigModalClose()}
           />
           <div className="table_options">
             <Popup
