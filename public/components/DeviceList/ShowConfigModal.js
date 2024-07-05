@@ -27,6 +27,12 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
   const [generatedConfig, setGeneratedConfig] = useState({
     generated_config: "",
   });
+  const [previousConfig, setPreviousConfig] = useState({
+    0: { config: "" },
+    1: { config: "" },
+    2: { config: "" },
+    3: { config: "" },
+  });
   const [errors, setErrors] = useState([]);
   const [columnValues, setColumnValues] = useState({
     left: "running_config",
@@ -76,7 +82,33 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
       .catch((error) => {
         // loading status
         setErrors([error]);
-        setRunningConfig({ generated_config: error.message });
+        setGeneratedConfig({ generated_config: error.message });
+      });
+  }
+
+  function getPreviousConfig(number) {
+    setPreviousConfig((currentValues) => ({
+      ...currentValues,
+      [number]: { config: <Loader className="modalloader" /> },
+    }));
+    const credentials = localStorage.getItem("token");
+    getData(
+      `${process.env.API_URL}/api/v1.0/device/${hostname}/previous_config?previous=${number}`,
+      credentials,
+    )
+      .then((resp) => {
+        setPreviousConfig((currentValues) => ({
+          ...currentValues,
+          [number]: resp.data,
+        }));
+      })
+      .catch((error) => {
+        // loading status
+        setErrors([error]);
+        setPreviousConfig((currentValues) => ({
+          ...currentValues,
+          [number]: { config: error.message },
+        }));
       });
   }
 
@@ -104,7 +136,27 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
     <DropdownItem
       key="generate_config"
       value="generate_config"
-      text="Latest config from templates"
+      text="Generate config from latest templates"
+    />,
+    <DropdownItem
+      key="previous_0"
+      value="previous_0"
+      text="Last syncto job generated config (0)"
+    />,
+    <DropdownItem
+      key="previous_1"
+      value="previous_1"
+      text="Second from last syncto job generated config (-1)"
+    />,
+    <DropdownItem
+      key="previous_2"
+      value="previous_2"
+      text="Third from last syncto job generated config (-2)"
+    />,
+    <DropdownItem
+      key="previous_3"
+      value="previous_3"
+      text="Fourth from last syncto job generated config (-3)"
     />,
     <DropdownItem
       key="available_variables"
@@ -116,11 +168,10 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
   const rightColumnOptions = [
     ...leftColumnOptions,
     <DropdownDivider key="right_only_divider" />,
-    <DropdownItem key="hide" value="hide" text="Hide" />,
+    <DropdownItem key="hide" value="hide" text="Hide column" />,
   ];
 
   function updateColumn(e, data) {
-    console.log(data);
     const colName = data.name;
     const val = data.value;
     const column = {};
@@ -128,6 +179,11 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
       column.left = val;
     } else {
       column.right = val;
+    }
+    // if val starts with previous_, then we need to get the previous value
+    if (val.startsWith("previous_")) {
+      const number = parseInt(val.replace("previous_", ""), 10);
+      getPreviousConfig(number);
     }
     if (val !== columnValues[colName]) {
       setColumnValues((currentValues) => ({
@@ -151,19 +207,25 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
 
   const columnContents = Object.entries(columnValues).map(
     ([colName, colValue]) => {
-      const headerText = columnHeaders[colValue] || colValue;
+      let headerText = columnHeaders[colValue] || colValue;
       let config = "";
+      let jobId = 0;
       if (colValue === "running_config") {
         config = runningConfig.config;
       } else if (colValue === "generate_config") {
         config = generatedConfig.generated_config;
+      } else if (colValue.startsWith("previous_")) {
+        const number = parseInt(colValue.replace("previous_", ""), 10);
+        config = previousConfig[number].config;
+        jobId = previousConfig[number].job_id;
+        headerText = `Previous ${number} job config`;
       } else if (colValue === "available_variables") {
         config = JSON.stringify(generatedConfig.available_variables, null, 2);
       } else {
         return null;
       }
       return (
-        <GridColumn>
+        <GridColumn key={colName}>
           <h1>{headerText}</h1>
           <ButtonGroup>
             <Popup
@@ -178,18 +240,34 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
               }
               position="bottom right"
             />
-            <Popup
-              content={`Refresh ${headerText}`}
-              floated="right"
-              trigger={
-                <Button
-                  onClick={() => columnRefreshFunctions[colValue]()}
-                  icon="refresh"
-                  size="small"
-                />
-              }
-              position="bottom right"
-            />
+            {colValue.startsWith("previous_") && (
+              <Popup
+                content={`Copy Job ID #${jobId}`}
+                floated="right"
+                trigger={
+                  <Button
+                    onClick={() => navigator.clipboard.writeText(jobId)}
+                    icon="numbered list"
+                    size="small"
+                  />
+                }
+                position="bottom right"
+              />
+            )}
+            {colValue in columnRefreshFunctions && (
+              <Popup
+                content={`Refresh ${headerText}`}
+                floated="right"
+                trigger={
+                  <Button
+                    onClick={() => columnRefreshFunctions[colValue]()}
+                    icon="refresh"
+                    size="small"
+                  />
+                }
+                position="bottom right"
+              />
+            )}
           </ButtonGroup>
           <Segment>
             {typeof config === "object" ? (
