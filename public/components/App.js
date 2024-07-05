@@ -43,6 +43,7 @@ class App extends React.Component {
 
   oauthLogin = (event) => {
     event.preventDefault();
+    console.log(`Value=====>${process.env.API_URL}`)
     const url = `${process.env.API_URL}/api/v1.0/auth/login`;
     window.location.replace(url);
   };

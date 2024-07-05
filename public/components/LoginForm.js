@@ -31,7 +31,7 @@ class LoginForm extends React.Component {
         </div>
       );
     }
-    if (process.env.OIDC_ENABLED === "true") {
+    if (process.env.OIDC_ENABLEDD === "true") {
       return (
         <div className="container">
           <form onSubmit={this.props.oauthLogin}>

@@ -107,6 +107,7 @@ class Header extends React.Component {
   };
 
   relogin = () => {
+    console.log(`Value=====>${process.env.API_URL}`)
     localStorage.removeItem("token");
     const url = `${process.env.API_URL}/api/v1.0/auth/login`;
     window.location.replace(url);
@@ -116,7 +117,7 @@ class Header extends React.Component {
     if (localStorage.getItem("token") !== null) {
       if (
         this.tokenExpireTimer === null &&
-        process.env.OIDC_ENABLED == "true"
+        process.env.OIDC_ENABLEDD == "true"
       ) {
         let secondsUntilExpiry = null;
         if (this.triggerTokenRefresh === true) {
@@ -257,6 +258,7 @@ class Header extends React.Component {
       <header>
         <nav>
           <h1>CNaaS NMS: {process.env.API_URL.split("/")[2]}</h1>
+          <h1>OIDC_EN: {process.env.OIDC_ENABLEDD}</h1>
           <ul>{this.renderLinks()}</ul>
           <Modal
             basic

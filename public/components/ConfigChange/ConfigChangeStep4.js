@@ -58,6 +58,7 @@ class ConfigChangeStep4 extends React.Component {
   };
 
   componentDidMount() {
+    console.log("gg")
     // Ugly hack, this should be done via some confirmButton state in parent component
     const confirmButtonElem = document.getElementById("confirmButton");
     confirmButtonElem.disabled = true;
