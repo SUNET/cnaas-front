@@ -14,6 +14,10 @@ import {
   GridRow,
   GridColumn,
   Segment,
+  Dropdown,
+  DropdownDivider,
+  DropdownHeader,
+  DropdownItem,
 } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import { getData } from "../../utils/getData";
@@ -24,6 +28,10 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
     generated_config: "",
   });
   const [errors, setErrors] = useState([]);
+  const [columnValues, setColumnValues] = useState({
+    left: "running_config",
+    right: "generate_config",
+  });
 
   function clearForm() {
     setErrors([]);
@@ -81,122 +89,148 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
     } else {
       clearForm();
     }
-  }, [hostname, state]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hostname]);
+
+  const leftColumnOptions = [
+    <DropdownHeader key="device_header" content="Device config" />,
+    <DropdownItem
+      key="running_config"
+      value="running_config"
+      text="Running config"
+    />,
+    <DropdownDivider key="divider" />,
+    <DropdownHeader key="nms_header" content="NMS generated" />,
+    <DropdownItem
+      key="generate_config"
+      value="generate_config"
+      text="Latest config from templates"
+    />,
+    <DropdownItem
+      key="available_variables"
+      value="available_variables"
+      text="Available variables for templates"
+    />,
+  ];
+
+  const rightColumnOptions = [
+    ...leftColumnOptions,
+    <DropdownDivider key="right_only_divider" />,
+    <DropdownItem key="hide" value="hide" text="Hide" />,
+  ];
+
+  function updateColumn(e, data) {
+    console.log(data);
+    const colName = data.name;
+    const val = data.value;
+    const column = {};
+    if (colName === "left") {
+      column.left = val;
+    } else {
+      column.right = val;
+    }
+    if (val !== columnValues[colName]) {
+      setColumnValues((currentValues) => ({
+        ...currentValues,
+        [colName]: val,
+      }));
+    }
+  }
+
+  const columnHeaders = {
+    running_config: "Device running config",
+    generate_config: "NMS generated config",
+    available_variables: "Template variables",
+  };
+
+  const columnRefreshFunctions = {
+    running_config: getRunningConfig,
+    generate_config: getGeneratedConfig,
+    available_variables: getGeneratedConfig,
+  };
+
+  const columnContents = Object.entries(columnValues).map(
+    ([colName, colValue]) => {
+      const headerText = columnHeaders[colValue] || colValue;
+      let config = "";
+      if (colValue === "running_config") {
+        config = runningConfig.config;
+      } else if (colValue === "generate_config") {
+        config = generatedConfig.generated_config;
+      } else if (colValue === "available_variables") {
+        config = JSON.stringify(generatedConfig.available_variables, null, 2);
+      } else {
+        return null;
+      }
+      return (
+        <GridColumn>
+          <h1>{headerText}</h1>
+          <ButtonGroup>
+            <Popup
+              content={`Copy ${headerText}`}
+              floated="right"
+              trigger={
+                <Button
+                  onClick={() => navigator.clipboard.writeText(config)}
+                  icon="copy"
+                  size="small"
+                />
+              }
+              position="bottom right"
+            />
+            <Popup
+              content={`Refresh ${headerText}`}
+              floated="right"
+              trigger={
+                <Button
+                  onClick={() => columnRefreshFunctions[colValue]()}
+                  icon="refresh"
+                  size="small"
+                />
+              }
+              position="bottom right"
+            />
+          </ButtonGroup>
+          <Segment>
+            {typeof config === "object" ? (
+              config
+            ) : (
+              <pre className="fullconfig">{config}</pre>
+            )}
+          </Segment>
+        </GridColumn>
+      );
+    },
+  );
 
   return (
     <Modal open={isOpen} onClose={handleCancel} size="fullscreen">
       <ModalHeader>Show config for {hostname}</ModalHeader>
       <ModalContent>
         <ModalDescription>
+          <Segment>
+            <Dropdown
+              key="left"
+              name="left"
+              text="Left column"
+              button
+              options={leftColumnOptions}
+              defaultValue="running_config"
+              onChange={updateColumn}
+            />
+            <Dropdown
+              key="right"
+              name="right"
+              text="Right column"
+              button
+              options={rightColumnOptions}
+              defaultValue="generate_config"
+              onChange={updateColumn}
+            />
+          </Segment>
           <Grid columns="equal">
             <GridRow>
-              <GridColumn>
-                <h1>Device Running Config</h1>
-              </GridColumn>
-              <GridColumn>
-                <h1>NMS Generated Config</h1>
-              </GridColumn>
-            </GridRow>
-            <GridRow>
-              <GridColumn>
-                <ButtonGroup>
-                  <Popup
-                    content="Copy running config"
-                    floated="right"
-                    trigger={
-                      <Button
-                        onClick={() =>
-                          navigator.clipboard.writeText(runningConfig.config)
-                        }
-                        icon="copy"
-                        size="small"
-                      />
-                    }
-                    position="bottom right"
-                  />
-                  <Popup
-                    content="Refresh running config"
-                    floated="right"
-                    trigger={
-                      <Button
-                        onClick={() => getRunningConfig()}
-                        icon="refresh"
-                        size="small"
-                      />
-                    }
-                    position="bottom right"
-                  />
-                </ButtonGroup>
-                <Segment>
-                  {typeof runningConfig.config === "object" ? (
-                    runningConfig.config
-                  ) : (
-                    <pre className="fullconfig">{runningConfig.config}</pre>
-                  )}
-                </Segment>
-              </GridColumn>
-              <GridColumn>
-                <ButtonGroup>
-                  <Popup
-                    content="Copy NMS generated config"
-                    floated="right"
-                    trigger={
-                      <Button
-                        onClick={() =>
-                          navigator.clipboard.writeText(
-                            generatedConfig.generated_config,
-                          )
-                        }
-                        icon="copy"
-                        size="small"
-                      />
-                    }
-                    position="bottom center"
-                  />
-                  <Popup
-                    content="Refresh NMS generated config"
-                    floated="right"
-                    trigger={
-                      <Button
-                        onClick={() => getGeneratedConfig()}
-                        icon="refresh"
-                        size="small"
-                      />
-                    }
-                    position="bottom center"
-                  />
-                  <Popup
-                    content="Copy available variables for templates"
-                    floated="right"
-                    trigger={
-                      <Button
-                        onClick={() =>
-                          navigator.clipboard.writeText(
-                            JSON.stringify(
-                              generatedConfig.available_variables,
-                              null,
-                              2,
-                            ),
-                          )
-                        }
-                        icon="code"
-                        size="small"
-                      />
-                    }
-                    position="bottom center"
-                  />
-                </ButtonGroup>
-                <Segment>
-                  <Loader />
-                  {typeof generatedConfig.generated_config === "object" ? (
-                    <div>{generatedConfig.generated_config}</div>
-                  ) : (
-                    <pre className="fullconfig">
-                      {generatedConfig.generated_config}
-                    </pre>
-                  )}
-                </Segment>
-              </GridColumn>
+              {columnContents.filter((contents) => contents !== null)}
             </GridRow>
             <GridRow>
               <GridColumn>
