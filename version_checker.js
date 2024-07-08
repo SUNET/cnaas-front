@@ -1,29 +1,29 @@
 import { data } from "/dist/version.js";
 
-async function getData() {
-  const url = `${process.env.API_URL}/api/v1.0/system/version`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Response status: ${response.status}`);
+var done;
+function saveToLocalstorage() {
+  const version = data.version;
+  if (!done) {
+    done = true;
+    localStorage.setItem("version", version);
   }
-  const json = await response.json();
-  return json.data;
+}
+
+function getLocalVersion() {
+  const version = localStorage.getItem("version");
+  return version
 }
 
 async function gatherData() {
   const version = data.version;
-  const dataFrGit = await getData();
-  const gitVersion = dataFrGit.version;
-  const gitVersionSummary = dataFrGit.git_version;
-  console.log("Data:");
-  console.log(version);
+  const localVersion = await getLocalVersion();
+  console.log("localVersion:");
+  console.log(localVersion);
 
-  console.log("dataFrGit:");
-  console.log(dataFrGit);
-  console.log(gitVersion);
-  console.log(gitVersionSummary);
-  console.log(gitVersionSummary.includes(version));
-  if (!gitVersionSummary.includes(version)) {
+  console.log("version:");
+  console.log(version);
+  console.log(version.includes(localVersion));
+  if (!version.includes(localVersion)) {
     window.dispatchEvent(
       new CustomEvent("versionchanged", { detail: version }),
     );
@@ -31,11 +31,13 @@ async function gatherData() {
 }
 
 function start() {
-  setInterval(gatherData, 8000);
+  setInterval(gatherData, 600000);
 }
 
 window.addEventListener("versionchanged", function (e) {
   alert("Unmacthed version. New UI version available!");
 });
 
+
+saveToLocalstorage()
 window.addEventListener("load", start);
