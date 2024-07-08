@@ -11,7 +11,7 @@ function saveToLocalstorage() {
 
 function getLocalVersion() {
   const version = localStorage.getItem("version");
-  return version
+  return version;
 }
 
 async function gatherData() {
@@ -38,6 +38,5 @@ window.addEventListener("versionchanged", function (e) {
   alert("Unmacthed version. New UI version available!");
 });
 
-
-saveToLocalstorage()
+saveToLocalstorage();
 window.addEventListener("load", start);
