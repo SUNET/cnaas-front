@@ -108,9 +108,9 @@ class ConfigChange extends React.Component {
                 prevRepoJobs: newRepoJobs,
                 repoJob: null,
               };
-            } else {
-              console.log(prevState);
             }
+            console.log(prevState);
+
             return prevState;
           });
         } else if (
