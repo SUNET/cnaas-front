@@ -599,9 +599,9 @@ class InterfaceConfig extends React.Component {
       let ifData = item.data;
       let ifDataUpdated = null;
       let editDisabled = true;
-      if (this.device_type == "ACCESS") {
+      if (this.device_type === "ACCESS") {
         editDisabled = !this.configTypesEnabled.includes(item.configtype);
-      } else if (this.device_type == "DIST") {
+      } else if (this.device_type === "DIST") {
         if (item.ifclass.startsWith("port_template")) {
           editDisabled = false;
         } else {
@@ -610,7 +610,7 @@ class InterfaceConfig extends React.Component {
       }
       let updated = false;
       let fields = {};
-      if (this.device_type == "ACCESS") {
+      if (this.device_type === "ACCESS") {
         fields = {
           description: "",
           untagged_vlan: null,
@@ -620,7 +620,7 @@ class InterfaceConfig extends React.Component {
           aggregate_id: null,
           bpdu_filter: false,
         };
-      } else if (this.device_type == "DIST") {
+      } else if (this.device_type === "DIST") {
         ifData = {};
         fields = {
           description: "",
@@ -677,16 +677,21 @@ class InterfaceConfig extends React.Component {
           fields.bpdu_filter = ifData.bpdu_filter;
         }
 
+        if ("aggregate_id" in ifData) {
+          fields.aggregate_id = ifData.aggregate_id;
+        }
+
         if (ifDataUpdated !== null && "untagged_vlan" in ifDataUpdated) {
           fields.untagged_vlan = ifDataUpdated.untagged_vlan;
         } else if ("untagged_vlan" in ifData) {
           if (typeof ifData.untagged_vlan === "number") {
             const untagged_vlan_mapped = vlanOptions.filter(
-              (item) => item.description == ifData.untagged_vlan,
+              (vlanOptionItem) =>
+                vlanOptionItem.description === ifData.untagged_vlan,
             );
             if (
               Array.isArray(untagged_vlan_mapped) &&
-              untagged_vlan_mapped.length == 1
+              untagged_vlan_mapped.length === 1
             ) {
               fields.untagged_vlan = untagged_vlan_mapped[0].value;
             } else {
@@ -702,9 +707,9 @@ class InterfaceConfig extends React.Component {
           fields.tagged_vlan_list = ifData.tagged_vlan_list.map((vlan_item) => {
             if (typeof vlan_item === "number") {
               const vlan_mapped = vlanOptions.filter(
-                (item) => item.description == vlan_item,
+                (vlanOptionItem) => vlanOptionItem.description === vlan_item,
               );
-              if (Array.isArray(vlan_mapped) && vlan_mapped.length == 1) {
+              if (Array.isArray(vlan_mapped) && vlan_mapped.length === 1) {
                 return vlan_mapped[0].value;
               }
               return vlan_item;
@@ -733,7 +738,7 @@ class InterfaceConfig extends React.Component {
       let currentIfClass = null;
       let displayVlanTagged = false;
       let portTemplate = null;
-      if (this.device_type == "ACCESS") {
+      if (this.device_type === "ACCESS") {
         currentConfigtype = item.configtype;
         if (
           item.name in this.state.interfaceDataUpdated &&
@@ -771,7 +776,7 @@ class InterfaceConfig extends React.Component {
 
       const optionalColumns = this.state.displayColumns.map((columnName) => {
         let colData = [];
-        if (columnName == "vlans") {
+        if (columnName === "vlans") {
           if (this.state.deviceSettings === null) {
             colData = [<Loader key="loading" inline active />];
           } else if (vlanOptions.length == 0) {
@@ -892,7 +897,7 @@ class InterfaceConfig extends React.Component {
               />,
             ];
           }
-        } else if (columnName == "aggregate_id") {
+        } else if (columnName === "aggregate_id") {
           colData = [
             <Input
               key={`aggregate_id|${item.name}`}
