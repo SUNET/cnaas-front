@@ -677,6 +677,10 @@ class InterfaceConfig extends React.Component {
           fields.bpdu_filter = ifData.bpdu_filter;
         }
 
+        if ("aggregate_id" in ifData) {
+          fields.aggregate_id = ifData.aggregate_id;
+        }
+
         if (ifDataUpdated !== null && "untagged_vlan" in ifDataUpdated) {
           fields.untagged_vlan = ifDataUpdated.untagged_vlan;
         } else if ("untagged_vlan" in ifData) {
