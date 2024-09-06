@@ -198,15 +198,18 @@ class InterfaceConfig extends React.Component {
 
   getInterfaceData() {
     const credentials = localStorage.getItem("token");
-    if (this.device_type == "ACCESS") {
+    if (this.device_type === "ACCESS") {
       const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interfaces`;
       return getData(url, credentials)
         .then((data) => {
-          const usedTags = [];
-          data.data.interfaces.map((item, index) => {
+          const usedTags = this.state.tagOptions;
+          data.data.interfaces.forEach((item) => {
             const ifData = item.data;
             if (ifData !== null && "tags" in ifData) {
-              ifData.tags.map((tag) => {
+              ifData.tags.forEach((tag) => {
+                if (usedTags.some((e) => e.text === tag)) {
+                  return; // don't add duplicate tags
+                }
                 usedTags.push({ text: tag, value: tag });
               });
             }
@@ -238,24 +241,33 @@ class InterfaceConfig extends React.Component {
           console.log(error);
         });
     }
-    if (this.device_type == "DIST") {
+    if (this.device_type === "DIST") {
       const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/generate_config`;
       return getData(url, credentials, {
         "X-Fields": "available_variables{interfaces}",
       })
         .then((data) => {
-          const usedTags = [];
+          const { tagOptions } = this.state;
+          const usedTags = tagOptions;
           const usedPortTemplates = [];
-          data.data.config.available_variables.interfaces.map((item, index) => {
-            if (item.tags !== undefined && item.tags) {
-              item.tags.map((tag) => {
-                usedTags.push({ text: tag, value: tag });
-              });
+          data.data.config.available_variables.interfaces.forEach((item) => {
+            if (usedTags.length === 0) {
+              if (item.tags !== undefined && item.tags) {
+                item.tags.forEach((tag) => {
+                  if (usedTags.some((e) => e.text === tag)) {
+                    return; // don't add duplicate tags
+                  }
+                  usedTags.push({ text: tag, value: tag });
+                });
+              }
             }
             if (item.ifclass.startsWith("port_template")) {
               const templateName = item.ifclass.substring(
                 "port_template_".length,
               );
+              if (usedPortTemplates.some((e) => e.text === templateName)) {
+                return; // don't add duplicate tags
+              }
               usedPortTemplates.push({
                 text: templateName,
                 value: templateName,
@@ -298,11 +310,11 @@ class InterfaceConfig extends React.Component {
 
   getDeviceData() {
     const credentials = localStorage.getItem("token");
-    url = `${process.env.API_URL}/api/v1.0/settings?hostname=${this.hostname}`;
+    let url = `${process.env.API_URL}/api/v1.0/settings?hostname=${this.hostname}`;
     getData(url, credentials)
       .then((data) => {
         const vlanOptions = Object.entries(data.data.settings.vxlans).map(
-          ([vxlan_name, vxlan_data], index) => {
+          ([vxlan_name, vxlan_data]) => {
             return {
               value: vxlan_data.vlan_name,
               text: vxlan_data.vlan_name,
@@ -316,17 +328,34 @@ class InterfaceConfig extends React.Component {
           text: "None",
           description: "NA",
         });
+        // look for tag options
+        let settingsTagOptions = [];
+        if (
+          data.data.settings.interface_tag_options !== undefined &&
+          data.data.settings.interface_tag_options
+        ) {
+          settingsTagOptions = Object.entries(
+            data.data.settings.interface_tag_options,
+          ).map(([tag_name, tag_data]) => {
+            return {
+              text: tag_name,
+              value: tag_name,
+              description: tag_data.description,
+            };
+          });
+        }
 
         this.setState({
           deviceSettings: data.data.settings,
           vlanOptions,
           untaggedVlanOptions,
+          tagOptions: settingsTagOptions,
         });
       })
       .catch((error) => {
         console.log(error);
       });
-    let url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}`;
+    url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}`;
     return getData(url, credentials)
       .then((data) => {
         const newState = {
