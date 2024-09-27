@@ -48,7 +48,7 @@ function App() {
     setLoggedIn(false);
   };
 
-  const oauthLogin = (event) => {
+  const oidcLogin = (event) => {
     event.preventDefault();
     const url = `${process.env.API_URL}/api/v1.0/auth/login`;
     window.location.replace(url);
@@ -57,11 +57,11 @@ function App() {
   return (
     <div className="container">
       <BrowserRouter>
-        <Header loggedIn={loggedIn} />
+        <Header />
         <Panel
           login={login}
           logout={logout}
-          oauthLogin={oauthLogin}
+          oidcLogin={oidcLogin}
           loginMessage={loginMessage}
           loggedIn={loggedIn}
         />
