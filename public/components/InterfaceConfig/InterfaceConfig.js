@@ -158,9 +158,14 @@ class InterfaceConfig extends React.Component {
             newState.errorMessage = [
               "Live run job not scheduled! There was an error or the change score was too high to continue with autopush.",
               " Check ",
-              <Link to="/jobs">job log</Link>,
+              <Link key="jobs" to="/jobs">
+                job log
+              </Link>,
               " or do a ",
-              <Link to={`/config-change?hostname=${this.hostname}`}>
+              <Link
+                key="dryrun"
+                to={`/config-change?hostname=${this.hostname}`}
+              >
                 dry run
               </Link>,
             ];
@@ -550,8 +555,9 @@ class InterfaceConfig extends React.Component {
       }
     }
     if (["aggregate_id"].includes(json_key)) {
-      val = parseInt(val);
+      val = parseInt(val, 10);
       if (isNaN(val)) {
+        val = null;
         console.log(`${json_key} value is not a number`);
       }
     }
@@ -744,21 +750,6 @@ class InterfaceConfig extends React.Component {
               return vlan_item;
             }
             return vlan_item;
-          });
-        }
-        if (ifDataUpdated !== null) {
-          const check_updated_fields = [
-            "enabled",
-            "tags",
-            "aggregate_id",
-            "bpdu_filter",
-          ];
-          check_updated_fields.forEach((field_name) => {
-            if (field_name in ifDataUpdated) {
-              fields[field_name] = ifDataUpdated[field_name];
-            } else if (field_name in ifData) {
-              fields[field_name] = ifData[field_name];
-            }
           });
         }
       }
@@ -1238,13 +1229,23 @@ class InterfaceConfig extends React.Component {
     const columnSelectors = Object.keys(allowedColumns).map(
       (columnName, columnIndex) => {
         let checked = false;
+        let disabled = false;
         if (this.state.displayColumns.indexOf(columnName) !== -1) {
           checked = true;
         }
+        // if value has been changed for an optional column, don't allow
+        // hiding that column since the defaultValue will be wrong if re-adding it later
+        Object.values(this.state.interfaceDataUpdated).forEach((ifData) => {
+          if (Object.keys(ifData).includes(columnName)) {
+            disabled = true;
+          }
+        });
+
         return (
           <li key={columnIndex}>
             <Checkbox
               defaultChecked={checked}
+              disabled={disabled}
               label={allowedColumns[columnName]}
               name={columnName}
               onChange={this.columnSelectorChange.bind(this)}
