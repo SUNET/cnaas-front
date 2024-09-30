@@ -8,7 +8,7 @@ function LoginForm({ handleSubmit, setValue, formValues, errorMessage }) {
 
   const handleClick = (event) => {
     event.preventDefault();
-    handleSubmit(event, formValues.email, formValues.password);
+    handleSubmit(formValues.email, formValues.password);
   };
 
   return (

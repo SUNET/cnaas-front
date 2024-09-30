@@ -2,8 +2,10 @@ import React, { useState } from "react";
 
 import LoginForm from "./LoginForm";
 import LoginOIDC from "./LoginOIDC";
+import { useAuth } from "../../contexts/AuthContext";
 
-function Login({ show, login, logout, oidcLogin, errorMessage }) {
+function Login() {
+  const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuth();
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -16,10 +18,10 @@ function Login({ show, login, logout, oidcLogin, errorMessage }) {
     });
   };
 
-  if (!show) {
+  if (loggedIn) {
     const noPermissions =
       process.env.PERMISSIONS_DISABLED !== "true" &&
-      !JSON.parse(localStorage.getItem("permissions")).length;
+      !JSON.parse(localStorage.getItem("permissions"))?.length;
     const errorMessageNoPermissions = noPermissions
       ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
       : "";
@@ -34,7 +36,7 @@ function Login({ show, login, logout, oidcLogin, errorMessage }) {
   }
 
   if (process.env.OIDC_ENABLED == "true") {
-    return <LoginOIDC login={oidcLogin} errorMessage={errorMessage} />;
+    return <LoginOIDC login={oidcLogin} errorMessage={loginMessage} />;
   }
 
   return (
@@ -42,7 +44,7 @@ function Login({ show, login, logout, oidcLogin, errorMessage }) {
       handleSubmit={login}
       formValues={credentials}
       setValue={setValue}
-      errorMessage={errorMessage}
+      errorMessage={loginMessage}
     />
   );
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container } from "semantic-ui-react";
+import { useAuth } from "../contexts/AuthContext";
 import "../styles/reset.css";
 import "../styles/main.css";
 import { getData } from "../utils/getData";
@@ -8,6 +9,8 @@ function Callback() {
   const [infoMessage, setInfoMessage] = useState(
     "Please be patient, you will be logged in.",
   );
+
+  const { updateToken, updateUsername } = useAuth();
 
   const checkSuccess = () => {
     if (
@@ -57,22 +60,20 @@ function Callback() {
       )}; SameSite=None; Secure; HttpOnly; Path=/api/v1.0/auth/refresh`;
     }
     if (params.has("username")) {
-      localStorage.setItem("username", params.get("username"));
+      updateUsername(params.get("username"));
     }
     if (params.has("token")) {
       // Add the token as a parameter in local storage and communicate with the user they are logged in
       // We don't check the validity of the token as this is done with every API call to get any information
       const token = params.get("token");
-      localStorage.setItem("token", token);
-
+      updateToken(token);
       getPermissions(token);
-
       setInfoMessage("You're logged in.");
       window.location.replace("/");
     } else {
       setInfoMessage("Something went wrong. Retry the login.");
     }
-  }, []);
+  }, [updateToken, updateUsername]);
 
   return (
     <div className="container">

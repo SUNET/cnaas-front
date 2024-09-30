@@ -11,10 +11,13 @@ import {
   Popup,
   Header as SemanticHeader,
 } from "semantic-ui-react";
+import { useAuth } from "../contexts/AuthContext";
 import permissionsCheck from "../utils/permissions/permissionsCheck";
 import { postData } from "../utils/sendData";
 
 function Header() {
+  const { token, updateToken, username, oidcLogin, logout } = useAuth();
+
   const [jwtInfo, setJwtInfo] = useState([
     <Loader key="loading" inline active />,
   ]);
@@ -26,8 +29,7 @@ function Header() {
 
   const getJwtInfo = () => {
     try {
-      const credentials = localStorage.getItem("token");
-      const decodedToken = jwtDecode(credentials);
+      const decodedToken = jwtDecode(token);
 
       const now = Math.round(Date.now() / 1000);
       const secondsUntilExpiry = decodedToken.exp - now;
@@ -47,15 +49,9 @@ function Header() {
     setJwtInfo([<Loader key="loading" inline active />]);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    window.location.replace("/");
-  };
-
   const relogin = () => {
-    localStorage.removeItem("token");
-    const url = `${process.env.API_URL}/api/v1.0/auth/login`;
-    window.location.replace(url);
+    logout();
+    oidcLogin();
   };
 
   const putJwtInfo = () => {
@@ -68,14 +64,12 @@ function Header() {
       expiryString = `Token valid for ${Math.round(Math.abs(secondsUntilExpiry) / 60)} more minutes`;
     }
 
-    const username = localStorage.getItem("username");
     let userinfo = "";
     if (username !== null) {
       userinfo = `Logged in as ${username}`;
     } else {
       userinfo = "Unknown user (username attribute missing)";
     }
-    const credentials = localStorage.getItem("token");
 
     setJwtInfo([
       <p key="userinfo">{userinfo}</p>,
@@ -87,7 +81,7 @@ function Header() {
           content="Copy JWT (to use from curl etc), take note of valid time listed above"
           trigger={
             <Button
-              onClick={() => navigator.clipboard.writeText(credentials)}
+              onClick={() => navigator.clipboard.writeText(token)}
               icon="copy"
               size="tiny"
             />
@@ -107,7 +101,7 @@ function Header() {
   };
 
   const renderLinks = () => {
-    if (localStorage.getItem("token") === null) {
+    if (token === null) {
       return [
         <NavLink exact activeClassName="active" to="/" key="navlogin">
           <li key="nav1">Login</li>
@@ -126,10 +120,9 @@ function Header() {
         () => {
           // try to refresh token silently first
           const url = `${process.env.API_URL}/api/v1.0/auth/refresh`;
-          const credentials = localStorage.getItem("token");
-          postData(url, credentials, {})
+          postData(url, token, {})
             .then((data) => {
-              localStorage.setItem("token", data.data.access_token);
+              updateToken(data.data.access_token);
               const oldExpiry = tokenExpiryTimestamp;
               getJwtInfo();
               if (oldExpiry == tokenExpiryTimestamp) {

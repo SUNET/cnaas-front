@@ -12,22 +12,10 @@ import InterfaceConfig from "./InterfaceConfig/InterfaceConfig";
 import JobList from "./JobList";
 import Login from "./Login/Login";
 
-function Panel({ login, logout, loginMessage, loggedIn, oidcLogin }) {
+function Panel() {
   return (
     <div id="panel">
-      <Route
-        exact
-        path="/"
-        render={() => (
-          <Login
-            login={login}
-            logout={logout}
-            show={!loggedIn}
-            errorMessage={loginMessage}
-            oidcLogin={oidcLogin}
-          />
-        )}
-      />
+      <Route exact path="/" render={() => <Login />} />
       <Route exact path="/callback" component={Callback} />
       <ErrorBoundary>
         <Route exact path="/dashboard" component={Dashboard} />
