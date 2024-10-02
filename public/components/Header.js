@@ -57,19 +57,15 @@ function Header() {
   const putJwtInfo = () => {
     const secondsUntilExpiry = getJwtInfo();
 
-    let expiryString = "";
-    if (secondsUntilExpiry < 0) {
-      expiryString = `Token exired ${Math.round(Math.abs(secondsUntilExpiry) / 60)} minutes ago`;
-    } else {
-      expiryString = `Token valid for ${Math.round(Math.abs(secondsUntilExpiry) / 60)} more minutes`;
-    }
+    const expiryString =
+      secondsUntilExpiry < 0
+        ? `Token exired ${Math.round(Math.abs(secondsUntilExpiry) / 60)} minutes ago`
+        : `Token valid for ${Math.round(Math.abs(secondsUntilExpiry) / 60)} more minutes`;
 
-    let userinfo = "";
-    if (username !== null) {
-      userinfo = `Logged in as ${username}`;
-    } else {
-      userinfo = "Unknown user (username attribute missing)";
-    }
+    const userinfo =
+      username !== null
+        ? `Logged in as ${username}`
+        : "Unknown user (username attribute missing)";
 
     setJwtInfo([
       <p key="userinfo">{userinfo}</p>,

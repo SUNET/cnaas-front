@@ -7,33 +7,67 @@ import React, {
   useState,
 } from "react";
 import checkResponseStatus from "../utils/checkResponseStatus";
+import { getData } from "../utils/getData";
 
 export const AuthContext = createContext({});
 
 export function AuthContextProvider({ children }) {
+  const [permissions, setPermissions] = useState("");
   const [token, setToken] = useState();
   const [username, setUsername] = useState();
-  const [isReady, setIsReady] = useState(false);
   const [loginMessage, setLoginMessage] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   /*
    * Tries to fetch token on mount.
    */
   useEffect(() => {
-    const fetchTokenOnLoad = async () => {
-      const usernameStored = localStorage.getItem("user");
+    const setAuthStateOnLoad = async () => {
+      const usernameStored = localStorage.getItem("username");
       const tokenStored = localStorage.getItem("token");
+      const permissionsStored = localStorage.getItem("permissions");
       setToken(tokenStored);
       setUsername(usernameStored);
+      setPermissions(permissionsStored);
       if (tokenStored) {
         setLoggedIn(true);
       }
     };
 
-    fetchTokenOnLoad();
+    setAuthStateOnLoad();
     setIsReady(true);
   }, []);
+
+  const updatePermissions = useCallback((newPermissions) => {
+    setPermissions(newPermissions);
+    localStorage.setItem("permissions", newPermissions);
+  }, []);
+
+  const removePermissions = () => {
+    setPermissions(null);
+    localStorage.removeItem("permissions");
+  };
+
+  /*
+   * Set permissions on token change
+   */
+  useEffect(() => {
+    if (token) {
+      getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
+        .then((data) => {
+          if (data) {
+            updatePermissions(JSON.stringify(data));
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return false;
+        });
+    } else {
+      removePermissions();
+    }
+  }, [updatePermissions, token]);
 
   const updateToken = useCallback((newToken) => {
     setToken(newToken);
@@ -83,7 +117,7 @@ export function AuthContextProvider({ children }) {
   const logout = useCallback(() => {
     removeToken();
     removeUsername();
-    localStorage.removeItem("permissions");
+    removePermissions();
     setLoginMessage("You have been logged out");
     setLoggedIn(false);
     window.location.replace("/");
@@ -98,13 +132,14 @@ export function AuthContextProvider({ children }) {
     window.location.replace(url);
   };
 
-  // Memoize the context value
   const value = useMemo(
     () => ({
       token,
       updateToken,
       username,
       updateUsername,
+      permissions,
+      updatePermissions,
       login,
       oidcLogin,
       logout,
@@ -116,6 +151,8 @@ export function AuthContextProvider({ children }) {
       updateToken,
       username,
       updateUsername,
+      permissions,
+      updatePermissions,
       login,
       logout,
       loginMessage,

@@ -10,12 +10,12 @@ function Callback() {
     "Please be patient, you will be logged in.",
   );
 
-  const { updateToken, updateUsername } = useAuth();
+  const { updateToken, updateUsername, permissions, updatePermissions } =
+    useAuth();
 
   const checkSuccess = () => {
     if (
-      (Object.prototype.hasOwnProperty.call(localStorage, "permissions") ||
-        process.env.PERMISSIONS_DISABLED === "true") &&
+      (permissions || process.env.PERMISSIONS_DISABLED === "true") &&
       Object.prototype.hasOwnProperty.call(localStorage, "token")
     ) {
       setInfoMessage(
@@ -34,7 +34,7 @@ function Callback() {
       } else {
         getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
           .then((data) => {
-            localStorage.setItem("permissions", JSON.stringify(data));
+            updatePermissions(JSON.stringify(data));
             setInfoMessage("Permissions are retrieved.");
             checkSuccess();
           })
@@ -73,7 +73,7 @@ function Callback() {
     } else {
       setInfoMessage("Something went wrong. Retry the login.");
     }
-  }, [updateToken, updateUsername]);
+  }, [updateToken, updateUsername, updatePermissions]);
 
   return (
     <div className="container">

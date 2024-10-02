@@ -11,15 +11,15 @@ jest.mock("../utils/getData");
 const { PERMISSIONS_DISABLED } = process.env;
 
 describe("Callback Component", () => {
-  let mockUpdateToken;
-  let mockUpdateUsername;
+  const mockUpdateToken = jest.fn();
+  const mockUpdateUsername = jest.fn();
+  const mockUpdatePermissions = jest.fn();
 
   beforeEach(() => {
-    mockUpdateToken = jest.fn();
-    mockUpdateUsername = jest.fn();
     useAuth.mockReturnValue({
       updateToken: mockUpdateToken,
       updateUsername: mockUpdateUsername,
+      updatePermissions: mockUpdatePermissions,
     });
 
     Object.defineProperty(window, "location", {
@@ -28,16 +28,6 @@ describe("Callback Component", () => {
         replace: jest.fn(),
       },
       writable: true,
-    });
-
-    // Mocking localStorage setItem and getItem
-    const localStorageMock = {
-      setItem: jest.fn(),
-      getItem: jest.fn(),
-      removeItem: jest.fn(),
-    };
-    Object.defineProperty(global, "localStorage", {
-      value: localStorageMock,
     });
 
     // Set explicitly to false during tests
@@ -54,7 +44,7 @@ describe("Callback Component", () => {
   });
 
   test("displays final message and logs in user with valid token", async () => {
-    getData.mockResolvedValueOnce({ permission: "some-permission" });
+    getData.mockResolvedValueOnce([{ permission: "some-permission" }]);
 
     render(<Callback />);
 
@@ -69,9 +59,8 @@ describe("Callback Component", () => {
       expect(mockUpdateUsername).toHaveBeenCalledWith("testuser");
     });
     await waitFor(() => {
-      expect(localStorage.setItem).toHaveBeenCalledWith(
-        "permissions",
-        JSON.stringify({ permission: "some-permission" }),
+      expect(mockUpdatePermissions).toHaveBeenCalledWith(
+        JSON.stringify([{ permission: "some-permission" }]),
       );
     });
     await waitFor(() => {

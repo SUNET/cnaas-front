@@ -1,15 +1,28 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
+import { useAuth } from "../../contexts/AuthContext";
 import LoginForm from "./LoginForm";
 import LoginOIDC from "./LoginOIDC";
-import { useAuth } from "../../contexts/AuthContext";
 
 function Login() {
-  const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuth();
+  const { login, oidcLogin, logout, loginMessage, loggedIn, permissions } =
+    useAuth();
+  const [permissionsErrorMsg, setPermissionsErrorMsg] = useState("");
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
+
+  useEffect(() => {
+    const noPermissions =
+      process.env.PERMISSIONS_DISABLED !== "true" &&
+      !JSON.parse(localStorage.getItem("permissions"))?.length;
+    setPermissionsErrorMsg(
+      noPermissions
+        ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
+        : "",
+    );
+  }, [loggedIn, permissions]);
 
   const setValue = (name, value) => {
     setCredentials({
@@ -19,15 +32,9 @@ function Login() {
   };
 
   if (loggedIn) {
-    const noPermissions =
-      process.env.PERMISSIONS_DISABLED !== "true" &&
-      !JSON.parse(localStorage.getItem("permissions"))?.length;
-    const errorMessageNoPermissions = noPermissions
-      ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
-      : "";
     return (
       <div>
-        <p className="title error">{errorMessageNoPermissions}</p>
+        <p className="title error">{permissionsErrorMsg}</p>
         <button type="button" className="logout" onClick={logout}>
           Logout
         </button>
