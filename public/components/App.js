@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
-import { AuthContextProvider } from "../contexts/AuthContext";
+import AuthContextProvider from "../contexts/AuthContext";
 import Footer from "./Footer";
 import Header from "./Header";
 import Panel from "./Panel";

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { usePermissions } from "../../contexts/PermissionsContext";
 import LoginForm from "./LoginForm";
 import LoginOIDC from "./LoginOIDC";
 
 function Login() {
-  const { login, oidcLogin, logout, loginMessage, loggedIn, permissions } =
-    useAuth();
+  const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuthToken();
+  const { permissions } = usePermissions();
   const [permissionsErrorMsg, setPermissionsErrorMsg] = useState("");
   const [credentials, setCredentials] = useState({
     email: "",

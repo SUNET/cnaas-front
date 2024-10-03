@@ -1,25 +1,29 @@
 import "@testing-library/jest-dom"; // Add this import for jest-dom matchers
 import { render, screen, waitFor } from "@testing-library/react";
 import React from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuthToken } from "../contexts/AuthTokenContext";
+import { usePermissions } from "../contexts/PermissionsContext";
 import { getData } from "../utils/getData";
 import Callback from "./Callback";
 
-jest.mock("../contexts/AuthContext");
+jest.mock("../contexts/AuthTokenContext");
+jest.mock("../contexts/PermissionsContext");
 jest.mock("../utils/getData");
 
 const { PERMISSIONS_DISABLED } = process.env;
 
 describe("Callback Component", () => {
-  const mockUpdateToken = jest.fn();
-  const mockUpdateUsername = jest.fn();
-  const mockUpdatePermissions = jest.fn();
+  const mockPutToken = jest.fn();
+  const mockPutUsername = jest.fn();
+  const mockPutPermissions = jest.fn();
 
   beforeEach(() => {
-    useAuth.mockReturnValue({
-      updateToken: mockUpdateToken,
-      updateUsername: mockUpdateUsername,
-      updatePermissions: mockUpdatePermissions,
+    useAuthToken.mockReturnValue({
+      putToken: mockPutToken,
+      putUsername: mockPutUsername,
+    });
+    usePermissions.mockReturnValue({
+      putPermissions: mockPutPermissions,
     });
 
     Object.defineProperty(window, "location", {
@@ -53,13 +57,13 @@ describe("Callback Component", () => {
     });
 
     await waitFor(() => {
-      expect(mockUpdateToken).toHaveBeenCalledWith("some-valid-token");
+      expect(mockPutToken).toHaveBeenCalledWith("some-valid-token");
     });
     await waitFor(() => {
-      expect(mockUpdateUsername).toHaveBeenCalledWith("testuser");
+      expect(mockPutUsername).toHaveBeenCalledWith("testuser");
     });
     await waitFor(() => {
-      expect(mockUpdatePermissions).toHaveBeenCalledWith(
+      expect(mockPutPermissions).toHaveBeenCalledWith(
         JSON.stringify([{ permission: "some-permission" }]),
       );
     });

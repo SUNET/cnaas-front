@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Container } from "semantic-ui-react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuthToken } from "../contexts/AuthTokenContext";
+import { usePermissions } from "../contexts/PermissionsContext";
 import "../styles/reset.css";
 import "../styles/main.css";
+
 import { getData } from "../utils/getData";
 
 function Callback() {
@@ -10,8 +12,8 @@ function Callback() {
     "Please be patient, you will be logged in.",
   );
 
-  const { updateToken, updateUsername, permissions, updatePermissions } =
-    useAuth();
+  const { putToken, putUsername } = useAuthToken();
+  const { permissions, putPermissions } = usePermissions();
 
   const checkSuccess = () => {
     if (
@@ -34,7 +36,7 @@ function Callback() {
       } else {
         getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
           .then((data) => {
-            updatePermissions(JSON.stringify(data));
+            putPermissions(JSON.stringify(data));
             setInfoMessage("Permissions are retrieved.");
             checkSuccess();
           })
@@ -60,20 +62,20 @@ function Callback() {
       )}; SameSite=None; Secure; HttpOnly; Path=/api/v1.0/auth/refresh`;
     }
     if (params.has("username")) {
-      updateUsername(params.get("username"));
+      putUsername(params.get("username"));
     }
     if (params.has("token")) {
       // Add the token as a parameter in local storage and communicate with the user they are logged in
       // We don't check the validity of the token as this is done with every API call to get any information
       const token = params.get("token");
-      updateToken(token);
+      putToken(token);
       getPermissions(token);
       setInfoMessage("You're logged in.");
       window.location.replace("/");
     } else {
       setInfoMessage("Something went wrong. Retry the login.");
     }
-  }, [updateToken, updateUsername, updatePermissions]);
+  }, [putToken, putUsername, putPermissions]);
 
   return (
     <div className="container">

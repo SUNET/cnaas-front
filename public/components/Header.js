@@ -1,4 +1,3 @@
-import { jwtDecode } from "jwt-decode";
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
@@ -11,43 +10,19 @@ import {
   Popup,
   Header as SemanticHeader,
 } from "semantic-ui-react";
-import { useAuth } from "../contexts/AuthContext";
+import {
+  useAuthToken,
+  getSecondsUntilExpiry,
+} from "../contexts/AuthTokenContext";
 import permissionsCheck from "../utils/permissions/permissionsCheck";
-import { postData } from "../utils/sendData";
 
 function Header() {
-  const { token, updateToken, username, oidcLogin, logout } = useAuth();
+  const { doTokenRefresh, logout, oidcLogin, username, token } = useAuthToken();
 
   const [jwtInfo, setJwtInfo] = useState([
     <Loader key="loading" inline active />,
   ]);
   const [reloginModalOpen, setReloginModalOpen] = useState(false);
-
-  let tokenExpireTimer = null;
-  let tokenExpiryTimestamp = 0;
-  let triggerTokenRefresh = false;
-
-  const getJwtInfo = () => {
-    try {
-      const decodedToken = jwtDecode(token);
-
-      const now = Math.round(Date.now() / 1000);
-      const secondsUntilExpiry = decodedToken.exp - now;
-      tokenExpiryTimestamp = decodedToken.exp;
-
-      return secondsUntilExpiry;
-    } catch {
-      tokenExpiryTimestamp = -1;
-      return -1;
-    }
-  };
-
-  const refreshNow = () => {
-    window.clearTimeout(tokenExpireTimer);
-    tokenExpireTimer = null;
-    triggerTokenRefresh = true;
-    setJwtInfo([<Loader key="loading" inline active />]);
-  };
 
   const relogin = () => {
     logout();
@@ -55,10 +30,10 @@ function Header() {
   };
 
   const putJwtInfo = () => {
-    const secondsUntilExpiry = getJwtInfo();
+    const secondsUntilExpiry = getSecondsUntilExpiry(token);
 
     const expiryString =
-      secondsUntilExpiry < 0
+      secondsUntilExpiry === 0
         ? `Token exired ${Math.round(Math.abs(secondsUntilExpiry) / 60)} minutes ago`
         : `Token valid for ${Math.round(Math.abs(secondsUntilExpiry) / 60)} more minutes`;
 
@@ -69,7 +44,7 @@ function Header() {
 
     setJwtInfo([
       <p key="userinfo">{userinfo}</p>,
-      <p key="exp" className={secondsUntilExpiry < 0 ? "tokenexpired" : ""}>
+      <p key="exp" className={secondsUntilExpiry === 0 ? "tokenexpired" : ""}>
         {expiryString}
       </p>,
       <p key="jwtcopyrefresh">
@@ -86,7 +61,9 @@ function Header() {
         />
         <Popup
           content="Try to refresh the access token now, if it can't be refresh automatically you will be asked to log in again"
-          trigger={<Button onClick={refreshNow} icon="refresh" size="tiny" />}
+          trigger={
+            <Button onClick={doTokenRefresh} icon="refresh" size="tiny" />
+          }
           position="bottom right"
         />
       </p>,
@@ -97,57 +74,12 @@ function Header() {
   };
 
   const renderLinks = () => {
-    if (token === null) {
+    if (!token) {
       return [
         <NavLink exact activeClassName="active" to="/" key="navlogin">
           <li key="nav1">Login</li>
         </NavLink>,
       ];
-    }
-
-    if (tokenExpireTimer === null && process.env.OIDC_ENABLED == "true") {
-      let secondsUntilExpiry = null;
-      if (triggerTokenRefresh === true) {
-        secondsUntilExpiry = 0;
-      } else {
-        secondsUntilExpiry = getJwtInfo();
-      }
-      tokenExpireTimer = setTimeout(
-        () => {
-          // try to refresh token silently first
-          const url = `${process.env.API_URL}/api/v1.0/auth/refresh`;
-          postData(url, token, {})
-            .then((data) => {
-              updateToken(data.data.access_token);
-              const oldExpiry = tokenExpiryTimestamp;
-              getJwtInfo();
-              if (oldExpiry == tokenExpiryTimestamp) {
-                console.log(
-                  "Refresh of access token failed, session will time out",
-                );
-                setReloginModalOpen(true);
-              } else {
-                window.clearTimeout(tokenExpireTimer);
-                tokenExpireTimer = null;
-                if (triggerTokenRefresh === true) {
-                  triggerTokenRefresh = false;
-                  putJwtInfo();
-                } else {
-                  // trigger refresh of profile info, unless refreshNow already triggered it
-                  setJwtInfo([<Loader key="loading" inline active />]);
-                }
-              }
-            })
-            .catch((error) => {
-              console.log(
-                "Refresh of access token failed, session will time out",
-              );
-              console.log(error);
-              setReloginModalOpen(true);
-            });
-        },
-        (secondsUntilExpiry - 120) * 1000,
-      );
     }
 
     return [
@@ -220,16 +152,11 @@ function Header() {
     ];
   };
 
-  let expireString = "";
-  if (tokenExpiryTimestamp != 0) {
-    const now = Math.round(Date.now() / 1000);
-    const secondsUntilExpiry = tokenExpiryTimestamp - now;
-    if (secondsUntilExpiry < 1) {
-      expireString = "Your session has expired and you will now be logged out";
-    } else {
-      expireString = `Your session will time out in (less than) ${Math.floor(secondsUntilExpiry / 60)} minutes, after this you will be logged out`;
-    }
-  }
+  const secondsUntilExpiry = getSecondsUntilExpiry(token);
+  const expireString =
+    secondsUntilExpiry === 0
+      ? "Your session has expired and you will now be logged out"
+      : `Your session will time out in (less than) ${Math.floor(secondsUntilExpiry / 60)} minutes, after this you will be logged out`;
 
   return (
     <header>
