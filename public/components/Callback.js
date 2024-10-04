@@ -36,7 +36,7 @@ function Callback() {
       } else {
         getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
           .then((data) => {
-            putPermissions(JSON.stringify(data));
+            putPermissions(data);
             setInfoMessage("Permissions are retrieved.");
             checkSuccess();
           })

@@ -96,10 +96,8 @@ export function AuthTokenProvider({ children }) {
 
   const doTokenRefresh = useCallback(async () => {
     const url = `${process.env.API_URL}/api/v1.0/auth/refresh`;
-    console.log("sending to" + url + " with ", token);
     await postData(url, token, {})
       .then((data) => {
-        console.log("doTokenRefresh", data);
         const newToken = data.data.access_token;
         putToken(newToken);
       })

@@ -26,7 +26,7 @@ const permissionsCheck = (page, right) => {
   // check permissions in local storage
   const permissions = localStorage.getItem("permissions");
   if (permissions) {
-    return findPermission(JSON.parse(permissions), page, right);
+    return findPermission(permissions, page, right);
   }
 
   // else check and set permissions via token
@@ -39,7 +39,7 @@ const permissionsCheck = (page, right) => {
       if (!data) {
         return false;
       }
-      localStorage.setItem("permissions", JSON.stringify(data));
+      localStorage.setItem("permissions", data);
       return findPermission(data, page, right);
     })
     .catch((error) => {

@@ -18,7 +18,9 @@ export function PermissionsProvider({ children }) {
   useEffect(() => {
     const setPermissionsOnLoad = async () => {
       const permissionsStored = localStorage.getItem("permissions");
-      setPermissions(permissionsStored);
+      if (permissionsStored) {
+        setPermissions(permissionsStored);
+      }
     };
 
     setPermissionsOnLoad();
@@ -30,7 +32,7 @@ export function PermissionsProvider({ children }) {
   }, []);
 
   const clearPermissions = useCallback(() => {
-    setPermissions([]);
+    setPermissions(null);
     localStorage.removeItem("permissions");
   }, []);
 

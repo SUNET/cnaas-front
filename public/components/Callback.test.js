@@ -63,9 +63,9 @@ describe("Callback Component", () => {
       expect(mockPutUsername).toHaveBeenCalledWith("testuser");
     });
     await waitFor(() => {
-      expect(mockPutPermissions).toHaveBeenCalledWith(
-        JSON.stringify([{ permission: "some-permission" }]),
-      );
+      expect(mockPutPermissions).toHaveBeenCalledWith([
+        { permission: "some-permission" },
+      ]);
     });
     await waitFor(() => {
       expect(window.location.replace).toHaveBeenCalledWith("/");

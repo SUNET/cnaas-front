@@ -6,7 +6,7 @@ jest.mock("../../utils/getData");
 
 mockGetData.mockResolvedValue({ data: { devices: [], inferfaces: [] } });
 const mockStorageSetItem = jest.fn();
-const mockPermissions = JSON.stringify([
+const mockPermissions = [
   {
     methods: ["GET"],
     endpoints: ["/devices", "/device/*", "/repository/**", "/groups"],
@@ -33,7 +33,7 @@ const mockPermissions = JSON.stringify([
     pages: ["Overlapping"],
     rights: ["write"],
   },
-]);
+];
 
 let PERMISSIONS_DISABLED;
 

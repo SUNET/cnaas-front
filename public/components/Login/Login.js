@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Icon } from "semantic-ui-react";
 
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";
@@ -8,6 +9,7 @@ import LoginOIDC from "./LoginOIDC";
 function Login() {
   const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuthToken();
   const { permissions } = usePermissions();
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
   const [permissionsErrorMsg, setPermissionsErrorMsg] = useState("");
   const [credentials, setCredentials] = useState({
     email: "",
@@ -15,14 +17,17 @@ function Login() {
   });
 
   useEffect(() => {
-    const noPermissions =
-      process.env.PERMISSIONS_DISABLED !== "true" &&
-      !JSON.parse(localStorage.getItem("permissions"))?.length;
-    setPermissionsErrorMsg(
-      noPermissions
-        ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
-        : "",
-    );
+    if (loggedIn) {
+      const noPermissions =
+        process.env.PERMISSIONS_DISABLED !== "true" && !permissions?.length;
+
+      setPermissionsErrorMsg(
+        noPermissions
+          ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
+          : "",
+      );
+      setPermissionsLoading(!permissions?.length);
+    }
   }, [loggedIn, permissions]);
 
   const setValue = (name, value) => {
@@ -32,7 +37,11 @@ function Login() {
     });
   };
 
-  if (loggedIn) {
+  if (loggedIn && permissionsLoading) {
+    return <Icon name="spinner" loading />;
+  }
+
+  if (loggedIn && !permissionsLoading) {
     return (
       <div>
         <p className="title error">{permissionsErrorMsg}</p>
