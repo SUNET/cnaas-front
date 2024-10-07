@@ -11,29 +11,60 @@ import { useAuthToken } from "./AuthTokenContext";
 
 const PermissionsContext = createContext();
 
+// export for test
+export const findPermission = (userPermissions, targetPage, requiredRight) => {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const permission of userPermissions) {
+    const { pages, rights } = permission;
+    if (
+      (pages?.includes("*") || pages?.includes(targetPage)) &&
+      (rights?.includes("*") || rights?.includes(requiredRight))
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 export function PermissionsProvider({ children }) {
   const [permissions, setPermissions] = useState([]);
-  const { token } = useAuthToken();
-
-  useEffect(() => {
-    const setPermissionsOnLoad = async () => {
-      const permissionsStored = localStorage.getItem("permissions");
-      if (permissionsStored) {
-        setPermissions(permissionsStored);
-      }
-    };
-
-    setPermissionsOnLoad();
-  }, []);
+  const { token, loggedIn } = useAuthToken();
 
   const putPermissions = useCallback((newPermissions) => {
     setPermissions(newPermissions);
-    localStorage.setItem("permissions", newPermissions);
+    localStorage.setItem("permissions", JSON.stringify(newPermissions));
   }, []);
 
   const clearPermissions = useCallback(() => {
     setPermissions(null);
     localStorage.removeItem("permissions");
+  }, []);
+
+  const permissionsCheck = useCallback(
+    (page, right) => {
+      if (process.env.PERMISSIONS_DISABLED === "true") {
+        return true;
+      }
+
+      if (permissions && loggedIn) {
+        return findPermission(permissions, page, right);
+      }
+
+      return false;
+    },
+    [permissions, loggedIn],
+  );
+
+  useEffect(() => {
+    const setPermissionsOnLoad = () => {
+      const permissionsStored = localStorage.getItem("permissions");
+      if (permissionsStored) {
+        setPermissions(JSON.parse(permissionsStored));
+      }
+    };
+
+    setPermissionsOnLoad();
   }, []);
 
   // Fetch permissions on token change
@@ -47,7 +78,7 @@ export function PermissionsProvider({ children }) {
       getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token, signal)
         .then((data) => {
           if (data) {
-            putPermissions(JSON.stringify(data));
+            putPermissions(data);
           }
         })
         .catch((error) => {
@@ -66,8 +97,8 @@ export function PermissionsProvider({ children }) {
   }, [token, putPermissions, clearPermissions]);
 
   const value = useMemo(
-    () => ({ permissions, putPermissions, clearPermissions }),
-    [permissions, putPermissions, clearPermissions],
+    () => ({ permissions, permissionsCheck, putPermissions }),
+    [permissions, permissionsCheck, putPermissions],
   );
   return (
     <PermissionsContext.Provider value={value}>

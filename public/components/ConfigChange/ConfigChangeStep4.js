@@ -4,6 +4,7 @@ import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
 import { getData } from "../../utils/getData";
 import DryRunProgressBar from "./DryRun/DryRunProgressBar";
 import DryRunProgressInfo from "./DryRun/DryRunProgressInfo";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
 
 function createWarningPopups(
   jobTicketRef,
@@ -83,6 +84,7 @@ function ConfigChangeStep4({
   const [expanded, setExpanded] = useState(true);
   const [jobComment, setJobComment] = useState("");
   const [jobTicketRef, setJobTicketRef] = useState("");
+  const { token } = useAuthToken();
 
   function okConfirm() {
     setConfirmDiagOpen(false);
@@ -97,9 +99,8 @@ function ConfigChangeStep4({
   }
 
   useEffect(() => {
-    const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/settings/server`;
-    getData(url, credentials)
+    getData(url, token)
       .then((data) => {
         if (data.api.COMMIT_CONFIRMED_MODE >= 0) {
           setConfirmModeDefault(() => data.api.COMMIT_CONFIRMED_MODE);
@@ -124,7 +125,7 @@ function ConfigChangeStep4({
           "API does not support settings/server to get default commit confirm mode",
         );
       });
-  }, []);
+  }, [token]);
 
   function updateConfirmMode(value) {
     setConfirmMode(value !== -1 ? value : confirmModeDefault);

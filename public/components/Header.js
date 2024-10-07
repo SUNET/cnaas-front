@@ -14,10 +14,11 @@ import {
   useAuthToken,
   getSecondsUntilExpiry,
 } from "../contexts/AuthTokenContext";
-import permissionsCheck from "../utils/permissions/permissionsCheck";
+import { usePermissions } from "../contexts/PermissionsContext";
 
 function Header() {
   const { doTokenRefresh, logout, oidcLogin, username, token } = useAuthToken();
+  const { permissionsCheck } = usePermissions();
 
   const [jwtInfo, setJwtInfo] = useState([
     <Loader key="loading" inline active />,

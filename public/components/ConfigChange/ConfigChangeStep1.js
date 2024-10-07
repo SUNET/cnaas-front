@@ -1,8 +1,9 @@
+import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
-import PropTypes from "prop-types";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { usePermissions } from "../../contexts/PermissionsContext";
 import { getData } from "../../utils/getData";
-import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { putData } from "../../utils/sendData";
 
 function ConfigChangeStep1({
@@ -20,6 +21,8 @@ function ConfigChangeStep1({
   const [triggerDryRun, setTriggerDryRun] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const [buttonsDisabled, setButtonsDisabled] = useState(false);
+  const { permissionsCheck } = usePermissions();
+  const { token } = useAuthToken();
 
   useEffect(() => {
     setButtonsDisabled(
@@ -31,16 +34,15 @@ function ConfigChangeStep1({
 
   useEffect(() => {
     async function getRepoStatus(repoName) {
-      const credentials = localStorage.getItem("token");
       const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
 
-      getData(url, credentials).then((data) => {
+      getData(url, token).then((data) => {
         setCommitInfo((prev) => ({ ...prev, [repoName]: data.data }));
       });
     }
     getRepoStatus("settings");
     getRepoStatus("templates");
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (!triggerDryRun) {
@@ -71,11 +73,10 @@ function ConfigChangeStep1({
     setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "updating..." }));
     await setRepoWorking(true);
 
-    const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
     const dataToSend = { action: "REFRESH" };
 
-    return putData(url, credentials, dataToSend)
+    return putData(url, token, dataToSend)
       .then((data) => {
         if (data.status === "success") {
           setRepoWorking(false);

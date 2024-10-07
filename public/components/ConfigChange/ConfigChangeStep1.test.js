@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
@@ -7,26 +7,29 @@ import ConfigChangeStep1 from "./ConfigChangeStep1";
 
 import { getData as mockGetData } from "../../utils/getData";
 import { putData as mockPutData } from "../../utils/sendData";
+import { usePermissions as mockUsePermissions } from "../../contexts/PermissionsContext";
 
 jest.mock("../../utils/getData");
 jest.mock("../../utils/sendData");
+jest.mock("../../contexts/PermissionsContext");
 mockGetData.mockResolvedValue({ data: "repo_name_mock" });
 mockPutData.mockResolvedValue(true);
 
 beforeEach(() => {
   mockGetData.mockClear();
   mockPutData.mockClear();
-  jest
-    .spyOn(Storage.prototype, "getItem")
-    .mockResolvedValue("localStorageMockValue");
-});
-
-afterAll(() => {
-  global.Storage.prototype.getItem.mockReset();
+  mockUsePermissions.mockReturnValue({ permissionsCheck: () => true });
 });
 
 test("loads and displays 3 enabled buttons", async () => {
-  render(<ConfigChangeStep1 setRepoWorking={jest.fn()} />);
+  await act(async () =>
+    render(
+      <ConfigChangeStep1
+        onDryRunReady={jest.fn()}
+        setRepoWorking={jest.fn()}
+      />,
+    ),
+  );
   const buttons = screen.getAllByRole("button");
 
   expect(buttons.length).toBe(3);
@@ -38,7 +41,9 @@ test("click refresh settings success", async () => {
     status: "success",
     data: "repo name mock",
   });
-  render(<ConfigChangeStep1 setRepoWorking={jest.fn()} />);
+  render(
+    <ConfigChangeStep1 onDryRunReady={jest.fn()} setRepoWorking={jest.fn()} />,
+  );
 
   const refreshSettingsButton = screen.getByRole("button", {
     name: "Refresh settings",
@@ -54,7 +59,9 @@ test("click refresh settings not success", async () => {
     status: "not_success",
     message: "A message recieved",
   });
-  render(<ConfigChangeStep1 setRepoWorking={jest.fn()} />);
+  render(
+    <ConfigChangeStep1 onDryRunReady={jest.fn()} setRepoWorking={jest.fn()} />,
+  );
 
   const refreshSettingsButton = screen.getByRole("button", {
     name: "Refresh settings",

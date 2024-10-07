@@ -5,10 +5,16 @@ import React from "react";
 
 import ConfigChangeStep4 from "./ConfigChangeStep4";
 
+import { useAuthToken as mockUseAuthToken } from "../../contexts/AuthTokenContext";
 import { getData as mockGetData } from "../../utils/getData";
 
 jest.mock("../../utils/getData");
+jest.mock("../../contexts/AuthTokenContext");
+
 mockGetData.mockResolvedValue({ api: { COMMIT_CONFIRMED_MODE: 1 } });
+mockUseAuthToken.mockReturnValue({
+  token: "mockToken",
+});
 
 const mockLiveRunSyncStart = jest.fn();
 
@@ -36,22 +42,15 @@ function renderConfigChangeStep4Component({
 
 beforeEach(() => {
   mockGetData.mockClear();
-  jest
-    .spyOn(Storage.prototype, "getItem")
-    .mockReturnValue("localStorageMockValue");
-});
-
-afterAll(() => {
-  global.Storage.prototype.getItem.mockReset();
 });
 
 test("render and make api call", async () => {
-  act(() => renderConfigChangeStep4Component());
+  await act(async () => renderConfigChangeStep4Component());
 
   await waitFor(() =>
     expect(mockGetData).toHaveBeenCalledWith(
       `${process.env.API_URL}/api/v1.0/settings/server`,
-      "localStorageMockValue",
+      "mockToken",
     ),
   );
   expect(screen.getByPlaceholderText("comment")).toBeInTheDocument();
@@ -67,7 +66,7 @@ test("render and make api call", async () => {
 });
 
 test("deploy button disabled", async () => {
-  act(() => renderConfigChangeStep4Component());
+  await act(async () => renderConfigChangeStep4Component());
   const deployButton = screen.getByRole("button", {
     name: "Deploy change (live run)",
   });
