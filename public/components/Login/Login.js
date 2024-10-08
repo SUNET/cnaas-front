@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Icon } from "semantic-ui-react";
+import { Navigate } from "react-router-dom";
 
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";
@@ -36,6 +37,10 @@ function Login() {
       [name]: value,
     });
   };
+
+  if (loggedIn) {
+    window.location.replace("/dashboard");
+  }
 
   if (loggedIn && permissionsLoading) {
     return <Icon name="spinner" loading />;
