@@ -3,75 +3,27 @@ import { NavLink } from "react-router-dom";
 import {
   Button,
   Icon,
-  Loader,
   Modal,
   ModalActions,
   ModalContent,
-  Popup,
   Header as SemanticHeader,
 } from "semantic-ui-react";
 import {
-  useAuthToken,
   getSecondsUntilExpiry,
+  useAuthToken,
 } from "../contexts/AuthTokenContext";
 import { usePermissions } from "../contexts/PermissionsContext";
+import JwtInfo from "./JwtInfo";
 
 function Header() {
-  const { doTokenRefresh, logout, oidcLogin, username, token } = useAuthToken();
+  const { logout, oidcLogin, token } = useAuthToken();
   const { permissionsCheck } = usePermissions();
 
-  const [jwtInfo, setJwtInfo] = useState([
-    <Loader key="loading" inline active />,
-  ]);
   const [reloginModalOpen, setReloginModalOpen] = useState(false);
 
   const relogin = () => {
     logout();
     oidcLogin();
-  };
-
-  const putJwtInfo = () => {
-    const secondsUntilExpiry = getSecondsUntilExpiry(token);
-
-    const expiryString =
-      secondsUntilExpiry === 0
-        ? `Token exired ${Math.round(Math.abs(secondsUntilExpiry) / 60)} minutes ago`
-        : `Token valid for ${Math.round(Math.abs(secondsUntilExpiry) / 60)} more minutes`;
-
-    const userinfo =
-      username !== null
-        ? `Logged in as ${username}`
-        : "Unknown user (username attribute missing)";
-
-    setJwtInfo([
-      <p key="userinfo">{userinfo}</p>,
-      <p key="exp" className={secondsUntilExpiry === 0 ? "tokenexpired" : ""}>
-        {expiryString}
-      </p>,
-      <p key="jwtcopyrefresh">
-        <Popup
-          content="Copy JWT (to use from curl etc), take note of valid time listed above"
-          trigger={
-            <Button
-              onClick={() => navigator.clipboard.writeText(token)}
-              icon="copy"
-              size="tiny"
-            />
-          }
-          position="bottom right"
-        />
-        <Popup
-          content="Try to refresh the access token now, if it can't be refresh automatically you will be asked to log in again"
-          trigger={
-            <Button onClick={doTokenRefresh} icon="refresh" size="tiny" />
-          }
-          position="bottom right"
-        />
-      </p>,
-      <p key="logout">
-        <Button onClick={logout}>Log out</Button>
-      </p>,
-    ]);
   };
 
   const renderLinks = () => {
@@ -138,18 +90,7 @@ function Header() {
       >
         <li>Config change</li>
       </NavLink>,
-      <Popup
-        key="profile"
-        hoverable
-        content={jwtInfo}
-        trigger={
-          <li>
-            <Icon name="user circle" size="big" />
-          </li>
-        }
-        onOpen={() => putJwtInfo()}
-        wide
-      />,
+      <JwtInfo key="navjwtinfo" />,
     ];
   };
 

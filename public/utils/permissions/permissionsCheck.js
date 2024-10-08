@@ -39,7 +39,7 @@ const permissionsCheck = (page, right) => {
       if (!data) {
         return false;
       }
-      localStorage.setItem("permissions", data);
+      localStorage.setItem("permissions", JSON.stringify(data));
       return findPermission(data, page, right);
     })
     .catch((error) => {
