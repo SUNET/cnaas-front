@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Button,
@@ -16,10 +16,14 @@ import { usePermissions } from "../contexts/PermissionsContext";
 import JwtInfo from "./JwtInfo";
 
 function Header() {
-  const { logout, oidcLogin, token } = useAuthToken();
+  const { logout, oidcLogin, token, tokenWillExpire } = useAuthToken();
   const { permissionsCheck } = usePermissions();
 
   const [reloginModalOpen, setReloginModalOpen] = useState(false);
+
+  useEffect(() => {
+    setReloginModalOpen(tokenWillExpire);
+  }, [tokenWillExpire]);
 
   const relogin = () => {
     logout();

@@ -29,7 +29,7 @@ export function AuthTokenProvider({ children }) {
   const [loginMessage, setLoginMessage] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  // const [tokenExpiryTimestamp, setTokenExpiryTimestamp] = useState();
+  const [tokenWillExpire, setTokenWillExpire] = useState(false);
 
   const putToken = useCallback((newToken) => {
     setToken(newToken);
@@ -100,10 +100,12 @@ export function AuthTokenProvider({ children }) {
       .then((data) => {
         const newToken = data.data.access_token;
         putToken(newToken);
+        setTokenWillExpire(false);
       })
       .catch((error) => {
         console.log("Refresh of access token failed, session will time out");
         console.log(error);
+        setTokenWillExpire(true);
         setTimeout(() => logout(), getSecondsUntilExpiry(token));
       });
   }, [logout, putToken, token]);
@@ -149,9 +151,10 @@ export function AuthTokenProvider({ children }) {
       loginMessage,
       logout,
       oidcLogin,
-      token,
       putToken,
       putUsername,
+      token,
+      tokenWillExpire,
       username,
     }),
     [
@@ -160,9 +163,10 @@ export function AuthTokenProvider({ children }) {
       login,
       loginMessage,
       logout,
-      token,
       putToken,
       putUsername,
+      token,
+      tokenWillExpire,
       username,
     ],
   );
