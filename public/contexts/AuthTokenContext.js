@@ -31,16 +31,23 @@ export function AuthTokenProvider({ children }) {
   const [isReady, setIsReady] = useState(false);
   const [tokenWillExpire, setTokenWillExpire] = useState(false);
 
-  const putToken = useCallback((newToken) => {
-    setToken(newToken);
-    setLoggedIn(!!getSecondsUntilExpiry(newToken));
-    localStorage.setItem("token", newToken);
-  }, []);
-
-  const removeToken = () => {
+  const removeToken = useCallback(() => {
     setToken(null);
     localStorage.removeItem("token");
-  };
+  }, []);
+
+  const putToken = useCallback(
+    (newToken) => {
+      if (!newToken || newToken === "undefined" || newToken === "null") {
+        removeToken();
+        return;
+      }
+      setToken(newToken);
+      setLoggedIn(!!getSecondsUntilExpiry(newToken));
+      localStorage.setItem("token", newToken);
+    },
+    [removeToken],
+  );
 
   const putUsername = useCallback((newUsername) => {
     setUsername(newUsername);
@@ -74,7 +81,7 @@ export function AuthTokenProvider({ children }) {
           console.log(error);
         });
     },
-    [putToken],
+    [putToken, removeToken],
   );
 
   const logout = useCallback(() => {
@@ -83,7 +90,7 @@ export function AuthTokenProvider({ children }) {
     setLoginMessage("You have been logged out");
     setLoggedIn(false);
     window.location.replace("/");
-  }, []);
+  }, [removeToken]);
 
   // Handle redirect in Callback component
   const oidcLogin = (event) => {
@@ -117,14 +124,22 @@ export function AuthTokenProvider({ children }) {
     const setAuthStateOnLoad = async () => {
       const usernameStored = localStorage.getItem("username");
       const tokenStored = localStorage.getItem("token");
-      setToken(tokenStored);
+      if (
+        !tokenStored ||
+        tokenStored === "undefined" ||
+        tokenStored === "null"
+      ) {
+        removeToken();
+      } else {
+        setToken(tokenStored);
+      }
       setUsername(usernameStored);
       setLoggedIn(!!getSecondsUntilExpiry(tokenStored));
     };
 
     setAuthStateOnLoad();
     setIsReady(true);
-  }, []);
+  }, [removeToken]);
 
   // Set refresh token timer
   useEffect(() => {
