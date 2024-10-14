@@ -40,7 +40,9 @@ let PERMISSIONS_DISABLED;
 beforeAll(() => {
   PERMISSIONS_DISABLED = process.env.PERMISSIONS_DISABLED;
   process.env.PERMISSIONS_DISABLED = false;
-  jest.spyOn(Storage.prototype, "getItem").mockReturnValue(mockPermissions);
+  jest
+    .spyOn(Storage.prototype, "getItem")
+    .mockReturnValue(JSON.stringify(mockPermissions));
   Storage.prototype.setItem = mockStorageSetItem;
 });
 
@@ -116,27 +118,29 @@ test("overlapping permissions picks the most allowing", () => {
 });
 
 test("dry run permission", () => {
-  jest.spyOn(Storage.prototype, "getItem").mockReturnValueOnce([
-    {
-      methods: ["GET"],
-      endpoints: ["/devices", "/device/*", "/repository/**", "/groups"],
-      pages: ["Devices", "Dashboard", "Groups"],
-      rights: ["read"],
-    },
-    {
-      methods: ["*"],
-      endpoints: ["*"],
-      pages: [
-        "Devices",
-        "Dashboard",
-        "Groups",
-        "Jobs",
-        "Firmware",
-        "Config change",
-      ],
-      rights: ["read", "write"],
-    },
-  ]);
+  jest.spyOn(Storage.prototype, "getItem").mockReturnValueOnce(
+    JSON.stringify([
+      {
+        methods: ["GET"],
+        endpoints: ["/devices", "/device/*", "/repository/**", "/groups"],
+        pages: ["Devices", "Dashboard", "Groups"],
+        rights: ["read"],
+      },
+      {
+        methods: ["*"],
+        endpoints: ["*"],
+        pages: [
+          "Devices",
+          "Dashboard",
+          "Groups",
+          "Jobs",
+          "Firmware",
+          "Config change",
+        ],
+        rights: ["read", "write"],
+      },
+    ]),
+  );
   const targetPage = "Config change";
   const requiredPermission = "write";
   const result = permissionsCheck(targetPage, requiredPermission);
