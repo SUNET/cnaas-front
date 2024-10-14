@@ -3,7 +3,7 @@ import { Button, Icon, Popup } from "semantic-ui-react";
 import {
   getSecondsUntilExpiry,
   useAuthToken,
-} from "../contexts/AuthTokenContext";
+} from "../../contexts/AuthTokenContext";
 
 function JwtInfo() {
   const { doTokenRefresh, logout, username, token } = useAuthToken();

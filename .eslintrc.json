@@ -20,6 +20,7 @@
     "react/destructuring-assignment": "warn",
     "react/jsx-filename-extension": "off", // allow .js file suffix
     "react/jsx-no-bind": "off",
+    "react/jsx-no-useless-fragment": "off", // allow conditional rendering
     "react/prop-types": "off",
     "react/prefer-stateless-function": "warn", // allow class components
     "react/sort-comp": "warn"

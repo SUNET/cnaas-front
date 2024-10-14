@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Icon } from "semantic-ui-react";
-import { Navigate } from "react-router-dom";
 
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";

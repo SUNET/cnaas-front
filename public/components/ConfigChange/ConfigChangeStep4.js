@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
 
 import { getData } from "../../utils/getData";
@@ -98,7 +98,7 @@ function ConfigChangeStep4({
     confirmButtonElem.disabled = true;
   }
 
-  useEffect(() => {
+  const fetchConfirmModeOptions = useCallback(() => {
     const url = `${process.env.API_URL}/api/v1.0/settings/server`;
     getData(url, token)
       .then((data) => {
@@ -126,6 +126,12 @@ function ConfigChangeStep4({
         );
       });
   }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      fetchConfirmModeOptions();
+    }
+  }, [token, fetchConfirmModeOptions]);
 
   function updateConfirmMode(value) {
     setConfirmMode(value !== -1 ? value : confirmModeDefault);

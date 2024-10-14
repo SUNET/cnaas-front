@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import AuthContextProvider from "../contexts/AuthContext";
 import Footer from "./Footer";
-import Header from "./Header";
+import Header from "./Header/Header";
 import Panel from "./Panel";
 // needed for routing
 import "../styles/reset.css";

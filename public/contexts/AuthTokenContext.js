@@ -24,12 +24,12 @@ export const getSecondsUntilExpiry = (token) => {
 export const AuthTokenContext = createContext({});
 
 export function AuthTokenProvider({ children }) {
-  const [token, setToken] = useState();
-  const [username, setUsername] = useState();
-  const [loginMessage, setLoginMessage] = useState("");
-  const [loggedIn, setLoggedIn] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [loginMessage, setLoginMessage] = useState("");
+  const [token, setToken] = useState();
   const [tokenWillExpire, setTokenWillExpire] = useState(false);
+  const [username, setUsername] = useState();
 
   const removeToken = useCallback(() => {
     setToken(null);
@@ -70,6 +70,9 @@ export function AuthTokenProvider({ children }) {
         .then((response) => checkResponseStatus(response))
         .then((response) => response.json())
         .then((data) => {
+          if (!data?.access_token) {
+            throw new Error(`Login failed. Response ${data}`);
+          }
           putToken(data.access_token);
           setLoginMessage("Login successful");
           setLoggedIn(true);
@@ -92,11 +95,11 @@ export function AuthTokenProvider({ children }) {
     window.location.replace("/");
   }, [removeToken]);
 
-  // Handle redirect in Callback component
   const oidcLogin = (event) => {
     if (event) {
       event.preventDefault();
     }
+    // Handle redirect in Callback component
     const url = `${process.env.API_URL}/api/v1.0/auth/login`;
     window.location.replace(url);
   };
@@ -106,20 +109,19 @@ export function AuthTokenProvider({ children }) {
     await postData(url, token, {})
       .then((data) => {
         const newToken = data.data.access_token;
+        if (!newToken || newToken.exp === token?.exp) {
+          throw new Error("Token refresh failed");
+        }
         putToken(newToken);
         setTokenWillExpire(false);
       })
       .catch((error) => {
-        console.log("Refresh of access token failed, session will time out");
         console.log(error);
         setTokenWillExpire(true);
-        setTimeout(() => logout(), getSecondsUntilExpiry(token));
       });
-  }, [logout, putToken, token]);
+  }, [putToken, token]);
 
-  /*
-   * Tries to fetch token on mount.
-   */
+  // Tries to fetch token on mount.
   useEffect(() => {
     const setAuthStateOnLoad = async () => {
       const usernameStored = localStorage.getItem("username");

@@ -1,37 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
-import {
-  Button,
-  Icon,
-  Modal,
-  ModalActions,
-  ModalContent,
-  Header as SemanticHeader,
-} from "semantic-ui-react";
-import {
-  getSecondsUntilExpiry,
-  useAuthToken,
-} from "../contexts/AuthTokenContext";
-import { usePermissions } from "../contexts/PermissionsContext";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { usePermissions } from "../../contexts/PermissionsContext";
 import JwtInfo from "./JwtInfo";
+import ReloginModal from "./ReloginModal";
 
 function Header() {
-  const { logout, oidcLogin, token, tokenWillExpire } = useAuthToken();
+  const { loggedIn } = useAuthToken();
   const { permissionsCheck } = usePermissions();
 
-  const [reloginModalOpen, setReloginModalOpen] = useState(false);
-
-  useEffect(() => {
-    setReloginModalOpen(tokenWillExpire);
-  }, [tokenWillExpire]);
-
-  const relogin = () => {
-    logout();
-    oidcLogin();
-  };
-
   const renderLinks = () => {
-    if (!token) {
+    if (!loggedIn) {
       return [
         <NavLink exact activeClassName="active" to="/" key="navlogin">
           <li key="nav1">Login</li>
@@ -98,40 +77,12 @@ function Header() {
     ];
   };
 
-  const secondsUntilExpiry = getSecondsUntilExpiry(token);
-  const expireString =
-    secondsUntilExpiry === 0
-      ? "Your session has expired and you will now be logged out"
-      : `Your session will time out in (less than) ${Math.floor(secondsUntilExpiry / 60)} minutes, after this you will be logged out`;
-
   return (
     <header>
       <nav>
         <h1>CNaaS NMS: {process.env.API_URL.split("/")[2]}</h1>
         <ul>{renderLinks()}</ul>
-        <Modal
-          basic
-          closeIcon
-          onClose={() => setReloginModalOpen(false)}
-          open={reloginModalOpen}
-          size="small"
-        >
-          <SemanticHeader icon>
-            <Icon name="time" />
-            Session timeout
-          </SemanticHeader>
-          <ModalContent>
-            <p>{expireString}</p>
-          </ModalContent>
-          <ModalActions>
-            <Button color="red" inverted onClick={logout}>
-              <Icon name="sign-out" /> Log out
-            </Button>
-            <Button color="green" inverted onClick={relogin}>
-              <Icon name="refresh" /> Log in again
-            </Button>
-          </ModalActions>
-        </Modal>
+        <ReloginModal />
       </nav>
     </header>
   );
