@@ -114,3 +114,32 @@ test("overlapping permissions picks the most allowing", () => {
 
   expect(result).toBe(true);
 });
+
+test("dry run permission", () => {
+  jest.spyOn(Storage.prototype, "getItem").mockReturnValueOnce([
+    {
+      methods: ["GET"],
+      endpoints: ["/devices", "/device/*", "/repository/**", "/groups"],
+      pages: ["Devices", "Dashboard", "Groups"],
+      rights: ["read"],
+    },
+    {
+      methods: ["*"],
+      endpoints: ["*"],
+      pages: [
+        "Devices",
+        "Dashboard",
+        "Groups",
+        "Jobs",
+        "Firmware",
+        "Config change",
+      ],
+      rights: ["read", "write"],
+    },
+  ]);
+  const targetPage = "Config change";
+  const requiredPermission = "write";
+  const result = permissionsCheck(targetPage, requiredPermission);
+
+  expect(result).toBe(true);
+});

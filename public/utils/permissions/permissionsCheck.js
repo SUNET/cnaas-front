@@ -26,7 +26,7 @@ const permissionsCheck = (page, right) => {
   // check permissions in local storage
   const permissions = localStorage.getItem("permissions");
   if (permissions) {
-    return findPermission(permissions, page, right);
+    return findPermission(JSON.parse(permissions), page, right);
   }
 
   // else check and set permissions via token
