@@ -104,6 +104,18 @@ export function AuthTokenProvider({ children }) {
     window.location.replace(url);
   };
 
+  const onStorageUpdate = useCallback(
+    (e) => {
+      const { key, newValue } = e;
+      if (key === "token") {
+        putToken(newValue);
+      } else if (key === "username") {
+        putUsername(newValue);
+      }
+    },
+    [putToken, putUsername],
+  );
+
   const doTokenRefresh = useCallback(async () => {
     const url = `${process.env.API_URL}/api/v1.0/auth/refresh`;
     await postData(url, token, {})
@@ -121,7 +133,6 @@ export function AuthTokenProvider({ children }) {
       });
   }, [putToken, token]);
 
-  // Tries to fetch token on mount.
   useEffect(() => {
     const setAuthStateOnLoad = async () => {
       const usernameStored = localStorage.getItem("username");
@@ -140,8 +151,13 @@ export function AuthTokenProvider({ children }) {
     };
 
     setAuthStateOnLoad();
+    window.addEventListener("storage", onStorageUpdate);
     setIsReady(true);
-  }, [removeToken]);
+
+    return () => {
+      window.removeEventListener("storage", onStorageUpdate);
+    };
+  }, [onStorageUpdate, removeToken]);
 
   // Set refresh token timer
   useEffect(() => {
