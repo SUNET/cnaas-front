@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "semantic-ui-react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { usePermissions } from "../contexts/PermissionsContext";
@@ -15,7 +15,7 @@ function Callback() {
   const { putToken, putUsername } = useAuthToken();
   const { permissions, putPermissions } = usePermissions();
 
-  const checkSuccess = () => {
+  const checkSuccess = useCallback(() => {
     if (
       (permissions || process.env.PERMISSIONS_DISABLED === "true") &&
       Object.prototype.hasOwnProperty.call(localStorage, "token")
@@ -27,7 +27,7 @@ function Callback() {
       return true;
     }
     return false;
-  };
+  }, [permissions]);
 
   useEffect(() => {
     const getPermissions = (token) => {
@@ -75,7 +75,7 @@ function Callback() {
     } else {
       setInfoMessage("Something went wrong. Retry the login.");
     }
-  }, [putToken, putUsername, putPermissions]);
+  }, [putToken, putUsername, putPermissions, checkSuccess]);
 
   return (
     <div className="container">

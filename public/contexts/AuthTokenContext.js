@@ -121,8 +121,11 @@ export function AuthTokenProvider({ children }) {
     await postData(url, token, {})
       .then((data) => {
         const newToken = data.data.access_token;
-        if (!newToken || newToken.exp === token?.exp) {
-          throw new Error("Token refresh failed");
+        if (
+          !newToken ||
+          getSecondsUntilExpiry(newToken) === getSecondsUntilExpiry(token)
+        ) {
+          throw new Error(`Token refresh failed. ${data}`);
         }
         putToken(newToken);
         setTokenWillExpire(false);

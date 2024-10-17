@@ -13,13 +13,13 @@ import {
 } from "../../contexts/AuthTokenContext";
 
 function ReloginModal() {
-  const { logout, oidcLogin, token, tokenWillExpire } = useAuthToken();
+  const { loggedIn, logout, oidcLogin, token, tokenWillExpire } = useAuthToken();
 
   const [reloginModalOpen, setReloginModalOpen] = useState(false);
 
   useEffect(() => {
-    setReloginModalOpen(tokenWillExpire);
-  }, [tokenWillExpire]);
+    setReloginModalOpen(loggedIn && tokenWillExpire);
+  }, [tokenWillExpire, loggedIn]);
 
   const relogin = () => {
     logout();
