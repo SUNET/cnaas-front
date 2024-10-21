@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { postData } from "../utils/sendData";
@@ -18,6 +19,14 @@ export const getSecondsUntilExpiry = (token) => {
     return Math.max(tokenExpiry - now, 0);
   } catch {
     return 0;
+  }
+};
+
+const tokenExpiryGreaterThan = (token, seconds) => {
+  try {
+    return getSecondsUntilExpiry(token) > seconds;
+  } catch {
+    return false;
   }
 };
 
@@ -44,6 +53,7 @@ export function AuthTokenProvider({ children }) {
       }
       setToken(newToken);
       setLoggedIn(!!getSecondsUntilExpiry(newToken));
+      setTokenWillExpire(!tokenExpiryGreaterThan(newToken, 120));
       localStorage.setItem("token", newToken);
     },
     [removeToken],
@@ -163,10 +173,10 @@ export function AuthTokenProvider({ children }) {
   }, [onStorageUpdate, removeToken]);
 
   // Set refresh token timer
+  const tokenRefreshTimer = useRef();
   useEffect(() => {
-    let tokenTimer;
     if (token) {
-      tokenTimer = setTimeout(
+      tokenRefreshTimer.current = setTimeout(
         () => {
           doTokenRefresh();
         },
@@ -175,9 +185,22 @@ export function AuthTokenProvider({ children }) {
     }
 
     return () => {
-      clearTimeout(tokenTimer);
+      clearTimeout(tokenRefreshTimer.current);
     };
   }, [doTokenRefresh, token]);
+
+  const logoutTimer = useRef();
+  useEffect(() => {
+    if (tokenWillExpire) {
+      logoutTimer.current = setTimeout(() => {
+        setTokenWillExpire(true);
+      }, 120000); // 2 minutes
+    }
+
+    return () => {
+      clearTimeout(logoutTimer.current);
+    };
+  }, [tokenWillExpire]);
 
   const value = useMemo(
     () => ({
@@ -219,7 +242,7 @@ export const useAuthToken = () => {
   const authContext = useContext(AuthTokenContext);
 
   if (!authContext) {
-    throw new Error("useTokenAuth must be used within an AuthProvider");
+    throw new Error("useTokenAuth must be used within an AuthTokenProvider");
   }
 
   return authContext;

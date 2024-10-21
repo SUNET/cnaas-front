@@ -83,7 +83,6 @@ export function PermissionsProvider({ children }) {
         })
         .catch((error) => {
           if (error.name === "AbortError") {
-            console.log("cancelled permissions request");
             return false;
           }
           console.log(error);

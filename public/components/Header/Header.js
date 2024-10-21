@@ -6,7 +6,7 @@ import JwtInfo from "./JwtInfo";
 import ReloginModal from "./ReloginModal";
 
 function Header() {
-  const { loggedIn } = useAuthToken();
+  const { loggedIn, tokenWillExpire } = useAuthToken();
   const { permissionsCheck } = usePermissions();
 
   const renderLinks = () => {
@@ -82,7 +82,7 @@ function Header() {
       <nav>
         <h1>CNaaS NMS: {process.env.API_URL.split("/")[2]}</h1>
         <ul>{renderLinks()}</ul>
-        <ReloginModal />
+        <ReloginModal open={tokenWillExpire} />
       </nav>
     </header>
   );
