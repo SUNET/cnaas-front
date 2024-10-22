@@ -82,7 +82,7 @@ function Header() {
       <nav>
         <h1>CNaaS NMS: {process.env.API_URL.split("/")[2]}</h1>
         <ul>{renderLinks()}</ul>
-        <ReloginModal open={tokenWillExpire} />
+        <ReloginModal isOpen={tokenWillExpire} />
       </nav>
     </header>
   );

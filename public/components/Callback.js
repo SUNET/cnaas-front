@@ -18,7 +18,7 @@ function Callback() {
   const checkSuccess = useCallback(() => {
     if (
       (permissions || process.env.PERMISSIONS_DISABLED === "true") &&
-      Object.prototype.hasOwnProperty.call(localStorage, "token")
+      Object.hasOwn(localStorage, "token")
     ) {
       setInfoMessage(
         "Everything is loaded, you should be sent to the homepage in a second.",
@@ -49,10 +49,7 @@ function Callback() {
       }
     };
 
-    if (
-      Object.prototype.hasOwnProperty.call(localStorage, "token") &&
-      checkSuccess()
-    ) {
+    if (Object.hasOwn(localStorage, "token") && checkSuccess()) {
       return;
     }
     const params = new URLSearchParams(location.search);

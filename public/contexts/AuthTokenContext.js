@@ -146,6 +146,23 @@ export function AuthTokenProvider({ children }) {
       });
   }, [putToken, token]);
 
+  // Set refresh token timer
+  const tokenRefreshTimer = useRef();
+  useEffect(() => {
+    if (token) {
+      tokenRefreshTimer.current = setTimeout(
+        () => {
+          doTokenRefresh();
+        },
+        (getSecondsUntilExpiry(token) - 120) * 1000, // 2 minutes before expiry
+      );
+    }
+
+    return () => {
+      clearTimeout(tokenRefreshTimer.current);
+    };
+  }, [doTokenRefresh, token]);
+
   useEffect(() => {
     const setAuthStateOnLoad = async () => {
       const usernameStored = localStorage.getItem("username");
@@ -171,36 +188,6 @@ export function AuthTokenProvider({ children }) {
       window.removeEventListener("storage", onStorageUpdate);
     };
   }, [onStorageUpdate, removeToken]);
-
-  // Set refresh token timer
-  const tokenRefreshTimer = useRef();
-  useEffect(() => {
-    if (token) {
-      tokenRefreshTimer.current = setTimeout(
-        () => {
-          doTokenRefresh();
-        },
-        (getSecondsUntilExpiry(token) - 120) * 1000, // 2 minutes before expiry
-      );
-    }
-
-    return () => {
-      clearTimeout(tokenRefreshTimer.current);
-    };
-  }, [doTokenRefresh, token]);
-
-  const logoutTimer = useRef();
-  useEffect(() => {
-    if (tokenWillExpire) {
-      logoutTimer.current = setTimeout(() => {
-        setTokenWillExpire(true);
-      }, 120000); // 2 minutes
-    }
-
-    return () => {
-      clearTimeout(logoutTimer.current);
-    };
-  }, [tokenWillExpire]);
 
   const value = useMemo(
     () => ({

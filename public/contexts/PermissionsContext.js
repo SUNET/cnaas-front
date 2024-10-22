@@ -82,9 +82,6 @@ export function PermissionsProvider({ children }) {
           }
         })
         .catch((error) => {
-          if (error.name === "AbortError") {
-            return false;
-          }
           console.log(error);
           return false;
         });
