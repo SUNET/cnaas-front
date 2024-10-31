@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Icon,
@@ -15,15 +15,26 @@ import {
 function ReloginModal({ isOpen }) {
   const { logout, oidcLogin, token } = useAuthToken();
 
+  const [closedByUser, setClosedByUser] = useState(!isOpen);
   const relogin = () => {
     logout();
     oidcLogin();
   };
 
+  useEffect(() => {
+    setClosedByUser(!isOpen);
+  }, [isOpen]);
+
   const secondsUntilExpiry = getSecondsUntilExpiry(token);
 
   return (
-    <Modal basic open={isOpen} size="small">
+    <Modal
+      basic
+      closeIcon
+      onClose={() => setClosedByUser(true)}
+      open={!closedByUser && isOpen}
+      size="small"
+    >
       <SemanticHeader icon>
         <Icon name="time" />
         Session timeout
