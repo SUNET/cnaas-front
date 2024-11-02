@@ -83,7 +83,6 @@ export function PermissionsProvider({ children }) {
         })
         .catch((error) => {
           console.log(error);
-          return false;
         });
     }
 

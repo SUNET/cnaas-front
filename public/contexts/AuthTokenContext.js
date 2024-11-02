@@ -22,18 +22,9 @@ export const getSecondsUntilExpiry = (token) => {
   }
 };
 
-const tokenExpiryGreaterThan = (token, seconds) => {
-  try {
-    return getSecondsUntilExpiry(token) > seconds;
-  } catch {
-    return false;
-  }
-};
-
 export const AuthTokenContext = createContext({});
 
 export function AuthTokenProvider({ children }) {
-  const [isReady, setIsReady] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginMessage, setLoginMessage] = useState("");
   const [token, setToken] = useState();
@@ -52,8 +43,9 @@ export function AuthTokenProvider({ children }) {
         return;
       }
       setToken(newToken);
-      setLoggedIn(!!getSecondsUntilExpiry(newToken));
-      setTokenWillExpire(!tokenExpiryGreaterThan(newToken, 120));
+      const secondsUntilExpiry = getSecondsUntilExpiry(newToken);
+      setLoggedIn(!!secondsUntilExpiry);
+      setTokenWillExpire(secondsUntilExpiry < 120);
       localStorage.setItem("token", newToken);
     },
     [removeToken],
@@ -135,13 +127,12 @@ export function AuthTokenProvider({ children }) {
           !newToken ||
           getSecondsUntilExpiry(newToken) === getSecondsUntilExpiry(token)
         ) {
-          throw new Error(`Token refresh failed. ${data}`);
+          throw new Error("Token refresh failed.");
         }
         putToken(newToken);
-        setTokenWillExpire(false);
       })
       .catch((error) => {
-        console.log(error);
+        console.log(error.message);
         setTokenWillExpire(true);
       });
   }, [putToken, token]);
@@ -182,7 +173,6 @@ export function AuthTokenProvider({ children }) {
 
     setAuthStateOnLoad();
     window.addEventListener("storage", onStorageUpdate);
-    setIsReady(true);
 
     return () => {
       window.removeEventListener("storage", onStorageUpdate);
@@ -219,7 +209,7 @@ export function AuthTokenProvider({ children }) {
 
   return (
     <AuthTokenContext.Provider value={value}>
-      {isReady ? children : null}
+      {children}
     </AuthTokenContext.Provider>
   );
 }
