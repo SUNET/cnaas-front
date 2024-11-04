@@ -18,7 +18,7 @@ class LoginForm extends React.Component {
       if (
         process.env.PERMISSIONS_DISABLED !== "true" &&
         (localStorage.getItem("permissions") == null ||
-        JSON.parse(localStorage.getItem("permissions")).length == 0)
+          JSON.parse(localStorage.getItem("permissions")).length == 0)
       ) {
         this.errorMessage =
           "You don't seem to have any permissions. Check with an administrator if this is correct. ";

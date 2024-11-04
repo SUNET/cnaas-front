@@ -47,21 +47,21 @@ class Header extends React.Component {
     window.clearTimeout(this.tokenExpireTimer);
     this.tokenExpireTimer = null;
     this.triggerTokenRefresh = true;
-    this.setState({jwtInfo: [<Loader key="loading" inline active />]});
-  }
+    this.setState({ jwtInfo: [<Loader key="loading" inline active />] });
+  };
 
   getUserName = () => {
-    const username = localStorage.getItem('username');
-    const token = localStorage.getItem("token")
-    if (username == null && token != null ) {
+    const username = localStorage.getItem("username");
+    const token = localStorage.getItem("token");
+    if (username == null && token != null) {
       const credentials = localStorage.getItem("token");
       let url = process.env.API_URL + "/api/v1.0/auth/identity";
-      getData(url, credentials).then(data => {
-        localStorage.setItem('username', data)
+      getData(url, credentials).then((data) => {
+        localStorage.setItem("username", data);
       });
     }
-  }
-  
+  };
+
   putJwtInfo = () => {
     const secondsUntilExpiry = this.getJwtInfo();
 
@@ -115,17 +115,17 @@ class Header extends React.Component {
   };
 
   logout = () => {
-    localStorage.removeItem('username');
+    localStorage.removeItem("username");
     localStorage.removeItem("permissions");
-    localStorage.removeItem('token');
-    window.location.replace('/');
-  }
+    localStorage.removeItem("token");
+    window.location.replace("/");
+  };
 
   relogin = () => {
-    localStorage.removeItem('username');
+    localStorage.removeItem("username");
     localStorage.removeItem("permissions");
-    localStorage.removeItem('token');
-    const url = process.env.API_URL + '/api/v1.0/auth/login';
+    localStorage.removeItem("token");
+    const url = process.env.API_URL + "/api/v1.0/auth/login";
     window.location.replace(url);
   };
 
@@ -258,7 +258,7 @@ class Header extends React.Component {
   };
 
   render() {
-    this.getUserName()
+    this.getUserName();
     let expireString = "";
     if (this.tokenExpiryTimestamp != 0) {
       const now = Math.round(Date.now() / 1000);

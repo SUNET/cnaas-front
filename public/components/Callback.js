@@ -60,11 +60,10 @@ class Callback extends React.Component {
       const token = params.get("token");
       localStorage.setItem("token", token);
 
-      this.getPermissions(token)
-        .then(() => {
-          this.errorMessage = "You're logged in."
-          window.location.replace("/")
-        });
+      this.getPermissions(token).then(() => {
+        this.errorMessage = "You're logged in.";
+        window.location.replace("/");
+      });
     } else {
       this.errorMessage = "Something went wrong. Retry the login.";
     }

@@ -50,7 +50,7 @@ class App extends React.Component {
   logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("permissions");
-    localStorage.removeItem('username')
+    localStorage.removeItem("username");
     this.setState({
       loginMessage: "You have been logged out",
       loggedIn: false,
