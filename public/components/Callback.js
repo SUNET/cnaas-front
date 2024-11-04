@@ -12,11 +12,11 @@ class Callback extends React.Component {
     if (process.env.PERMISSIONS_DISABLED === "true") {
       return this.checkSuccess();
     } else {
-      return getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
+      getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
         .then((data) => {
           localStorage.setItem("permissions", JSON.stringify(data));
           this.errorMessage = "Permissions are retrieved.";
-          this.checkSuccess();
+          return this.checkSuccess();
         })
         .catch((error) => {
           this.errorMessage =
@@ -60,10 +60,10 @@ class Callback extends React.Component {
       const token = params.get("token");
       localStorage.setItem("token", token);
 
-      this.getPermissions(token).then(() => {
+      if (this.getPermissions(token)) {
         this.errorMessage = "You're logged in.";
         window.location.replace("/");
-      });
+      }
     } else {
       this.errorMessage = "Something went wrong. Retry the login.";
     }
