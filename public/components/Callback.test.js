@@ -14,13 +14,13 @@ const { PERMISSIONS_DISABLED } = process.env;
 
 describe("Callback Component", () => {
   const mockPutToken = jest.fn();
-  const mockPutUsername = jest.fn();
+  const mockSetUsername = jest.fn();
   const mockPutPermissions = jest.fn();
 
   beforeEach(() => {
     useAuthToken.mockReturnValue({
       putToken: mockPutToken,
-      putUsername: mockPutUsername,
+      setUsername: mockSetUsername,
     });
     usePermissions.mockReturnValue({
       putPermissions: mockPutPermissions,
@@ -60,7 +60,7 @@ describe("Callback Component", () => {
       expect(mockPutToken).toHaveBeenCalledWith("some-valid-token");
     });
     await waitFor(() => {
-      expect(mockPutUsername).toHaveBeenCalledWith("testuser");
+      expect(mockSetUsername).toHaveBeenCalledWith("testuser");
     });
     await waitFor(() => {
       expect(mockPutPermissions).toHaveBeenCalledWith([

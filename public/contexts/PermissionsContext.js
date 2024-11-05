@@ -31,15 +31,26 @@ export function PermissionsProvider({ children }) {
   const [permissions, setPermissions] = useState([]);
   const { token, loggedIn } = useAuthToken();
 
-  const putPermissions = useCallback((newPermissions) => {
-    setPermissions(newPermissions);
-    localStorage.setItem("permissions", JSON.stringify(newPermissions));
-  }, []);
-
-  const clearPermissions = useCallback(() => {
+  const removePermissions = useCallback(() => {
     setPermissions(null);
     localStorage.removeItem("permissions");
   }, []);
+
+  const putPermissions = useCallback(
+    (newPermissions) => {
+      if (
+        !newPermissions ||
+        newPermissions === "undefined" ||
+        newPermissions === "null"
+      ) {
+        removePermissions();
+      } else {
+        setPermissions(newPermissions);
+        localStorage.setItem("permissions", JSON.stringify(newPermissions));
+      }
+    },
+    [removePermissions],
+  );
 
   const permissionsCheck = useCallback(
     (page, right) => {
@@ -47,11 +58,9 @@ export function PermissionsProvider({ children }) {
         return true;
       }
 
-      if (permissions && loggedIn) {
-        return findPermission(permissions, page, right);
-      }
-
-      return false;
+      return permissions && loggedIn
+        ? findPermission(permissions, page, right)
+        : false;
     },
     [permissions, loggedIn],
   );
@@ -59,7 +68,11 @@ export function PermissionsProvider({ children }) {
   useEffect(() => {
     const setPermissionsOnLoad = () => {
       const permissionsStored = localStorage.getItem("permissions");
-      if (permissionsStored) {
+      if (
+        permissionsStored ||
+        permissionsStored !== "undefined" ||
+        permissionsStored !== "null"
+      ) {
         setPermissions(JSON.parse(permissionsStored));
       }
     };
@@ -72,9 +85,7 @@ export function PermissionsProvider({ children }) {
     const controller = new AbortController();
     const { signal } = controller;
 
-    if (!token) {
-      clearPermissions();
-    } else {
+    if (token) {
       getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token, signal)
         .then((data) => {
           if (data) {
@@ -82,14 +93,14 @@ export function PermissionsProvider({ children }) {
           }
         })
         .catch((error) => {
-          console.log(error);
+          console.log("Setting permissions failed with error", error);
         });
     }
 
     return () => {
-      controller.abort();
+      controller.abort("aborting permissions request");
     };
-  }, [token, putPermissions, clearPermissions]);
+  }, [token, putPermissions]);
 
   const value = useMemo(
     () => ({ permissions, permissionsCheck, putPermissions }),

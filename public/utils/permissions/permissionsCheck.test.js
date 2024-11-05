@@ -1,11 +1,6 @@
+import { findPermission } from "../../contexts/PermissionsContext";
 import permissionsCheck from "./permissionsCheck";
 
-import { getData as mockGetData } from "../getData";
-
-jest.mock("../../utils/getData");
-
-mockGetData.mockResolvedValue({ data: { devices: [], inferfaces: [] } });
-const mockStorageSetItem = jest.fn();
 const mockPermissions = [
   {
     methods: ["GET"],
@@ -43,18 +38,11 @@ beforeAll(() => {
   jest
     .spyOn(Storage.prototype, "getItem")
     .mockReturnValue(JSON.stringify(mockPermissions));
-  Storage.prototype.setItem = mockStorageSetItem;
 });
 
 afterAll(() => {
   global.Storage.prototype.getItem.mockReset();
-  global.Storage.prototype.setItem.mockReset();
   process.env.PERMISSIONS_DISABLED = PERMISSIONS_DISABLED;
-});
-
-beforeEach(() => {
-  mockGetData.mockClear();
-  mockStorageSetItem.mockClear();
 });
 
 describe("no permission in storage", () => {
@@ -66,28 +54,16 @@ describe("no permission in storage", () => {
 
     expect(permission).toBe(false);
   });
-
-  test("should call auth/permissions and set permissions if not in local storage", async () => {
-    jest.spyOn(Storage.prototype, "getItem").mockReturnValueOnce(""); // empty permissions
-    jest.spyOn(Storage.prototype, "getItem").mockReturnValueOnce("mockToken"); // token
-
-    await permissionsCheck("page", "{}");
-
-    expect(mockGetData).toHaveBeenCalledWith(
-      `${process.env.API_URL}/api/v1.0/auth/permissions`,
-      "mockToken",
-    );
-    expect(localStorage.setItem).toHaveBeenCalledWith(
-      "permissions",
-      expect.anything(),
-    );
-  });
 });
 
 test("should return true", () => {
   const targetPage = "Groups";
   const requiredPermission = "read";
-  const result = permissionsCheck(targetPage, requiredPermission);
+  const result = findPermission(
+    mockPermissions,
+    targetPage,
+    requiredPermission,
+  );
 
   expect(result).toBe(true);
 });

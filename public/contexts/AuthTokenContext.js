@@ -22,6 +22,15 @@ export const getSecondsUntilExpiry = (token) => {
   }
 };
 
+const getUsername = (token) => {
+  try {
+    const decodedToken = jwtDecode(token);
+    return decodedToken.preferred_username || decodedToken.email;
+  } catch {
+    return "unknown user";
+  }
+};
+
 export const AuthTokenContext = createContext({});
 
 export function AuthTokenProvider({ children }) {
@@ -36,6 +45,7 @@ export function AuthTokenProvider({ children }) {
     localStorage.removeItem("token");
   }, []);
 
+  // Only supposed to be used in Callback component.
   const putToken = useCallback(
     (newToken) => {
       if (!newToken || newToken === "undefined" || newToken === "null") {
@@ -43,6 +53,7 @@ export function AuthTokenProvider({ children }) {
         return;
       }
       setToken(newToken);
+      setUsername(getUsername(newToken));
       const secondsUntilExpiry = getSecondsUntilExpiry(newToken);
       setLoggedIn(!!secondsUntilExpiry);
       setTokenWillExpire(secondsUntilExpiry < 120);
@@ -50,16 +61,6 @@ export function AuthTokenProvider({ children }) {
     },
     [removeToken],
   );
-
-  const putUsername = useCallback((newUsername) => {
-    setUsername(newUsername);
-    localStorage.setItem("username", newUsername);
-  }, []);
-
-  const removeUsername = () => {
-    setUsername(null);
-    localStorage.removeItem("username");
-  };
 
   const login = useCallback(
     (email, password) => {
@@ -91,7 +92,7 @@ export function AuthTokenProvider({ children }) {
 
   const logout = useCallback(() => {
     removeToken();
-    removeUsername();
+    setUsername("");
     setLoginMessage("You have been logged out");
     setLoggedIn(false);
     window.location.replace("/");
@@ -111,11 +112,9 @@ export function AuthTokenProvider({ children }) {
       const { key, newValue } = e;
       if (key === "token") {
         putToken(newValue);
-      } else if (key === "username") {
-        putUsername(newValue);
       }
     },
-    [putToken, putUsername],
+    [putToken],
   );
 
   const doTokenRefresh = useCallback(async () => {
@@ -123,10 +122,7 @@ export function AuthTokenProvider({ children }) {
     await postData(url, token, {})
       .then((data) => {
         const newToken = data.data.access_token;
-        if (
-          !newToken ||
-          getSecondsUntilExpiry(newToken) === getSecondsUntilExpiry(token)
-        ) {
+        if (!newToken || jwtDecode(newToken).exp === jwtDecode(token).exp) {
           throw new Error("Token refresh failed.");
         }
         putToken(newToken);
@@ -155,8 +151,7 @@ export function AuthTokenProvider({ children }) {
   }, [doTokenRefresh, token]);
 
   useEffect(() => {
-    const setAuthStateOnLoad = async () => {
-      const usernameStored = localStorage.getItem("username");
+    const setAuthStateOnLoad = () => {
       const tokenStored = localStorage.getItem("token");
       if (
         !tokenStored ||
@@ -166,8 +161,8 @@ export function AuthTokenProvider({ children }) {
         removeToken();
       } else {
         setToken(tokenStored);
+        setUsername(getUsername(tokenStored));
       }
-      setUsername(usernameStored);
       setLoggedIn(!!getSecondsUntilExpiry(tokenStored));
     };
 
@@ -188,7 +183,7 @@ export function AuthTokenProvider({ children }) {
       logout,
       oidcLogin,
       putToken,
-      putUsername,
+      setUsername,
       token,
       tokenWillExpire,
       username,
@@ -200,7 +195,7 @@ export function AuthTokenProvider({ children }) {
       loginMessage,
       logout,
       putToken,
-      putUsername,
+      setUsername,
       token,
       tokenWillExpire,
       username,

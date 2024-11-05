@@ -61,7 +61,7 @@ test("initial state is empty permissions", async () => {
 
   await renderTestComponent();
 
-  expect(screen.getByTestId("permissions").textContent).toBe("[]");
+  expect(screen.getByTestId("permissions").textContent).toBe("null");
 });
 
 test("loads permissions from localStorage", async () => {

@@ -40,8 +40,10 @@ function ConfigChangeStep1({
         setCommitInfo((prev) => ({ ...prev, [repoName]: data.data }));
       });
     }
-    getRepoStatus("settings");
-    getRepoStatus("templates");
+    if (token) {
+      getRepoStatus("settings");
+      getRepoStatus("templates");
+    }
   }, [token]);
 
   useEffect(() => {

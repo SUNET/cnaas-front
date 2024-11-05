@@ -12,7 +12,7 @@ function Callback() {
     "Please be patient, you will be logged in.",
   );
 
-  const { putToken, putUsername } = useAuthToken();
+  const { putToken, setUsername } = useAuthToken();
   const { permissions, putPermissions } = usePermissions();
 
   const checkSuccess = useCallback(() => {
@@ -59,7 +59,7 @@ function Callback() {
       )}; SameSite=None; Secure; HttpOnly; Path=/api/v1.0/auth/refresh`;
     }
     if (params.has("username")) {
-      putUsername(params.get("username"));
+      setUsername(params.get("username"));
     }
     if (params.has("token")) {
       // Add the token as a parameter in local storage and communicate with the user they are logged in
@@ -72,7 +72,7 @@ function Callback() {
     } else {
       setInfoMessage("Something went wrong. Retry the login.");
     }
-  }, [putToken, putUsername, putPermissions, checkSuccess]);
+  }, [putToken, setUsername, putPermissions, checkSuccess]);
 
   return (
     <div className="container">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Icon,
@@ -16,16 +16,42 @@ function ReloginModal({ isOpen }) {
   const { logout, oidcLogin, token } = useAuthToken();
 
   const [closedByUser, setClosedByUser] = useState(!isOpen);
+  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState(
+    getSecondsUntilExpiry(token),
+  );
+
   const relogin = () => {
     logout();
     oidcLogin();
   };
 
+  const timerId = useRef();
+
+  // Sets an interval
+  useEffect(() => {
+    const tokenSecsRemaining = getSecondsUntilExpiry(token);
+    setSecondsUntilExpiry(tokenSecsRemaining);
+
+    if (tokenSecsRemaining) {
+      timerId.current = setInterval(() => {
+        setSecondsUntilExpiry((prev) => prev - 5);
+      }, 5000);
+    }
+
+    return () => {
+      clearInterval(timerId.current);
+    };
+  }, [token]);
+
+  useEffect(() => {
+    if (secondsUntilExpiry <= 0) {
+      clearInterval(timerId.current);
+    }
+  }, [secondsUntilExpiry]);
+
   useEffect(() => {
     setClosedByUser(!isOpen);
   }, [isOpen]);
-
-  const secondsUntilExpiry = getSecondsUntilExpiry(token);
 
   return (
     <Modal
@@ -41,9 +67,9 @@ function ReloginModal({ isOpen }) {
       </SemanticHeader>
       <ModalContent>
         <p>
-          {secondsUntilExpiry === 0
-            ? "Your session has expired and you will now be logged out"
-            : `Your session will time out in (less than) ${Math.floor(secondsUntilExpiry / 60)} minutes, after this you will be logged out`}
+          {secondsUntilExpiry <= 0
+            ? `Your session has expired.`
+            : `Your session will time out in ${Math.floor(secondsUntilExpiry / 60)} minutes, after this you will be logged out.`}
         </p>
       </ModalContent>
       <ModalActions>

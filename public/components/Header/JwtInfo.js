@@ -5,6 +5,15 @@ import {
   useAuthToken,
 } from "../../contexts/AuthTokenContext";
 
+const formatHHMM = (secondsTotal) => {
+  const minutes = Math.round(secondsTotal / 60);
+  let seconds = secondsTotal % 60;
+  if (seconds < 10) {
+    seconds = `0${seconds}`;
+  }
+  return `${minutes}:${seconds}`;
+};
+
 function JwtInfo() {
   const { doTokenRefresh, logout, username, token } = useAuthToken();
   const [tokenExpired, setTokenExpired] = useState(true);
@@ -14,14 +23,17 @@ function JwtInfo() {
 
   const timerId = useRef();
 
+  // Sets an interval
   useEffect(() => {
     const tokenSecsRemaining = getSecondsUntilExpiry(token);
     setSecondsUntilExpiry(tokenSecsRemaining);
     setTokenExpired(tokenSecsRemaining <= 0);
 
-    timerId.current = setInterval(() => {
-      setSecondsUntilExpiry((prev) => prev - 5);
-    }, 5000);
+    if (tokenSecsRemaining) {
+      timerId.current = setInterval(() => {
+        setSecondsUntilExpiry((prev) => prev - 5);
+      }, 5000);
+    }
 
     return () => {
       clearInterval(timerId.current);
@@ -48,8 +60,8 @@ function JwtInfo() {
           </p>
           <p key="exp" className={tokenExpired ? "tokenexpired" : ""}>
             {tokenExpired
-              ? `Token expired ${Math.round(Math.abs(secondsUntilExpiry) / 60)} minutes ago`
-              : `Token valid for ${Math.round(Math.abs(secondsUntilExpiry) / 60)} more minutes`}
+              ? `Token has expired!`
+              : `Token time left ${formatHHMM(secondsUntilExpiry)}`}
           </p>
           <Popup
             content="Copy JWT (to use from curl etc), take note of valid time listed above"
