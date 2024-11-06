@@ -55,13 +55,21 @@ const renderTestComponent = async () => {
   );
 };
 
-test("initial state is empty permissions", async () => {
+test("initial state load", async () => {
   mockGetData.mockResolvedValueOnce(false);
   Storage.prototype.getItem = jest.fn(() => null);
 
   await renderTestComponent();
 
-  expect(screen.getByTestId("permissions").textContent).toBe("null");
+  expect(screen.getByTestId("permissions").textContent).toBe("[]");
+  expect(Storage.prototype.getItem).toHaveBeenCalledTimes(2);
+  await waitFor(() => {
+    expect(mockGetData).toHaveBeenCalledWith(
+      `${process.env.API_URL}/api/v1.0/auth/permissions`,
+      "mockToken",
+      expect.any(Object),
+    );
+  });
 });
 
 test("loads permissions from localStorage", async () => {
@@ -72,10 +80,11 @@ test("loads permissions from localStorage", async () => {
       JSON.stringify(mockPermissions),
     ),
   );
-  expect(Storage.prototype.getItem).toHaveBeenCalledTimes(1);
+  expect(Storage.prototype.getItem).toHaveBeenCalledTimes(2);
 });
 
-test("fetches new permissions", async () => {
+test("fetches new permissions if none stored", async () => {
+  Storage.prototype.getItem = jest.fn(() => null);
   await renderTestComponent();
 
   await waitFor(() => {
@@ -84,6 +93,17 @@ test("fetches new permissions", async () => {
       "mockToken",
       expect.any(Object),
     );
+    expect(screen.getByTestId("permissions").textContent).toBe(
+      JSON.stringify(mockPermissions),
+    );
+  });
+});
+
+test("does not fetch permissions are stored", async () => {
+  await renderTestComponent();
+
+  await waitFor(() => {
+    expect(mockGetData).not.toHaveBeenCalled();
     expect(screen.getByTestId("permissions").textContent).toBe(
       JSON.stringify(mockPermissions),
     );

@@ -4,12 +4,7 @@ import {
   getSecondsUntilExpiry,
   useAuthToken,
 } from "../../contexts/AuthTokenContext";
-
-const formatMMss = (secondsTotal) => {
-  const minutes = Math.floor(secondsTotal / 60);
-  const seconds = String(secondsTotal % 60).padStart(2, "0");
-  return `${minutes}:${seconds}`;
-};
+import { formatMMss } from "../../utils/formatters";
 
 function JwtInfo() {
   const { doTokenRefresh, logout, username, token } = useAuthToken();

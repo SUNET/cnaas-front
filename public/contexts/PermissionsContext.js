@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { getData } from "../utils/getData";
+import { storeValueIsUndefined } from "../utils/formatters";
 import { useAuthToken } from "./AuthTokenContext";
 
 const PermissionsContext = createContext();
@@ -38,11 +39,7 @@ export function PermissionsProvider({ children }) {
 
   const putPermissions = useCallback(
     (newPermissions) => {
-      if (
-        !newPermissions ||
-        newPermissions === "undefined" ||
-        newPermissions === "null"
-      ) {
+      if (storeValueIsUndefined(newPermissions)) {
         removePermissions();
       } else {
         setPermissions(newPermissions);
@@ -68,11 +65,7 @@ export function PermissionsProvider({ children }) {
   useEffect(() => {
     const setPermissionsOnLoad = () => {
       const permissionsStored = localStorage.getItem("permissions");
-      if (
-        permissionsStored ||
-        permissionsStored !== "undefined" ||
-        permissionsStored !== "null"
-      ) {
+      if (!storeValueIsUndefined(permissionsStored)) {
         setPermissions(JSON.parse(permissionsStored));
       }
     };
@@ -86,7 +79,7 @@ export function PermissionsProvider({ children }) {
     const { signal } = controller;
 
     const permissionsStored = localStorage.getItem("permissions");
-    if (token && !permissionsStored && !permissionsStored !== "undefined") {
+    if (token && storeValueIsUndefined(permissionsStored)) {
       getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token, signal)
         .then((data) => {
           if (data) {

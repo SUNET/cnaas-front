@@ -1,7 +1,7 @@
 import React from "react";
 import { Dropdown, Icon } from "semantic-ui-react";
 import { usePermissions } from "../../contexts/PermissionsContext";
-import formatISODate from "../../utils/formatters";
+import { formatISODate } from "../../utils/formatters";
 
 export default function DeviceInfoBlock({
   device,

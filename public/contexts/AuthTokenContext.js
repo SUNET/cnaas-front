@@ -9,6 +9,7 @@ import React, {
   useState,
 } from "react";
 import { postData } from "../utils/sendData";
+import { storeValueIsUndefined } from "../utils/formatters";
 
 import checkResponseStatus from "../utils/checkResponseStatus";
 
@@ -48,12 +49,12 @@ export function AuthTokenProvider({ children }) {
   // Only supposed to be used in Callback component.
   const putToken = useCallback(
     (newToken) => {
-      if (!newToken || newToken === "undefined" || newToken === "null") {
+      if (storeValueIsUndefined(newToken)) {
         removeToken();
         return;
       }
       const tokenLock = localStorage.getItem("tokenlock");
-      if (!tokenLock || tokenLock === "undefined" || tokenLock === "null") {
+      if (storeValueIsUndefined(tokenLock)) {
         localStorage.setItem("tokenlock", "writing");
         setToken(newToken);
         setUsername(getUsername(newToken));
@@ -71,7 +72,7 @@ export function AuthTokenProvider({ children }) {
   const onStorageTokenUpdate = useCallback((e) => {
     const { key, newValue } = e;
     if (key === "token") {
-      if (!newValue || newValue === "undefined" || newValue === "null") {
+      if (storeValueIsUndefined(newValue)) {
         return;
       }
       setToken(newValue);
@@ -164,11 +165,7 @@ export function AuthTokenProvider({ children }) {
   useEffect(() => {
     const setAuthStateOnLoad = () => {
       const tokenStored = localStorage.getItem("token");
-      if (
-        !tokenStored ||
-        tokenStored === "undefined" ||
-        tokenStored === "null"
-      ) {
+      if (storeValueIsUndefined(tokenStored)) {
         removeToken();
       } else {
         setToken(tokenStored);

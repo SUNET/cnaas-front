@@ -11,6 +11,7 @@ import {
   getSecondsUntilExpiry,
   useAuthToken,
 } from "../../contexts/AuthTokenContext";
+import { formatMMss } from "../../utils/formatters";
 
 function ReloginModal({ isOpen }) {
   const { logout, oidcLogin, token } = useAuthToken();
@@ -34,8 +35,8 @@ function ReloginModal({ isOpen }) {
 
     if (tokenSecsRemaining) {
       timerId.current = setInterval(() => {
-        setSecondsUntilExpiry((prev) => prev - 5);
-      }, 5000);
+        setSecondsUntilExpiry((prev) => prev - 1);
+      }, 1000);
     }
 
     return () => {
@@ -69,7 +70,7 @@ function ReloginModal({ isOpen }) {
         <p>
           {secondsUntilExpiry <= 0
             ? `Your session has expired.`
-            : `Your session will time out in ${Math.floor(secondsUntilExpiry / 60)} minutes, after this you will be logged out.`}
+            : `Your session will time out in ${formatMMss(secondsUntilExpiry)}, after this you will be logged out.`}
         </p>
       </ModalContent>
       <ModalActions>
