@@ -5,12 +5,9 @@ import {
   useAuthToken,
 } from "../../contexts/AuthTokenContext";
 
-const formatHHMM = (secondsTotal) => {
-  const minutes = Math.round(secondsTotal / 60);
-  let seconds = secondsTotal % 60;
-  if (seconds < 10) {
-    seconds = `0${seconds}`;
-  }
+const formatMMss = (secondsTotal) => {
+  const minutes = Math.floor(secondsTotal / 60);
+  const seconds = String(secondsTotal % 60).padStart(2, "0");
   return `${minutes}:${seconds}`;
 };
 
@@ -61,7 +58,7 @@ function JwtInfo() {
           <p key="exp" className={tokenExpired ? "tokenexpired" : ""}>
             {tokenExpired
               ? `Token has expired!`
-              : `Token time left ${formatHHMM(secondsUntilExpiry)}`}
+              : `Token time left ${formatMMss(secondsUntilExpiry)}`}
           </p>
           <Popup
             content="Copy JWT (to use from curl etc), take note of valid time listed above"

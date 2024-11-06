@@ -85,7 +85,8 @@ export function PermissionsProvider({ children }) {
     const controller = new AbortController();
     const { signal } = controller;
 
-    if (token) {
+    const permissionsStored = localStorage.getItem("permissions");
+    if (token && !permissionsStored && !permissionsStored !== "undefined") {
       getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token, signal)
         .then((data) => {
           if (data) {

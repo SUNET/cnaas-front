@@ -52,15 +52,35 @@ export function AuthTokenProvider({ children }) {
         removeToken();
         return;
       }
-      setToken(newToken);
-      setUsername(getUsername(newToken));
-      const secondsUntilExpiry = getSecondsUntilExpiry(newToken);
-      setLoggedIn(!!secondsUntilExpiry);
-      setTokenWillExpire(secondsUntilExpiry < 120);
-      localStorage.setItem("token", newToken);
+      const tokenLock = localStorage.getItem("tokenlock");
+      if (!tokenLock || tokenLock === "undefined" || tokenLock === "null") {
+        localStorage.setItem("tokenlock", "writing");
+        setToken(newToken);
+        setUsername(getUsername(newToken));
+        const secondsUntilExpiry = getSecondsUntilExpiry(newToken);
+        setLoggedIn(!!secondsUntilExpiry);
+        setTokenWillExpire(secondsUntilExpiry < 120);
+        localStorage.setItem("token", newToken);
+        localStorage.removeItem("tokenlock");
+      }
     },
     [removeToken],
   );
+
+  // On token change in other tab
+  const onStorageTokenUpdate = useCallback((e) => {
+    const { key, newValue } = e;
+    if (key === "token") {
+      if (!newValue || newValue === "undefined" || newValue === "null") {
+        return;
+      }
+      setToken(newValue);
+      setUsername(getUsername(newValue));
+      const secondsUntilExpiry = getSecondsUntilExpiry(newValue);
+      setLoggedIn(!!secondsUntilExpiry);
+      setTokenWillExpire(secondsUntilExpiry < 120);
+    }
+  }, []);
 
   const login = useCallback(
     (email, password) => {
@@ -107,16 +127,6 @@ export function AuthTokenProvider({ children }) {
     window.location.replace(url);
   };
 
-  const onStorageUpdate = useCallback(
-    (e) => {
-      const { key, newValue } = e;
-      if (key === "token") {
-        putToken(newValue);
-      }
-    },
-    [putToken],
-  );
-
   const doTokenRefresh = useCallback(async () => {
     const url = `${process.env.API_URL}/api/v1.0/auth/refresh`;
     await postData(url, token, {})
@@ -137,11 +147,12 @@ export function AuthTokenProvider({ children }) {
   const tokenRefreshTimer = useRef();
   useEffect(() => {
     if (token) {
+      const debounce = Math.floor(Math.random() * 30); // debounce 0 - 30 seconds
       tokenRefreshTimer.current = setTimeout(
         () => {
           doTokenRefresh();
         },
-        (getSecondsUntilExpiry(token) - 120) * 1000, // 2 minutes before expiry
+        (getSecondsUntilExpiry(token) - 120 + debounce) * 1000, // 2 minutes before expiry + debounce
       );
     }
 
@@ -167,12 +178,12 @@ export function AuthTokenProvider({ children }) {
     };
 
     setAuthStateOnLoad();
-    window.addEventListener("storage", onStorageUpdate);
+    window.addEventListener("storage", onStorageTokenUpdate);
 
     return () => {
-      window.removeEventListener("storage", onStorageUpdate);
+      window.removeEventListener("storage", onStorageTokenUpdate);
     };
-  }, [onStorageUpdate, removeToken]);
+  }, [onStorageTokenUpdate, removeToken]);
 
   const value = useMemo(
     () => ({
