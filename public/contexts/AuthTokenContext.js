@@ -38,6 +38,7 @@ export function AuthTokenProvider({ children }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginMessage, setLoginMessage] = useState("");
   const [token, setToken] = useState();
+  const [tokenExpiry, setTokenExpiry] = useState();
   const [tokenWillExpire, setTokenWillExpire] = useState(false);
   const [username, setUsername] = useState();
 
@@ -68,7 +69,7 @@ export function AuthTokenProvider({ children }) {
     [removeToken],
   );
 
-  // On token change in other tab
+  // Handle token change in other tab
   const onStorageTokenUpdate = useCallback((e) => {
     const { key, newValue } = e;
     if (key === "token") {
@@ -148,6 +149,7 @@ export function AuthTokenProvider({ children }) {
   const tokenRefreshTimer = useRef();
   useEffect(() => {
     if (token) {
+      setTokenExpiry(jwtDecode(token).exp);
       const debounce = Math.floor(Math.random() * 30); // debounce 0 - 30 seconds
       tokenRefreshTimer.current = setTimeout(
         () => {
@@ -193,6 +195,7 @@ export function AuthTokenProvider({ children }) {
       putToken,
       setUsername,
       token,
+      tokenExpiry,
       tokenWillExpire,
       username,
     }),
@@ -205,6 +208,7 @@ export function AuthTokenProvider({ children }) {
       putToken,
       setUsername,
       token,
+      tokenExpiry,
       tokenWillExpire,
       username,
     ],

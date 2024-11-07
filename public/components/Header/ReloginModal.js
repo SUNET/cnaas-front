@@ -7,19 +7,14 @@ import {
   ModalContent,
   Header as SemanticHeader,
 } from "semantic-ui-react";
-import {
-  getSecondsUntilExpiry,
-  useAuthToken,
-} from "../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { formatMMss } from "../../utils/formatters";
 
 function ReloginModal({ isOpen }) {
-  const { logout, oidcLogin, token } = useAuthToken();
+  const { logout, oidcLogin, tokenExpiry } = useAuthToken();
 
   const [closedByUser, setClosedByUser] = useState(!isOpen);
-  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState(
-    getSecondsUntilExpiry(token),
-  );
+  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState();
 
   const relogin = () => {
     logout();
@@ -30,19 +25,22 @@ function ReloginModal({ isOpen }) {
 
   // Sets an interval
   useEffect(() => {
-    const tokenSecsRemaining = getSecondsUntilExpiry(token);
+    const now = Math.floor(Date.now() / 1000);
+    const tokenSecsRemaining = Math.max(tokenExpiry - now, 0);
     setSecondsUntilExpiry(tokenSecsRemaining);
 
     if (tokenSecsRemaining) {
       timerId.current = setInterval(() => {
-        setSecondsUntilExpiry((prev) => prev - 1);
-      }, 1000);
+        setSecondsUntilExpiry(
+          Math.max(tokenExpiry - Math.round(Date.now() / 1000), 0),
+        );
+      }, 5000);
     }
 
     return () => {
       clearInterval(timerId.current);
     };
-  }, [token]);
+  }, [tokenExpiry]);
 
   useEffect(() => {
     if (secondsUntilExpiry <= 0) {

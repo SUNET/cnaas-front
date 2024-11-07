@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Icon, Popup } from "semantic-ui-react";
 import {
   getSecondsUntilExpiry,
@@ -7,11 +7,9 @@ import {
 import { formatMMss } from "../../utils/formatters";
 
 function JwtInfo() {
-  const { doTokenRefresh, logout, username, token } = useAuthToken();
-  const [tokenExpired, setTokenExpired] = useState(true);
-  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState(
-    useMemo(() => getSecondsUntilExpiry(token), [token]),
-  );
+  const { doTokenRefresh, logout, username, token, tokenExpiry } =
+    useAuthToken();
+  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState();
 
   const timerId = useRef();
 
@@ -19,23 +17,23 @@ function JwtInfo() {
   useEffect(() => {
     const tokenSecsRemaining = getSecondsUntilExpiry(token);
     setSecondsUntilExpiry(tokenSecsRemaining);
-    setTokenExpired(tokenSecsRemaining <= 0);
 
     if (tokenSecsRemaining) {
       timerId.current = setInterval(() => {
-        setSecondsUntilExpiry((prev) => prev - 5);
+        setSecondsUntilExpiry(
+          Math.max(tokenExpiry - Math.round(Date.now() / 1000), 0),
+        );
       }, 5000);
     }
 
     return () => {
       clearInterval(timerId.current);
     };
-  }, [token]);
+  }, [token, tokenExpiry]);
 
   useEffect(() => {
     if (secondsUntilExpiry <= 0) {
       clearInterval(timerId.current);
-      setTokenExpired(true);
     }
   }, [secondsUntilExpiry]);
 
@@ -50,10 +48,13 @@ function JwtInfo() {
               ? `Logged in as ${username}`
               : "Unknown user (username attribute missing)"}
           </p>
-          <p key="exp" className={tokenExpired ? "tokenexpired" : ""}>
-            {tokenExpired
-              ? `Token has expired!`
-              : `Token time left ${formatMMss(secondsUntilExpiry)}`}
+          <p
+            key="exp"
+            className={secondsUntilExpiry <= 0 ? "tokenexpired" : ""}
+          >
+            {secondsUntilExpiry <= 0
+              ? "Token has expired!"
+              : `Minutes left on token ${formatMMss(secondsUntilExpiry)}.`}
           </p>
           <Popup
             content="Copy JWT (to use from curl etc), take note of valid time listed above"
