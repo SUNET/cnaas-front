@@ -8,7 +8,7 @@ import {
   Header as SemanticHeader,
 } from "semantic-ui-react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { formatMMss } from "../../utils/formatters";
+import { secondsToText } from "../../utils/formatters";
 
 function ReloginModal({ isOpen }) {
   const { logout, oidcLogin, tokenExpiry } = useAuthToken();
@@ -68,7 +68,7 @@ function ReloginModal({ isOpen }) {
         <p>
           {secondsUntilExpiry <= 0
             ? `Your session has expired.`
-            : `Your session will time out in ${formatMMss(secondsUntilExpiry)}, after this you will be logged out.`}
+            : `Your session will time out in ${secondsToText(secondsUntilExpiry)}, after this you will be logged out.`}
         </p>
       </ModalContent>
       <ModalActions>

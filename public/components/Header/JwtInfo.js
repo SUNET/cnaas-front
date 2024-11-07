@@ -4,7 +4,7 @@ import {
   getSecondsUntilExpiry,
   useAuthToken,
 } from "../../contexts/AuthTokenContext";
-import { formatMMss } from "../../utils/formatters";
+import { secondsToText } from "../../utils/formatters";
 
 function JwtInfo() {
   const { doTokenRefresh, logout, username, token, tokenExpiry } =
@@ -54,7 +54,7 @@ function JwtInfo() {
           >
             {secondsUntilExpiry <= 0
               ? "Token has expired!"
-              : `Minutes left on token ${formatMMss(secondsUntilExpiry)}.`}
+              : `Token expires in ${secondsToText(secondsUntilExpiry)}.`}
           </p>
           <Popup
             content="Copy JWT (to use from curl etc), take note of valid time listed above"
