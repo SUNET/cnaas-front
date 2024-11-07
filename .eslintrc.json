@@ -14,6 +14,13 @@
   "rules": {
     "camelcase": "warn",
     "eqeqeq": "warn",
+    "jsx-a11y/label-has-for": "off",
+    "jsx-a11y/label-has-associated-control": [
+      "warn",
+      {
+        "some": ["htmlFor", "nested"]
+      }
+    ],
     "no-console": "warn",
     "no-lone-block": "off", // conflicts with setState
     "prettier/prettier": ["error"],

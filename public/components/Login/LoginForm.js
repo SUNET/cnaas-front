@@ -16,24 +16,24 @@ function LoginForm({ handleSubmit, setValue, formValues, errorMessage }) {
       <form>
         <label htmlFor="login-form-email" className="title">
           Email
-          <input
-            id="login-form-email"
-            type="email"
-            name="email"
-            onChange={handleInput}
-            required
-          />
         </label>
+        <input
+          id="login-form-email"
+          type="email"
+          name="email"
+          onChange={handleInput}
+          required
+        />
         <label htmlFor="login-form-password" className="title">
           Password
-          <input
-            id="login-form-password"
-            type="password"
-            name="password"
-            onChange={handleInput}
-            required
-          />
         </label>
+        <input
+          id="login-form-password"
+          type="password"
+          name="password"
+          onChange={handleInput}
+          required
+        />
         <p className="title error">{errorMessage}</p>
         <button className="submit" type="submit" onClick={handleClick}>
           Login
