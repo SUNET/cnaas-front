@@ -1,48 +1,55 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "semantic-ui-react";
+import { useAuthToken } from "../contexts/AuthTokenContext";
+import { usePermissions } from "../contexts/PermissionsContext";
 import "../styles/reset.css";
 import "../styles/main.css";
+
 import { getData } from "../utils/getData";
 
-class Callback extends React.Component {
-  errorMessage = "Please be patient, you will be logged in.";
+function Callback() {
+  const [infoMessage, setInfoMessage] = useState(
+    "Please be patient, you will be logged in.",
+  );
 
-  getPermissions = (token) => {
-    this.setState({ loading: true, error: null });
-    if (process.env.PERMISSIONS_DISABLED === "true") {
-      this.checkSuccess();
-    } else {
-      getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
-        .then((data) => {
-          localStorage.setItem("permissions", JSON.stringify(data));
-          this.errorMessage = "Permissions are retrieved.";
-          this.checkSuccess();
-        })
-        .catch((error) => {
-          this.errorMessage =
-            "There is an error with collecting the permissions. Please try to reload this page or login again.";
-          console.log(error);
-        });
-    }
-  };
+  const { putToken, setUsername } = useAuthToken();
+  const { permissions, putPermissions } = usePermissions();
 
-  checkSuccess = () => {
+  const checkSuccess = useCallback(() => {
     if (
-      (localStorage.hasOwnProperty("permissions") ||
-        process.env.PERMISSIONS_DISABLED === "true") &&
-      localStorage.hasOwnProperty("token")
+      (permissions || process.env.PERMISSIONS_DISABLED === "true") &&
+      Object.hasOwn(localStorage, "token")
     ) {
-      this.errorMessage =
-        "Everything is loaded, you should be sent to the homepage in a second.";
-      this.setState({ loggedIn: true });
+      setInfoMessage(
+        "Everything is loaded, you should be sent to the homepage in a second.",
+      );
       window.location.replace("/");
       return true;
     }
     return false;
-  };
+  }, [permissions]);
 
-  componentDidMount() {
-    if (localStorage.hasOwnProperty("token") && this.checkSuccess()) {
+  useEffect(() => {
+    const getPermissions = (token) => {
+      if (process.env.PERMISSIONS_DISABLED === "true") {
+        checkSuccess();
+      } else {
+        getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
+          .then((data) => {
+            putPermissions(data);
+            setInfoMessage("Permissions are retrieved.");
+            checkSuccess();
+          })
+          .catch((e) => {
+            setInfoMessage(
+              "There is an error with collecting the permissions. Please try to reload this page or login again.",
+            );
+            console.log(e);
+          });
+      }
+    };
+
+    if (Object.hasOwn(localStorage, "token") && checkSuccess()) {
       return;
     }
     const params = new URLSearchParams(location.search);
@@ -52,32 +59,28 @@ class Callback extends React.Component {
       )}; SameSite=None; Secure; HttpOnly; Path=/api/v1.0/auth/refresh`;
     }
     if (params.has("username")) {
-      localStorage.setItem("username", params.get("username"));
+      setUsername(params.get("username"));
     }
     if (params.has("token")) {
       // Add the token as a parameter in local storage and communicate with the user they are logged in
       // We don't check the validity of the token as this is done with every API call to get any information
       const token = params.get("token");
-      localStorage.setItem("token", token);
-
-      this.getPermissions(token);
-
-      this.errorMessage = "You're logged in.";
+      putToken(token);
+      getPermissions(token);
+      setInfoMessage("You're logged in.");
       window.location.replace("/");
     } else {
-      this.errorMessage = "Something went wrong. Retry the login.";
+      setInfoMessage("Something went wrong. Retry the login.");
     }
-  }
+  }, [putToken, setUsername, putPermissions, checkSuccess]);
 
-  render() {
-    return (
-      <div className="container">
-        <Container>
-          <p className="title error">{this.errorMessage}</p>
-        </Container>
-      </div>
-    );
-  }
+  return (
+    <div className="container">
+      <Container>
+        <p className="title error">{infoMessage}</p>
+      </Container>
+    </div>
+  );
 }
 
 export default Callback;

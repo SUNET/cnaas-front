@@ -2,7 +2,7 @@ import _ from "lodash";
 import React from "react";
 import PropTypes from "prop-types";
 import { Popup, Table, Icon } from "semantic-ui-react";
-import formatISODate from "../../utils/formatters";
+import { formatISODate } from "../../utils/formatters";
 
 import { getData } from "../../utils/getData";
 

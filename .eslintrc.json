@@ -14,12 +14,20 @@
   "rules": {
     "camelcase": "warn",
     "eqeqeq": "warn",
+    "jsx-a11y/label-has-for": "off",
+    "jsx-a11y/label-has-associated-control": [
+      "warn",
+      {
+        "some": ["htmlFor", "nested"]
+      }
+    ],
     "no-console": "warn",
     "no-lone-block": "off", // conflicts with setState
     "prettier/prettier": ["error"],
     "react/destructuring-assignment": "warn",
     "react/jsx-filename-extension": "off", // allow .js file suffix
     "react/jsx-no-bind": "off",
+    "react/jsx-no-useless-fragment": "off", // allow conditional rendering
     "react/prop-types": "off",
     "react/prefer-stateless-function": "warn", // allow class components
     "react/sort-comp": "warn"

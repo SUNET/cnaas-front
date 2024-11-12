@@ -1,8 +1,7 @@
 import React from "react";
 import { Dropdown, Icon } from "semantic-ui-react";
-
-import formatISODate from "../../utils/formatters";
-import permissionsCheck from "../../utils/permissions/permissionsCheck";
+import { usePermissions } from "../../contexts/PermissionsContext";
+import { formatISODate } from "../../utils/formatters";
 
 export default function DeviceInfoBlock({
   device,
@@ -17,6 +16,8 @@ export default function DeviceInfoBlock({
   deviceInterfaceData,
   log,
 }) {
+  const { permissionsCheck } = usePermissions();
+
   function toggleHidden(target) {
     const closestTrParent = target.closest("tr");
     const isHidden = closestTrParent.nextElementSibling.hidden;

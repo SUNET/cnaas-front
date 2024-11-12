@@ -10,7 +10,7 @@ import {
 import Prism from "prismjs";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
-import formatISODate from "../utils/formatters";
+import { formatISODate } from "../utils/formatters";
 import { getResponse } from "../utils/getData";
 import checkJsonResponse from "../utils/checkJsonResponse";
 
