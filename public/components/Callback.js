@@ -32,13 +32,13 @@ function Callback() {
   useEffect(() => {
     const getPermissions = (token) => {
       if (process.env.PERMISSIONS_DISABLED === "true") {
-        checkSuccess();
+        return checkSuccess();
       } else {
         getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
           .then((data) => {
             putPermissions(data);
             setInfoMessage("Permissions are retrieved.");
-            checkSuccess();
+            return checkSuccess();
           })
           .catch((e) => {
             setInfoMessage(
@@ -66,9 +66,10 @@ function Callback() {
       // We don't check the validity of the token as this is done with every API call to get any information
       const token = params.get("token");
       putToken(token);
-      getPermissions(token);
-      setInfoMessage("You're logged in.");
-      window.location.replace("/");
+      if (getPermissions(token)) {
+        setInfoMessage("You're logged in.");
+        window.location.replace("/");
+      }
     } else {
       setInfoMessage("Something went wrong. Retry the login.");
     }

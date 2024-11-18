@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { postData } from "../utils/sendData";
 import { storeValueIsUndefined } from "../utils/formatters";
-
+import { getData } from "../utils/getData";
 import checkResponseStatus from "../utils/checkResponseStatus";
 
 export const getSecondsUntilExpiry = (token) => {
@@ -20,15 +20,6 @@ export const getSecondsUntilExpiry = (token) => {
     return Math.max(tokenExpiry - now, 0);
   } catch {
     return 0;
-  }
-};
-
-const getUsername = (token) => {
-  try {
-    const decodedToken = jwtDecode(token);
-    return decodedToken.preferred_username || decodedToken.email;
-  } catch {
-    return "unknown user";
   }
 };
 
@@ -42,6 +33,26 @@ export function AuthTokenProvider({ children }) {
   const [tokenWillExpire, setTokenWillExpire] = useState(false);
   const [username, setUsername] = useState();
 
+
+  const getAndSetUsername = (token, username) => {
+    try {
+      const decodedToken = jwtDecode(token);
+      if (decodedToken.preferred_username  || decodedToken.email) {
+        setUsername(decodedToken.preferred_username  || decodedToken.email);
+        return
+      }
+      if (username == null && token != null) {
+        let url = process.env.API_URL + "/api/v1.0/auth/identity";
+        getData(url, token).then((data) => {
+          setUsername(data);
+        });
+      }
+    } catch {
+      setUsername("unknown user");
+    }
+  };
+
+  
   const removeToken = useCallback(() => {
     setToken(null);
     localStorage.removeItem("token");
@@ -58,7 +69,8 @@ export function AuthTokenProvider({ children }) {
       if (storeValueIsUndefined(tokenLock)) {
         localStorage.setItem("tokenlock", "writing");
         setToken(newToken);
-        setUsername(getUsername(newToken));
+        getAndSetUsername(newToken, username);
+        //setUsername(getUsername(newToken));
         const secondsUntilExpiry = getSecondsUntilExpiry(newToken);
         setLoggedIn(!!secondsUntilExpiry);
         setTokenWillExpire(secondsUntilExpiry < 120);
@@ -77,7 +89,8 @@ export function AuthTokenProvider({ children }) {
         return;
       }
       setToken(newValue);
-      setUsername(getUsername(newValue));
+      getAndSetUsername(newValue, username);
+      //setUsername(getUsername(newValue));
       const secondsUntilExpiry = getSecondsUntilExpiry(newValue);
       setLoggedIn(!!secondsUntilExpiry);
       setTokenWillExpire(secondsUntilExpiry < 120);
@@ -171,7 +184,8 @@ export function AuthTokenProvider({ children }) {
         removeToken();
       } else {
         setToken(tokenStored);
-        setUsername(getUsername(tokenStored));
+        getAndSetUsername(tokenStored, username);
+        //setUsername(getUsername(tokenStored));
       }
       setLoggedIn(!!getSecondsUntilExpiry(tokenStored));
     };
