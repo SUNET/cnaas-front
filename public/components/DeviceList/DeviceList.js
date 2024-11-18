@@ -1307,10 +1307,7 @@ class DeviceList extends React.Component {
     return (
       <section>
         <div id="search">
-          <DeviceSearchForm
-            location={this.props.location}
-            searchAction={this.searchAction}
-          />
+          <DeviceSearchForm searchAction={this.searchAction} />
         </div>
         <div id="device_list">
           <h2>Device list</h2>
