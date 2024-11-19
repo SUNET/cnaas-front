@@ -68,7 +68,6 @@ export function AuthTokenProvider({ children }) {
         localStorage.setItem("tokenlock", "writing");
         setToken(newToken);
         getAndSetUsername(newToken, username);
-        // setUsername(getUsername(newToken));
         const secondsUntilExpiry = getSecondsUntilExpiry(newToken);
         setLoggedIn(!!secondsUntilExpiry);
         setTokenWillExpire(secondsUntilExpiry < 120);
@@ -88,7 +87,6 @@ export function AuthTokenProvider({ children }) {
       }
       setToken(newValue);
       getAndSetUsername(newValue, username);
-      // setUsername(getUsername(newValue));
       const secondsUntilExpiry = getSecondsUntilExpiry(newValue);
       setLoggedIn(!!secondsUntilExpiry);
       setTokenWillExpire(secondsUntilExpiry < 120);
@@ -183,7 +181,6 @@ export function AuthTokenProvider({ children }) {
       } else {
         setToken(tokenStored);
         getAndSetUsername(tokenStored, username);
-        // setUsername(getUsername(tokenStored));
       }
       setLoggedIn(!!getSecondsUntilExpiry(tokenStored));
     };
