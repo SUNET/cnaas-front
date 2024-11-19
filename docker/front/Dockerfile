@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM node:22
 
 # Create directories
 RUN mkdir -p /opt/cnaas/static/styles

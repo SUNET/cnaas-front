@@ -5,9 +5,9 @@ set -x
 
 export DEBIAN_FRONTEND noninteractive
 
-apt-get update && \
-    apt-get -y dist-upgrade && \
-    apt-get install -y \
+apt update && \
+    apt -y dist-upgrade && \
+    apt install -y \
       git \
       nodejs \
       npm \
@@ -15,13 +15,14 @@ apt-get update && \
       procps \
       bind9-host \
       netcat-openbsd \
+      netcat-traditional \
       net-tools \
       curl \
-      netcat \
       nginx \
       supervisor \
       libssl-dev \
-    && apt-get clean
+    && apt clean \
+    && apt autoremove -y
 
 # Fetch the code and install dependencies
 cd /opt/cnaas/
