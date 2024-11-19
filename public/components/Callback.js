@@ -67,7 +67,6 @@ function Callback() {
       const token = params.get("token");
       putToken(token);
       getPermissions(token);
-
     } else {
       setInfoMessage("Something went wrong. Retry the login.");
     }
