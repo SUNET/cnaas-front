@@ -1,16 +1,16 @@
 # live mount the source code into a Docker container and serve it with npm
 
-FROM node:current-buster
+FROM node:22
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends tini \
+RUN apt update && apt install -y --no-install-recommends tini \
         iputils-ping \
         procps \
         bind9-host \
         netcat-openbsd \
+        netcat-traditional \
         net-tools \
         curl \
-        netcat \
         libssl-dev
 
 WORKDIR /app
