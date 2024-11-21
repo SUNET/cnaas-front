@@ -86,7 +86,11 @@ describe("Callback Component", () => {
     render(<Callback />);
 
     await waitFor(() => {
-      expect(screen.getByText("You don't seem to have any permissions within this application. Please check with an admin if this is correct.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "You don't seem to have any permissions within this application. Please check with an admin if this is correct.",
+        ),
+      ).toBeInTheDocument();
     });
 
     await waitFor(() => {
