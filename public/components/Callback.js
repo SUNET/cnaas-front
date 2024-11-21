@@ -37,8 +37,8 @@ function Callback() {
         getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
           .then((data) => {
             putPermissions(data);
-            setInfoMessage("Permissions are retrieved.");
-            checkSuccess();
+            setInfoMessage("You're logged in.");
+            window.location.replace("/");
           })
           .catch((e) => {
             setInfoMessage(
@@ -67,8 +67,6 @@ function Callback() {
       const token = params.get("token");
       putToken(token);
       getPermissions(token);
-      setInfoMessage("You're logged in.");
-      window.location.replace("/");
     } else {
       setInfoMessage("Something went wrong. Retry the login.");
     }
