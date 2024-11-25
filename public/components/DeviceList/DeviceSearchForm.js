@@ -19,7 +19,8 @@ const searchOptions = [
 ];
 
 const parseFilterKey = (queryParams) => {
-  const squareBracketContents = /\[(.*?)\]/;
+  // match contents in square brackets of "filter[]"
+  const squareBracketContents = /filter\[(.*?)\]/;
   const firstKey = Object.keys(queryParams)?.[0];
   return firstKey?.match(squareBracketContents)?.[1];
 };
@@ -52,9 +53,13 @@ function DeviceSearchForm({ searchAction }) {
         filterField: "hostname",
         filterValue: queryParams.search_hostname,
       });
+    } else {
+      // Else set values from "filter[<searchField>]=<searchText>"
+      setSearchText(Object.values(queryParams)?.[0] || "");
+      setSearchField(parseFilterKey(queryParams) || "hostname");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location]);
 
   const clearSearch = () => {
     setSearchText("");
