@@ -29,7 +29,6 @@ export function AuthTokenProvider({ children }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginMessage, setLoginMessage] = useState("");
   const [token, setToken] = useState();
-  const [permissions, setPermissions] = useState();
   const [tokenExpiry, setTokenExpiry] = useState();
   const [tokenWillExpire, setTokenWillExpire] = useState(false);
   const [username, setUsername] = useState();
@@ -57,10 +56,6 @@ export function AuthTokenProvider({ children }) {
     localStorage.removeItem("token");
   }, []);
 
-  const removePermissions = useCallback(() => {
-    setPermissions(null);
-    localStorage.removeItem("permissions");
-  }, []);
 
   // Only supposed to be used in Callback component.
   const putToken = useCallback(
@@ -128,7 +123,6 @@ export function AuthTokenProvider({ children }) {
   );
 
   const logout = useCallback(() => {
-    removePermissions();
     removeToken();
     setUsername("");
     setLoginMessage("You have been logged out");
@@ -184,7 +178,6 @@ export function AuthTokenProvider({ children }) {
     const setAuthStateOnLoad = () => {
       const tokenStored = localStorage.getItem("token");
       if (storeValueIsUndefined(tokenStored)) {
-        removePermissions();
         removeToken();
       } else {
         setToken(tokenStored);
