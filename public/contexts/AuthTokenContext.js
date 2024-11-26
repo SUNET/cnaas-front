@@ -56,7 +56,6 @@ export function AuthTokenProvider({ children }) {
     localStorage.removeItem("token");
   }, []);
 
-
   // Only supposed to be used in Callback component.
   const putToken = useCallback(
     (newToken) => {
