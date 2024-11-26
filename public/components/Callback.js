@@ -25,7 +25,7 @@ function Callback() {
       );
       window.location.replace("/");
       return true;
-    } else if (permissions.length == 0) {
+    } else if (permissions.length === 0) {
       setInfoMessage(
         "You don't seem to have any permissions within this application. Please check with an admin if this is correct.",
       );
