@@ -15,7 +15,7 @@ import {
   Checkbox,
 } from "semantic-ui-react";
 import YAML from "yaml";
-import { getData } from "../../utils/getData";
+import { getData, getDataHeaders } from "../../utils/getData";
 import InterfaceCurrentConfig from "./InterfaceCurrentConfig";
 import { putData, postData } from "../../utils/sendData";
 
@@ -248,7 +248,7 @@ class InterfaceConfig extends React.Component {
     }
     if (this.device_type === "DIST") {
       const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/generate_config`;
-      return getData(url, credentials, {
+      return getDataHeaders(url, credentials, {
         "X-Fields": "available_variables{interfaces}",
       })
         .then((data) => {
