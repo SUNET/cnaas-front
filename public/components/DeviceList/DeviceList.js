@@ -489,7 +489,7 @@ class DeviceList extends React.Component {
 
   getNetboxModelData(hostname) {
     const model = this.getModel(hostname);
-    const credentials = localStorage.getItem("netbox_token");
+    const credentials = localStorage.getItem("netboxToken");
     if (!credentials || !process.env.NETBOX_API_URL) {
       return null;
     }

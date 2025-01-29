@@ -64,7 +64,7 @@ export default function DeviceInfoBlock({
           src={model.front_image}
           alt="Device front"
           width="100%"
-        />
+        />,
       );
     }
     if (model.description) {
@@ -132,9 +132,7 @@ export default function DeviceInfoBlock({
             </tr>
             <tr key="detail_model">
               <td key="name">Model</td>
-              <td key="value">
-                {modelField}
-              </td>
+              <td key="value">{modelField}</td>
             </tr>
             <tr key="detail_osversion">
               <td key="name">OS Version</td>
