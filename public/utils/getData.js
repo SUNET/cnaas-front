@@ -16,7 +16,7 @@ const getDataHeaders = (url, credentials, headers) => {
     method: "GET",
     headers: {
       ...(credentials && { Authorization: `Bearer ${credentials}` }),
-      ...(headers && headers),
+      ...headers,
     },
   }).then((response) => checkJsonResponse(response));
 };

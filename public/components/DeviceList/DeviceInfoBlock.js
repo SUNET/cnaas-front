@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
 import { Dropdown, Icon, Popup } from "semantic-ui-react";
 import { usePermissions } from "../../contexts/PermissionsContext";
 import { formatISODate } from "../../utils/formatters";
-import { getDataToken } from "../../utils/getData";
 
 export default function DeviceInfoBlock({
   device,

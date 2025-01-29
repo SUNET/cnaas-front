@@ -482,12 +482,9 @@ class DeviceList extends React.Component {
   getModel(hostname) {
     const { devicesData } = this.state;
     // loop through devicesData and return model for matching hostname
-    for (let i = 0; i < devicesData.length; i += 1) {
-      if (devicesData[i].hostname === hostname) {
-        return devicesData[i].model;
-      }
-    }
-    return null;
+    const device = devicesData.find((element) => element.hostname === hostname);
+    if (!device) return null;
+    return device.model;
   }
 
   getNetboxModelData(hostname) {
@@ -1264,7 +1261,7 @@ class DeviceList extends React.Component {
       }
       let model = null;
       const { netboxModelData } = this.state;
-      if (Object.prototype.hasOwnProperty.call(netboxModelData, device.model)) {
+      if (Object.hasOwn(netboxModelData, device.model)) {
         model = netboxModelData[device.model];
       }
 
