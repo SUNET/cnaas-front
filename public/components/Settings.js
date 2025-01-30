@@ -20,38 +20,36 @@ function Settings() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
-  async function handleSave() {
+  function handleSave() {
     localStorage.setItem("netboxToken", netboxToken);
   }
 
   let netboxField = null;
   if (process.env.NETBOX_API_URL) {
     netboxField = (
-      <>
-        <FormInput
-          label={
-            <p>
-              Netbox API token
-              <Popup
-                content={`Provide Netbox API token from ${process.env.NETBOX_API_URL}`}
-                wide
-                trigger={
-                  <Icon
-                    name="question circle"
-                    color={
-                      !localStorage.getItem("netboxToken") ? "orange" : null
-                    }
-                  />
-                }
-              />
-            </p>
-          }
-          name="netboxToken"
-          type="text"
-          value={netboxToken || ""}
-          onChange={handleChange}
-        />
-      </>
+      <FormInput
+        label={
+          <p>
+            Netbox API token
+            <Popup
+              content={`Provide Netbox API token from ${process.env.NETBOX_API_URL}`}
+              wide
+              trigger={
+                <Icon
+                  name="question circle"
+                  color={
+                    !localStorage.getItem("netboxToken") ? "orange" : null
+                  }
+                />
+              }
+            />
+          </p>
+        }
+        name="netboxToken"
+        type="text"
+        value={netboxToken || ""}
+        onChange={handleChange}
+      />
     );
   }
 
