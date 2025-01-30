@@ -15,7 +15,7 @@ import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import DeviceSearchForm from "./DeviceSearchForm";
 import checkResponseStatus from "../../utils/checkResponseStatus";
 import DeviceInitForm from "./DeviceInitForm";
-import { getData, getResponse } from "../../utils/getData";
+import { getData, getResponse, getDataToken } from "../../utils/getData";
 import { deleteData } from "../../utils/sendData";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import AddMgmtDomainModal from "./AddMgmtDomainModal";
@@ -37,6 +37,7 @@ class DeviceList extends React.Component {
     id_sort: "↓",
     devicesData: [],
     deviceInterfaceData: {},
+    netboxModelData: {},
     activePage: 1,
     totalPages: 1,
     resultsPerPage: 20,
@@ -478,6 +479,42 @@ class DeviceList extends React.Component {
       });
   };
 
+  getModel(hostname) {
+    const { devicesData } = this.state;
+    // loop through devicesData and return model for matching hostname
+    const device = devicesData.find((element) => element.hostname === hostname);
+    if (!device) return null;
+    return device.model;
+  }
+
+  getNetboxModelData(hostname) {
+    const model = this.getModel(hostname);
+    const credentials = localStorage.getItem("netboxToken");
+    if (!credentials || !process.env.NETBOX_API_URL) {
+      return null;
+    }
+
+    // if this.state.netboxModelData map does not have an object for model, fetch data from netbox
+    const mod = this.state.netboxModelData[model];
+    if (mod) return mod;
+
+    getDataToken(
+      `${process.env.NETBOX_API_URL}/api/dcim/device-types/?part_number__ie=${model}`,
+      credentials,
+    ).then((data) => {
+      if (data.count === 1) {
+        this.setState((prevState) => ({
+          netboxModelData: {
+            ...prevState.netboxModelData,
+            [model]: data.results.pop(),
+          },
+        }));
+      } else {
+        console.log("no data found for model", model);
+      }
+    });
+  }
+
   getInterfacesData(hostname) {
     const credentials = localStorage.getItem("token");
     getData(
@@ -510,6 +547,7 @@ class DeviceList extends React.Component {
   clickRow(closestTrParentId) {
     if (closestTrParentId in this.state.deviceInterfaceData === false) {
       this.getInterfacesData(closestTrParentId);
+      this.getNetboxModelData(closestTrParentId);
     }
   }
 
@@ -1221,6 +1259,11 @@ class DeviceList extends React.Component {
       if (device.dhcp_ip !== null) {
         mgmtip.push(<i key="dhcp_ip">(DHCP IP: {device.dhcp_ip})</i>);
       }
+      let model = null;
+      const { netboxModelData } = this.state;
+      if (Object.hasOwn(netboxModelData, device.model)) {
+        model = netboxModelData[device.model];
+      }
 
       return (
         <DeviceInfoBlock
@@ -1235,6 +1278,7 @@ class DeviceList extends React.Component {
           mgmtip={mgmtip}
           deviceStateExtra={deviceStateExtra}
           log={log}
+          model={model}
         />
       );
     });

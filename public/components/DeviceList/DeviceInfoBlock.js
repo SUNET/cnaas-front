@@ -1,5 +1,4 @@
-import React from "react";
-import { Dropdown, Icon } from "semantic-ui-react";
+import { Dropdown, Icon, Popup } from "semantic-ui-react";
 import { usePermissions } from "../../contexts/PermissionsContext";
 import { formatISODate } from "../../utils/formatters";
 
@@ -15,6 +14,7 @@ export default function DeviceInfoBlock({
   deviceStateExtra,
   deviceInterfaceData,
   log,
+  model,
 }) {
   const { permissionsCheck } = usePermissions();
 
@@ -48,6 +48,42 @@ export default function DeviceInfoBlock({
     if (expandedId) {
       clickRow(expandedId);
     }
+  }
+
+  let modelField = device.model;
+  if (model) {
+    const content = [
+      <a href={model.display_url}>
+        <h3 key="header">Netbox model info</h3>
+      </a>,
+    ];
+    if (model.front_image) {
+      content.push(
+        <img
+          key="front"
+          src={model.front_image}
+          alt="Device front"
+          width="100%"
+        />,
+      );
+    }
+    if (model.description) {
+      content.push(<p key="description">{model.description}</p>);
+    }
+    if (model.interface_template_count) {
+      content.push(
+        <p key="interfaces">{model.interface_template_count} interfaces</p>,
+      );
+    }
+    modelField = (
+      <Popup
+        key="modeldetail"
+        content={<>{content}</>}
+        wide="very"
+        hoverable
+        trigger={<a>{device.model}</a>}
+      />
+    );
   }
 
   return [
@@ -96,7 +132,7 @@ export default function DeviceInfoBlock({
             </tr>
             <tr key="detail_model">
               <td key="name">Model</td>
-              <td key="value">{device.model}</td>
+              <td key="value">{modelField}</td>
             </tr>
             <tr key="detail_osversion">
               <td key="name">OS Version</td>

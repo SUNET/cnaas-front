@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Icon, Popup } from "semantic-ui-react";
+import { NavLink } from "react-router-dom";
 import {
   getSecondsUntilExpiry,
   useAuthToken,
@@ -73,6 +74,28 @@ function JwtInfo() {
               <Button onClick={doTokenRefresh} icon="refresh" size="tiny" />
             }
             position="bottom right"
+          />
+          <Popup
+            content="Make changes to user settings for this browser session"
+            trigger={
+              <NavLink
+                exact
+                activeClassName="active"
+                to="/settings"
+                key="settings"
+              >
+                <Button
+                  icon="settings"
+                  size="tiny"
+                  color={
+                    process.env.NETBOX_API_URL &&
+                    !localStorage.getItem("netboxToken")
+                      ? "orange"
+                      : null
+                  }
+                />
+              </NavLink>
+            }
           />
           <p key="logout">
             <Button onClick={logout}>Log out</Button>
