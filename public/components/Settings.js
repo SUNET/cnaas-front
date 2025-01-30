@@ -37,9 +37,7 @@ function Settings() {
               trigger={
                 <Icon
                   name="question circle"
-                  color={
-                    !localStorage.getItem("netboxToken") ? "orange" : null
-                  }
+                  color={!localStorage.getItem("netboxToken") ? "orange" : null}
                 />
               }
             />
