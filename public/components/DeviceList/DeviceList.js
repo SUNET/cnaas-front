@@ -158,6 +158,8 @@ class DeviceList extends React.Component {
         for (const deviceDetail of deviceDetails) {
           deviceDetail.hidden = false;
           this.getInterfacesData(deviceDetail.previousElementSibling.id);
+          this.getNetboxModelData(deviceDetail.previousElementSibling.id);
+          this.getNetboxDeviceData(deviceDetail.previousElementSibling.id);
         }
       });
     });

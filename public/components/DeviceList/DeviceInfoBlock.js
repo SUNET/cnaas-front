@@ -103,7 +103,11 @@ export default function DeviceInfoBlock({
       const locationParts = [];
       if (netboxDevice.site) {
         locationParts.push(
-          <a key="site" href={netboxDevice.site.url.replace("/api", "")}>
+          <a
+            key="site"
+            href={netboxDevice.site.url.replace("/api", "")}
+            title="Go to site in Netbox"
+          >
             {netboxDevice.site.name}
           </a>,
         );
@@ -113,6 +117,7 @@ export default function DeviceInfoBlock({
           <a
             key="location"
             href={netboxDevice.location.url.replace("/api", "")}
+            title="Go to location in Netbox"
           >
             {netboxDevice.location.name}
           </a>,
