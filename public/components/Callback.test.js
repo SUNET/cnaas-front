@@ -79,4 +79,28 @@ describe("Callback Component", () => {
       screen.getByText("Something went wrong. Retry the login."),
     ).toBeInTheDocument();
   });
+
+  test("displays no permissions message when user has no permissions", async () => {
+    getData.mockResolvedValueOnce([]);
+
+    render(<Callback />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "You don't seem to have any permissions within this application. Please check with an admin if this is correct.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(mockPutToken).toHaveBeenCalledWith("some-valid-token");
+    });
+    await waitFor(() => {
+      expect(mockSetUsername).toHaveBeenCalledWith("testuser");
+    });
+    await waitFor(() => {
+      expect(mockPutPermissions).toHaveBeenCalledWith([]);
+    });
+  });
 });

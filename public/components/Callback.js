@@ -17,7 +17,7 @@ function Callback() {
 
   const checkSuccess = useCallback(() => {
     if (
-      (permissions || process.env.PERMISSIONS_DISABLED === "true") &&
+      (permissions.length > 0 || process.env.PERMISSIONS_DISABLED === "true") &&
       Object.hasOwn(localStorage, "token")
     ) {
       setInfoMessage(
@@ -25,6 +25,10 @@ function Callback() {
       );
       window.location.replace("/");
       return true;
+    } else if (permissions.length === 0) {
+      setInfoMessage(
+        "You don't seem to have any permissions within this application. Please check with an admin if this is correct.",
+      );
     }
     return false;
   }, [permissions]);
@@ -36,9 +40,16 @@ function Callback() {
       } else {
         getData(`${process.env.API_URL}/api/v1.0/auth/permissions`, token)
           .then((data) => {
-            putPermissions(data);
-            setInfoMessage("You're logged in.");
-            window.location.replace("/");
+            if (data.length > 0) {
+              putPermissions(data);
+              setInfoMessage("You're logged in.");
+              window.location.replace("/");
+            } else {
+              putPermissions(data);
+              setInfoMessage(
+                "You don't seem to have any permissions within this application. Please check with an admin if this is correct.",
+              );
+            }
           })
           .catch((e) => {
             setInfoMessage(
