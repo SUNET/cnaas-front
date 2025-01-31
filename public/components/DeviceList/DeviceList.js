@@ -38,6 +38,7 @@ class DeviceList extends React.Component {
     devicesData: [],
     deviceInterfaceData: {},
     netboxModelData: {},
+    netboxDeviceData: {},
     activePage: 1,
     totalPages: 1,
     resultsPerPage: 20,
@@ -157,6 +158,8 @@ class DeviceList extends React.Component {
         for (const deviceDetail of deviceDetails) {
           deviceDetail.hidden = false;
           this.getInterfacesData(deviceDetail.previousElementSibling.id);
+          this.getNetboxModelData(deviceDetail.previousElementSibling.id);
+          this.getNetboxDeviceData(deviceDetail.previousElementSibling.id);
         }
       });
     });
@@ -515,6 +518,33 @@ class DeviceList extends React.Component {
     });
   }
 
+  getNetboxDeviceData(hostname) {
+    const credentials = localStorage.getItem("netboxToken");
+    if (
+      !credentials ||
+      !process.env.NETBOX_API_URL ||
+      !process.env.NETBOX_TENANT_ID
+    ) {
+      return null;
+    }
+
+    getDataToken(
+      `${process.env.NETBOX_API_URL}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
+      credentials,
+    ).then((data) => {
+      if (data.count === 1) {
+        this.setState((prevState) => ({
+          netboxDeviceData: {
+            ...prevState.netboxDeviceData,
+            [hostname]: data.results.pop(),
+          },
+        }));
+      } else {
+        console.log("no data found device", hostname);
+      }
+    });
+  }
+
   getInterfacesData(hostname) {
     const credentials = localStorage.getItem("token");
     getData(
@@ -548,6 +578,7 @@ class DeviceList extends React.Component {
     if (closestTrParentId in this.state.deviceInterfaceData === false) {
       this.getInterfacesData(closestTrParentId);
       this.getNetboxModelData(closestTrParentId);
+      this.getNetboxDeviceData(closestTrParentId);
     }
   }
 
@@ -1265,6 +1296,12 @@ class DeviceList extends React.Component {
         model = netboxModelData[device.model];
       }
 
+      let netboxDevice = null;
+      const { netboxDeviceData } = this.state;
+      if (Object.hasOwn(netboxDeviceData, device.hostname)) {
+        netboxDevice = netboxDeviceData[device.hostname];
+      }
+
       return (
         <DeviceInfoBlock
           key={`${device.id}_device_info`}
@@ -1279,6 +1316,7 @@ class DeviceList extends React.Component {
           deviceStateExtra={deviceStateExtra}
           log={log}
           model={model}
+          netboxDevice={netboxDevice}
         />
       );
     });

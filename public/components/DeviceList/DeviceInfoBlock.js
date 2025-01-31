@@ -15,6 +15,7 @@ export default function DeviceInfoBlock({
   deviceInterfaceData,
   log,
   model,
+  netboxDevice,
 }) {
   const { permissionsCheck } = usePermissions();
 
@@ -53,8 +54,8 @@ export default function DeviceInfoBlock({
   let modelField = device.model;
   if (model) {
     const content = [
-      <a href={model.display_url}>
-        <h3 key="header">Netbox model info</h3>
+      <a key="header" href={model.display_url}>
+        <h3>Netbox model info</h3>
       </a>,
     ];
     if (model.front_image) {
@@ -84,6 +85,56 @@ export default function DeviceInfoBlock({
         trigger={<a>{device.model}</a>}
       />
     );
+  }
+
+  const netboxRows = [];
+  if (netboxDevice) {
+    netboxRows.push(
+      <tr key="netbox_status">
+        <td key="name">Netbox Status</td>
+        <td key="value">
+          <a href={netboxDevice.display_url} title="Go to device in Netbox">
+            {netboxDevice.status.label}
+          </a>
+        </td>
+      </tr>,
+    );
+    if (netboxDevice.location || netboxDevice.site) {
+      const locationParts = [];
+      if (netboxDevice.site) {
+        locationParts.push(
+          <a
+            key="site"
+            href={netboxDevice.site.url.replace("/api", "")}
+            title="Go to site in Netbox"
+          >
+            {netboxDevice.site.name}
+          </a>,
+        );
+      }
+      if (netboxDevice.location) {
+        locationParts.push(
+          <a
+            key="location"
+            href={netboxDevice.location.url.replace("/api", "")}
+            title="Go to location in Netbox"
+          >
+            {netboxDevice.location.name}
+          </a>,
+        );
+      }
+      if (locationParts.length === 2) {
+        locationParts.splice(1, 0, <span> -> </span>);
+      }
+      netboxRows.push(
+        <tr key="netbox_location">
+          <td key="name">Netbox Location</td>
+          <td key="value">
+            <div>{locationParts}</div>
+          </td>
+        </tr>,
+      );
+    }
   }
 
   return [
@@ -154,6 +205,7 @@ export default function DeviceInfoBlock({
               <td key="name">Last seen</td>
               <td key="value">{formatISODate(device.last_seen)}</td>
             </tr>
+            {netboxRows}
           </tbody>
         </table>
         {deviceStateExtra}
