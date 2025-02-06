@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React from "react";
 import { Progress } from "semantic-ui-react";
 
@@ -50,5 +51,16 @@ function ProgressBar({ jobStatus, value, total, hidden }) {
     </div>
   );
 }
+
+ProgressBar.propTypes = {
+  jobStatus: PropTypes.string.isRequired,
+  value: PropTypes.number.isRequired,
+  total: PropTypes.number.isRequired,
+  hidden: PropTypes.bool,
+};
+
+ProgressBar.defaultProps = {
+  hidden: false,
+};
 
 export default ProgressBar;
