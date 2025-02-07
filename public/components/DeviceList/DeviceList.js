@@ -1094,7 +1094,12 @@ class DeviceList extends React.Component {
           }
         />,
       ];
-      if (device.device_type === "ACCESS") {
+      if (
+        device.device_type === "ACCESS" ||
+        (device.device_type === "DIST" &&
+          localStorage.getItem("distPortConfig") &&
+          JSON.parse(localStorage.getItem("distPortConfig")) === true)
+      ) {
         menuActions.push(
           <Dropdown.Item
             key="configports"
