@@ -13,7 +13,7 @@ import {
   Accordion,
   Popup,
   Checkbox,
-  TextArea
+  TextArea,
 } from "semantic-ui-react";
 import YAML from "yaml";
 import { getData, getDataHeaders } from "../../utils/getData";
@@ -410,11 +410,14 @@ class InterfaceConfig extends React.Component {
       this.state.interfaceData.forEach((intf) => {
         if (intf.name == interfaceName) {
           Object.entries(intf).map(([prevKey, prevValue]) => {
-            if (prevKey == "indexnum") {
-            } else if (prevValue === null) {
-            } else if (prevValue === "") {
-            } else if (prevKey == "redundant_link" && prevValue === true) {
-            } else if (prevKey === "data") {
+            if (
+              prevKey === "indexnum" ||
+              prevValue === null ||
+              prevValue === "" ||
+              (prevKey === "redundant_link" && prevValue === true) ||
+              prevKey === "data"
+            ) {
+              // skip these keys since they are not needed in rendered yaml
             } else {
               ifData[prevKey] = prevValue;
             }
