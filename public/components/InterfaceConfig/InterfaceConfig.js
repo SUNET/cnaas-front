@@ -13,6 +13,7 @@ import {
   Accordion,
   Popup,
   Checkbox,
+  TextArea
 } from "semantic-ui-react";
 import YAML from "yaml";
 import { getData, getDataHeaders } from "../../utils/getData";
@@ -413,6 +414,7 @@ class InterfaceConfig extends React.Component {
             } else if (prevValue === null) {
             } else if (prevValue === "") {
             } else if (prevKey == "redundant_link" && prevValue === true) {
+            } else if (prevKey === "data") {
             } else {
               ifData[prevKey] = prevValue;
             }
@@ -663,6 +665,7 @@ class InterfaceConfig extends React.Component {
           tagged_vlan_list: [],
           tags: [],
           enabled: true,
+          config: "",
         };
         Object.entries(fields).forEach(([key, value]) => {
           if (item[key] !== undefined && item[key] !== null) {
@@ -947,12 +950,14 @@ class InterfaceConfig extends React.Component {
           ];
         } else if (columnName == "config") {
           colData = [
-            <textarea
-              key="config"
+            <TextArea
+              key={`config|${item.name}`}
+              name={`config|${item.name}`}
               defaultValue={item.config}
               rows={3}
               cols={50}
               hidden={currentIfClass != "custom"}
+              onChange={this.updateFieldData}
             />,
             <Popup
               on="click"
