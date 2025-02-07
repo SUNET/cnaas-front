@@ -512,6 +512,12 @@ class InterfaceConfig extends React.Component {
     });
   }
 
+  gotoConfigChange() {
+    this.props.history.push(
+      `/config-change?hostname=${this.hostname}&scrollTo=dry_run&autoDryRun=true`,
+    );
+  }
+
   addTagOption = (e, data) => {
     const { value } = data;
     this.setState((prevState) => ({
@@ -1349,34 +1355,48 @@ class InterfaceConfig extends React.Component {
         </Modal.Content>
       );
     } else if (this.device_type == "DIST") {
+      const editUrl = process.env.SETTINGS_WEB_URL.split("/")
+        .slice(0, 5)
+        .join("/");
+      const yaml = YAML.stringify(
+        this.prepareYaml(this.state.interfaceDataUpdated),
+        null,
+        2,
+      );
       commitModal = (
         <Modal.Content>
           <Modal.Description>
             <Accordion>
-              <Accordion.Title
-                active={accordionActiveIndex === 1}
-                index={1}
-                onClick={this.accordionClick}
-              >
+              <Accordion.Title active index={1}>
                 <Icon name="dropdown" />
                 YAML:
               </Accordion.Title>
-              <Accordion.Content active={accordionActiveIndex === 1}>
-                <pre>
-                  {YAML.stringify(
-                    this.prepareYaml(this.state.interfaceDataUpdated),
-                    null,
-                    2,
-                  )}
-                </pre>
+              <Accordion.Content active>
+                <pre>{yaml}</pre>
+                <Popup
+                  content="Copy YAML"
+                  trigger={
+                    <Button
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          yaml.split("\n").slice(1).join("\n"),
+                        )
+                      }
+                      icon="copy"
+                      size="tiny"
+                    />
+                  }
+                  position="bottom right"
+                />
                 <p>
                   <a
-                    href={`https://platform.sunet.se/CNaaS/cnaas-norpan-settings/_edit/main/devices/${this.hostname}/interfaces.yml`}
+                    href={`${editUrl}/_edit/main/devices/${this.hostname}/interfaces.yml`}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Edit
-                  </a>
+                    Edit in Git
+                  </a>{" "}
+                  (edit and commit the file in git before starting dry run)
                 </p>
               </Accordion.Content>
             </Accordion>
@@ -1461,7 +1481,7 @@ class InterfaceConfig extends React.Component {
                         >
                           Close
                         </Button>
-                        {this.device_type == "ACCESS" && (
+                        {this.device_type === "ACCESS" && [
                           <Button
                             key="submit"
                             onClick={this.saveAndCommitChanges.bind(this)}
@@ -1469,16 +1489,25 @@ class InterfaceConfig extends React.Component {
                             color="yellow"
                           >
                             Save and commit now
-                          </Button>
-                        )}
-                        <Button
-                          key="dryrun"
-                          onClick={this.saveChanges.bind(this)}
-                          disabled={this.state.working}
-                          positive
-                        >
-                          Save and dry run...
-                        </Button>
+                          </Button>,
+                          <Button
+                            key="dryrun"
+                            onClick={this.saveChanges.bind(this)}
+                            disabled={this.state.working}
+                            positive
+                          >
+                            Save and dry run...
+                          </Button>,
+                        ]}
+                        {this.device_type === "DIST" && [
+                          <Button
+                            key="dryrun"
+                            onClick={this.gotoConfigChange.bind(this)}
+                            positive
+                          >
+                            Start dry run...
+                          </Button>,
+                        ]}
                       </Modal.Actions>
                     </Modal>
                     <Button
