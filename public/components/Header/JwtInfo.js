@@ -96,6 +96,7 @@ function JwtInfo() {
                 />
               </NavLink>
             }
+            position="bottom right"
           />
           <p key="logout">
             <Button onClick={logout}>Log out</Button>
