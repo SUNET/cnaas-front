@@ -160,7 +160,8 @@ class ConfigChange extends React.Component {
               this.setState((prevState) => {
                 if (
                   data.syncevent_data.job_id === prevState.repoJob ||
-                  prevState.prevRepoJobs.incudes(data.syncevent_data.job_id)
+                  (Array.isArray(prevState.prevRepoJobs) &&
+                    prevState.prevRepoJobs.incudes(data.syncevent_data.job_id))
                 ) {
                   toast({
                     type: "info",
