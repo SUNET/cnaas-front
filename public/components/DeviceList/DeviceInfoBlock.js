@@ -95,12 +95,12 @@ export default function DeviceInfoBlock({
       process.env.MONITORING_WEB_URL
     ) {
       monitoringLink = [
-        <i> (</i>,
-        <a href={`${process.env.MONITORING_WEB_URL}ipdevinfo/${netboxDevice.name}/`}
+        <i key="monitoring_link_pre"> (</i>,
+        <a key="monitoring_link" href={`${process.env.MONITORING_WEB_URL}ipdevinfo/${netboxDevice.name}/`}
           title="Go to device in in monitoring system">
           Monitoring
         </a>,
-        <i>)</i>
+        <i key="monitoring_link_post">)</i>
       ];
     }
     netboxRows.push(
