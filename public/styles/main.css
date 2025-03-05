@@ -368,6 +368,11 @@ progress::-moz-progress-bar {
   overflow-x: scroll;
 }
 
+.table-button-compact.button {
+  max-height: min-content;
+  padding: .35em 1em .35em;
+}
+
 /* log output styles */
 .logoutput {
   overflow-y: scroll;

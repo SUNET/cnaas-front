@@ -89,13 +89,30 @@ export default function DeviceInfoBlock({
 
   const netboxRows = [];
   if (netboxDevice) {
+    let monitoringLink = null;
+    if (
+      netboxDevice.status.label === "Active" &&
+      process.env.MONITORING_WEB_URL
+    ) {
+      monitoringLink = [
+        <i> (</i>,
+        <a href={`${process.env.MONITORING_WEB_URL}ipdevinfo/${netboxDevice.name}/`}
+          title="Go to device in in monitoring system">
+          Monitoring
+        </a>,
+        <i>)</i>
+      ];
+    }
     netboxRows.push(
       <tr key="netbox_status">
         <td key="name">Netbox Status</td>
         <td key="value">
-          <a href={netboxDevice.display_url} title="Go to device in Netbox">
-            {netboxDevice.status.label}
-          </a>
+          <p>
+            <a href={netboxDevice.display_url} title="Go to device in Netbox">
+              {netboxDevice.status.label}
+            </a>
+            {monitoringLink}
+          </p>
         </td>
       </tr>,
     );

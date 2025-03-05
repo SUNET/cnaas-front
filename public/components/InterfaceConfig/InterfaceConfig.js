@@ -10,6 +10,7 @@ import {
   Loader,
   Modal,
   Button,
+  ButtonGroup,
   Accordion,
   Popup,
   Checkbox,
@@ -629,13 +630,15 @@ class InterfaceConfig extends React.Component {
   }
 
   untaggedClick = (event, data) => {
-    if (data.id in this.state.interfaceToggleUntagged) {
-      const newData = this.state.interfaceToggleUntagged;
-      delete newData[data.id];
-      this.setState({ interfaceToggleUntagged: newData });
-    } else {
+    if (data.name === "untagged") {
+      // Untagged button was clicked
       const newData = this.state.interfaceToggleUntagged;
       newData[data.id] = true;
+      this.setState({ interfaceToggleUntagged: newData });
+    } else {
+      // Tagged button was clicked
+      const newData = this.state.interfaceToggleUntagged;
+      delete newData[data.id];
       this.setState({ interfaceToggleUntagged: newData });
     }
   };
@@ -822,6 +825,13 @@ class InterfaceConfig extends React.Component {
         if (item.name in this.state.interfaceToggleUntagged) {
           displayVlanTagged = !displayVlanTagged;
         }
+        currentEnabled = fields.enabled;
+        if (
+          item.name in this.state.interfaceDataUpdated &&
+          "enabled" in this.state.interfaceDataUpdated[item.name]
+        ) {
+          currentEnabled = this.state.interfaceDataUpdated[item.name].enabled;
+        }
       }
 
       const optionalColumns = this.state.displayColumns.map((columnName) => {
@@ -886,33 +896,42 @@ class InterfaceConfig extends React.Component {
               currentIfClass === "port_template"
             ) {
               colData.push(
-                <Popup
-                  key="untagged_button"
-                  content={
-                    item.name in this.state.interfaceToggleUntagged
-                      ? "Change tagged VLANs"
-                      : "Change untagged VLAN"
-                  }
-                  trigger={
-                    <Button
-                      id={item.name}
-                      compact
-                      size="small"
-                      icon
-                      onClick={this.untaggedClick.bind(this)}
-                      active={item.name in this.state.interfaceToggleUntagged}
-                    >
-                      <Icon
-                        size="small"
-                        name={
-                          item.name in this.state.interfaceToggleUntagged
-                            ? "tags"
-                            : "underline"
+                <ButtonGroup key="toggle_tagged" size="mini" vertical>
+                  <Popup
+                    key="untagged_popup"
+                    content="Change untagged VLAN"
+                    position="top right"
+                    trigger={
+                      <Button
+                        id={item.name}
+                        name="untagged"
+                        onClick={this.untaggedClick.bind(this)}
+                        active={item.name in this.state.interfaceToggleUntagged}
+                        className="table-button-compact"
+                      >
+                        U
+                      </Button>
+                    }
+                  />
+                  <Popup
+                    key="tagged_popup"
+                    content="Change list of tagged VLANs"
+                    position="bottom right"
+                    trigger={
+                      <Button
+                        id={item.name}
+                        named="tagged"
+                        onClick={this.untaggedClick.bind(this)}
+                        active={
+                          !(item.name in this.state.interfaceToggleUntagged)
                         }
-                      />
-                    </Button>
-                  }
-                />,
+                        className="table-button-compact"
+                      >
+                        T
+                      </Button>
+                    }
+                  />,
+                </ButtonGroup>,
               );
             }
           }
