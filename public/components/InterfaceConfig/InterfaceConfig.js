@@ -930,7 +930,8 @@ class InterfaceConfig extends React.Component {
                         T
                       </Button>
                     }
-                  />,
+                  />
+                  ,
                 </ButtonGroup>,
               );
             }

@@ -370,7 +370,7 @@ progress::-moz-progress-bar {
 
 .table-button-compact.button {
   max-height: min-content;
-  padding: .35em 1em .35em;
+  padding: 0.35em 1em 0.35em;
 }
 
 /* log output styles */
