@@ -10,6 +10,7 @@ import {
   Loader,
   Modal,
   Button,
+  ButtonGroup,
   Accordion,
   Popup,
   Checkbox,
@@ -629,13 +630,15 @@ class InterfaceConfig extends React.Component {
   }
 
   untaggedClick = (event, data) => {
-    if (data.id in this.state.interfaceToggleUntagged) {
-      const newData = this.state.interfaceToggleUntagged;
-      delete newData[data.id];
-      this.setState({ interfaceToggleUntagged: newData });
-    } else {
+    if (data.name === "untagged") {
+      // Untagged button was clicked
       const newData = this.state.interfaceToggleUntagged;
       newData[data.id] = true;
+      this.setState({ interfaceToggleUntagged: newData });
+    } else {
+      // Tagged button was clicked
+      const newData = this.state.interfaceToggleUntagged;
+      delete newData[data.id];
       this.setState({ interfaceToggleUntagged: newData });
     }
   };
@@ -665,6 +668,7 @@ class InterfaceConfig extends React.Component {
           enabled: true,
           aggregate_id: null,
           bpdu_filter: false,
+          redundant_link: true,
         };
       } else if (this.device_type === "DIST") {
         ifData = {};
@@ -700,6 +704,7 @@ class InterfaceConfig extends React.Component {
             "tags",
             "aggregate_id",
             "bpdu_filter",
+            "redundant_link",
           ];
           check_updated_fields.forEach((field_name) => {
             if (field_name in ifDataUpdated) {
@@ -726,6 +731,14 @@ class InterfaceConfig extends React.Component {
 
         if ("aggregate_id" in ifData) {
           fields.aggregate_id = ifData.aggregate_id;
+        }
+
+        if ("enabled" in ifData) {
+          fields.enabled = ifData.enabled;
+        }
+
+        if ("redundant_link" in ifData) {
+          fields.redundant_link = ifData.redundant_link;
         }
 
         if (ifDataUpdated !== null && "untagged_vlan" in ifDataUpdated) {
@@ -770,6 +783,7 @@ class InterfaceConfig extends React.Component {
       let currentIfClass = null;
       let displayVlanTagged = false;
       let portTemplate = null;
+      let currentEnabled = null;
       if (this.device_type === "ACCESS") {
         currentConfigtype = item.configtype;
         if (
@@ -782,6 +796,13 @@ class InterfaceConfig extends React.Component {
         displayVlanTagged = currentConfigtype === "ACCESS_TAGGED";
         if (item.name in this.state.interfaceToggleUntagged) {
           displayVlanTagged = !displayVlanTagged;
+        }
+        currentEnabled = fields.enabled;
+        if (
+          item.name in this.state.interfaceDataUpdated &&
+          "enabled" in this.state.interfaceDataUpdated[item.name]
+        ) {
+          currentEnabled = this.state.interfaceDataUpdated[item.name].enabled;
         }
       } else if (this.device_type == "DIST") {
         if (item.ifclass.startsWith("port_template")) {
@@ -803,6 +824,13 @@ class InterfaceConfig extends React.Component {
         }
         if (item.name in this.state.interfaceToggleUntagged) {
           displayVlanTagged = !displayVlanTagged;
+        }
+        currentEnabled = fields.enabled;
+        if (
+          item.name in this.state.interfaceDataUpdated &&
+          "enabled" in this.state.interfaceDataUpdated[item.name]
+        ) {
+          currentEnabled = this.state.interfaceDataUpdated[item.name].enabled;
         }
       }
 
@@ -868,33 +896,43 @@ class InterfaceConfig extends React.Component {
               currentIfClass === "port_template"
             ) {
               colData.push(
-                <Popup
-                  key="untagged_button"
-                  content={
-                    item.name in this.state.interfaceToggleUntagged
-                      ? "Change tagged VLANs"
-                      : "Change untagged VLAN"
-                  }
-                  trigger={
-                    <Button
-                      id={item.name}
-                      compact
-                      size="small"
-                      icon
-                      onClick={this.untaggedClick.bind(this)}
-                      active={item.name in this.state.interfaceToggleUntagged}
-                    >
-                      <Icon
-                        size="small"
-                        name={
-                          item.name in this.state.interfaceToggleUntagged
-                            ? "tags"
-                            : "underline"
+                <ButtonGroup key="toggle_tagged" size="mini" vertical>
+                  <Popup
+                    key="untagged_popup"
+                    content="Change untagged VLAN"
+                    position="top right"
+                    trigger={
+                      <Button
+                        id={item.name}
+                        name="untagged"
+                        onClick={this.untaggedClick.bind(this)}
+                        active={item.name in this.state.interfaceToggleUntagged}
+                        className="table-button-compact"
+                      >
+                        U
+                      </Button>
+                    }
+                  />
+                  <Popup
+                    key="tagged_popup"
+                    content="Change list of tagged VLANs"
+                    position="bottom right"
+                    trigger={
+                      <Button
+                        id={item.name}
+                        named="tagged"
+                        onClick={this.untaggedClick.bind(this)}
+                        active={
+                          !(item.name in this.state.interfaceToggleUntagged)
                         }
-                      />
-                    </Button>
-                  }
-                />,
+                        className="table-button-compact"
+                      >
+                        T
+                      </Button>
+                    }
+                  />
+                  ,
+                </ButtonGroup>,
               );
             }
           }
@@ -1001,7 +1039,7 @@ class InterfaceConfig extends React.Component {
             name={`enabled|${item.name}`}
             toggle
             label={<label>Enable interface</label>}
-            defaultChecked={fields.enabled}
+            defaultChecked={currentEnabled}
             onChange={this.updateFieldData}
             disabled={editDisabled}
           />
@@ -1103,6 +1141,23 @@ class InterfaceConfig extends React.Component {
               disabled={editDisabled}
               onChange={this.updateFieldData}
             />
+            {currentConfigtype === "ACCESS_DOWNLINK" ? (
+              <Popup
+                key="nonredundant"
+                header="Redundant Link: true/false"
+                content="Disable ZTP redundant link check for this downlink interface by unchecking this box"
+                wide
+                trigger={
+                  <Checkbox
+                    key={`redundant_link|${item.name}`}
+                    name={`redundant_link|${item.name}`}
+                    defaultChecked={fields.redundant_link}
+                    onChange={this.updateFieldData}
+                    disabled={editDisabled}
+                  />
+                }
+              />
+            ) : null}
           </Table.Cell>
         );
       } else if (this.device_type == "DIST") {
