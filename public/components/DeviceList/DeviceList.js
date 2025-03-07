@@ -492,17 +492,24 @@ class DeviceList extends React.Component {
 
   getNetboxModelData(hostname) {
     const model = this.getModel(hostname);
-    const credentials = localStorage.getItem("netboxToken");
-    if (!credentials || !process.env.NETBOX_API_URL) {
+    if (!process.env.NETBOX_API_URL) {
       return null;
+    }
+    let credentials = localStorage.getItem("netboxToken");
+    let getFunc = getDataToken;
+    let url = process.env.NETBOX_API_URL;
+    if (!credentials) {
+      credentials = localStorage.getItem("token");
+      getFunc = getData;
+      url = `${process.env.API_URL}/netbox`;
     }
 
     // if this.state.netboxModelData map does not have an object for model, fetch data from netbox
     const mod = this.state.netboxModelData[model];
     if (mod) return mod;
 
-    getDataToken(
-      `${process.env.NETBOX_API_URL}/api/dcim/device-types/?part_number__ie=${model}`,
+    getFunc(
+      `${url}/api/dcim/device-types/?part_number__ie=${model}`,
       credentials,
     ).then((data) => {
       if (data.count === 1) {
@@ -519,17 +526,20 @@ class DeviceList extends React.Component {
   }
 
   getNetboxDeviceData(hostname) {
-    const credentials = localStorage.getItem("netboxToken");
-    if (
-      !credentials ||
-      !process.env.NETBOX_API_URL ||
-      !process.env.NETBOX_TENANT_ID
-    ) {
+    if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
       return null;
     }
+    let credentials = localStorage.getItem("netboxToken");
+    let getFunc = getDataToken;
+    let url = process.env.NETBOX_API_URL;
+    if (!credentials) {
+      credentials = localStorage.getItem("token");
+      getFunc = getData;
+      url = `${process.env.API_URL}/netbox`;
+    }
 
-    getDataToken(
-      `${process.env.NETBOX_API_URL}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
+    getFunc(
+      `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
       credentials,
     ).then((data) => {
       if (data.count === 1) {
