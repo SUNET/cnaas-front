@@ -41,15 +41,20 @@ function Settings() {
           <p>
             Netbox API token
             <Popup
-              content={`Provide Netbox API token from ${process.env.NETBOX_API_URL}`}
               wide
+              hoverable
               trigger={
                 <Icon
                   name="question circle"
                   color={!localStorage.getItem("netboxToken") ? "orange" : null}
                 />
               }
-            />
+            >
+              Provide Netbox API token to allow read-write access
+              <a href={process.env.NETBOX_API_URL + "/user/api-tokens/"}>
+                Netbox API tokens
+              </a>
+            </Popup>
           </p>
         }
         name="netboxToken"
