@@ -20,6 +20,7 @@ import YAML from "yaml";
 import { getData, getDataHeaders } from "../../utils/getData";
 import InterfaceCurrentConfig from "./InterfaceCurrentConfig";
 import { putData, postData } from "../../utils/sendData";
+import GraphiteInterface from "./GraphiteInterface";
 
 const io = require("socket.io-client");
 
@@ -1074,6 +1075,15 @@ class InterfaceConfig extends React.Component {
             </Button>
           );
         }
+        let graphiteHtml = null;
+        graphiteHtml = (
+          <GraphiteInterface
+            key="graphite"
+            hostname={this.hostname}
+            interfaceName={item.name}
+          />
+        );
+
         if (this.state.interfaceStatusData[item.name].is_up == true) {
           statusIcon = (
             <Popup
@@ -1086,6 +1096,7 @@ class InterfaceConfig extends React.Component {
                 toggleEnabled,
                 bounceInterfaceButton,
                 statusMessage,
+                graphiteHtml,
               ]}
               position="right center"
               wide
@@ -1102,6 +1113,7 @@ class InterfaceConfig extends React.Component {
               content={[
                 <p key="status">Interface is admin disabled</p>,
                 toggleEnabled,
+                graphiteHtml,
               ]}
               position="right center"
               wide
@@ -1118,6 +1130,7 @@ class InterfaceConfig extends React.Component {
                 toggleEnabled,
                 bounceInterfaceButton,
                 statusMessage,
+                graphiteHtml,
               ]}
               position="right center"
               wide
