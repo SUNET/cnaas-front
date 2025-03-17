@@ -51,7 +51,7 @@ function Settings() {
               }
             >
               Provide Netbox API token to allow read-write access
-              <a href={process.env.NETBOX_API_URL + "/user/api-tokens/"}>
+              <a href={`${process.env.NETBOX_API_URL}/user/api-tokens/`}>
                 Netbox API tokens
               </a>
             </Popup>
