@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { Loader } from "semantic-ui-react";
 import { getData } from "../../utils/getData";
@@ -113,5 +114,10 @@ function GraphiteInterface({ hostname, interfaceName }) {
     </div>
   );
 }
+
+GraphiteInterface.propTypes = {
+  hostname: PropTypes.string.isRequired,
+  interfaceName: PropTypes.string.isRequired,
+};
 
 export default GraphiteInterface;
