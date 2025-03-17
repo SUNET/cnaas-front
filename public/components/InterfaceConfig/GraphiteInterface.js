@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { Loader } from "semantic-ui-react";
 import { getData } from "../../utils/getData";
 import { formatISODate } from "../../utils/formatters";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
 
 const checkResponseStatus = require("../../utils/checkResponseStatus");
 
@@ -14,17 +14,12 @@ function GraphiteInterface({ hostname, interfaceName }) {
   const [errorMessage, setErrorMessage] = useState("Loading traffic data...");
 
   const [imageBlob, setImageBlob] = useState(null);
+  const { token } = useAuthToken();
 
   function getGraphiteData() {
-    setGraphiteData({
-      ifInOctets: <Loader className="modalloader" />,
-      ifOutOctets: <Loader className="modalloader" />,
-    });
-
-    const credentials = localStorage.getItem("token");
     getData(
       `${process.env.API_URL}/graphite/render?template=nav&target=alias%28scaleToSeconds%28nonNegativeDerivative%28scale%28nav.devices.${hostname}.ports.${interfaceName}.ifInOctets%2C8%29%29%2C1%29%2C%22In%22%29&target=alias%28scaleToSeconds%28nonNegativeDerivative%28scale%28nav.devices.${hostname}.ports.${interfaceName}.ifOutOctets%2C8%29%29%2C1%29%2C%22Out%22%29&from=-1hour&until=now&format=json`,
-      credentials,
+      token,
     )
       .then((resp) => {
         setGraphiteData({
@@ -45,7 +40,7 @@ function GraphiteInterface({ hostname, interfaceName }) {
       `${process.env.API_URL}/graphite/render?template=nav&title=Traffic%20bits%2Fs&target=alias%28scaleToSeconds%28nonNegativeDerivative%28scale%28nav.devices.${hostname}.ports.${interfaceName}.ifInOctets%2C8%29%29%2C1%29%2C%22In%22%29&target=alias%28scaleToSeconds%28nonNegativeDerivative%28scale%28nav.devices.${hostname}.ports.${interfaceName}.ifOutOctets%2C8%29%29%2C1%29%2C%22Out%22%29&from=-1day&until=now&format=png`,
       {
         method: "GET",
-        headers: { Authorization: `Bearer ${credentials}` },
+        headers: { Authorization: `Bearer ${token}` },
         responseType: "blob",
       },
     )
