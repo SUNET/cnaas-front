@@ -30,7 +30,8 @@
     "react/jsx-no-useless-fragment": "off", // allow conditional rendering
     "react/prop-types": "off",
     "react/prefer-stateless-function": "warn", // allow class components
-    "react/sort-comp": "warn"
+    "react/sort-comp": "warn",
+    "react-hooks/exhaustive-deps": "off"
   },
   "settings": {
     "react": {

@@ -121,7 +121,6 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
     } else {
       clearForm();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hostname]);
 
   const leftColumnOptions = [

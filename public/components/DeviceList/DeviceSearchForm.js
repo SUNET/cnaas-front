@@ -58,7 +58,6 @@ function DeviceSearchForm({ searchAction }) {
       setSearchText(Object.values(queryParams)?.[0] || "");
       setSearchField(parseFilterKey(queryParams) || "hostname");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   const clearSearch = () => {
