@@ -301,8 +301,13 @@ class InterfaceConfig extends React.Component {
     const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interface_status`;
     return getData(url, credentials)
       .then((data) => {
+        const interfaceStatus = {};
+        // save interface status data keys as lowercase, in case yaml interface name is not correct case
+        Object.keys(data.data.interface_status).forEach((key) => {
+          interfaceStatus[key.toLowerCase()] = data.data.interface_status[key];
+        });
         this.setState({
-          interfaceStatusData: data.data.interface_status,
+          interfaceStatusData: interfaceStatus,
         });
       })
       .catch((error) => {
@@ -1033,7 +1038,11 @@ class InterfaceConfig extends React.Component {
       });
 
       let statusIcon = <Icon loading color="grey" name="spinner" />;
-      if (item.name in this.state.interfaceStatusData) {
+      const { interfaceStatusData } = this.state;
+      if (item.name.toLowerCase() in interfaceStatusData) {
+        const itemInterfaceStatusData =
+          interfaceStatusData[item.name.toLowerCase()];
+
         const toggleEnabled = (
           <Checkbox
             key={`enabled|${item.name}`}
@@ -1084,14 +1093,13 @@ class InterfaceConfig extends React.Component {
           />
         );
 
-        if (this.state.interfaceStatusData[item.name].is_up == true) {
+        if (itemInterfaceStatusData.is_up === true) {
           statusIcon = (
             <Popup
               header={item.name}
               content={[
                 <p key="status">
-                  Interface is up, speed:{" "}
-                  {this.state.interfaceStatusData[item.name].speed} Mbit/s
+                  Interface is up, speed: {itemInterfaceStatusData.speed} Mbit/s
                 </p>,
                 toggleEnabled,
                 bounceInterfaceButton,
@@ -1104,9 +1112,7 @@ class InterfaceConfig extends React.Component {
               trigger={<Icon color="green" name="circle" />}
             />
           );
-        } else if (
-          this.state.interfaceStatusData[item.name].is_enabled == false
-        ) {
+        } else if (itemInterfaceStatusData.is_enabled === false) {
           statusIcon = (
             <Popup
               header={item.name}
