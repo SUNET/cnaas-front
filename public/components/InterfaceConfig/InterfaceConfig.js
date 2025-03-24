@@ -516,7 +516,7 @@ class InterfaceConfig extends React.Component {
 
   gotoConfigChange() {
     this.props.history.push(
-      `/config-change?hostname=${this.hostname}&scrollTo=dry_run&autoDryRun=true`,
+      `/config-change?hostname=${this.hostname}&scrollTo=refreshrepo`,
     );
   }
 

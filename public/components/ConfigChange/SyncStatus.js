@@ -168,7 +168,7 @@ class SyncStatus extends React.Component {
       <h1 key="header">Commit configuration changes (syncto)</h1>,
       <div key="container" className="task-container">
         <div key="heading" className="heading">
-          <h2 id="dry_run_section">
+          <h2>
             <Icon
               name="dropdown"
               onClick={this.toggleExpand}

@@ -27,6 +27,12 @@ function ProgressBar({ jobStatus, value, total, hidden }) {
       case "EXCEPTION":
         error = true;
         break;
+      case null:
+        disabled = true;
+        break;
+      case "":
+        disabled = true;
+        break;
       default:
         console.error(`unrecognized job status: ${jobStatus}`);
     }
@@ -53,13 +59,14 @@ function ProgressBar({ jobStatus, value, total, hidden }) {
 }
 
 ProgressBar.propTypes = {
-  jobStatus: PropTypes.string.isRequired,
+  jobStatus: PropTypes.string,
   value: PropTypes.number.isRequired,
   total: PropTypes.number.isRequired,
   hidden: PropTypes.bool,
 };
 
 ProgressBar.defaultProps = {
+  jobStatus: null,
   hidden: false,
 };
 

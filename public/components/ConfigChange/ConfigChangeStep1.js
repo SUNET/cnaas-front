@@ -140,7 +140,7 @@ function ConfigChangeStep1({
   return (
     <div className="task-container">
       <div className="heading">
-        <h2>
+        <h2 id="refreshrepo_section">
           <Icon
             name="dropdown"
             onClick={() => setExpanded((prev) => !prev)}

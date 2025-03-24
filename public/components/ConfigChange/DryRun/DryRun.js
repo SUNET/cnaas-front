@@ -55,7 +55,7 @@ class DryRun extends React.Component {
     return (
       <div className="task-container">
         <div className="heading">
-          <h2>
+          <h2 id="dry_run_section">
             <Icon
               name="dropdown"
               onClick={this.toggleExpand}
