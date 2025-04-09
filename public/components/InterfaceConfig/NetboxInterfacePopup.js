@@ -7,17 +7,19 @@ function NetboxInterfacePopup({ netboxInterface }) {
   if (Object.keys(netboxInterface).length === 0) {
     return null;
   }
-  var interfaceType = null;
+  let interfaceType = null;
   // if netboxInterface object has key type, return interface type
   if (netboxInterface.type !== null) {
-    interfaceType = <p key="type">Interface type: {netboxInterface.type.label}</p>;
+    interfaceType = (
+      <p key="type">Interface type: {netboxInterface.type.label}</p>
+    );
   }
-  var cableInfo = null;
+  let cableInfo = null;
   // if netboxInterface object has key cable, return cable info
   if (netboxInterface.cable !== null) {
     cableInfo = <p key="cable">Cable: {netboxInterface.cable.display}</p>;
   }
-  var neighborInfo = [];
+  const neighborInfo = [];
   try {
     // for each neighbor in netboxInterface.connected_endpoints, return neighbor info
     if (Array.isArray(netboxInterface.connected_endpoints)) {
@@ -25,13 +27,25 @@ function NetboxInterfacePopup({ netboxInterface }) {
         neighborInfo.push(
           <p key={neighbor.device.name}>
             Neighbor:{" "}
-            <a href={neighbor.device.url.replace("/api", "")} target="_blank" rel="noreferrer">
+            <a
+              href={neighbor.device.url.replace("/api", "")}
+              target="_blank"
+              rel="noreferrer"
+            >
               {neighbor.device.name}
             </a>{" "}
-            <a href={neighbor.url.replace("/api", "")} target="_blank" rel="noreferrer">
+            <a
+              href={neighbor.url.replace("/api", "")}
+              target="_blank"
+              rel="noreferrer"
+            >
               {neighbor.name}
             </a>{" "}
-            <a href={`${neighbor.url.replace("/api", "")}trace/`} target="_blank" rel="noreferrer">
+            <a
+              href={`${neighbor.url.replace("/api", "")}trace/`}
+              target="_blank"
+              rel="noreferrer"
+            >
               Trace cable
             </a>
           </p>,

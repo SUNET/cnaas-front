@@ -369,7 +369,8 @@ class InterfaceConfig extends React.Component {
         const lldpNeighbors = {};
         // save interface status data keys as lowercase, in case yaml interface name is not correct case
         Object.keys(data.data.lldp_neighbors_detail).forEach((key) => {
-          lldpNeighbors[key.toLowerCase()] = data.data.lldp_neighbors_detail[key];
+          lldpNeighbors[key.toLowerCase()] =
+            data.data.lldp_neighbors_detail[key];
         });
         this.setState({
           lldpNeighborData: lldpNeighbors,
@@ -1277,15 +1278,15 @@ class InterfaceConfig extends React.Component {
       }
 
       const { netboxInterfaceData } = this.state;
-      var netboxInterfacePopup = null;
+      let netboxInterfacePopup = null;
       // if netboxInterfaceData is an array and not empty
       if (
         Array.isArray(netboxInterfaceData) &&
         netboxInterfaceData.length > 0
       ) {
         // find element in netboxInterfaceData with the same name as the interface item.name
-        var currentNetboxInterfaceData = netboxInterfaceData.find(
-          (netboxInterface) => netboxInterface.name === item.name
+        const currentNetboxInterfaceData = netboxInterfaceData.find(
+          (netboxInterface) => netboxInterface.name === item.name,
         );
         if (currentNetboxInterfaceData) {
           netboxInterfacePopup = (
@@ -1297,7 +1298,7 @@ class InterfaceConfig extends React.Component {
       }
 
       const { lldpNeighborData } = this.state;
-      var lldpNeighborPopup = null;
+      let lldpNeighborPopup = null;
       // if netboxInterfaceData is an array and not empty
       // get key with name equal to item.name in lldpNeighborData object if it exists
       if (Object.hasOwn(lldpNeighborData, item.name.toLowerCase())) {
@@ -1308,13 +1309,14 @@ class InterfaceConfig extends React.Component {
         );
       }
 
-      const descriptionDetails = (<div>
-        <ButtonGroup key="toggle_tagged" size="mini" vertical>
-          {netboxInterfacePopup}
-          {lldpNeighborPopup}
-        </ButtonGroup>
-      </div>);
-
+      const descriptionDetails = (
+        <div>
+          <ButtonGroup key="toggle_tagged" size="mini" vertical>
+            {netboxInterfacePopup}
+            {lldpNeighborPopup}
+          </ButtonGroup>
+        </div>
+      );
 
       return [
         <Table.Row key={`tr_${index}`} warning={updated}>
