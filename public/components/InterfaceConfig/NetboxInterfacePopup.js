@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
-import { Popup, Button, ButtonGroup } from "semantic-ui-react";
+import { Popup, Button } from "semantic-ui-react";
 
 function NetboxInterfacePopup({ netboxInterface }) {
   // if netboxData is empty object. return null
@@ -57,7 +57,7 @@ function NetboxInterfacePopup({ netboxInterface }) {
   }
   return (
     <Popup
-      header="Netbox interface info"
+      header="Inventory Information"
       content={[interfaceType, cableInfo, neighborInfo]}
       position="right center"
       wide
