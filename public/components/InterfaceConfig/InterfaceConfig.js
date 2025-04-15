@@ -17,10 +17,13 @@ import {
   TextArea,
 } from "semantic-ui-react";
 import YAML from "yaml";
-import { getData, getDataHeaders } from "../../utils/getData";
+import { getData, getDataHeaders, getDataToken } from "../../utils/getData";
 import InterfaceCurrentConfig from "./InterfaceCurrentConfig";
 import { putData, postData } from "../../utils/sendData";
 import GraphiteInterface from "./GraphiteInterface";
+import NetboxDevice from "./NetboxDevice";
+import NetboxInterfacePopup from "./NetboxInterfacePopup";
+import LldpNeighborPopup from "./LldpNeighborPopup";
 
 const io = require("socket.io-client");
 
@@ -31,6 +34,7 @@ class InterfaceConfig extends React.Component {
     interfaceData: [],
     interfaceDataUpdated: {},
     interfaceStatusData: {},
+    lldpNeighborData: {},
     deviceData: {},
     deviceSettings: null,
     editDisabled: false,
@@ -49,6 +53,8 @@ class InterfaceConfig extends React.Component {
     interfaceBounceRunning: {},
     mlagPeerHostname: null,
     interfaceToggleUntagged: {},
+    netboxDeviceData: {},
+    netboxInterfaceData: [],
   };
 
   hostname = null;
@@ -94,6 +100,8 @@ class InterfaceConfig extends React.Component {
       this.getDeviceData().then(() => {
         this.getInterfaceData();
         this.getInterfaceStatusData();
+        this.getLldpNeighborData();
+        this.getNetboxDeviceData(this.hostname);
       });
     }
     const credentials = localStorage.getItem("token");
@@ -192,6 +200,44 @@ class InterfaceConfig extends React.Component {
         if (Object.keys(newState).length >= 1) {
           this.setState(newState);
         }
+      }
+    });
+  }
+
+  getNetboxDeviceData(hostname) {
+    if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
+      return null;
+    }
+    let credentials = localStorage.getItem("netboxToken");
+    let getFunc = getDataToken;
+    let url = process.env.NETBOX_API_URL;
+    if (!credentials) {
+      credentials = localStorage.getItem("token");
+      getFunc = getData;
+      url = `${process.env.API_URL}/netbox`;
+    }
+
+    getFunc(
+      `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
+      credentials,
+    ).then((data) => {
+      if (data.count === 1) {
+        const deviceData = data.results.pop();
+        this.setState(() => ({
+          netboxDeviceData: deviceData,
+        }));
+
+        getFunc(
+          `${url}/api/dcim/interfaces/?device_id=${deviceData.id}`,
+          credentials,
+        ).then((interfaceData) => {
+          // save
+          this.setState(() => ({
+            netboxInterfaceData: interfaceData.results,
+          }));
+        });
+      } else {
+        console.log("no data found device", hostname);
       }
     });
   }
@@ -315,9 +361,30 @@ class InterfaceConfig extends React.Component {
       });
   }
 
+  getLldpNeighborData() {
+    const credentials = localStorage.getItem("token");
+    const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/lldp_neighbors_detail`;
+    return getData(url, credentials)
+      .then((data) => {
+        const lldpNeighbors = {};
+        // save interface status data keys as lowercase, in case yaml interface name is not correct case
+        Object.keys(data.data.lldp_neighbors_detail).forEach((key) => {
+          lldpNeighbors[key.toLowerCase()] =
+            data.data.lldp_neighbors_detail[key];
+        });
+        this.setState({
+          lldpNeighborData: lldpNeighbors,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
   refreshInterfaceStatus() {
-    this.setState({ interfaceStatusData: {} }, () => {
+    this.setState({ interfaceStatusData: {}, lldpNeighborData: {} }, () => {
       this.getInterfaceStatusData();
+      this.getLldpNeighborData();
     });
   }
 
@@ -1210,6 +1277,47 @@ class InterfaceConfig extends React.Component {
         );
       }
 
+      const { netboxInterfaceData } = this.state;
+      let netboxInterfacePopup = null;
+      // if netboxInterfaceData is an array and not empty
+      if (
+        Array.isArray(netboxInterfaceData) &&
+        netboxInterfaceData.length > 0
+      ) {
+        // find element in netboxInterfaceData with the same name as the interface item.name
+        const currentNetboxInterfaceData = netboxInterfaceData.find(
+          (netboxInterface) => netboxInterface.name === item.name,
+        );
+        if (currentNetboxInterfaceData) {
+          netboxInterfacePopup = (
+            <NetboxInterfacePopup
+              netboxInterface={currentNetboxInterfaceData}
+            />
+          );
+        }
+      }
+
+      const { lldpNeighborData } = this.state;
+      let lldpNeighborPopup = null;
+      // if netboxInterfaceData is an array and not empty
+      // get key with name equal to item.name in lldpNeighborData object if it exists
+      if (Object.hasOwn(lldpNeighborData, item.name.toLowerCase())) {
+        lldpNeighborPopup = (
+          <LldpNeighborPopup
+            lldpNeighborData={lldpNeighborData[item.name.toLowerCase()]}
+          />
+        );
+      }
+
+      const descriptionDetails = (
+        <div>
+          <ButtonGroup key="toggle_tagged" size="mini" vertical>
+            {netboxInterfacePopup}
+            {lldpNeighborPopup}
+          </ButtonGroup>
+        </div>
+      );
+
       return [
         <Table.Row key={`tr_${index}`} warning={updated}>
           <Table.Cell>
@@ -1223,6 +1331,7 @@ class InterfaceConfig extends React.Component {
               disabled={editDisabled}
               onChange={this.updateFieldData}
             />
+            {descriptionDetails}
           </Table.Cell>
           {portType}
           {optionalColumns}
@@ -1379,6 +1488,11 @@ class InterfaceConfig extends React.Component {
       );
     }
 
+    let netboxInfo = null;
+    if (this.state.netboxDeviceData) {
+      netboxInfo = <NetboxDevice netboxDevice={this.state.netboxDeviceData} />;
+    }
+
     let commitModal = null;
     if (this.device_type == "ACCESS") {
       commitModal = (
@@ -1492,6 +1606,7 @@ class InterfaceConfig extends React.Component {
           </p>
           {mlagPeerInfo}
           {stateWarning}
+          {netboxInfo}
           <div className="table_options">
             <Popup
               on="click"
