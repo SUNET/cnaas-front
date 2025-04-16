@@ -58,29 +58,47 @@ class FirmwareStep2 extends React.Component {
       {
         const firmware_options = [];
         data.data.files.forEach((filename, index) => {
-          // build combined entry for both 32+64bit images if both are found
           if (
-            filename.startsWith("EOS64-") &&
-            data.data.files.includes(`EOS${filename.substring(5)}`)
+            process.env.ARISTA_DETECT_ARCH !== undefined &&
+            process.env.ARISTA_DETECT_ARCH === "true"
           ) {
-            firmware_options.push({
-              key: index,
-              value: `detect_arch-${filename}`,
-              text: `${filename.substring(6)} (32+64bit)`,
-              icon: "circle",
-            });
-          } else if (
-            filename.startsWith("EOS-") &&
-            data.data.files.includes(`EOS64${filename.substring(3)}`)
-          ) {
-            // corresponding 64bit image found, don't show 32bit image
+            // build combined entry for both 32+64bit images if both are found
+            if (
+              filename.startsWith("EOS64-") &&
+              data.data.files.includes(`EOS${filename.substring(5)}`)
+            ) {
+              firmware_options.push({
+                key: index,
+                value: `detect_arch-${filename}`,
+                text: `${filename.substring(6)} (32+64bit)`,
+                icon: "circle",
+              });
+            } else if (
+              filename.startsWith("EOS-") &&
+              data.data.files.includes(`EOS64${filename.substring(3)}`)
+            ) {
+              // corresponding 64bit image found, don't show 32bit image
+            } else if (filename.startsWith("EOS")) {
+              firmware_options.push({
+                key: index,
+                value: filename,
+                text: `${filename} (not dual-arch)`,
+                icon: "adjust",
+                disabled: true,
+              });
+            } else {
+              firmware_options.push({
+                key: index,
+                value: filename,
+                text: filename,
+                icon: "circle",
+              });
+            }
           } else {
             firmware_options.push({
               key: index,
               value: filename,
-              text: `${filename} (not dual-arch)`,
-              icon: "adjust",
-              disabled: true,
+              text: filename,
             });
           }
         });
