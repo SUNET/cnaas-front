@@ -1657,14 +1657,9 @@ class InterfaceConfig extends React.Component {
     const { interfaceData, interfaceStatusData } = this.state;
     const unusedInterfaces = Object.keys(interfaceStatusData).filter(
       (ifName) => {
-        if (
-          interfaceData.find(
-            (obj) => obj.name.toLowerCase() === ifName.toLowerCase(),
-          )
-        ) {
-          return false;
-        }
-        return true;
+        return !interfaceData.find(
+          (obj) => obj.name.toLowerCase() === ifName.toLowerCase(),
+        );
       },
     );
 
