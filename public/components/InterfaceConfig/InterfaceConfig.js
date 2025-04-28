@@ -24,6 +24,7 @@ import GraphiteInterface from "./GraphiteInterface";
 import NetboxDevice from "./NetboxDevice";
 import NetboxInterfacePopup from "./NetboxInterfacePopup";
 import LldpNeighborPopup from "./LldpNeighborPopup";
+import NewInterface from "./NewInterface";
 
 const io = require("socket.io-client");
 
@@ -298,12 +299,28 @@ class InterfaceConfig extends React.Component {
     if (this.device_type === "DIST") {
       const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/generate_config`;
       return getDataHeaders(url, credentials, {
-        "X-Fields": "available_variables{interfaces}",
+        "X-Fields": "available_variables{interfaces,port_template_options}",
       })
         .then((data) => {
           const { tagOptions } = this.state;
           const usedTags = tagOptions;
-          const usedPortTemplates = [];
+          let usedPortTemplates = [];
+          if (
+            data.data.config.available_variables.port_template_options !==
+              undefined &&
+            data.data.config.available_variables.port_template_options
+          ) {
+            usedPortTemplates = Object.entries(
+              data.data.config.available_variables.port_template_options,
+            ).map(([template_name, template_data]) => {
+              return {
+                text: template_name,
+                value: template_name,
+                description: template_data.description,
+                vlan_config: template_data.vlan_config,
+              };
+            });
+          }
           data.data.config.available_variables.interfaces.forEach((item) => {
             if (usedTags.length === 0) {
               if (item.tags !== undefined && item.tags) {
@@ -347,11 +364,7 @@ class InterfaceConfig extends React.Component {
     const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interface_status`;
     return getData(url, credentials)
       .then((data) => {
-        const interfaceStatus = {};
-        // save interface status data keys as lowercase, in case yaml interface name is not correct case
-        Object.keys(data.data.interface_status).forEach((key) => {
-          interfaceStatus[key.toLowerCase()] = data.data.interface_status[key];
-        });
+        const interfaceStatus = data.data.interface_status;
         this.setState({
           interfaceStatusData: interfaceStatus,
         });
@@ -592,6 +605,16 @@ class InterfaceConfig extends React.Component {
     );
   }
 
+  addNewInterface(interfaceName) {
+    console.log(interfaceName);
+    this.setState((prevState) => ({
+      interfaceData: [
+        { name: interfaceName, ifclass: "custom", tags: null },
+        ...prevState.interfaceData,
+      ],
+    }));
+  }
+
   addTagOption = (e, data) => {
     const { value } = data;
     this.setState((prevState) => ({
@@ -664,9 +687,8 @@ class InterfaceConfig extends React.Component {
         delete newData[interfaceName];
       }
     }
-    if (json_key == "ifclass") {
-      console.log(val);
-      if (val != "port_template") {
+    if (json_key === "ifclass") {
+      if (val !== "port_template") {
         delete newData[interfaceName].port_template;
         console.log(newData);
       }
@@ -854,7 +876,9 @@ class InterfaceConfig extends React.Component {
 
       let currentConfigtype = null;
       let currentIfClass = null;
+      let displayVlan = false;
       let displayVlanTagged = false;
+      let displayTaggedToggle = false;
       let portTemplate = null;
       let currentEnabled = null;
       if (this.device_type === "ACCESS") {
@@ -866,7 +890,16 @@ class InterfaceConfig extends React.Component {
           currentConfigtype =
             this.state.interfaceDataUpdated[item.name].configtype;
         }
-        displayVlanTagged = currentConfigtype === "ACCESS_TAGGED";
+        if (currentConfigtype === "ACCESS_TAGGED") {
+          displayVlanTagged = true;
+          displayTaggedToggle = true;
+        }
+        if (
+          currentConfigtype === "ACCESS_TAGGED" ||
+          currentConfigtype === "ACCESS_UNTAGGED"
+        ) {
+          displayVlan = true;
+        }
         if (item.name in this.state.interfaceToggleUntagged) {
           displayVlanTagged = !displayVlanTagged;
         }
@@ -890,8 +923,38 @@ class InterfaceConfig extends React.Component {
           currentIfClass = this.state.interfaceDataUpdated[item.name].ifclass;
         }
         if (currentIfClass.startsWith("port_template")) {
-          displayVlanTagged = true;
-          portTemplate = item.ifclass.substring("port_template_".length);
+          if (
+            item.name in this.state.interfaceDataUpdated &&
+            "port_template" in this.state.interfaceDataUpdated[item.name]
+          ) {
+            portTemplate =
+              this.state.interfaceDataUpdated[item.name].port_template;
+          } else {
+            portTemplate = item.ifclass.substring("port_template_".length);
+          }
+          // if portTemplate is available in usedPortTemplates
+          const { portTemplateOptions } = this.state;
+          // if portTemplate exists in text field of any object in portTemplateOptions
+          const dropDownEntry = portTemplateOptions.find(
+            (obj) => obj.text === portTemplate,
+          );
+
+          if (dropDownEntry && dropDownEntry.vlan_config !== undefined) {
+            if (dropDownEntry.vlan_config === "untagged") {
+              displayVlan = true;
+              displayVlanTagged = false;
+            } else if (dropDownEntry.vlan_config === "tagged") {
+              displayVlan = true;
+              displayVlanTagged = true;
+              displayTaggedToggle = true;
+            }
+          } else {
+            displayVlan = true;
+            displayVlanTagged = true;
+            displayTaggedToggle = true;
+          }
+
+          // mirror ifclass
         } else {
           displayVlanTagged = false;
         }
@@ -914,12 +977,7 @@ class InterfaceConfig extends React.Component {
             colData = [<Loader key="loading" inline active />];
           } else if (vlanOptions.length == 0) {
             colData = [<p>No VLANs available</p>];
-          } else if (
-            currentConfigtype === "ACCESS_TAGGED" ||
-            currentConfigtype === "ACCESS_UNTAGGED" ||
-            (typeof currentIfClass === "string" &&
-              currentIfClass.startsWith("port_template"))
-          ) {
+          } else if (displayVlan) {
             if (displayVlanTagged) {
               colData = [
                 <Dropdown
@@ -964,10 +1022,7 @@ class InterfaceConfig extends React.Component {
                 />,
               ];
             }
-            if (
-              currentConfigtype === "ACCESS_TAGGED" ||
-              currentIfClass === "port_template"
-            ) {
+            if (displayTaggedToggle) {
               colData.push(
                 <ButtonGroup key="toggle_tagged" size="mini" vertical>
                   <Popup
@@ -1106,10 +1161,15 @@ class InterfaceConfig extends React.Component {
 
       let statusIcon = <Icon loading color="grey" name="spinner" />;
       const { interfaceStatusData } = this.state;
-      if (item.name.toLowerCase() in interfaceStatusData) {
+      const interfaceStatusDataLower = Object.fromEntries(
+        Object.entries(interfaceStatusData).map(([k, v]) => [
+          k.toLowerCase(),
+          v,
+        ]),
+      );
+      if (item.name.toLowerCase() in interfaceStatusDataLower) {
         const itemInterfaceStatusData =
-          interfaceStatusData[item.name.toLowerCase()];
-
+          interfaceStatusDataLower[item.name.toLowerCase()];
         const toggleEnabled = (
           <Checkbox
             key={`enabled|${item.name}`}
@@ -1593,6 +1653,16 @@ class InterfaceConfig extends React.Component {
       );
     }
 
+    // find unused interfaces
+    const { interfaceData, interfaceStatusData } = this.state;
+    const unusedInterfaces = Object.keys(interfaceStatusData).filter(
+      (ifName) => {
+        return !interfaceData.find(
+          (obj) => obj.name.toLowerCase() === ifName.toLowerCase(),
+        );
+      },
+    );
+
     return (
       <section>
         <div id="device_list">
@@ -1707,6 +1777,13 @@ class InterfaceConfig extends React.Component {
                       Refresh interface status
                       <Icon name="refresh" />
                     </Button>
+                    {this.device_type === "DIST" && [
+                      <NewInterface
+                        suggestedInterfaces={unusedInterfaces}
+                        addNewInterface={this.addNewInterface.bind(this)}
+                        key="newinterface"
+                      />,
+                    ]}
                   </Table.HeaderCell>
                 </Table.Row>
               </Table.Footer>
