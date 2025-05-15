@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Icon, Popup } from "semantic-ui-react";
 import { NavLink } from "react-router-dom";
+import { Button, Icon, Popup } from "semantic-ui-react";
 import {
   getSecondsUntilExpiry,
   useAuthToken,
@@ -16,7 +16,7 @@ function JwtInfo() {
 
   // Sets an interval
   useEffect(() => {
-    const tokenSecsRemaining = getSecondsUntilExpiry(token);
+    const tokenSecsRemaining = getSecondsUntilExpiry(tokenExpiry);
     setSecondsUntilExpiry(tokenSecsRemaining);
 
     if (tokenSecsRemaining) {
@@ -30,7 +30,7 @@ function JwtInfo() {
     return () => {
       clearInterval(timerId.current);
     };
-  }, [token, tokenExpiry]);
+  }, [tokenExpiry]);
 
   useEffect(() => {
     if (secondsUntilExpiry <= 0) {

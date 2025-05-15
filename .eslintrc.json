@@ -23,6 +23,8 @@
     ],
     "no-console": "warn",
     "no-lone-block": "off", // conflicts with setState
+    "no-unused-expressions": ["warn", { "allowTernary": true }],
+    "no-use-before-define": ["off" ],
     "prettier/prettier": ["error"],
     "react/destructuring-assignment": "warn",
     "react/jsx-filename-extension": "off", // allow .js file suffix
