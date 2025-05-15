@@ -68,7 +68,7 @@ export function AuthTokenProvider({ children }) {
     return () => {
       clearTimeout(tokenRefreshTimer.current);
     };
-  }, [doTokenRefresh, tokenState.token]);
+  }, [tokenState.token]);
 
   // Get token from storage on load and add storage listener
   useEffect(() => {
@@ -112,36 +112,33 @@ export function AuthTokenProvider({ children }) {
         console.error(error.message);
         dispatch({ type: actions.SET_TOKEN_WILL_EXPIRE, payload: true });
       });
-  }, [putToken, tokenState.tokenExpiry]);
+  }, [tokenState.tokenExpiry]);
 
-  const login = useCallback(
-    (email, password) => {
-      const url = `${process.env.API_URL}/api/v1.0/auth`;
-      const loginString = `${email}:${password}`;
-      fetch(url, {
-        method: "POST",
-        headers: { Authorization: `Basic ${btoa(loginString)}` },
-      })
-        .then((response) => checkResponseStatus(response))
-        .then((response) => response.json())
-        .then((data) => {
-          if (!data?.access_token) {
-            throw new Error(`Login failed. Response ${data}`);
-          }
-          putToken(data.access_token);
-          dispatch({
-            type: actions.SET_LOGIN_MESSAGE,
-            payload: "Login successful",
-          });
-        })
-        .catch((error) => {
-          dispatch({ type: actions.LOGOUT });
-          dispatch({ type: actions.SET_LOGIN_MESSAGE, payload: error.message });
-          console.warn(error);
+  const login = useCallback((email, password) => {
+    const url = `${process.env.API_URL}/api/v1.0/auth`;
+    const loginString = `${email}:${password}`;
+    fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Basic ${btoa(loginString)}` },
+    })
+      .then((response) => checkResponseStatus(response))
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data?.access_token) {
+          throw new Error(`Login failed. Response ${data}`);
+        }
+        putToken(data.access_token);
+        dispatch({
+          type: actions.SET_LOGIN_MESSAGE,
+          payload: "Login successful",
         });
-    },
-    [putToken],
-  );
+      })
+      .catch((error) => {
+        dispatch({ type: actions.LOGOUT });
+        dispatch({ type: actions.SET_LOGIN_MESSAGE, payload: error.message });
+        console.warn(error);
+      });
+  }, []);
 
   const logout = useCallback(() => {
     dispatch({ type: actions.LOGOUT });
@@ -162,6 +159,7 @@ export function AuthTokenProvider({ children }) {
   };
 
   // Only supposed to be used in 'Callback' component.
+
   const putToken = (newToken) => {
     if (storeValueIsUndefined(newToken)) {
       // New token value is invalid
