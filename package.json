@@ -1,13 +1,16 @@
 {
   "name": "cnaas-front",
   "version": "1.0.0",
+  "browserslist": [
+    "defaults"
+  ],
   "description": "",
-  "main": "index.js",
+  "source": "src/index.html",
   "scripts": {
-    "start": "parcel index.html",
-    "dockerstart": "parcel index.html --port 8083",
+    "start": "parcel",
+    "dockerstart": "parcel --port 8083",
     "test": "jest --verbose",
-    "build": "parcel build index.js",
+    "build": "parcel build",
     "lint": "eslint . && prettier . --check",
     "lint:fix": "eslint . --fix ; prettier . --write"
   },
@@ -18,14 +21,15 @@
     "@babel/core": "^7.24.4",
     "@babel/eslint-parser": "^7.24.1",
     "@babel/plugin-transform-class-properties": "^7.24.1",
-    "@babel/preset-env": "^7.24.4",
-    "@babel/preset-react": "^7.24.1",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^15.0.0",
     "@testing-library/user-event": "^14.5.2",
     "babel-jest": "^29.7.0",
     "babel-plugin-prismjs": "^2.1.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
+    "buffer": "^6.0.3",
     "eslint": "^8.57.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.1.0",
