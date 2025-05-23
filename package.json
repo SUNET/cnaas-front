@@ -10,7 +10,7 @@
     "start": "rm -rf .parcel-cache/* && parcel",
     "dockerstart": "parcel --port 8083",
     "test": "jest --verbose",
-    "build": "parcel build",
+    "build": "rm -rf dist/ && parcel build",
     "lint": "eslint . && prettier . --check",
     "lint:fix": "eslint . --fix ; prettier . --write"
   },
