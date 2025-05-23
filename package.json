@@ -7,7 +7,7 @@
   "description": "",
   "source": "src/index.html",
   "scripts": {
-    "start": "parcel",
+    "start": "rm -rf .parcel-cache/* && parcel",
     "dockerstart": "parcel --port 8083",
     "test": "jest --verbose",
     "build": "parcel build",
