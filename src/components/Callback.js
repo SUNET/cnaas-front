@@ -2,8 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "semantic-ui-react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { usePermissions } from "../contexts/PermissionsContext";
-import "../styles/reset.css";
-import "../styles/main.css";
 
 import { getData } from "../utils/getData";
 
