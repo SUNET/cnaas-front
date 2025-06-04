@@ -144,7 +144,7 @@ export default function DeviceInfoBlock({
         );
       }
       if (locationParts.length === 2) {
-        locationParts.splice(1, 0, <span key="separator"> -> </span>);
+        locationParts.splice(1, 0, <span key="separator"> {"->"} </span>);
       }
       netboxRows.push(
         <tr key="netbox_location">
