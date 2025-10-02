@@ -12,7 +12,8 @@ import ConfigChangeStep4 from "./ConfigChangeStep4";
 import DryRun from "./DryRun/DryRun";
 import SyncStatus from "./SyncStatus";
 import VerifyDiff from "./VerifyDiff/VerifyDiff";
-import { getSyncHistory, getDeviceList } from "./utils.js"
+import { getSyncHistory, getDeviceList } from "./utils.js";
+
 const io = require("socket.io-client");
 
 let socket = null;
@@ -262,16 +263,16 @@ class ConfigChange extends React.Component {
 
   async populateSyncHistory() {
     const token = localStorage.getItem("token");
-    const hostnames = await getSyncHistory(token)
+    const hostnames = await getSyncHistory(token);
     this.setState({ syncHistory: hostnames });
-  };
+  }
 
   async populateDeviceList() {
     const token = localStorage.getItem("token");
     const target = this.getCommitTarget();
     const devices = await getDeviceList(token, target);
-    this.setState({ devices: devices });
-  };
+    this.setState({ devices });
+  }
 
   resetState = async () => {
     console.log(this.getInitialState());

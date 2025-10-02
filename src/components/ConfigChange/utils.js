@@ -9,27 +9,27 @@ export const getDeviceList = async (token, target) => {
     const data = await getData(url, token);
 
     return data.data.devices;
-  } else if (target.group) {
+  }
+  if (target.group) {
     const url_devices = `${process.env.API_URL}/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000`;
     const url_group = `${process.env.API_URL}/api/v1.0/groups/${target.group}`;
 
     const data_devices = await getData(url_devices, token);
     const data_group = await getData(url_group, token);
 
-    return _.filter(
-      data_devices.data.devices, (dev) => data_group.data.groups[target.group].includes(dev.hostname)
+    return _.filter(data_devices.data.devices, (dev) =>
+      data_group.data.groups[target.group].includes(dev.hostname),
     );
-  } else {
-    const url = `${process.env.API_URL}/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000`;
-    const data = await getData(url, token);
-
-    return data.data.devices;
   }
+  const url = `${process.env.API_URL}/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000`;
+  const data = await getData(url, token);
+
+  return data.data.devices;
 };
 
 export const getSyncHistory = async (token) => {
   const url = `${process.env.API_URL}/api/v1.0/device_synchistory`;
   const data = await getData(url, token);
 
-  return data.data.hostnames
+  return data.data.hostnames;
 };

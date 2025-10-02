@@ -3,17 +3,21 @@ import PropTypes from "prop-types";
 import { Popup, Table, Icon } from "semantic-ui-react";
 import { formatISODate } from "../../utils/formatters";
 
-const DeviceEntry = (hostname, eventList) => {
+function DeviceEntry(hostname, eventList) {
   return (
     <li key={hostname}>
       <Popup
         flowing
         hoverable
-        content={<ul>{eventList.map((item, index) => (
-          <li key={`device_entry_${hostname}_${index}`}>
-            {item.cause} by {item.by} at {item.date}
-          </li>
-        ))}</ul>}
+        content={
+          <ul>
+            {eventList.map((item, index) => (
+              <li key={`device_entry_${hostname}_${index}`}>
+                {item.cause} by {item.by} at {item.date}
+              </li>
+            ))}
+          </ul>
+        }
         trigger={
           <a>
             {hostname} ({eventList.length})
@@ -31,43 +35,40 @@ function SyncStatus({ target, devices, synchistory }) {
     const byCause = {}; // events sorted by "cause" as key
     const causeTypes = new Set(); // what unique "cause" types can the events have
 
-    console.log(synchistory)
+    console.log(synchistory);
 
     devices.forEach((device) => {
       if (device.hostname in synchistory) {
         console.log("device in synchistory");
         const deviceCauses = new Set(); // Unique causes this device has been impacted by
-        const eventList = synchistory[device.hostname].map(
-          (e) => {
-            if (!causeTypes.has(e.cause)) {
-              byCause[e.cause] = [];
-              causeTypes.add(e.cause);
-            }
-            const timestamp = new Date();
-            timestamp.setTime(e.timestamp * 1000);
-            deviceCauses.add(e.cause);
+        const eventList = synchistory[device.hostname].map((e) => {
+          if (!causeTypes.has(e.cause)) {
+            byCause[e.cause] = [];
+            causeTypes.add(e.cause);
+          }
+          const timestamp = new Date();
+          timestamp.setTime(e.timestamp * 1000);
+          deviceCauses.add(e.cause);
 
-            return {
-              cause: e.cause,
-              by: e.by,
-              date: formatISODate(timestamp.toISOString()),
-            }
-          },
-        );
+          return {
+            cause: e.cause,
+            by: e.by,
+            date: formatISODate(timestamp.toISOString()),
+          };
+        });
 
         const deviceEntry = DeviceEntry(device.hostname, eventList);
 
         deviceCauses.forEach((cause) => {
           byCause[cause].push(deviceEntry);
         });
-      }
-      else {
+      } else {
         console.log("NOT in synchistory");
       }
     });
 
     return byCause;
-  }
+  };
 
   const renderDeviceList = () => {
     const headers = [];
@@ -92,9 +93,7 @@ function SyncStatus({ target, devices, synchistory }) {
           <Table.Header>
             <Table.Row>
               {headers.map((cause) => {
-                return (
-                  <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>
-                );
+                return <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>;
               })}
             </Table.Row>
           </Table.Header>
@@ -112,7 +111,7 @@ function SyncStatus({ target, devices, synchistory }) {
         </Table>
       </div>
     );
-  }
+  };
 
   const getCommitTargetName = () => {
     if (target.all) {
