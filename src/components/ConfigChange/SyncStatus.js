@@ -32,14 +32,15 @@ function SyncStatus({ target, devices, synchistory }) {
   const [expanded, setExpanded] = useState(false);
 
   const getCauses = (devices, synchistory) => {
+    if (!synchistory || !devices.length) {
+      return {};
+    }
+
     const byCause = {}; // events sorted by "cause" as key
     const causeTypes = new Set(); // what unique "cause" types can the events have
 
-    console.log(synchistory);
-
     devices.forEach((device) => {
       if (device.hostname in synchistory) {
-        console.log("device in synchistory");
         const deviceCauses = new Set(); // Unique causes this device has been impacted by
         const eventList = synchistory[device.hostname].map((e) => {
           if (!causeTypes.has(e.cause)) {
@@ -62,8 +63,6 @@ function SyncStatus({ target, devices, synchistory }) {
         deviceCauses.forEach((cause) => {
           byCause[cause].push(deviceEntry);
         });
-      } else {
-        console.log("NOT in synchistory");
       }
     });
 
