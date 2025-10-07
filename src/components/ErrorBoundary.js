@@ -1,31 +1,23 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { withRouter } from "react-router";
+import { useHistory } from "react-router-dom";
 
-class ErrorBoundary extends React.Component {
-  state = { hasError: false };
+function ErrorBoundary({ children }) {
+  const history = useHistory();
+  const [hasError, setHasError] = useState(false);
 
-  componentDidMount() {
-    this.unlisten = this.props.history.listen((location, action) => {
-      if (this.state.hasError) {
-        this.setState({ hasError: false });
+  useEffect(() => {
+    const unlisten = history.listen(() => {
+      if (hasError) {
+        setHasError(false);
       }
     });
-  }
 
-  componentWillUnmount() {
-    this.unlisten();
-  }
+    // cleanup un unmount
+    return () => unlisten();
+  }, [history, hasError]);
 
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <h1>Error</h1>;
-    }
-    return this.props.children;
-  }
+  return hasError ? <h1>Error</h1> : children;
 }
 
 export default withRouter(ErrorBoundary);
