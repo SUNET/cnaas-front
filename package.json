@@ -7,7 +7,7 @@
   "description": "",
   "source": "src/index.html",
   "scripts": {
-    "start": "rm -rf .parcel-cache/* && parcel",
+    "start": "rm -rf .parcel-cache/* && parcel --no-cache",
     "dockerstart": "parcel --port 8083",
     "test": "jest --verbose",
     "build": "rm -rf dist/ && parcel build",
@@ -42,7 +42,7 @@
     "history": "^5.3.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "parcel": "^2.15.1",
+    "parcel": "^2.16",
     "prettier": "3.2.5",
     "react-test-renderer": "^18.2.0"
   },

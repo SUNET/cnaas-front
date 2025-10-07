@@ -5,7 +5,7 @@ import { Footer } from "./components/Footer";
 import Header from "./components/Header/Header";
 import Panel from "./components/Panel";
 
-function App() {
+export function App() {
   return (
     <div className="container">
       <AuthContextProvider>
@@ -18,5 +18,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
