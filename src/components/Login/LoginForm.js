@@ -1,5 +1,3 @@
-import React from "react";
-
 function LoginForm({ handleSubmit, setValue, formValues, errorMessage }) {
   const handleInput = (event) => {
     const { name, value } = event.target;

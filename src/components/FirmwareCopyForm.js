@@ -19,9 +19,9 @@ class FirmwareCopyForm extends React.Component {
     console.log(`copy submitted: ${this.props.filename}`);
     const credentials = localStorage.getItem("token");
     socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", function (data) {
+    socket.on("connect", function () {
       console.log("Websocket connected!");
-      const ret = socket.emit("events", { update: "job" });
+      socket.emit("events", { update: "job" });
     });
     socket.on("events", (data) => {
       console.log(data);

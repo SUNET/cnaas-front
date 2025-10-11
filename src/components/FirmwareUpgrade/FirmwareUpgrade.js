@@ -309,7 +309,7 @@ class FirmwareUpgrade extends React.Component {
   componentDidMount() {
     const credentials = localStorage.getItem("token");
     socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", function (data) {
+    socket.on("connect", function () {
       console.log("Websocket connected!");
       const ret = socket.emit("events", { loglevel: "DEBUG" });
       console.log(ret);

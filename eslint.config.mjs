@@ -31,7 +31,6 @@ const commonRules = {
   "jsx-a11y/anchor-is-valid": "off", // allow popup triggers use <a> without href during refactor
   "no-redeclare": "off", // allow shadowing during refactor
   "no-undef": "off", // allow require() during refactor
-  "no-unused-vars": "off", // allow import react during refactor
   "react-hooks/set-state-in-effect": "off", // allow during refactor
 };
 

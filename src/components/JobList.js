@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Button,
-  Select,
-  Input,
-  Icon,
-  Pagination,
-  TableBody,
-} from "semantic-ui-react";
+import { Icon, Pagination } from "semantic-ui-react";
 import Prism from "prismjs";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
@@ -96,7 +89,7 @@ class JobList extends React.Component {
     }
     this.getJobsData();
     socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", (data) => {
+    socket.on("connect", () => {
       console.log("Websocket connected!");
       const newLogLines = [];
       var ret = socket.emit("events", { update: "job" });
@@ -230,7 +223,7 @@ class JobList extends React.Component {
         );
         e.target.closest("tr").firstElementChild.firstElementChild.className =
           "angle down icon";
-      } catch (error) {
+      } catch {
         console.log("Could not highlight or change icon for expanded row");
       }
     } else {
@@ -238,7 +231,7 @@ class JobList extends React.Component {
       try {
         e.target.closest("tr").firstElementChild.firstElementChild.className =
           "angle right icon";
-      } catch (error) {
+      } catch {
         console.log("Could not change icon for collapsed row");
       }
     }
@@ -258,7 +251,7 @@ class JobList extends React.Component {
           i
         ].previousElementSibling.firstElementChild.firstElementChild.className =
           "angle right icon";
-      } catch (error) {
+      } catch {
         console.log("Could not change icon for collapsed row");
       }
     }

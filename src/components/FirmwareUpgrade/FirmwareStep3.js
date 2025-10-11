@@ -30,7 +30,7 @@ class FirmwareStep3 extends React.Component {
     this.props.firmwareUpgradeStart(3, this.props.filename, this.state.startAt);
   };
 
-  onClickStep3Abort = (e) => {
+  onClickStep3Abort = () => {
     this.props.firmwareUpgradeAbort(3);
     const confirmButtonElem = document.getElementById("step3abortButton");
     confirmButtonElem.disabled = true;
@@ -107,7 +107,7 @@ class FirmwareStep3 extends React.Component {
               <button
                 id="step3abortButton"
                 disabled={step3abortDisabled}
-                onClick={(e) => this.onClickStep3Abort(e)}
+                onClick={() => this.onClickStep3Abort()}
               >
                 Abort!
               </button>

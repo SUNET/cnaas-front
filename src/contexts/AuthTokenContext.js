@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/immutability */
 import { jwtDecode } from "jwt-decode";
-import React, {
+import {
   createContext,
   useCallback,
   useContext,

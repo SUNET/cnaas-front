@@ -13,7 +13,7 @@ class SyncStatus extends React.Component {
     expanded: false,
   };
 
-  toggleExpand = (e, props) => {
+  toggleExpand = () => {
     this.setState({ expanded: !this.state.expanded });
   };
 

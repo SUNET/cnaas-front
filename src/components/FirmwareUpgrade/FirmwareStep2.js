@@ -37,14 +37,14 @@ class FirmwareStep2 extends React.Component {
     this.setState({ firmware_selected: true });
   }
 
-  onClickStep2 = (e) => {
+  onClickStep2 = () => {
     this.setState({ firmware_locked: true });
     this.props.firmwareUpgradeStart(2, this.state.filename, null);
     const confirmButtonElem = document.getElementById("step2button");
     confirmButtonElem.disabled = true;
   };
 
-  onClickStep2Abort = (e) => {
+  onClickStep2Abort = () => {
     this.props.firmwareUpgradeAbort(2);
     const confirmButtonElem = document.getElementById("step2abortButton");
     confirmButtonElem.disabled = true;
@@ -166,7 +166,7 @@ class FirmwareStep2 extends React.Component {
               <button
                 id="step2button"
                 disabled={step2disabled}
-                onClick={(e) => this.onClickStep2(e)}
+                onClick={() => this.onClickStep2()}
               >
                 Start activate firmware
               </button>
@@ -180,7 +180,7 @@ class FirmwareStep2 extends React.Component {
               <button
                 id="step2abortButton"
                 disabled={step2abortDisabled}
-                onClick={(e) => this.onClickStep2Abort(e)}
+                onClick={() => this.onClickStep2Abort()}
               >
                 Abort!
               </button>

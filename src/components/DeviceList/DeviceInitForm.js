@@ -44,7 +44,7 @@ class DeviceInitForm extends React.Component {
 
   onChangeDevicetype = (e, data) => {
     if (data.value == "ACCESSMLAG") {
-      this.getMlagPeerCandidates(this.props.deviceId);
+      this.getMlagPeerCandidates();
       this.setState({ device_type: "ACCESS", mlag_init: true });
     } else {
       this.setState({ device_type: data.value, mlag_init: false });
@@ -109,7 +109,6 @@ class DeviceInitForm extends React.Component {
   ) {
     const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/device_initcheck/${device_id}`;
-    const job_id = null;
     const dataToSend = {
       hostname,
       device_type,
@@ -149,7 +148,6 @@ class DeviceInitForm extends React.Component {
     console.log("Starting device init");
     const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/device_init/${device_id}`;
-    const job_id = null;
     const dataToSend = {
       hostname,
       device_type,
@@ -179,7 +177,7 @@ class DeviceInitForm extends React.Component {
       });
   }
 
-  getMlagPeerCandidates(device_id) {
+  getMlagPeerCandidates() {
     const credentials = localStorage.getItem("token");
     getData(
       `${process.env.API_URL}/api/v1.0/devices?filter[state]=DISCOVERED` +
@@ -257,7 +255,7 @@ class DeviceInitForm extends React.Component {
               {JSON.stringify(this.state.initcheck_output.linknets, null, 2)}
             </pre>
           );
-        } catch (err) {
+        } catch {
           if ("linknets_error" in this.state.initcheck_output) {
             linknets = this.state.initcheck_output.linknets_error;
           }
@@ -271,7 +269,7 @@ class DeviceInitForm extends React.Component {
               {JSON.stringify(this.state.initcheck_output.neighbors, null, 2)}
             </pre>
           );
-        } catch (err) {
+        } catch {
           if ("neighbors_error" in this.state.initcheck_output) {
             neighbors = this.state.initcheck_output.neighbors_error;
           }
@@ -328,7 +326,7 @@ class DeviceInitForm extends React.Component {
             </Accordion.Content>
           </Accordion>
         );
-      } catch (err) {
+      } catch {
         initcheck_html = (
           <pre>{JSON.stringify(this.state.initcheck_output, null, 2)}</pre>
         );

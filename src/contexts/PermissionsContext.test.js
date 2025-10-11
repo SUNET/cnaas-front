@@ -1,5 +1,4 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
-import React from "react";
 import { getData as mockGetData } from "../utils/getData";
 import { useAuthToken as mockUseAuthToken } from "./AuthTokenContext";
 import {

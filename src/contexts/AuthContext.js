@@ -1,4 +1,3 @@
-import React from "react";
 import { AuthTokenProvider } from "./AuthTokenContext";
 import { PermissionsProvider } from "./PermissionsContext";
 

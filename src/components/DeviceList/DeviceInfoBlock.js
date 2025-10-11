@@ -28,7 +28,7 @@ export default function DeviceInfoBlock({
         closestTrParent.firstElementChild.firstElementChild.className =
           "angle down icon";
         return closestTrParent.id;
-      } catch (error) {
+      } catch {
         console.log("Could not change icon for expanded row");
       }
     } else {
@@ -36,7 +36,7 @@ export default function DeviceInfoBlock({
       try {
         closestTrParent.firstElementChild.firstElementChild.className =
           "angle right icon";
-      } catch (error) {
+      } catch {
         console.log("Could not change icon for collapsed row");
       }
     }

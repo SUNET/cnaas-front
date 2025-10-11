@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom"; // Add this import for jest-dom matchers
 import { render, screen, waitFor } from "@testing-library/react";
-import React from "react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { usePermissions } from "../contexts/PermissionsContext";
 import { getData } from "../utils/getData";
