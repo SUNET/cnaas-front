@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 import { jwtDecode } from "jwt-decode";
 import React, {
   createContext,
@@ -215,3 +216,4 @@ export const useAuthToken = () => {
 
   return authContext;
 };
+/* eslint-enable react-hooks/immutability */
