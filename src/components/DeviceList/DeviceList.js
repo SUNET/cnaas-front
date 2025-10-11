@@ -261,11 +261,11 @@ class DeviceList extends React.Component {
     this.populateDiscoveredDevices();
     this.getAllMgmtDomainsData();
     socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", function (data) {
+    socket.on("connect", function () {
       console.log("Websocket connected!");
-      var ret = socket.emit("events", { update: "device" });
-      var ret = socket.emit("events", { update: "job" });
-      var ret = socket.emit("events", { loglevel: "DEBUG" });
+      socket.emit("events", { update: "device" });
+      socket.emit("events", { update: "job" });
+      socket.emit("events", { loglevel: "DEBUG" });
     });
     socket.on("events", (data) => {
       // device update event
@@ -760,7 +760,6 @@ class DeviceList extends React.Component {
     const credentials = localStorage.getItem("token");
 
     const url = `${process.env.API_URL}/api/v1.0/device_update_facts`;
-    const job_id = null;
     const dataToSend = {
       hostname,
     };
@@ -862,7 +861,7 @@ class DeviceList extends React.Component {
                 delete_modal_error: `JSON error from API: ${jsonError.message}`,
               });
             })
-            .catch((genericError) => {
+            .catch(() => {
               console.log(error.statusText);
               this.setState({
                 delete_modal_error: `Error from API: ${error.statusText}`,
@@ -1240,7 +1239,7 @@ class DeviceList extends React.Component {
   }
 
   mangleDeviceData(devicesData) {
-    return devicesData.map((device, index) => {
+    return devicesData.map((device) => {
       const deviceStateExtra = [];
       if (device.state == "DISCOVERED") {
         deviceStateExtra.push(

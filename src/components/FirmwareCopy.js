@@ -48,7 +48,7 @@ class FirmwareCopy extends React.Component {
       try {
         e.target.closest("tr").firstElementChild.firstElementChild.className =
           "angle down icon";
-      } catch (error) {
+      } catch {
         console.log("Could not change icon for expanded row");
       }
     } else {
@@ -56,7 +56,7 @@ class FirmwareCopy extends React.Component {
       try {
         e.target.closest("tr").firstElementChild.firstElementChild.className =
           "angle right icon";
-      } catch (error) {
+      } catch {
         console.log("Could not change icon for collapsed row");
       }
     }
@@ -64,20 +64,18 @@ class FirmwareCopy extends React.Component {
 
   render() {
     const { firmwareNmsData } = this.state;
-    const firmwareData = this.state.firmwareRepoData.map(
-      (repoFirmware, index) => {
-        const newRepoFirmware = repoFirmware;
-        newRepoFirmware.present_in_repo = true;
-        const popIndex = firmwareNmsData.indexOf(repoFirmware.filename);
-        if (popIndex > -1) {
-          newRepoFirmware.already_downloaded = true;
-          firmwareNmsData.splice(popIndex, 1);
-        } else {
-          newRepoFirmware.already_downloaded = false;
-        }
-        return newRepoFirmware;
-      },
-    );
+    const firmwareData = this.state.firmwareRepoData.map((repoFirmware) => {
+      const newRepoFirmware = repoFirmware;
+      newRepoFirmware.present_in_repo = true;
+      const popIndex = firmwareNmsData.indexOf(repoFirmware.filename);
+      if (popIndex > -1) {
+        newRepoFirmware.already_downloaded = true;
+        firmwareNmsData.splice(popIndex, 1);
+      } else {
+        newRepoFirmware.already_downloaded = false;
+      }
+      return newRepoFirmware;
+    });
     console.log("matched firmwares: ", firmwareData);
     firmwareNmsData.map((firmware) => {
       firmwareData.push({

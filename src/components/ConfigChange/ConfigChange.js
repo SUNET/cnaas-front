@@ -58,7 +58,7 @@ class ConfigChange extends React.Component {
 
     const credentials = localStorage.getItem("token");
     socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", function (data) {
+    socket.on("connect", function () {
       console.log("Websocket connected!");
       let ret = socket.emit("events", { loglevel: "DEBUG" });
       if (ret !== undefined && ret.connected) {

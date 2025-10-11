@@ -1,5 +1,3 @@
-import React from "react";
-
 function LoginOIDC({ login, errorMessage }) {
   return (
     <div className="container">

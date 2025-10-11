@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "semantic-ui-react";
 
 import { useAuthToken } from "../../contexts/AuthTokenContext";

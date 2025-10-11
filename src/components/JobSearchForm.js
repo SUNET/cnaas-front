@@ -22,7 +22,7 @@ class JobSearchForm extends React.Component {
     });
   }
 
-  clearSearch(e) {
+  clearSearch() {
     this.setState({
       searchText: "",
     });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { Button, Modal, Icon, Dropdown } from "semantic-ui-react";
 

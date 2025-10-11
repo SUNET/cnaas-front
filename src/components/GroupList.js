@@ -49,7 +49,7 @@ class GroupList extends React.Component {
   };
 
   render() {
-    let groupTable = Object.keys(this.state.groupData).map((key, index) => {
+    let groupTable = Object.keys(this.state.groupData).map((key) => {
       return [
         <tr key={key}>
           <td>{key}</td>

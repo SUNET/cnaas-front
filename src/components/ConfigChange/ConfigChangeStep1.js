@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";
@@ -121,7 +121,7 @@ function ConfigChangeStep1({
           Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}
         </p>
       );
-    } catch (err) {
+    } catch {
       return <p>{commitStr}</p>;
     }
   }

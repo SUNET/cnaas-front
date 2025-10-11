@@ -16,7 +16,7 @@ class VerifyDiffResult extends React.Component {
           return subTasks.diff;
         })
         .filter((diff) => diff !== "")
-        .reduce((arr, diff, n) => {
+        .reduce((arr, diff) => {
           return [deviceNames[i], diff];
         }, []);
     });
@@ -62,7 +62,7 @@ class VerifyDiffResult extends React.Component {
         .map((subTasks) => {
           return subTasks.result;
         })
-        .reduce((arr, result, n) => {
+        .reduce((arr, result) => {
           return [deviceNames[i], result];
         }, []);
     });

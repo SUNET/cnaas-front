@@ -58,7 +58,7 @@ class FirmwareStep1 extends React.Component {
     if ("groups" in this.state.firmwareInfo) {
       const os_versions =
         this.state.firmwareInfo.groups[this.props.commitTarget.group];
-      os_version_list = Object.keys(os_versions).map((os_version, index) => {
+      os_version_list = Object.keys(os_versions).map((os_version) => {
         return (
           <p>
             <b>{os_version}:</b>{" "}

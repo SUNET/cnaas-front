@@ -107,10 +107,10 @@ class InterfaceConfig extends React.Component {
     }
     const credentials = localStorage.getItem("token");
     socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", function (data) {
+    socket.on("connect", function () {
       console.log("Websocket connected!");
-      var ret = socket.emit("events", { update: "device" });
-      var ret = socket.emit("events", { update: "job" });
+      socket.emit("events", { update: "device" });
+      socket.emit("events", { update: "job" });
     });
     socket.on("events", (data) => {
       // device update event
@@ -270,7 +270,7 @@ class InterfaceConfig extends React.Component {
             }
           });
 
-          data.data.interfaces.map((item, index) => {
+          data.data.interfaces.map((item) => {
             const ifData = item.data;
             if (ifData !== null && "neighbor_id" in ifData) {
               const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
@@ -407,7 +407,7 @@ class InterfaceConfig extends React.Component {
     getData(url, credentials)
       .then((data) => {
         const vlanOptions = Object.entries(data.data.settings.vxlans).map(
-          ([vxlan_name, vxlan_data]) => {
+          ([, vxlan_data]) => {
             return {
               value: vxlan_data.vlan_name,
               text: vxlan_data.vlan_name,

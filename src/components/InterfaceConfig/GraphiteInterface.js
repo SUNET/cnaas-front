@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getData } from "../../utils/getData";
 import { formatISODate } from "../../utils/formatters";
 import { useAuthToken } from "../../contexts/AuthTokenContext";

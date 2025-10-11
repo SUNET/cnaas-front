@@ -11,7 +11,7 @@ class DryRun extends React.Component {
     expanded: true,
   };
 
-  toggleExpand = (e, props) => {
+  toggleExpand = () => {
     this.setState({ expanded: !this.state.expanded });
   };
 

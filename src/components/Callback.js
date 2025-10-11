@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Container } from "semantic-ui-react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { usePermissions } from "../contexts/PermissionsContext";
