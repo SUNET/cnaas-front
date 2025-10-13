@@ -7,7 +7,8 @@ import permissionsCheck from "../utils/permissions/permissionsCheck";
 class FirmwareCopy extends React.Component {
   state = {
     firmwareRepoData: [],
-    firmwareNmsData: [],
+    firmwareNmsFiles: [],
+    firmwareNmsDefaults: [],
     firmwareCopyJobIds: {},
   };
 
@@ -30,7 +31,8 @@ class FirmwareCopy extends React.Component {
       console.log("this should be NMS data", data);
       {
         this.setState({
-          firmwareNmsData: data.data.files,
+          firmwareNmsFiles: data.data.files,
+          firmwareNmsDefaults: data.data.defaults,
         });
       }
     });
@@ -62,22 +64,26 @@ class FirmwareCopy extends React.Component {
     }
   }
 
+  isDefaultFirmware(filename) {
+    return this.state.firmwareNmsDefaults.some((obj => obj.file === filename));
+  }
+
   render() {
-    const { firmwareNmsData } = this.state;
+    const { firmwareNmsFiles } = this.state;
     const firmwareData = this.state.firmwareRepoData.map((repoFirmware) => {
       const newRepoFirmware = repoFirmware;
       newRepoFirmware.present_in_repo = true;
-      const popIndex = firmwareNmsData.indexOf(repoFirmware.filename);
+      const popIndex = firmwareNmsFiles.indexOf(repoFirmware.filename);
       if (popIndex > -1) {
         newRepoFirmware.already_downloaded = true;
-        firmwareNmsData.splice(popIndex, 1);
+        firmwareNmsFiles.splice(popIndex, 1);
       } else {
         newRepoFirmware.already_downloaded = false;
       }
       return newRepoFirmware;
     });
     console.log("matched firmwares: ", firmwareData);
-    firmwareNmsData.map((firmware) => {
+    firmwareNmsFiles.map((firmware) => {
       firmwareData.push({
         filename: firmware,
         approved: false,
@@ -89,7 +95,7 @@ class FirmwareCopy extends React.Component {
         already_downloaded: true,
       });
     });
-    console.log("unmatched firmwares: ", firmwareNmsData);
+    console.log("unmatched firmwares: ", firmwareNmsFiles);
 
     const firmwareTableBody = firmwareData.map((firmware, index) => {
       const ico = [];
@@ -99,6 +105,7 @@ class FirmwareCopy extends React.Component {
             key="present_repo"
             content="This firmware is present in the central firmware repository"
             position="top center"
+            wide
             trigger={<Icon name="cloud" />}
           />,
         );
@@ -109,6 +116,7 @@ class FirmwareCopy extends React.Component {
             key="present_local"
             content="This firmware is present on this local NMS instance"
             position="top center"
+            wide
             trigger={<Icon name="disk" />}
           />,
         );
@@ -119,6 +127,7 @@ class FirmwareCopy extends React.Component {
             key="approved"
             content="This firmware is verified/approved"
             position="top center"
+            wide
             trigger={<Icon name="check" color="green" />}
           />,
         );
@@ -128,7 +137,19 @@ class FirmwareCopy extends React.Component {
             key="not_approved"
             content="Warning! This firmware is not verified/approved"
             position="top center"
+            wide
             trigger={<Icon name="delete" color="red" />}
+          />,
+        );
+      }
+      if (this.isDefaultFirmware(firmware.filename)) {
+        ico.push(
+          <Popup
+            key="default"
+            content="This firmware is a default firmware for one or more device types during ZTP"
+            position="top center"
+            wide
+            trigger={<Icon name="star" color="blue" />}
           />,
         );
       }
@@ -176,6 +197,8 @@ class FirmwareCopy extends React.Component {
               filename={firmware.filename}
               sha1sum={firmware.sha1sum}
               already_downloaded={firmware.already_downloaded}
+              isDefaultFirmware={this.isDefaultFirmware(firmware.filename)}
+              getFirmwareFiles={this.getFirmwareFiles.bind(this)}
             />
           </td>
         </tr>,

@@ -85,7 +85,29 @@ class FirmwareCopyForm extends React.Component {
       });
   }
 
+  submitSetDefault(e) {
+    e.preventDefault();
+    console.log(`set default submitted: ${this.props.filename}`);
+    const credentials = localStorage.getItem("token");
+    const url = `${process.env.API_URL}/api/v1.0/firmware/${this.props.filename}/set-default`;
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${credentials}`,
+      },
+    })
+      .then((response) => checkResponseStatus(response))
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("firmware set-default response data", data);
+        this.props.getFirmwareFiles();
+      });
+  }
+
   render() {
+    const ret = [];
     let copyDisabled = false;
     if (this.state.copyJobId !== null) {
       copyDisabled = true;
@@ -93,27 +115,45 @@ class FirmwareCopyForm extends React.Component {
       copyDisabled = true;
     }
     if (this.props.already_downloaded) {
-      return (
-        <form onSubmit={this.submitDelete.bind(this)}>
-          <Button disabled={this.state.removeDisabled}>
-            Delete <Icon name="trash alternate outline" />
+      if (this.props.isDefaultFirmware) {
+        ret.push(
+          <p key="default_warning" style={{ color: "red" }}>
+            Warning: This firmware is a default firmware for one or more device
+            types during ZTP. Deleting it may cause ZTP to fail for those device
+            types.
+          </p>,
+        );
+      } else {
+        ret.push(
+          <form key="delete" onSubmit={this.submitDelete.bind(this)}>
+            <Button disabled={this.state.removeDisabled}>
+              Delete <Icon name="trash alternate outline" />
+            </Button>
+          </form>
+        );
+        ret.push(
+          <form key="set_default" onSubmit={this.submitSetDefault.bind(this)}>
+            <Button>
+              Set as default <Icon name="star" color="blue" />
+            </Button>
+          </form>
+        );
+      }
+    } else {
+      ret.push(
+        <form key="button" onSubmit={this.submitCopy.bind(this)}>
+          <Button disabled={copyDisabled}>
+            Copy to NMS <Icon name="cloud download" />
           </Button>
         </form>
       );
-    }
-    const ret = [
-      <form key="button" onSubmit={this.submitCopy.bind(this)}>
-        <Button disabled={copyDisabled}>
-          Copy to NMS <Icon name="cloud download" />
-        </Button>
-      </form>,
-    ];
-    if (this.state.copyJobStatus !== null) {
-      ret.push(
-        <p key="status">
-          Copy job id #{this.state.copyJobId} status: {this.state.copyJobStatus}
-        </p>,
-      );
+      if (this.state.copyJobStatus !== null) {
+        ret.push(
+          <p key="status">
+            Copy job id #{this.state.copyJobId} status: {this.state.copyJobStatus}
+          </p>,
+        );
+      }
     }
     return ret;
   }
@@ -123,6 +163,8 @@ FirmwareCopyForm.propTypes = {
   filename: PropTypes.string,
   sha1sum: PropTypes.string,
   already_downloaded: PropTypes.bool,
+  isDefaultFirmware: PropTypes.bool,
+  getFirmwareFiles: PropTypes.func,
   //  jobIdCallback: PropTypes.func
 };
 
