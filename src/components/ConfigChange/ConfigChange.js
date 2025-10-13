@@ -12,6 +12,7 @@ import ConfigChangeStep4 from "./ConfigChangeStep4";
 import DryRun from "./DryRun/DryRun";
 import SyncStatus from "./SyncStatus";
 import VerifyDiff from "./VerifyDiff/VerifyDiff";
+import { getSyncHistory, getDeviceList } from "./utils.js";
 
 const io = require("socket.io-client");
 
@@ -21,11 +22,11 @@ class ConfigChange extends React.Component {
   constructor() {
     super();
     this.state = this.getInitialState();
-    this.syncstatuschild = React.createRef();
   }
 
   getInitialState() {
     return {
+      devices: [],
       dryRunSyncData: [],
       dryRunSyncJobid: null,
       dryRunProgressData: {},
@@ -259,19 +260,32 @@ class ConfigChange extends React.Component {
     return { all: true };
   }
 
-  resetState = () => {
+  async populateSyncHistory() {
+    const token = localStorage.getItem("token");
+    const hostnames = await getSyncHistory(token);
+    this.setState({ syncHistory: hostnames });
+  }
+
+  async populateDeviceList() {
+    const token = localStorage.getItem("token");
+    const target = this.getCommitTarget();
+    const devices = await getDeviceList(token, target);
+    this.setState({ devices });
+  }
+
+  resetState = async () => {
     console.log(this.getInitialState());
     this.setState(this.getInitialState());
-    this.syncstatuschild.current.getDeviceList();
-    this.syncstatuschild.current.getSyncHistory();
+    await this.populateDeviceList();
+    await this.populateSyncHistory();
     this.setState({ dryRunDisable: false });
   };
 
-  setRepoWorking = (workingStatus) => {
+  setRepoWorking = async (workingStatus) => {
     let ret = null;
     if (this.state.repoWorking === true && workingStatus === false) {
-      this.syncstatuschild.current.getDeviceList();
-      this.syncstatuschild.current.getSyncHistory();
+      await this.populateDeviceList();
+      await this.populateSyncHistory();
       ret = this.setState({ repoWorking: workingStatus });
     } else {
       ret = this.setState((prevState) => {
@@ -485,8 +499,9 @@ class ConfigChange extends React.Component {
         <SemanticToastContainer position="top-right" maxToasts={3} />
         <section>
           <SyncStatus
+            devices={this.state.devices}
+            syncHistory={this.state.syncHistory}
             target={this.getCommitTarget()}
-            ref={this.syncstatuschild}
           />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}

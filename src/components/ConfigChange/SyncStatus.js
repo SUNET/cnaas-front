@@ -1,180 +1,142 @@
-import _ from "lodash";
-import React from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 import { Popup, Table, Icon } from "semantic-ui-react";
 import { formatISODate } from "../../utils/formatters";
 
-import { getData } from "../../utils/getData";
-
-class SyncStatus extends React.Component {
-  state = {
-    devices: [],
-    synchistory: {},
-    expanded: false,
-  };
-
-  toggleExpand = () => {
-    this.setState({ expanded: !this.state.expanded });
-  };
-
-  getCommitTargetName(target) {
-    if (target.all !== undefined) {
-      return "All unsynchronized devices";
-    }
-    if (target.hostname !== undefined) {
-      return `Hostname: ${target.hostname}`;
-    }
-    if (target.group !== undefined) {
-      return `Group: ${target.group}`;
-    }
-    return "Unknown";
-  }
-
-  getDeviceList() {
-    if (this.props.target.hostname !== undefined) {
-      const credentials = localStorage.getItem("token");
-      const url = `${process.env.API_URL}/api/v1.0/devices?filter[hostname]=${this.props.target.hostname}&filter[state]=MANAGED&per_page=1`;
-      getData(url, credentials).then((data) => {
-        this.setState({ devices: data.data.devices });
-      });
-    } else if (this.props.target.group !== undefined) {
-      const credentials = localStorage.getItem("token");
-      const url_devices = `${process.env.API_URL}/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000`;
-      getData(url_devices, credentials).then((data_devices) => {
-        const url_group = `${process.env.API_URL}/api/v1.0/groups/${this.props.target.group}`;
-        getData(url_group, credentials).then((data_group) => {
-          this.setState({
-            devices: _.filter(data_devices.data.devices, (dev) =>
-              data_group.data.groups[this.props.target.group].includes(
-                dev.hostname,
-              ),
-            ),
-          });
-        });
-      });
-    } else {
-      const credentials = localStorage.getItem("token");
-      const url = `${process.env.API_URL}/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000`;
-      getData(url, credentials).then((data) => {
-        this.setState({ devices: data.data.devices });
-      });
-    }
-  }
-
-  getSyncHistory() {
-    const credentials = localStorage.getItem("token");
-    const url = `${process.env.API_URL}/api/v1.0/device_synchistory`;
-    getData(url, credentials).then((data) => {
-      this.setState({ synchistory: data.data.hostnames });
-    });
-  }
-
-  componentDidMount() {
-    this.getDeviceList();
-    this.getSyncHistory();
-  }
-
-  renderDeviceList() {
-    const causeTypes = new Set(); // what unique "cause" types can the events have
-    const byCause = {}; // events sorted by "cause" as key
-
-    this.state.devices.forEach((device) => {
-      if (device.hostname in this.state.synchistory) {
-        const deviceCauses = new Set(); // Unique causes this device has been impacted by
-        const eventList = this.state.synchistory[device.hostname].map(
-          (e, index) => {
-            if (!causeTypes.has(e.cause)) {
-              byCause[e.cause] = [];
-              causeTypes.add(e.cause);
-            }
-            const timestamp = new Date();
-            timestamp.setTime(e.timestamp * 1000);
-            deviceCauses.add(e.cause);
-            return (
-              <li key={index}>
-                {e.cause} by {e.by} at {formatISODate(timestamp.toISOString())}
+function DeviceEntry(hostname, eventList) {
+  return (
+    <li key={hostname}>
+      <Popup
+        flowing
+        hoverable
+        content={
+          <ul>
+            {eventList.map((item, index) => (
+              <li key={`device_entry_${hostname}_${index}`}>
+                {item.cause} by {item.by} at {item.date}
               </li>
-            );
-          },
-        );
+            ))}
+          </ul>
+        }
+        trigger={
+          <a>
+            {hostname} ({eventList.length})
+          </a>
+        }
+      />
+    </li>
+  );
+}
 
-        const deviceEntry = (
-          <li key={device.hostname}>
-            <Popup
-              flowing
-              hoverable
-              content={<ul>{eventList}</ul>}
-              trigger={
-                <a>
-                  {device.hostname} ({eventList.length})
-                </a>
-              }
-            />
-          </li>
-        );
+function SyncStatus({ target, devices, synchistory }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const getCauses = (devices, synchistory) => {
+    if (!synchistory || !devices.length) {
+      return {};
+    }
+
+    const byCause = {}; // events sorted by "cause" as key
+    const causeTypes = new Set(); // what unique "cause" types can the events have
+
+    devices.forEach((device) => {
+      if (device.hostname in synchistory) {
+        const deviceCauses = new Set(); // Unique causes this device has been impacted by
+        const eventList = synchistory[device.hostname].map((e) => {
+          if (!causeTypes.has(e.cause)) {
+            byCause[e.cause] = [];
+            causeTypes.add(e.cause);
+          }
+          const timestamp = new Date();
+          timestamp.setTime(e.timestamp * 1000);
+          deviceCauses.add(e.cause);
+
+          return {
+            cause: e.cause,
+            by: e.by,
+            date: formatISODate(timestamp.toISOString()),
+          };
+        });
+
+        const deviceEntry = DeviceEntry(device.hostname, eventList);
 
         deviceCauses.forEach((cause) => {
           byCause[cause].push(deviceEntry);
         });
       }
     });
+
+    return byCause;
+  };
+
+  const renderDeviceList = () => {
     const headers = [];
     const contents = [];
-    Object.entries(byCause).map(([cause, devices]) => {
+    Object.entries(getCauses(devices, synchistory)).map(([cause, devices]) => {
       headers.push(cause);
       contents.push(devices);
     });
-    if (contents.length >= 1) {
+
+    if (contents.length < 1) {
       return (
-        <div key="tablecontainer" className="tablecontainer">
-          <Table key="synceventlist" celled collapsing>
-            <Table.Header>
-              <Table.Row>
-                {headers.map((cause) => {
-                  return (
-                    <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>
-                  );
-                })}
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              <Table.Row>
-                {contents.map((devices, index) => {
-                  return (
-                    <Table.Cell key={`devices_${index}`}>
-                      <ul>{devices}</ul>
-                    </Table.Cell>
-                  );
-                })}
-              </Table.Row>
-            </Table.Body>
-          </Table>
-        </div>
+        <p key="no_events">
+          No known synchronization events (old events are not persistent across
+          server reboots)
+        </p>
       );
     }
-    return (
-      <p key="no_events">
-        No known synchronization events (old events are not persistent across
-        server reboots)
-      </p>
-    );
-  }
 
-  render() {
-    const ret = [];
-    const commitTargetName = this.getCommitTargetName(this.props.target);
-    ret.push(this.renderDeviceList());
-    return [
-      <h1 key="header">Commit configuration changes (syncto)</h1>,
+    return (
+      <div key="tablecontainer" className="tablecontainer">
+        <Table key="synceventlist" celled collapsing>
+          <Table.Header>
+            <Table.Row>
+              {headers.map((cause) => {
+                return <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>;
+              })}
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row>
+              {contents.map((devices, index) => {
+                return (
+                  <Table.Cell key={`devices_${index}`}>
+                    <ul>{devices}</ul>
+                  </Table.Cell>
+                );
+              })}
+            </Table.Row>
+          </Table.Body>
+        </Table>
+      </div>
+    );
+  };
+
+  const getCommitTargetName = () => {
+    if (target.all) {
+      return "All unsynchronized devices";
+    }
+    if (target.hostname) {
+      return `Hostname: ${target.hostname}`;
+    }
+    if (target.group) {
+      return `Group: ${target.group}`;
+    }
+    return "Unknown";
+  };
+
+  return (
+    <>
+      <h1 key="header">Commit configuration changes (syncto)</h1>
       <div key="container" className="task-container">
         <div key="heading" className="heading">
           <h2>
             <Icon
               name="dropdown"
-              onClick={this.toggleExpand}
-              rotated={this.state.expanded ? null : "counterclockwise"}
+              onClick={() => setExpanded((prev) => !prev)}
+              rotated={expanded ? null : "counterclockwise"}
             />
-            Target: {commitTargetName}
+            Target: {getCommitTargetName()}
             <Popup
               content="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized."
               trigger={<Icon name="question circle outline" size="small" />}
@@ -182,17 +144,15 @@ class SyncStatus extends React.Component {
             />
           </h2>
         </div>
-        <div
-          key="events"
-          className="task-collapsable"
-          hidden={!this.state.expanded}
-        >
-          <p key="syncstatus">Synchronization events for: {commitTargetName}</p>
-          {ret}
+        <div key="events" className="task-collapsable" hidden={!expanded}>
+          <p key="syncstatus">
+            Synchronization events for: {getCommitTargetName()}
+          </p>
+          {[renderDeviceList()]}
         </div>
-      </div>,
-    ];
-  }
+      </div>
+    </>
+  );
 }
 
 SyncStatus.propTypes = {
