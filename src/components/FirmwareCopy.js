@@ -83,7 +83,7 @@ class FirmwareCopy extends React.Component {
       return newRepoFirmware;
     });
     console.log("matched firmwares: ", firmwareData);
-    firmwareNmsFiles.map((firmware) => {
+    firmwareNmsFiles.forEach((firmware) => {
       firmwareData.push({
         filename: firmware,
         approved: false,

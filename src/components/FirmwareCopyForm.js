@@ -130,8 +130,6 @@ class FirmwareCopyForm extends React.Component {
               Delete <Icon name="trash alternate outline" />
             </Button>
           </form>,
-        );
-        ret.push(
           <form key="set_default" onSubmit={this.submitSetDefault.bind(this)}>
             <Button>
               Set as default <Icon name="star" color="blue" />
