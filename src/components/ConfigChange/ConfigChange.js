@@ -26,27 +26,28 @@ class ConfigChange extends React.Component {
 
   getInitialState() {
     return {
+      blockNavigation: false,
+      confirmRunProgressData: {},
       devices: [],
+      dryRunDisable: false,
+      dryRunProgressData: {},
       dryRunSyncData: [],
       dryRunSyncJobid: null,
-      dryRunProgressData: {},
       dryRunTotalCount: 0,
-      dryRunDisable: false,
-      synctoForce: false,
-      liveRunSyncData: [],
       liveRunProgressData: {},
+      liveRunSyncData: [],
       liveRunTotalCount: 0,
-      confirmRunProgressData: {},
       logLines: [],
-      blockNavigation: false,
-      repoWorking: false,
-      repoJob: null,
       prevRepoJobs: [],
+      repoJob: null,
+      repoWorking: false,
       syncEventCounter: 0,
+      syncHistory: {},
+      synctoForce: false,
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const queryParams = queryString.parse(this.props.location.search);
     if (queryParams.scrollTo !== undefined) {
       const element = document.getElementById(
@@ -227,6 +228,13 @@ class ConfigChange extends React.Component {
     if (queryParams.autoDryRun !== undefined) {
       this.handleDryRunReady();
     }
+
+    const devices = await this.getDevices();
+    const syncHistory = await this.getSyncHistoryDevices();
+    this.setState({
+      devices,
+      syncHistory,
+    });
   }
 
   componentDidUpdate() {
@@ -260,33 +268,43 @@ class ConfigChange extends React.Component {
     return { all: true };
   }
 
-  async populateSyncHistory() {
+  async getSyncHistoryDevices() {
     const token = localStorage.getItem("token");
     const hostnames = await getSyncHistory(token);
-    this.setState({ syncHistory: hostnames });
+    return hostnames;
   }
 
-  async populateDeviceList() {
+  async getDevices() {
     const token = localStorage.getItem("token");
     const target = this.getCommitTarget();
     const devices = await getDeviceList(token, target);
-    this.setState({ devices });
+    return devices;
   }
 
   resetState = async () => {
     console.log(this.getInitialState());
     this.setState(this.getInitialState());
-    await this.populateDeviceList();
-    await this.populateSyncHistory();
-    this.setState({ dryRunDisable: false });
+    const devices = await this.getDevices();
+    const syncHistory = await this.getSyncHistoryDevices();
+
+    this.setState({
+      ...this.getInitialState(),
+      devices,
+      syncHistory,
+      dryRunDisable: false,
+    });
   };
 
   setRepoWorking = async (workingStatus) => {
     let ret = null;
     if (this.state.repoWorking === true && workingStatus === false) {
-      await this.populateDeviceList();
-      await this.populateSyncHistory();
-      ret = this.setState({ repoWorking: workingStatus });
+      const devices = await this.getDevices();
+      const syncHistory = await this.getSyncHistoryDevices();
+      ret = this.setState({
+        devices,
+        syncHistory,
+        repoWorking: workingStatus,
+      });
     } else {
       ret = this.setState((prevState) => {
         let jobId = prevState.repoJob;
@@ -500,7 +518,7 @@ class ConfigChange extends React.Component {
         <section>
           <SyncStatus
             devices={this.state.devices}
-            syncHistory={this.state.syncHistory}
+            synchistory={this.state.syncHistory}
             target={this.getCommitTarget()}
           />
           <ConfigChangeStep1
