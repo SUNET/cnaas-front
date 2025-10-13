@@ -65,7 +65,7 @@ class FirmwareCopy extends React.Component {
   }
 
   isDefaultFirmware(filename) {
-    return this.state.firmwareNmsDefaults.some((obj => obj.file === filename));
+    return this.state.firmwareNmsDefaults.some((obj) => obj.file === filename);
   }
 
   render() {

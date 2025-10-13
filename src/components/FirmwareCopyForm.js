@@ -129,14 +129,14 @@ class FirmwareCopyForm extends React.Component {
             <Button disabled={this.state.removeDisabled}>
               Delete <Icon name="trash alternate outline" />
             </Button>
-          </form>
+          </form>,
         );
         ret.push(
           <form key="set_default" onSubmit={this.submitSetDefault.bind(this)}>
             <Button>
               Set as default <Icon name="star" color="blue" />
             </Button>
-          </form>
+          </form>,
         );
       }
     } else {
@@ -145,12 +145,13 @@ class FirmwareCopyForm extends React.Component {
           <Button disabled={copyDisabled}>
             Copy to NMS <Icon name="cloud download" />
           </Button>
-        </form>
+        </form>,
       );
       if (this.state.copyJobStatus !== null) {
         ret.push(
           <p key="status">
-            Copy job id #{this.state.copyJobId} status: {this.state.copyJobStatus}
+            Copy job id #{this.state.copyJobId} status:{" "}
+            {this.state.copyJobStatus}
           </p>,
         );
       }
