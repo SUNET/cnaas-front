@@ -12,6 +12,7 @@ import ConfigChangeStep4 from "./ConfigChangeStep4";
 import DryRun from "./DryRun/DryRun";
 import SyncStatus from "./SyncStatus";
 import VerifyDiff from "./VerifyDiff/VerifyDiff";
+import { getSyncHistory, getDeviceList } from "./utils.js";
 
 const io = require("socket.io-client");
 
@@ -21,31 +22,32 @@ class ConfigChange extends React.Component {
   constructor() {
     super();
     this.state = this.getInitialState();
-    this.syncstatuschild = React.createRef();
   }
 
   getInitialState() {
     return {
+      blockNavigation: false,
+      confirmRunProgressData: {},
+      devices: [],
+      dryRunDisable: false,
+      dryRunProgressData: {},
       dryRunSyncData: [],
       dryRunSyncJobid: null,
-      dryRunProgressData: {},
       dryRunTotalCount: 0,
-      dryRunDisable: false,
-      synctoForce: false,
-      liveRunSyncData: [],
       liveRunProgressData: {},
+      liveRunSyncData: [],
       liveRunTotalCount: 0,
-      confirmRunProgressData: {},
       logLines: [],
-      blockNavigation: false,
-      repoWorking: false,
-      repoJob: null,
       prevRepoJobs: [],
+      repoJob: null,
+      repoWorking: false,
       syncEventCounter: 0,
+      syncHistory: {},
+      synctoForce: false,
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const queryParams = queryString.parse(this.props.location.search);
     if (queryParams.scrollTo !== undefined) {
       const element = document.getElementById(
@@ -226,6 +228,13 @@ class ConfigChange extends React.Component {
     if (queryParams.autoDryRun !== undefined) {
       this.handleDryRunReady();
     }
+
+    const devices = await this.getDevices();
+    const syncHistory = await this.getSyncHistoryDevices();
+    this.setState({
+      devices,
+      syncHistory,
+    });
   }
 
   componentDidUpdate() {
@@ -259,20 +268,43 @@ class ConfigChange extends React.Component {
     return { all: true };
   }
 
-  resetState = () => {
+  async getSyncHistoryDevices() {
+    const token = localStorage.getItem("token");
+    const hostnames = await getSyncHistory(token);
+    return hostnames;
+  }
+
+  async getDevices() {
+    const token = localStorage.getItem("token");
+    const target = this.getCommitTarget();
+    const devices = await getDeviceList(token, target);
+    return devices;
+  }
+
+  resetState = async () => {
     console.log(this.getInitialState());
     this.setState(this.getInitialState());
-    this.syncstatuschild.current.getDeviceList();
-    this.syncstatuschild.current.getSyncHistory();
-    this.setState({ dryRunDisable: false });
+    const devices = await this.getDevices();
+    const syncHistory = await this.getSyncHistoryDevices();
+
+    this.setState({
+      ...this.getInitialState(),
+      devices,
+      syncHistory,
+      dryRunDisable: false,
+    });
   };
 
-  setRepoWorking = (workingStatus) => {
+  setRepoWorking = async (workingStatus) => {
     let ret = null;
     if (this.state.repoWorking === true && workingStatus === false) {
-      this.syncstatuschild.current.getDeviceList();
-      this.syncstatuschild.current.getSyncHistory();
-      ret = this.setState({ repoWorking: workingStatus });
+      const devices = await this.getDevices();
+      const syncHistory = await this.getSyncHistoryDevices();
+      ret = this.setState({
+        devices,
+        syncHistory,
+        repoWorking: workingStatus,
+      });
     } else {
       ret = this.setState((prevState) => {
         let jobId = prevState.repoJob;
@@ -485,8 +517,9 @@ class ConfigChange extends React.Component {
         <SemanticToastContainer position="top-right" maxToasts={3} />
         <section>
           <SyncStatus
+            devices={this.state.devices}
+            synchistory={this.state.syncHistory}
             target={this.getCommitTarget()}
-            ref={this.syncstatuschild}
           />
           <ConfigChangeStep1
             dryRunJobStatus={dryRunJobStatus}
