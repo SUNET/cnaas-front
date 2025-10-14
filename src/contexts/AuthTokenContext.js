@@ -31,9 +31,24 @@ export const getSecondsUntilExpiry = (tokenExpiry) => {
 export const AuthTokenContext = createContext({});
 
 export function AuthTokenProvider({ children }) {
+  const init = () => {
+    const initialState = initialAuthTokenState;
+    const tokenStored = localStorage.getItem("token");
+
+    if (!storeValueIsUndefined(tokenStored)) {
+      return authTokenReducer(initialState, {
+        type: actions.LOAD_TOKEN_FROM_STORAGE,
+        payload: { time: Date.now(), token: tokenStored },
+      });
+    }
+
+    return initialState;
+  };
+
   const [tokenState, dispatch] = useReducer(
     authTokenReducer,
     initialAuthTokenState,
+    init,
   );
 
   // Update username from API
