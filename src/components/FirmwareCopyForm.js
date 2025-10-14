@@ -12,6 +12,7 @@ class FirmwareCopyForm extends React.Component {
     copyJobId: null,
     copyJobStatus: null,
     removeDisabled: false,
+    errorMessage: null,
   };
 
   submitCopy(e) {
@@ -50,7 +51,6 @@ class FirmwareCopyForm extends React.Component {
       .then((response) => checkResponseStatus(response))
       .then((response) => response.json())
       .then((data) => {
-        console.log("firmware post response data", data);
         if (data.job_id !== undefined && typeof data.job_id === "number") {
           this.setState({
             copyJobId: data.job_id,
@@ -64,7 +64,6 @@ class FirmwareCopyForm extends React.Component {
 
   submitDelete(e) {
     e.preventDefault();
-    console.log(`remove submitted: ${this.props.filename}`);
     const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/firmware/${this.props.filename}`;
 
@@ -78,7 +77,6 @@ class FirmwareCopyForm extends React.Component {
       .then((response) => checkResponseStatus(response))
       .then((response) => response.json())
       .then((data) => {
-        console.log("firmware delete response data", data);
         this.setState({
           removeDisabled: true,
         });
@@ -87,7 +85,6 @@ class FirmwareCopyForm extends React.Component {
 
   submitSetDefault(e) {
     e.preventDefault();
-    console.log(`set default submitted: ${this.props.filename}`);
     const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/firmware/${this.props.filename}/set-default`;
 
@@ -101,8 +98,12 @@ class FirmwareCopyForm extends React.Component {
       .then((response) => checkResponseStatus(response))
       .then((response) => response.json())
       .then((data) => {
-        console.log("firmware set-default response data", data);
         this.props.getFirmwareFiles();
+      })
+      .catch((error) => {
+        this.setState({
+          errorMessage: "Error when setting default firmware: " + error.message,
+        });
       });
   }
 
@@ -114,13 +115,15 @@ class FirmwareCopyForm extends React.Component {
     } else if (!this.props.sha1sum) {
       copyDisabled = true;
     }
+    if (this.state.errorMessage) {
+      ret.push(<p key="error">{this.state.errorMessage}</p>);
+    }
     if (this.props.already_downloaded) {
       if (this.props.isDefaultFirmware) {
         ret.push(
-          <p key="default_warning" style={{ color: "red" }}>
-            Warning: This firmware is a default firmware for one or more device
-            types during ZTP. Deleting it may cause ZTP to fail for those device
-            types.
+          <p key="default_message">
+            This firmware is a default firmware for one or more device types
+            during ZTP.
           </p>,
         );
       } else {
