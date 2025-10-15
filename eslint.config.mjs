@@ -21,6 +21,7 @@ const commonRules = {
   "no-use-before-define": "off",
   "prettier/prettier": "error",
   "react-hooks/exhaustive-deps": "off",
+  "react-hooks/immutability": "off",
   "react/destructuring-assignment": "warn",
   "react/jsx-filename-extension": "off", // allow .js suffix
   "react/jsx-no-bind": "off",
