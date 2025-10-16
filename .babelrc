@@ -11,7 +11,7 @@
       "prismjs",
       {
         "languages": ["javascript", "css", "diff"],
-        "plugins": ["diff"],
+        "plugins": ["diff-highlight"],
         "theme": "default",
         "css": false
       }

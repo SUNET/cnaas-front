@@ -1,20 +1,18 @@
-import React from "react";
-// import Prism from "prismjs";
-
-// import "../../node_modules/prismjs/components/prism-diff.min.js";
 import "../styles/prism.css";
+import { useEffect } from "react";
+import Prism from "prismjs";
+import "prismjs/components/prism-diff.js";
 
-class SyntaxHighlight extends React.Component {
-  //  componentDidMount() {
-  //    Prism.highlightAll();
-  //  }
-  render() {
-    return (
-      <pre className="diff-highlight" key={this.props.index + 1}>
-        <code className={this.props.syntaxLanguage}>{this.props.code}</code>
-      </pre>
-    );
-  }
+function SyntaxHighlight({ index, syntaxLanguage, code }) {
+  useEffect(() => {
+    Prism.highlightAll();
+  }, []);
+
+  return (
+    <pre key={index + 1} className={syntaxLanguage}>
+      <code className={syntaxLanguage}>{code}</code>
+    </pre>
+  );
 }
 
 export default SyntaxHighlight;

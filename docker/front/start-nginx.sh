@@ -27,7 +27,7 @@ sed -e "s|^\(.*API_URL=\)CNAAS_FRONT_URL$|\1$CNAAS_FRONT_URL|" \
 cd /opt/cnaas/cnaas-front
 npm run-script build
 cp dist/* /opt/cnaas/static
-cp /opt/cnaas/cnaas-front/public/styles/*.css /opt/cnaas/static/styles/
+cp /opt/cnaas/cnaas-front/src/styles/*.css /opt/cnaas/static/styles/
 
 if [ ! -f /opt/cnaas/cert/cnaasfront_combined.crt ]; then
   echo "WARNING: no cert found, using snakeoil cert"

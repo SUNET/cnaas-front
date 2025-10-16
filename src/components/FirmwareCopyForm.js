@@ -53,7 +53,7 @@ function FirmwareCopyForm(props) {
     }
   };
 
-  const submitDelete = async (e) => {
+  const submitDelete = async () => {
     const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/firmware/${props.filename}`;
 
