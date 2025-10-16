@@ -1,8 +1,7 @@
-import { useState } from "react";
 import PropTypes from "prop-types";
+import { useEffect, useRef, useState } from "react";
 import { Button, Icon } from "semantic-ui-react";
 import checkResponseStatus from "../utils/checkResponseStatus";
-
 const io = require("socket.io-client");
 
 let socket = null;
@@ -12,6 +11,11 @@ function FirmwareCopyForm(props) {
   const [copyJobStatus, setCopyJobStatus] = useState(null);
   const [removeDisabled, setRemoveDisabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const copyJobIdRef = useRef(copyJobId);
+
+  useEffect(() => {
+    copyJobIdRef.current = copyJobId;
+  }, [copyJobId]);
 
   const submitCopy = async () => {
     const credentials = localStorage.getItem("token");
@@ -21,10 +25,13 @@ function FirmwareCopyForm(props) {
       socket.emit("events", { update: "job" });
     });
     socket.on("events", (data) => {
-      if (data.job_id !== undefined && data.job_id == copyJobId) {
-        if (data.status == "FINISHED" || data.status == "EXCEPTION") {
-          setCopyJobStatus(data.status);
-        }
+      if (
+        data?.job_id == copyJobIdRef.current &&
+        (data.status == "FINISHED" || data.status == "EXCEPTION")
+      ) {
+        props.reloadFirmwareFiles();
+        setCopyJobId(null);
+        setCopyJobStatus(null);
       }
     });
 
@@ -58,6 +65,7 @@ function FirmwareCopyForm(props) {
     const url = `${process.env.API_URL}/api/v1.0/firmware/${props.filename}`;
 
     try {
+      setRemoveDisabled(true);
       let response = await fetch(url, {
         method: "DELETE",
         headers: {
@@ -67,7 +75,8 @@ function FirmwareCopyForm(props) {
       });
       response = await checkResponseStatus(response);
       await response.json();
-      setRemoveDisabled(true);
+      setRemoveDisabled(false);
+      props.reloadFirmwareFiles();
     } catch (error) {
       setErrorMessage("Error when deleting firmware: " + error.message);
     }
@@ -87,27 +96,20 @@ function FirmwareCopyForm(props) {
       });
       response = await checkResponseStatus(response);
       await response.json();
-      if (props.getFirmwareFiles) {
-        props.getFirmwareFiles();
+      if (props.reloadFirmwareFiles) {
+        props.reloadFirmwareFiles();
       }
     } catch (error) {
       setErrorMessage("Error when setting default firmware: " + error.message);
     }
   };
 
-  let copyDisabled = false;
-  if (copyJobId !== null) {
-    copyDisabled = true;
-  } else if (!props.sha1sum) {
-    copyDisabled = true;
-  }
-
   const ret = [];
   if (errorMessage) {
     ret.push(<p key="error">{errorMessage}</p>);
   }
   if (props.already_downloaded) {
-    if (props.isDefaultFirmware) {
+    if (props.defaultFirmware) {
       ret.push(
         <p key="default_message">
           This firmware is a default firmware for one or more device types
@@ -125,13 +127,15 @@ function FirmwareCopyForm(props) {
             >
               Delete <Icon name="trash alternate outline" />
             </Button>
-            <Button
-              key="set_default"
-              onClick={() => submitSetDefault()}
-              compact
-            >
-              Set as default <Icon name="star" color="blue" />
-            </Button>
+            {!props?.linkedTo && (
+              <Button
+                key="set_default"
+                onClick={() => submitSetDefault()}
+                compact
+              >
+                Set as default <Icon name="star" color="blue" />
+              </Button>
+            )}
           </Button.Group>
         </div>,
       );
@@ -142,7 +146,7 @@ function FirmwareCopyForm(props) {
         <Button.Group vertical labeled icon>
           <Button
             key="copy"
-            disabled={copyDisabled}
+            disabled={copyJobId !== null || !props.sha1sum}
             onClick={() => submitCopy()}
           >
             Copy to NMS <Icon name="cloud download" />
@@ -166,8 +170,9 @@ FirmwareCopyForm.propTypes = {
   filename: PropTypes.string,
   sha1sum: PropTypes.string,
   already_downloaded: PropTypes.bool,
-  isDefaultFirmware: PropTypes.bool,
-  getFirmwareFiles: PropTypes.func,
+  defaultFirmware: PropTypes.string,
+  linkedTo: PropTypes.string,
+  reloadFirmwareFiles: PropTypes.func,
   //  jobIdCallback: PropTypes.func
 };
 
