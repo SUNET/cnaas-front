@@ -50,7 +50,7 @@ class VerifyDiffResult extends React.Component {
           <p>All devices returned empty diffs</p>
         </li>
       );
-    }    // creates a 2D array that pairs device name and their exceptions
+    } // creates a 2D array that pairs device name and their exceptions
     const deviceNameAndExceptionArray = deviceData.map((jobsObj, i) => {
       const jobTasks = jobsObj.job_tasks;
       return jobTasks
