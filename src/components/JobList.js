@@ -1,6 +1,5 @@
 import React from "react";
 import { Icon, Pagination } from "semantic-ui-react";
-import Prism from "prismjs";
 import JobSearchForm from "./JobSearchForm";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import { formatISODate } from "../utils/formatters";
@@ -217,10 +216,6 @@ class JobList extends React.Component {
     if (curState) {
       e.target.closest("tr").nextElementSibling.hidden = false;
       try {
-        Prism.highlightAllUnder(
-          e.target.closest("tr").nextElementSibling,
-          true,
-        );
         e.target.closest("tr").firstElementChild.firstElementChild.className =
           "angle down icon";
       } catch {
