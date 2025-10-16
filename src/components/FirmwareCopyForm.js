@@ -29,8 +29,9 @@ function FirmwareCopyForm(props) {
         data?.job_id == copyJobIdRef.current &&
         (data.status == "FINISHED" || data.status == "EXCEPTION")
       ) {
-        setCopyJobStatus(data.status);
         props.reloadFirmwareFiles();
+        setCopyJobId(null);
+        setCopyJobStatus(null);
       }
     });
 
@@ -103,13 +104,6 @@ function FirmwareCopyForm(props) {
     }
   };
 
-  let copyDisabled = false;
-  if (copyJobId !== null) {
-    copyDisabled = true;
-  } else if (!props.sha1sum) {
-    copyDisabled = true;
-  }
-
   const ret = [];
   if (errorMessage) {
     ret.push(<p key="error">{errorMessage}</p>);
@@ -152,7 +146,7 @@ function FirmwareCopyForm(props) {
         <Button.Group vertical labeled icon>
           <Button
             key="copy"
-            disabled={copyDisabled}
+            disabled={copyJobId !== null || !props.sha1sum}
             onClick={() => submitCopy()}
           >
             Copy to NMS <Icon name="cloud download" />
