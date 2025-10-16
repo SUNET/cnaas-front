@@ -131,6 +131,7 @@ FirmwareTableRow.propTypes = {
   firmware: PropTypes.shape({
     filename: PropTypes.string,
     approved: PropTypes.bool,
+    sha1sum: PropTypes.string,
     present_in_repo: PropTypes.bool,
     approved_by: PropTypes.string,
     approved_date: PropTypes.string,
@@ -151,7 +152,7 @@ function FirmwareCopy() {
 
   const mergeFirmwareData = (repoData, nmsData) => {
     const newFirmwareData = [];
-    repoData.forEach((firmware) => {
+    for (const firmware of repoData) {
       // Check if file already exist in firmwareData
       const nmsFirmware = nmsData.find(
         (obj) => obj.filename === firmware.filename,
@@ -167,7 +168,7 @@ function FirmwareCopy() {
         firmware.linked_to = firmware.linked_to || nmsFirmware.linked_to;
       }
       newFirmwareData.push(firmware);
-    });
+    }
 
     // filter out all files we have already added earlier
     // concat them together
