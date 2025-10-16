@@ -1,4 +1,3 @@
-import Prism from "prismjs";
 import React from "react";
 import SyntaxHighlight from "../../SyntaxHighlight";
 
@@ -51,10 +50,7 @@ class VerifyDiffResult extends React.Component {
           <p>All devices returned empty diffs</p>
         </li>
       );
-    } else {
-      Prism.highlightAll();
-    }
-    // creates a 2D array that pairs device name and their exceptions
+    }    // creates a 2D array that pairs device name and their exceptions
     const deviceNameAndExceptionArray = deviceData.map((jobsObj, i) => {
       const jobTasks = jobsObj.job_tasks;
       return jobTasks
