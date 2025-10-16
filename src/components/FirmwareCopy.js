@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
@@ -125,6 +126,23 @@ function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
     </tr>
   );
 }
+
+FirmwareTableRow.propTypes = {
+  firmware: PropTypes.shape({
+    filename: PropTypes.string,
+    approved: PropTypes.bool,
+    present_in_repo: PropTypes.bool,
+    approved_by: PropTypes.string,
+    approved_date: PropTypes.string,
+    end_of_life_date: PropTypes.string,
+    os_version: PropTypes.string,
+    already_downloaded: PropTypes.bool,
+    default_to: PropTypes.string,
+    linked_to: PropTypes.string,
+  }),
+  index: PropTypes.number,
+  reloadFirmwareFiles: PropTypes.func,
+};
 
 function FirmwareCopy() {
   const [firmwareData, setFirmwareData] = useState([]);
