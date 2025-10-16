@@ -1,129 +1,129 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "semantic-ui-react";
-import checkJsonResponse from "../utils/checkJsonResponse";
+import { useAuthToken } from "../contexts/AuthTokenContext";
+import { getData } from "../utils/getData";
 import permissionsCheck from "../utils/permissions/permissionsCheck";
 
-class GroupList extends React.Component {
-  state = {
-    groupData: {},
-    loading: true,
-    error: null,
-  };
+function GroupTableBody() {
+  const [groupData, setGroupData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  componentWillMount() {
-    this.getGroupsData();
-  }
+  const { token } = useAuthToken();
 
-  getGroupsData = () => {
-    this.setState({ loading: true, error: null });
-    const credentials = localStorage.getItem("token");
-    // Build filter part of the URL to only return specific devices from the API
-    // TODO: filterValue should probably be urlencoded?
-    fetch(`${process.env.API_URL}/api/v1.0/groups`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${credentials}`,
-      },
-    })
-      .then((response) => checkJsonResponse(response))
-      .then((data) => {
-        console.log("this should be data", data);
-        {
-          this.setState(
-            {
-              groupData: data.data.groups,
-            },
-            () => {
-              console.log("this is new state", this.state.devicesData);
-            },
-          );
-        }
-      })
-      .catch((error) => {
-        this.setState({
-          groupData: [],
-          loading: false,
-          error,
-        });
-      });
-  };
+  useEffect(() => {
+    getGroupsData();
+  }, []);
 
-  render() {
-    let groupTable = Object.keys(this.state.groupData).map((key) => {
-      return [
-        <tr key={key}>
-          <td>{key}</td>
-          <td>{this.state.groupData[key].join(", ")}</td>
-          <td hidden={!permissionsCheck("Groups", "read")}>
-            <div>
-              <a
-                href={`/config-change?group=${key}`}
-                hidden={!permissionsCheck("Config change", "write")}
-                title="Go to config change/sync to page"
-              >
-                <Icon name="sync" />
-                Sync...
-              </a>
-              <br />
-              <a
-                href={`/firmware-upgrade?group=${key}`}
-                hidden={!permissionsCheck("Firmware", "write")}
-                title="Go to firmware upgrade page"
-              >
-                <Icon name="microchip" />
-                Firmware upgrade...
-              </a>
-            </div>
-          </td>
-        </tr>,
-      ];
-    });
-    if (this.state.error) {
-      groupTable = [
-        <tr key="error">
-          <td colSpan="5">API error: {this.state.error.message}</td>
-        </tr>,
-      ];
-    } else if (!Array.isArray(groupTable) || !groupTable.length) {
-      if (this.state.loading) {
-        groupTable = [
-          <tr key="Loading">
-            <td colSpan="5">
-              <Icon name="spinner" loading />
-              Loading groups...
-            </td>
-          </tr>,
-        ];
-      } else {
-        groupTable = [
-          <tr>
-            <td colSpan="5">Empty result</td>
-          </tr>,
-        ];
-      }
+  const getGroupsData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Build filter part of the URL to only return specific devices from the API
+      // TODO: filterValue should probably be urlencoded?
+      const data = await getData(
+        `${process.env.API_URL}/api/v1.0/groups`,
+        token,
+      );
+      setGroupData(data.data.groups);
+      setLoading(false);
+    } catch (error) {
+      setGroupData([]);
+      setError(error);
+      setLoading(false);
     }
-
+  };
+  if (loading) {
     return (
-      <section>
-        <div id="group_list">
-          <h2>Group list</h2>
-          <div id="data">
-            <table>
-              <thead>
-                <tr>
-                  <th>Group name</th>
-                  <th>Group members</th>
-                  <th hidden={!permissionsCheck("Groups", "read")}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>{groupTable}</tbody>
-            </table>
-          </div>
-          <div />
-        </div>
-      </section>
+      <tbody>
+        <tr key="Loading">
+          <td colSpan="5">
+            <Icon name="spinner" loading />
+            Loading groups...
+          </td>
+        </tr>
+      </tbody>
     );
   }
+
+  if (error) {
+    return (
+      <tbody>
+        <tr key="error">
+          <td colSpan="5">API error: {error.message}</td>
+        </tr>
+      </tbody>
+    );
+  }
+
+  if (groupData.length === 0) {
+    return (
+      <tbody>
+        <tr>
+          <td colSpan="5">Empty result</td>
+        </tr>
+      </tbody>
+    );
+  }
+
+  return (
+    <tbody>
+      {Object.entries(groupData).map(([group, devices]) => (
+        <tr key={group}>
+          <td>{group}</td>
+          <td>{devices.join(", ")}</td>
+
+          {permissionsCheck("Groups", "read") && (
+            <td>
+              <div>
+                {permissionsCheck("Config change", "write") && (
+                  <a
+                    href={`/config-change?group=${group}`}
+                    title="Go to config change/sync page"
+                  >
+                    <Icon name="sync" /> Sync...
+                  </a>
+                )}
+                <br />
+                {permissionsCheck("Firmware", "write") && (
+                  <a
+                    href={`/firmware-upgrade?group=${group}`}
+                    title="Go to firmware upgrade page"
+                  >
+                    <Icon name="microchip" /> Firmware upgrade...
+                  </a>
+                )}
+              </div>
+            </td>
+          )}
+        </tr>
+      ))}
+    </tbody>
+  );
+}
+
+function GroupList() {
+  return (
+    <section>
+      <div id="group_list">
+        <h2>Group list</h2>
+        <div id="data">
+          <table>
+            <thead>
+              <tr>
+                <th>Group name</th>
+                <th>Group members</th>
+                <th hidden={!permissionsCheck("Groups", "read")}>Actions</th>
+              </tr>
+            </thead>
+            <GroupTableBody />
+          </table>
+        </div>
+        <div />
+      </div>
+    </section>
+  );
 }
 
 export default GroupList;
