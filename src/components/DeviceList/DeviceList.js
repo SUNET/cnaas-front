@@ -238,6 +238,43 @@ DeviceTableHeader.propTypes = {
   handleFilterChange: PropTypes.func,
 };
 
+function DeviceTableBodyRowCellContent({ device, column }) {
+  const value = device[column];
+
+  if (typeof value === "boolean") {
+    return (
+      <Icon name={value ? "check" : "delete"} color={value ? "green" : "red"} />
+    );
+  }
+  if (
+    column === "hostname" &&
+    device.state === "MANAGED" &&
+    device.device_type === "ACCESS"
+  ) {
+    return (
+      <>
+        {value}
+        {column === "hostname" &&
+          device.state === "MANAGED" &&
+          device.device_type === "ACCESS" && (
+            <a
+              key="interfaceconfig"
+              href={`/interface-config?hostname=${device.hostname}`}
+            >
+              <Icon name="plug" link />
+            </a>
+          )}
+      </>
+    );
+  }
+  return value;
+}
+
+DeviceTableBodyRowCellContent.propTypes = {
+  device: PropTypes.object,
+  column: PropTypes.string,
+};
+
 function DeviceTableBodyRow({
   device,
   activeColumns,
@@ -263,27 +300,7 @@ function DeviceTableBodyRow({
       <TableRow key={device.id} onClick={() => handleRowClick()}>
         {activeColumns.map((column) => (
           <TableCell key={`${device.id}_${column}`} collapsing>
-            {typeof device[column] === "boolean" ? (
-              device[column] ? (
-                <Icon name="check" color="green" />
-              ) : (
-                <Icon name="delete" color="red" />
-              )
-            ) : (
-              <>
-                {device[column]}
-                {column === "hostname" &&
-                  device.state === "MANAGED" &&
-                  device.device_type === "ACCESS" && (
-                    <a
-                      key="interfaceconfig"
-                      href={`/interface-config?hostname=${device.hostname}`}
-                    >
-                      <Icon name="plug" link />
-                    </a>
-                  )}
-              </>
-            )}
+            <DeviceTableBodyRowCellContent device={device} column={column} />
           </TableCell>
         ))}
       </TableRow>
