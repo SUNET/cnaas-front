@@ -54,11 +54,11 @@ const columnMap = {
 };
 
 const perPageOptions = [
-  { key: 5, value: 5, text: "5" },
   { key: 20, value: 20, text: "20" },
   { key: 50, value: 50, text: "50" },
   { key: 100, value: 100, text: "100" },
   { key: 500, value: 500, text: "500" },
+  { key: 1000, value: 1000, text: "1000" },
 ];
 
 function DeviceTableButtonGroup({
@@ -187,6 +187,22 @@ function DeviceTableHeader({
   sortClick,
   handleFilterChange,
 }) {
+  const [localFilter, setLocalFilter] = useState(filterData);
+  const debounceTimeout = useRef(null);
+
+  const onChange = (column, value) => {
+    // Update input immediately
+    setLocalFilter((prev) => ({ ...prev, [column]: value }));
+
+    // Clear previous debounce
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+    // Set new debounce
+    debounceTimeout.current = setTimeout(() => {
+      handleFilterChange(column, value); // triggers fetch
+    }, 300);
+  };
+
   return (
     <TableHeader>
       <TableRow>
@@ -214,9 +230,9 @@ function DeviceTableHeader({
           {activeColumns.map((column) => (
             <TableHeaderCell key={`filter_${column}`}>
               <Input
-                value={filterData[column] || ""}
+                value={localFilter[column] || ""}
                 placeholder={`Filter ${columnMap[column]}`}
-                onChange={(e) => handleFilterChange(column, e.target.value)}
+                onChange={(e) => onChange(column, e.target.value)}
                 // fluid
                 style={{ minWidth: "1em" }}
               />
@@ -397,15 +413,78 @@ DeviceTableBody.propTypes = {
 };
 
 function DeviceList() {
-  const [activePage, setActivePage] = useState(1);
+  const defaultSettings = {
+    activePage: 1,
+    activeColumns: ["hostname", "device_type", "state", "synchronized"],
+    sortColumn: null,
+    sortDirection: null,
+    filterActive: false,
+    filterData: {},
+    resultsPerPage: 20,
+  };
+
+  let stored = {};
+  try {
+    stored = JSON.parse(localStorage.getItem("deviceList") || "{}");
+  } catch (e) {
+    console.warn("Failed to parse localStorage deviceList settings:", e);
+    stored = {};
+  }
+
+  const initial = { ...defaultSettings, ...stored };
+
+  const locationFilterData = {};
+  const params = new URLSearchParams(location.search);
+  if (params) {
+    // Loop through all query params
+    for (const [key, value] of params.entries()) {
+      // Check if the key starts with 'filter[' and ends with ']'
+      const match = key.match(/^filter\[(.+)\]$/);
+      if (match) {
+        const filterKey = match[1]; // extract the key inside []
+        locationFilterData[filterKey] = value;
+      }
+    }
+  }
+
+  // Make sure all defaults columns are visible and that the list are unique
+  // Also make sure all columns that are filtered are visible
+  initial.activeColumns = [
+    ...new Set([
+      ...defaultSettings.activeColumns,
+      ...initial.activeColumns,
+      ...Object.keys(initial.filterData),
+      ...Object.keys(locationFilterData),
+    ]),
+  ];
+  // Sort activeColumns list
+  initial.activeColumns.sort(
+    (a, b) =>
+      Object.keys(columnMap).indexOf(a) - Object.keys(columnMap).indexOf(b),
+  );
+
+  // When we have locationFilterData activePage should be: 1
+  if (Object.keys(locationFilterData).length !== 0) {
+    initial.activePage = 1;
+  }
+  const [activePage, setActivePage] = useState(initial.activePage);
+  const [activeColumns, setActiveColumns] = useState(initial.activeColumns);
+  const [sortColumn, setSortColumn] = useState(initial.sortColumn);
+  const [sortDirection, setSortDirection] = useState(initial.sortDirection);
+
+  const [filterData, setFilterData] = useState(
+    Object.keys(locationFilterData).length > 0
+      ? locationFilterData
+      : initial.filterData,
+  );
+  if (Object.keys(filterData).length > 0) {
+    initial.filterActive = true;
+  }
+  const [filterActive, setFilterActive] = useState(initial.filterActive);
+  const [resultsPerPage, setResultsPerPage] = useState(initial.resultsPerPage);
+
   const [totalPages, setTotalPages] = useState(1);
-  const [resultsPerPage, setResultsPerPage] = useState(20);
   const [deviceData, setDeviceData] = useState([]);
-  const [activeColumns, setActiveColumns] = useState([]);
-  const [sortColumn, setSortColumn] = useState();
-  const [sortDirection, setSortDirection] = useState();
-  const [filterActive, setFilterActive] = useState(false);
-  const [filterData, setFilterData] = useState({});
   const [mgmtDomainsData, setMgmtDomainsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
@@ -436,11 +515,7 @@ function DeviceList() {
 
   const history = useHistory();
 
-  const renderCount = useRef(0);
-
   const { token } = useAuthToken();
-
-  const defaultColumns = ["hostname", "device_type", "state", "synchronized"];
 
   let discoveredDeviceIds = new Set();
 
@@ -494,7 +569,6 @@ function DeviceList() {
     setFilterActive(Object.keys(filterData).length > 0);
     // Expand results when looking up device
     setExpandResult(true);
-    getDevices(filterData, sortColumn, sortDirection, 1, resultsPerPage);
     window.scrollTo(0, 0);
   };
 
@@ -506,109 +580,29 @@ function DeviceList() {
   }, [deviceData]); // runs after re-render with new devices
 
   useEffect(() => {
-    //populateDiscoveredDevices
     const populatePromise = populateDiscoveredDevices();
     const mgmtDomainsPromise = getAllMgmtDomainsData();
 
-    // Set initial data from localStorage
-    const localStorageData = localStorage.getItem("deviceList");
-    const data =
-      Object.keys(localStorageData).length > 0
-        ? JSON.parse(localStorageData)
-        : {};
-
-    const locationFilterData = {};
-    const params = new URLSearchParams(location.search);
-    if (params) {
-      // Loop through all query params
-      for (const [key, value] of params.entries()) {
-        // Check if the key starts with 'filter[' and ends with ']'
-        const match = key.match(/^filter\[(.+)\]$/);
-        if (match) {
-          const filterKey = match[1]; // extract the key inside []
-          locationFilterData[filterKey] = value;
-        }
-      }
-    }
-    const filterData =
-      Object.keys(locationFilterData).length > 0
-        ? locationFilterData
-        : data?.filterData || {};
-
-    if (Object.keys(filterData).length > 0) {
-      setFilterData(filterData);
-      setFilterActive(true);
-    }
-    // Make sure all defaults columns are visible and that the list are unique
-    // Also make sure all columns that are filtered are visible
-    const activeColumns = [
-      ...new Set([
-        ...(data.activeColumns || []),
-        ...defaultColumns,
-        ...(Object.keys(filterData) || []),
-      ]),
-    ];
-    // Sort list
-    activeColumns.sort(
-      (a, b) =>
-        Object.keys(columnMap).indexOf(a) - Object.keys(columnMap).indexOf(b),
-    );
-
-    // Set active page when we dont have any locationFilterData
-    if (Object.keys(locationFilterData).length === 0 && data.activePage) {
-      setActivePage(data.activePage);
-    }
-    setActiveColumns(activeColumns);
-    if (data.resultsPerPage) setResultsPerPage(data.resultsPerPage);
-
-    setSortColumn(data.sortColumn || null);
-    setSortDirection(data.sortDirection || null);
-
-    const getDevicePromise = getDevices(
-      filterData,
-      data.sortColumn,
-      data.sortDirection,
-      data.activePage,
-      data.resultsPerPage,
-    );
-
     // Make sure we set loading to false when all fetches have settled
-    Promise.allSettled([
-      populatePromise,
-      mgmtDomainsPromise,
-      getDevicePromise,
-    ]).finally(() => {
+    Promise.allSettled([populatePromise, mgmtDomainsPromise]).finally(() => {
       setLoading(false);
     });
   }, []);
 
   // Update deviceData on changes
   useEffect(() => {
-    // Fulhack to only run after the first render
-    // Without this multiple getDevices are run on first and after first render
-    if (renderCount.current <= 1) {
-      renderCount.current += 1;
-      return;
-    }
-
-    getDevices(
-      filterData,
-      sortColumn,
-      sortDirection,
-      activePage,
-      resultsPerPage,
-    );
+    getDevices();
   }, [sortColumn, sortDirection, filterData, activePage, resultsPerPage]);
 
   // Set localStorage on changes
   useEffect(() => {
     const storageData = {
-      activeColumns: activeColumns,
-      sortColumn: sortColumn,
-      sortDirection: sortDirection,
-      filterData: filterData,
-      resultsPerPage: resultsPerPage,
-      activePage: activePage,
+      activeColumns,
+      sortColumn,
+      sortDirection,
+      filterData,
+      resultsPerPage,
+      activePage,
     };
     localStorage.setItem("deviceList", JSON.stringify(storageData));
   }, [
@@ -620,13 +614,7 @@ function DeviceList() {
     resultsPerPage,
   ]);
 
-  const getDevices = async (
-    filterData,
-    sortColumn,
-    sortDirection,
-    activePage,
-    resultsPerPage,
-  ) => {
+  const getDevices = async () => {
     const operatorMap = {
       id: "[equals]",
       // eslint-disable-next-line camelcase
@@ -1074,13 +1062,7 @@ function DeviceList() {
     if (data.status !== "success") {
       console.log("error when updating state:", data.error);
     }
-    getDevices(
-      filterData,
-      sortColumn,
-      sortDirection,
-      activePage,
-      resultsPerPage,
-    );
+    getDevices();
   };
 
   const createMgmtIP = (mgmt_ip, key_prefix = "") => {
