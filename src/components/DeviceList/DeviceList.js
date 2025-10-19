@@ -394,10 +394,10 @@ function DeviceList() {
   const [expandResult, setExpandResult] = useState(false);
 
   const [deviceInterfaceData, setDeviceInterfaceData] = useState({});
-  const [netboxModelData, setnetboxModelData] = useState({});
-  const [netboxDeviceData, setnetboxDeviceData] = useState({});
-  const [deviceJobs, setdeviceJobs] = useState({});
-  const [logLines, setlogLines] = useState([]);
+  const [netboxModelData, setNetboxModelData] = useState({});
+  const [netboxDeviceData, setNetboxDeviceData] = useState({});
+  const [deviceJobs, setDeviceJobs] = useState({});
+  const [logLines, setLogLines] = useState([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteModalDeviceId, setDeleteModalDeviceId] = useState(null);
   const [deleteModalDeviceState, setDeleteModalDeviceState] = useState(null);
@@ -457,7 +457,7 @@ function DeviceList() {
     } else {
       deviceJobs[device_id] = [job_id];
     }
-    setdeviceJobs(deviceJobs);
+    setDeviceJobs(deviceJobs);
   };
 
   const findAction = (event, filterData, toast) => {
@@ -773,7 +773,7 @@ function DeviceList() {
         credentials,
       );
       if (data.count === 1) {
-        setnetboxModelData((prev) => ({
+        setNetboxModelData((prev) => ({
           ...prev.netboxModelData,
           [model]: data.results.pop(),
         }));
@@ -806,7 +806,7 @@ function DeviceList() {
       );
 
       if (data.count === 1) {
-        setnetboxDeviceData((prev) => ({
+        setNetboxDeviceData((prev) => ({
           ...prev.netboxDeviceData,
           [hostname]: data.results.pop(),
         }));
@@ -1441,7 +1441,7 @@ function DeviceList() {
         }
         // job update event
       } else if (data.job_id !== undefined) {
-        setlogLines((prev) => [
+        setLogLines((prev) => [
           ...prev,
           data.status === "EXCEPTION"
             ? `job #${data.job_id} changed status to ${data.status}: ${data.exception}\n`
@@ -1451,7 +1451,7 @@ function DeviceList() {
         // if finished && next_job id, push next_job_id to array
 
         if (typeof data.next_job_id === "number") {
-          setdeviceJobs((prev) => {
+          setDeviceJobs((prev) => {
             const newDeviceInitJobs = {};
 
             Object.keys(prev).forEach((device_id) => {
@@ -1468,7 +1468,7 @@ function DeviceList() {
 
         // log events
       } else if (typeof data === "string" || data instanceof String) {
-        setlogLines((prev) => {
+        setLogLines((prev) => {
           const updated = [...prev, `${data}\n`];
           if (updated.length > 1000) {
             updated.shift(); // remove oldest
