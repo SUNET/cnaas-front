@@ -69,6 +69,8 @@ function DeviceTableButtonGroup({
   resultsPerPage,
   setActivePage,
   setResultsPerPage,
+  setSortColumn,
+  setSortDirection,
 }) {
   const extraColumns = [
     "id",
@@ -102,8 +104,10 @@ function DeviceTableButtonGroup({
           e.stopPropagation();
           setFilterActive(false);
           setFilterData({});
+          setSortColumn(null);
+          setSortDirection(null);
         }}
-        title="Clear Filter"
+        title="Clear Filter and Sorting"
       >
         <Icon name="close" />
       </Button>
@@ -170,6 +174,8 @@ DeviceTableButtonGroup.propTypes = {
   resultsPerPage: PropTypes.number,
   setActivePage: PropTypes.func,
   setResultsPerPage: PropTypes.func,
+  setSortColumn: PropTypes.func,
+  setSortDirection: PropTypes.func,
 };
 
 function DeviceTableHeader({
@@ -501,7 +507,7 @@ function DeviceList() {
     const filterData =
       Object.keys(locationFilterData).length > 0
         ? locationFilterData
-        : data.filterData;
+        : data?.filterData || {};
 
     if (Object.keys(filterData).length > 0) {
       setFilterData(filterData);
@@ -1497,6 +1503,8 @@ function DeviceList() {
               resultsPerPage={resultsPerPage}
               setActivePage={setActivePage}
               setResultsPerPage={setResultsPerPage}
+              setSortColumn={setSortColumn}
+              setSortDirection={setSortDirection}
             />
           </GridColumn>
         </GridRow>
