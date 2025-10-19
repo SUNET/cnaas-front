@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import {
   Dropdown,
   Grid,
@@ -214,3 +215,15 @@ export default function DeviceInfoBlock({
     </>
   );
 }
+
+// TODO update these to more specific PropTypes
+DeviceInfoBlock.propTypes = {
+  device: PropTypes.object,
+  menuActions: PropTypes.any,
+  mgmtip: PropTypes.any,
+  deviceStateExtra: PropTypes.any,
+  deviceInterfaceData: PropTypes.any,
+  log: PropTypes.any,
+  model: PropTypes.any,
+  netboxDevice: PropTypes.any,
+};
