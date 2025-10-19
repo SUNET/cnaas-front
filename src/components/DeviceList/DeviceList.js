@@ -632,10 +632,12 @@ function DeviceList() {
       synchronized: "",
     };
 
-    const sort =
-      sortDirection && sortColumn
-        ? `&sort=${sortDirection === "ascending" ? "" : "-"}${sortColumn}`
-        : "";
+    let sort = "";
+
+    if (sortDirection && sortColumn) {
+      const prefix = sortDirection === "ascending" ? "" : "-";
+      sort = `&sort=${prefix}${sortColumn}`;
+    }
 
     const filterString = Object.entries(filterData)
       .filter(([, value]) => value) // skip empty filters
