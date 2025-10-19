@@ -452,13 +452,18 @@ function DeviceList() {
     }
   };
 
-  const addDeviceJob = (device_id, job_id) => {
-    if (device_id in deviceJobs) {
-      deviceJobs[device_id].push(job_id);
-    } else {
-      deviceJobs[device_id] = [job_id];
-    }
-    setDeviceJobs(deviceJobs);
+  const addDeviceJob = (deviceId, jobId) => {
+    setDeviceJobs((prev) => {
+      const updated = { ...prev };
+
+      if (deviceId in updated) {
+        updated[deviceId] = [...updated[deviceId], jobId];
+      } else {
+        updated[deviceId] = [jobId];
+      }
+
+      return updated;
+    });
   };
 
   const findAction = (event, filterData, toast) => {
