@@ -42,6 +42,7 @@ export function authTokenReducer(state, action) {
       };
     }
     case actions.LOGOUT: {
+      removeDeviceFilterDataFromStorage();
       removeTokenFromStorage();
       return {
         ...state,
@@ -132,6 +133,14 @@ const addTokenToStorage = (token) => {
 
 const removeTokenFromStorage = () => {
   localStorage.removeItem("token");
+};
+
+const removeDeviceFilterDataFromStorage = () => {
+  const data = localStorage.getItem("deviceList");
+  if (!data) return;
+  const parsed = JSON.parse(data);
+  if (parsed?.filterData) delete parsed.filterData;
+  localStorage.setItem("deviceList", JSON.stringify(parsed));
 };
 
 const getTokenFromStorage = () => {
