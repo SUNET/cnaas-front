@@ -147,7 +147,7 @@ function DeviceTableButtonGroup({
               checked = true;
             }
             return (
-              <li key={index}>
+              <li key={columnName}>
                 <Checkbox
                   defaultChecked={checked}
                   label={columnMap[columnName]}
@@ -232,6 +232,7 @@ DeviceTableHeader.propTypes = {
   activeColumns: PropTypes.arrayOf(PropTypes.string),
   sortColumn: PropTypes.string,
   sortDirection: PropTypes.string,
+  filterActive: PropTypes.bool,
   filterData: PropTypes.object,
   sortClick: PropTypes.func,
   handleFilterChange: PropTypes.func,
