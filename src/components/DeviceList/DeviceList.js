@@ -471,7 +471,7 @@ function DeviceList() {
     setFilterActive(Object.keys(filterData).length > 0);
     // Expand results when looking up device
     setExpandResult(true);
-    getDevices(filterData, sortColumn, sortDirection, 1);
+    getDevices(filterData, sortColumn, sortDirection, 1, resultsPerPage);
     window.scrollTo(0, 0);
   };
 
@@ -599,6 +599,7 @@ function DeviceList() {
     sortColumn,
     sortDirection,
     activePage,
+    resultsPerPage,
   ) => {
     const sort =
       sortDirection && sortColumn
@@ -813,7 +814,7 @@ function DeviceList() {
         console.log("no data found device", hostname);
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   };
 
@@ -1043,7 +1044,13 @@ function DeviceList() {
     if (data.status !== "success") {
       console.log("error when updating state:", data.error);
     }
-    getDevices(filterData, sortColumn, sortDirection, activePage);
+    getDevices(
+      filterData,
+      sortColumn,
+      sortDirection,
+      activePage,
+      resultsPerPage,
+    );
   };
 
   const createMgmtIP = (mgmt_ip, key_prefix = "") => {
