@@ -141,9 +141,9 @@ function DeviceTableButtonGroup({
         />
         <p>Show extra columns:</p>
         <ul>
-          {extraColumns.map((columnName, index) => {
+          {extraColumns.map((columnName) => {
             let checked = false;
-            if (activeColumns.indexOf(columnName) !== -1) {
+            if (activeColumns.includes(columnName)) {
               checked = true;
             }
             return (
