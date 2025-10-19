@@ -512,7 +512,10 @@ function DeviceList() {
 
     // Set initial data from localStorage
     const localStorageData = localStorage.getItem("deviceList");
-    const data = localStorageData ? JSON.parse(localStorageData) : {};
+    const data =
+      Object.keys(localStorageData).length > 0
+        ? JSON.parse(localStorageData)
+        : {};
 
     const locationFilterData = {};
     const params = new URLSearchParams(location.search);
