@@ -1490,13 +1490,9 @@ function DeviceList() {
   }, []);
 
   const getAdditionalDeviceData = (hostname) => {
-    try {
-      getInterfacesData(hostname);
-      getNetboxModelData(hostname);
-      getNetboxDeviceData(hostname);
-    } catch (error) {
-      console.log(error);
-    }
+    getInterfacesData(hostname);
+    getNetboxModelData(hostname);
+    getNetboxDeviceData(hostname);
   };
 
   return (
