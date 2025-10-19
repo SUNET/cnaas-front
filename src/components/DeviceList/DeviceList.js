@@ -1283,20 +1283,25 @@ function DeviceList() {
     }
 
     const log = {};
-    Object.keys(deviceJobs).map((device_id) => {
-      log[device_id] = "";
-      deviceJobs[device_id].map((job_id) => {
-        logLines.filter(checkJobId(job_id)).map((logLine) => {
-          log[device_id] = log[device_id] + logLine;
+    for (const deviceId of Object.keys(deviceJobs)) {
+      log[deviceId] = "";
+
+      for (const jobId of deviceJobs[deviceId]) {
+        const filteredLines = logLines.filter(checkJobId(jobId));
+
+        for (const logLine of filteredLines) {
+          log[deviceId] += logLine;
+
           const element = document.getElementById(
-            `logoutputdiv_device_id_${device_id}`,
+            `logoutputdiv_device_id_${deviceId}`,
           );
-          if (element !== null) {
+
+          if (element) {
             element.scrollTop = element.scrollHeight;
           }
-        });
-      });
-    });
+        }
+      }
+    }
 
     const mgmtip = [];
     if (device.management_ip) {
