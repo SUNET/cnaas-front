@@ -602,21 +602,23 @@ function DeviceList() {
     activePage,
     resultsPerPage,
   ) => {
+    const operatorMap = {
+      id: "[equals]",
+      // eslint-disable-next-line camelcase
+      device_type: "[ilike]",
+      state: "[ilike]",
+      synchronized: "",
+    };
+
     const sort =
       sortDirection && sortColumn
         ? `&sort=${sortDirection === "ascending" ? "" : "-"}${sortColumn}`
         : "";
+
     const filterString = Object.entries(filterData)
       .filter(([, value]) => value) // skip empty filters
       .map(([key, value]) => {
-        const operator =
-          key === "id"
-            ? "[equals]"
-            : key === "device_type" || key === "state"
-              ? "[ilike]"
-              : key === "synchronized"
-                ? ""
-                : "[contains]";
+        const operator = operatorMap[key] ?? "[contains]";
         return `&filter[${encodeURIComponent(key)}]${operator}=${encodeURIComponent(value)}`;
       })
       .join("&");
@@ -1460,13 +1462,13 @@ function DeviceList() {
           setDeviceJobs((prev) => {
             const newDeviceInitJobs = {};
 
-            Object.keys(prev).forEach((device_id) => {
-              if (prev[device_id][0] === data.job_id) {
-                newDeviceInitJobs[device_id] = [data.job_id, data.next_job_id];
+            for (const deviceId of Object.keys(prev)) {
+              if (prev[deviceId][0] === data.job_id) {
+                newDeviceInitJobs[deviceId] = [data.job_id, data.next_job_id];
               } else {
-                newDeviceInitJobs[device_id] = prev[device_id];
+                newDeviceInitJobs[deviceId] = prev[deviceId];
               }
-            });
+            }
 
             return newDeviceInitJobs;
           });
