@@ -132,87 +132,85 @@ export default function DeviceInfoBlock({
   }
 
   return (
-    <>
-      <Grid columns={2}>
-        <GridRow>
-          <GridColumn>
-            <div hidden={!permissionsCheck("Devices", "write")}>
-              <Dropdown text="Actions" button>
-                <Dropdown.Menu>{menuActions}</Dropdown.Menu>
-              </Dropdown>
-            </div>
-            <Table compact>
-              <TableBody>
-                <TableRow key="detail_mgmtip">
-                  <TableCell key="name">Management IP</TableCell>
-                  <TableCell key="value">
-                    <div>{mgmtip}</div>
-                  </TableCell>
-                </TableRow>
-                <TableRow key="detail_infraip">
-                  <TableCell key="name">Infra IP</TableCell>
-                  <TableCell key="value">{device.infra_ip}</TableCell>
-                </TableRow>
-                <TableRow key="detail_mac">
-                  <TableCell key="name">MAC</TableCell>
-                  <TableCell key="value">{device.ztp_mac}</TableCell>
-                </TableRow>
-                <TableRow key="detail_vendor">
-                  <TableCell key="name">Vendor</TableCell>
-                  <TableCell key="value">{device.vendor}</TableCell>
-                </TableRow>
-                <TableRow key="detail_model">
-                  <TableCell key="name">Model</TableCell>
-                  <TableCell key="value">{modelField}</TableCell>
-                </TableRow>
-                <TableRow key="detail_osversion">
-                  <TableCell key="name">OS Version</TableCell>
-                  <TableCell key="value">{device.os_version}</TableCell>
-                </TableRow>
-                <TableRow key="detail_serial">
-                  <TableCell key="name">Serial</TableCell>
-                  <TableCell key="value">{device.serial}</TableCell>
-                </TableRow>
-                <TableRow key="detail_state">
-                  <TableCell key="name">State</TableCell>
-                  <TableCell key="value">{device.state}</TableCell>
-                </TableRow>
-                <TableRow key="primary_group">
-                  <TableCell key="name">Primary group</TableCell>
-                  <TableCell key="value">{device.primary_group}</TableCell>
-                </TableRow>
-                <TableRow key="seen">
-                  <TableCell key="name">Last seen</TableCell>
-                  <TableCell key="value">
-                    {formatISODate(device.last_seen)}
-                  </TableCell>
-                </TableRow>
-                {netboxRows}
-              </TableBody>
-            </Table>
-          </GridColumn>
-        </GridRow>
-        <GridRow style={{ paddingTop: 0, paddingBottom: 0 }}>
+    <Grid columns={2}>
+      <GridRow>
+        <GridColumn>
+          <div hidden={!permissionsCheck("Devices", "write")}>
+            <Dropdown text="Actions" button>
+              <Dropdown.Menu>{menuActions}</Dropdown.Menu>
+            </Dropdown>
+          </div>
+          <Table compact>
+            <TableBody>
+              <TableRow key="detail_mgmtip">
+                <TableCell key="name">Management IP</TableCell>
+                <TableCell key="value">
+                  <div>{mgmtip}</div>
+                </TableCell>
+              </TableRow>
+              <TableRow key="detail_infraip">
+                <TableCell key="name">Infra IP</TableCell>
+                <TableCell key="value">{device.infra_ip}</TableCell>
+              </TableRow>
+              <TableRow key="detail_mac">
+                <TableCell key="name">MAC</TableCell>
+                <TableCell key="value">{device.ztp_mac}</TableCell>
+              </TableRow>
+              <TableRow key="detail_vendor">
+                <TableCell key="name">Vendor</TableCell>
+                <TableCell key="value">{device.vendor}</TableCell>
+              </TableRow>
+              <TableRow key="detail_model">
+                <TableCell key="name">Model</TableCell>
+                <TableCell key="value">{modelField}</TableCell>
+              </TableRow>
+              <TableRow key="detail_osversion">
+                <TableCell key="name">OS Version</TableCell>
+                <TableCell key="value">{device.os_version}</TableCell>
+              </TableRow>
+              <TableRow key="detail_serial">
+                <TableCell key="name">Serial</TableCell>
+                <TableCell key="value">{device.serial}</TableCell>
+              </TableRow>
+              <TableRow key="detail_state">
+                <TableCell key="name">State</TableCell>
+                <TableCell key="value">{device.state}</TableCell>
+              </TableRow>
+              <TableRow key="primary_group">
+                <TableCell key="name">Primary group</TableCell>
+                <TableCell key="value">{device.primary_group}</TableCell>
+              </TableRow>
+              <TableRow key="seen">
+                <TableCell key="name">Last seen</TableCell>
+                <TableCell key="value">
+                  {formatISODate(device.last_seen)}
+                </TableCell>
+              </TableRow>
+              {netboxRows}
+            </TableBody>
+          </Table>
+        </GridColumn>
+      </GridRow>
+      <GridRow style={{ paddingTop: 0, paddingBottom: 0 }}>
+        <GridColumn width={16}>
+          {deviceStateExtra}
+          {deviceInterfaceData}
+        </GridColumn>
+      </GridRow>
+      {(!log[device.id] || log[device.id]?.length !== 0) && (
+        <GridRow style={{ overflow: "hidden" }}>
           <GridColumn width={16}>
-            {deviceStateExtra}
-            {deviceInterfaceData}
+            <div
+              id={`logoutputdiv_device_id_${device.id}`}
+              className="logoutput"
+              style={{ margin: 0, overflow: "auto" }}
+            >
+              <pre style={{ width: "1em" }}>{log[device.id]}</pre>
+            </div>
           </GridColumn>
         </GridRow>
-        {(!log[device.id] || log[device.id]?.length !== 0) && (
-          <GridRow style={{ overflow: "hidden" }}>
-            <GridColumn width={16}>
-              <div
-                id={`logoutputdiv_device_id_${device.id}`}
-                className="logoutput"
-                style={{ margin: 0, overflow: "auto" }}
-              >
-                <pre style={{ width: "1em" }}>{log[device.id]}</pre>
-              </div>
-            </GridColumn>
-          </GridRow>
-        )}
-      </Grid>
-    </>
+      )}
+    </Grid>
   );
 }
 
