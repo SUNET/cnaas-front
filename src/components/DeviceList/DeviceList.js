@@ -481,7 +481,6 @@ function DeviceList() {
 
   const [initialSettings] = useState(() => getInitialSettings());
 
-
   const [activePage, setActivePage] = useState(initialSettings.activePage);
   const [activeColumns, setActiveColumns] = useState(
     initialSettings.activeColumns,
