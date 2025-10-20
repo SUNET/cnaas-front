@@ -10,7 +10,7 @@ import {
   TableCell,
   TableHeader,
   TableHeaderCell,
-  TableRow
+  TableRow,
 } from "semantic-ui-react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { getData } from "../utils/getData";
@@ -126,7 +126,6 @@ function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
               </TableBody>
             </Table>
           </GridColumn>
-
           <GridColumn width={16} style={{ paddingTop: 0 }}>
             <FirmwareCopyForm
               filename={firmware.filename}
@@ -137,7 +136,6 @@ function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
               reloadFirmwareFiles={reloadFirmwareFiles}
             />
           </GridColumn>
-
         </Grid>
       </TableCell>
     </TableRow>
