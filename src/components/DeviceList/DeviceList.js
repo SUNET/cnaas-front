@@ -264,7 +264,7 @@ function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
   );
 }
 
-DeviceTableButtonGroup.propTypes = {
+DeviceTableHeaderFilter.propTypes = {
   column: PropTypes.string,
   filterData: PropTypes.object,
   handleFilterChange: PropTypes.func,
