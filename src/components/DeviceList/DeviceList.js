@@ -442,7 +442,7 @@ function DeviceList() {
     }
 
     // Extract filters from URL query params
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const locationFilterData = {};
     for (const [key, value] of params.entries()) {
       const match = key.match(/^filter\[(.+)\]$/);
