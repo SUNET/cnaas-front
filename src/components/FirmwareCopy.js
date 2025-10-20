@@ -1,6 +1,17 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { Icon, Popup } from "semantic-ui-react";
+import {
+  Grid,
+  GridColumn,
+  Icon,
+  Popup,
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableHeaderCell,
+  TableRow
+} from "semantic-ui-react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { getData } from "../utils/getData";
 import permissionsCheck from "../utils/permissions/permissionsCheck";
@@ -61,8 +72,8 @@ function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <tr key={index} style={{ flexDirection: "column" }}>
-      <td key={`${index}_icon`} onClick={() => setOpen((prev) => !prev)}>
+    <TableRow key={index} style={{ flexDirection: "column" }}>
+      <TableCell key={`${index}_icon`} onClick={() => setOpen((prev) => !prev)}>
         <Icon name={open ? "angle down" : "angle right"} />
         <label style={{ paddingRight: "5px" }}>{firmware.filename}</label>
         {firmware.present_in_repo && <PopupPresentInRepo />}
@@ -70,60 +81,66 @@ function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
         {firmware.approved && <PopupApproved />}
         {!firmware.approved && <PopupNotApproved />}
         {firmware.default_to && <PopupDefaultFirmware />}
-      </td>
-      <td
+      </TableCell>
+      <TableCell
         key={`${index}_content`}
-        colSpan="1"
-        className="device_details_row"
         hidden={!open}
         style={{ flexDirection: "column" }}
       >
-        <table className="device_details_table">
-          <tbody>
-            <tr key={`${index}_filename`}>
-              <td>Filename</td>
-              <td>{firmware.filename}</td>
-            </tr>
-            <tr key={`${index}_os_version`}>
-              <td>OS version</td>
-              <td>{firmware.os_version}</td>
-            </tr>
-            <tr key={`${index}_approved_by`}>
-              <td>Approved by</td>
-              <td>{firmware.approved_by}</td>
-            </tr>
-            <tr key={`${index}_approved_date`}>
-              <td>Approved date</td>
-              <td>{firmware.approved_date}</td>
-            </tr>
-            <tr key={`${index}_eol_date`}>
-              <td>End of life date</td>
-              <td>{firmware.end_of_life_date}</td>
-            </tr>
-            {firmware.linked_to && (
-              <tr key={`${index}_linked_to`}>
-                <td>Linked to</td>
-                <td>{firmware.linked_to}</td>
-              </tr>
-            )}
-            {firmware.default_to && (
-              <tr key={`${index}_default_to`}>
-                <td>Default link</td>
-                <td>{firmware.default_to}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        <FirmwareCopyForm
-          filename={firmware.filename}
-          sha1sum={firmware.sha1sum}
-          already_downloaded={firmware.already_downloaded}
-          defaultFirmware={firmware.default_to}
-          linkedTo={firmware.linked_to}
-          reloadFirmwareFiles={reloadFirmwareFiles}
-        />
-      </td>
-    </tr>
+        <Grid columns={2}>
+          <GridColumn>
+            <Table compact basic={"very"} collapsing>
+              <TableBody>
+                <TableRow key={`${index}_filename`}>
+                  <TableCell>Filename</TableCell>
+                  <TableCell>{firmware.filename}</TableCell>
+                </TableRow>
+                <TableRow key={`${index}_os_version`}>
+                  <TableCell>OS version</TableCell>
+                  <TableCell>{firmware.os_version}</TableCell>
+                </TableRow>
+                <TableRow key={`${index}_approved_by`}>
+                  <TableCell>Approved by</TableCell>
+                  <TableCell>{firmware.approved_by}</TableCell>
+                </TableRow>
+                <TableRow key={`${index}_approved_date`}>
+                  <TableCell>Approved date</TableCell>
+                  <TableCell>{firmware.approved_date}</TableCell>
+                </TableRow>
+                <TableRow key={`${index}_eol_date`}>
+                  <TableCell>End of life date</TableCell>
+                  <TableCell>{firmware.end_of_life_date}</TableCell>
+                </TableRow>
+                {firmware.linked_to && (
+                  <TableRow key={`${index}_linked_to`}>
+                    <TableCell>Linked to</TableCell>
+                    <TableCell>{firmware.linked_to}</TableCell>
+                  </TableRow>
+                )}
+                {firmware.default_to && (
+                  <TableRow key={`${index}_default_to`}>
+                    <TableCell>Default link</TableCell>
+                    <TableCell>{firmware.default_to}</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </GridColumn>
+
+          <GridColumn width={16} style={{ paddingTop: 0 }}>
+            <FirmwareCopyForm
+              filename={firmware.filename}
+              sha1sum={firmware.sha1sum}
+              already_downloaded={firmware.already_downloaded}
+              defaultFirmware={firmware.default_to}
+              linkedTo={firmware.linked_to}
+              reloadFirmwareFiles={reloadFirmwareFiles}
+            />
+          </GridColumn>
+
+        </Grid>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -246,15 +263,15 @@ function FirmwareCopy() {
   return (
     <section>
       <div id="firmware_list">
-        <h2>Firmware list</h2>
+        <h2>Firmware</h2>
         <div id="data">
-          <table className="firmware_list">
-            <thead>
-              <tr>
-                <th>Firmwares</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderCell>Firmwares</TableHeaderCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {firmwareData.map((firmware, index) => (
                 <FirmwareTableRow
                   key={firmware.filename || index}
@@ -263,8 +280,8 @@ function FirmwareCopy() {
                   reloadFirmwareFiles={reloadFirmwareFiles}
                 />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
         <h2 hidden={!permissionsCheck("Groups", "read")}>Firmware upgrade</h2>
         <p hidden={!permissionsCheck("Groups", "read")}>
