@@ -655,7 +655,6 @@ function DeviceList() {
       })
       .join("&");
 
-    //sort=${sortField}${filterParams}&page=${pageNum}&per_page=${resultsPerPage}
     try {
       const resp = await getResponse(
         `${process.env.API_URL}/api/v1.0/devices?page=${activePage}&per_page=${resultsPerPage}${sort}${filterString}`,
