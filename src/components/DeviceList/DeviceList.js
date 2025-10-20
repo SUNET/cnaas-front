@@ -666,9 +666,6 @@ function DeviceList() {
         const totalPages = Math.ceil(totalCountHeader / resultsPerPage);
         setTotalPages(totalPages);
       } else {
-        console.log(
-          "Could not find X-Total-Count header, only showing one page",
-        );
         setTotalPages(1);
       }
 
