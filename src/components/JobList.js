@@ -503,7 +503,7 @@ class JobList extends React.Component {
           <pre>{this.state.logLines}</pre>
         </div>
         <h2>Jobs</h2>
-        <Table>
+        <Table striped>
           <TableHeader>
             <TableRow key="header">
               <TableHeaderCell onClick={() => this.sortHeader("id")} key="0">
