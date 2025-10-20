@@ -73,7 +73,6 @@ function DeviceTableButtonGroup({
   setSortDirection,
 }) {
   const extraColumns = [
-    "id",
     "model",
     "os_version",
     "management_ip",
@@ -88,8 +87,7 @@ function DeviceTableButtonGroup({
         icon
         basic
         size="small"
-        onClick={(e) => {
-          e.stopPropagation();
+        onClick={() => {
           setFilterActive((prev) => !prev);
         }}
         title="Search / Filter"
@@ -100,8 +98,7 @@ function DeviceTableButtonGroup({
         icon
         basic
         size="small"
-        onClick={(e) => {
-          e.stopPropagation();
+        onClick={() => {
           setFilterActive(false);
           setFilterData({});
           setSortColumn(null);
@@ -116,15 +113,7 @@ function DeviceTableButtonGroup({
         pinned
         position="bottom right"
         trigger={
-          <Button
-            icon
-            basic
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            title="Select Columns"
-          >
+          <Button icon basic size="small" title="Select Columns">
             <Icon name="columns" />
           </Button>
         }
@@ -152,8 +141,7 @@ function DeviceTableButtonGroup({
                   defaultChecked={checked}
                   label={columnMap[columnName]}
                   name={columnName}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={() => {
                     columnSelectorChange(columnName);
                   }}
                 />
