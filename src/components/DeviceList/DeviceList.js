@@ -301,12 +301,20 @@ function DeviceTableBodyRow({
 
   // When device changes and defaultOpen is set open the row
   useEffect(() => {
-    if (!open && defaultOpen) setOpen(true);
+    if (!open && defaultOpen) {
+      getAdditionalDeviceData(device.hostname);
+      setOpen(true);
+      // If the row is already opened we can fetch additional data
+    } else if (open && defaultOpen) {
+      getAdditionalDeviceData(device.hostname);
+    }
   }, [device]);
 
   const handleRowClick = () => {
+    // Only fetch when opening the row
+    // That means the current state is open == false
+    if (!open) getAdditionalDeviceData(device.hostname);
     setOpen((prev) => !prev);
-    getAdditionalDeviceData(device.hostname);
   };
 
   return (
@@ -855,12 +863,21 @@ function DeviceList() {
         token,
       );
 
-      const newDeviceInterfaceData = deviceInterfaceData;
+      // If interface data already exists return
+      if (deviceInterfaceData[hostname]) return;
 
-      if (Array.isArray(data.data.interfaces) && data.data.interfaces.length) {
-        newDeviceInterfaceData[hostname] = data.data.interfaces;
-        setDeviceInterfaceData(newDeviceInterfaceData);
-      }
+      setDeviceInterfaceData((prev) => {
+        if (
+          !Array.isArray(data.data.interfaces) ||
+          !data.data.interfaces.length
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [hostname]: data.data.interfaces,
+        };
+      });
     } catch (error) {
       setError(error);
       setLoading(false);
@@ -1511,6 +1528,8 @@ function DeviceList() {
   }, []);
 
   const getAdditionalDeviceData = (hostname) => {
+    console.log("getAdditionalDeviceData", hostname);
+
     getInterfacesData(hostname);
     getNetboxModelData(hostname);
     getNetboxDeviceData(hostname);
