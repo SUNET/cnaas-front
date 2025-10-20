@@ -823,7 +823,7 @@ function DeviceList() {
     if (!credentials) {
       credentials = localStorage.getItem("token");
       getFunc = getData;
-      url = `${process.env.API_URL}/hostname`;
+      url = `${process.env.API_URL}/netbox`;
     }
 
     const host = netboxDeviceData[hostname];
