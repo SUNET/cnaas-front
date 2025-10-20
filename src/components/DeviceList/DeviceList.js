@@ -190,6 +190,10 @@ function DeviceTableHeader({
   const [localFilter, setLocalFilter] = useState(filterData);
   const debounceTimeout = useRef(null);
 
+  useEffect(() => {
+    setLocalFilter(filterData);
+  }, [filterData]);
+
   const onChange = (column, value) => {
     // Update input immediately
     setLocalFilter((prev) => ({ ...prev, [column]: value }));
@@ -228,7 +232,7 @@ function DeviceTableHeader({
       {filterActive && (
         <TableRow>
           {activeColumns.map((column) => (
-            <TableHeaderCell key={`filter_${column}`}>
+            <TableHeaderCell key={`filter_${column}`} collapsing>
               <Input
                 value={localFilter[column] || ""}
                 placeholder={`Filter ${columnMap[column]}`}
@@ -254,12 +258,20 @@ DeviceTableHeader.propTypes = {
   handleFilterChange: PropTypes.func,
 };
 
-function DeviceTableBodyRowCellContent({ device, column }) {
+function DeviceTableBodyRowCellContent({ device, column, open }) {
   const value = device[column];
 
   if (typeof value === "boolean") {
     return (
       <Icon name={value ? "check" : "delete"} color={value ? "green" : "red"} />
+    );
+  }
+  if (column == "id") {
+    return (
+      <>
+        <Icon name={open ? "angle down" : "angle right"} />
+        {value}
+      </>
     );
   }
   if (
@@ -289,6 +301,7 @@ function DeviceTableBodyRowCellContent({ device, column }) {
 DeviceTableBodyRowCellContent.propTypes = {
   device: PropTypes.object,
   column: PropTypes.string,
+  open: PropTypes.bool,
 };
 
 function DeviceTableBodyRow({
@@ -315,8 +328,16 @@ function DeviceTableBodyRow({
     <>
       <TableRow key={device.id} onClick={() => handleRowClick()}>
         {activeColumns.map((column) => (
-          <TableCell key={`${device.id}_${column}`} collapsing>
-            <DeviceTableBodyRowCellContent device={device} column={column} />
+          <TableCell
+            key={`${device.id}_${column}`}
+            collapsing
+            style={{ overflow: "hidden" }}
+          >
+            <DeviceTableBodyRowCellContent
+              device={device}
+              column={column}
+              open={open}
+            />
           </TableCell>
         ))}
       </TableRow>
@@ -413,75 +434,83 @@ DeviceTableBody.propTypes = {
 };
 
 function DeviceList() {
-  const defaultSettings = {
-    activePage: 1,
-    activeColumns: ["hostname", "device_type", "state", "synchronized"],
-    sortColumn: null,
-    sortDirection: null,
-    filterActive: false,
-    filterData: {},
-    resultsPerPage: 20,
+  const getInitialSettings = () => {
+    const defaultSettings = {
+      activePage: 1,
+      activeColumns: ["id", "hostname", "device_type", "state", "synchronized"],
+      sortColumn: null,
+      sortDirection: null,
+      filterActive: false,
+      filterData: {},
+      resultsPerPage: 20,
+    };
+
+    // Load from localStorage
+    let stored = {};
+    try {
+      stored = JSON.parse(localStorage.getItem("deviceList") || "{}");
+    } catch (e) {
+      console.warn("Failed to parse localStorage deviceList settings:", e);
+    }
+
+    // Extract filters from URL query params
+    const params = new URLSearchParams(window.location.search);
+    const locationFilterData = {};
+    for (const [key, value] of params.entries()) {
+      const match = key.match(/^filter\[(.+)\]$/);
+      if (match) locationFilterData[match[1]] = value;
+    }
+    const hasLocationFilterData = Object.keys(locationFilterData).length > 0;
+    // Merge defaults + stored
+    const initial = { ...defaultSettings, ...stored };
+
+    // Ensure filtered columns are visible and unique
+    initial.activeColumns = [
+      ...new Set([
+        ...defaultSettings.activeColumns,
+        ...initial.activeColumns,
+        ...Object.keys(initial.filterData || {}),
+        ...Object.keys(locationFilterData),
+      ]),
+    ].sort(
+      (a, b) =>
+        Object.keys(columnMap).indexOf(a) - Object.keys(columnMap).indexOf(b),
+    );
+
+    // Reset page if URL filters exist
+    if (hasLocationFilterData) {
+      initial.activePage = 1;
+    }
+
+    return {
+      ...initial,
+      filterData: hasLocationFilterData
+        ? locationFilterData
+        : initial.filterData,
+      filterActive:
+        Object.keys(
+          hasLocationFilterData ? locationFilterData : initial.filterData,
+        ).length > 0,
+    };
   };
 
-  let stored = {};
-  try {
-    stored = JSON.parse(localStorage.getItem("deviceList") || "{}");
-  } catch (e) {
-    console.warn("Failed to parse localStorage deviceList settings:", e);
-    stored = {};
-  }
+  const initialSettings = useState(() => getInitialSettings())[0];
 
-  const initial = { ...defaultSettings, ...stored };
-
-  const locationFilterData = {};
-  const params = new URLSearchParams(location.search);
-  if (params) {
-    // Loop through all query params
-    for (const [key, value] of params.entries()) {
-      // Check if the key starts with 'filter[' and ends with ']'
-      const match = key.match(/^filter\[(.+)\]$/);
-      if (match) {
-        const filterKey = match[1]; // extract the key inside []
-        locationFilterData[filterKey] = value;
-      }
-    }
-  }
-
-  // Make sure all defaults columns are visible and that the list are unique
-  // Also make sure all columns that are filtered are visible
-  initial.activeColumns = [
-    ...new Set([
-      ...defaultSettings.activeColumns,
-      ...initial.activeColumns,
-      ...Object.keys(initial.filterData),
-      ...Object.keys(locationFilterData),
-    ]),
-  ];
-  // Sort activeColumns list
-  initial.activeColumns.sort(
-    (a, b) =>
-      Object.keys(columnMap).indexOf(a) - Object.keys(columnMap).indexOf(b),
+  const [activePage, setActivePage] = useState(initialSettings.activePage);
+  const [activeColumns, setActiveColumns] = useState(
+    initialSettings.activeColumns,
   );
-
-  // When we have locationFilterData activePage should be: 1
-  if (Object.keys(locationFilterData).length !== 0) {
-    initial.activePage = 1;
-  }
-  const [activePage, setActivePage] = useState(initial.activePage);
-  const [activeColumns, setActiveColumns] = useState(initial.activeColumns);
-  const [sortColumn, setSortColumn] = useState(initial.sortColumn);
-  const [sortDirection, setSortDirection] = useState(initial.sortDirection);
-
-  const [filterData, setFilterData] = useState(
-    Object.keys(locationFilterData).length > 0
-      ? locationFilterData
-      : initial.filterData,
+  const [sortColumn, setSortColumn] = useState(initialSettings.sortColumn);
+  const [sortDirection, setSortDirection] = useState(
+    initialSettings.sortDirection,
   );
-  if (Object.keys(filterData).length > 0) {
-    initial.filterActive = true;
-  }
-  const [filterActive, setFilterActive] = useState(initial.filterActive);
-  const [resultsPerPage, setResultsPerPage] = useState(initial.resultsPerPage);
+  const [filterData, setFilterData] = useState(initialSettings.filterData);
+  const [filterActive, setFilterActive] = useState(
+    initialSettings.filterActive,
+  );
+  const [resultsPerPage, setResultsPerPage] = useState(
+    initialSettings.resultsPerPage,
+  );
 
   const [totalPages, setTotalPages] = useState(1);
   const [deviceData, setDeviceData] = useState([]);
@@ -792,7 +821,7 @@ function DeviceList() {
       );
       if (data.count === 1) {
         setNetboxModelData((prev) => ({
-          ...prev.netboxModelData,
+          ...prev,
           [model]: data.results.pop(),
         }));
       } else {
@@ -814,8 +843,11 @@ function DeviceList() {
     if (!credentials) {
       credentials = localStorage.getItem("token");
       getFunc = getData;
-      url = `${process.env.API_URL}/netbox`;
+      url = `${process.env.API_URL}/hostname`;
     }
+
+    const host = netboxDeviceData[hostname];
+    if (host) return host;
 
     try {
       const data = await getFunc(
@@ -825,7 +857,7 @@ function DeviceList() {
 
       if (data.count === 1) {
         setNetboxDeviceData((prev) => ({
-          ...prev.netboxDeviceData,
+          ...prev,
           [hostname]: data.results.pop(),
         }));
       } else {
@@ -1597,7 +1629,7 @@ function DeviceList() {
         isOpen={showConfigModalOpen}
         closeAction={() => handleShowConfigModalClose()}
       />
-      <Table sortable celled fixed>
+      <Table sortable celled striped>
         <DeviceTableHeader
           activeColumns={activeColumns}
           columnMap={columnMap}
