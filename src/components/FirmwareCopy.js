@@ -74,7 +74,10 @@ function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
   return (
     <>
       <TableRow key={index} style={{ flexDirection: "column" }}>
-        <TableCell key={`${index}_icon`} onClick={() => setOpen((prev) => !prev)}>
+        <TableCell
+          key={`${index}_icon`}
+          onClick={() => setOpen((prev) => !prev)}
+        >
           <Icon name={open ? "angle down" : "angle right"} />
           <label style={{ paddingRight: "5px" }}>{firmware.filename}</label>
           {firmware.present_in_repo && <PopupPresentInRepo />}
