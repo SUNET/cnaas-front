@@ -42,7 +42,7 @@ const columnMap = {
   hostname: "Hostname",
   device_type: "Device type",
   state: "State",
-  synchronized: "Sync status",
+  synchronized: "Synchronized",
   model: "Model",
   os_version: "OS version",
   management_ip: "Management IP",
@@ -162,15 +162,7 @@ DeviceTableButtonGroup.propTypes = {
   setSortDirection: PropTypes.func,
 };
 
-function DeviceTableHeader({
-  activeColumns,
-  sortColumn,
-  sortDirection,
-  filterActive,
-  filterData,
-  sortClick,
-  handleFilterChange,
-}) {
+function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
   const [localFilter, setLocalFilter] = useState(filterData);
   const debounceTimeout = useRef(null);
 
@@ -191,6 +183,102 @@ function DeviceTableHeader({
     }, 300);
   };
 
+  const synchronizedOptions = [
+    { key: "NONE", value: "", text: "" },
+    { key: "true", value: "true", text: "Synchronized" },
+    { key: "false", value: "false", text: "Unsynchronized" },
+  ];
+
+  const stateOptions = [
+    { key: "NONE", value: "", text: "" },
+    { key: "MANAGED", value: "MANAGED", text: "MANAGED" },
+    { key: "UNMANAGED", value: "UNMANAGED", text: "UNMANAGED" },
+    { key: "DHCP_BOOT", value: "DHCP_BOOT", text: "DHCP_BOOT" },
+    { key: "DISCOVERED", value: "DISCOVERED", text: "DISCOVERED" },
+    { key: "INIT", value: "INIT", text: "INIT" },
+    { key: "UNKNOWN", value: "UNKNOWN", text: "UNKNOWN" },
+    { key: "PRE_CONFIGURED", value: "PRE_CONFIGURED", text: "PRE_CONFIGURED" },
+  ];
+
+  const deviceTypeOptions = [
+    { key: "NONE", value: "", text: "" },
+    { key: "UNKNOWN", value: "UNKNOWN", text: "UNKNOWN" },
+    { key: "ACCESS", value: "ACCESS", text: "ACCESS" },
+    { key: "DIST", value: "DIST", text: "DIST" },
+    { key: "CORE", value: "CORE", text: "CORE" },
+    { key: "FIREWALL", value: "FIREWALL", text: "FIREWALL" },
+  ];
+
+  if (column === "synchronized") {
+    return (
+      <Select
+        placeholder={`Filter ${columnMap[column]}`}
+        onChange={(_, data) => {
+          handleFilterChange(column, data.value);
+        }}
+        value={localFilter[column] || ""}
+        options={synchronizedOptions}
+        style={{ minWidth: "100%" }}
+        clearable
+        closeOnEscape
+      />
+    );
+  }
+  if (column === "state") {
+    return (
+      <Select
+        placeholder={`Filter ${columnMap[column]}`}
+        onChange={(_, data) => {
+          handleFilterChange(column, data.value);
+        }}
+        value={localFilter[column] || ""}
+        options={stateOptions}
+        style={{ minWidth: "100%" }}
+        clearable
+        closeOnEscape
+      />
+    );
+  }
+  if (column === "device_type") {
+    return (
+      <Select
+        placeholder={`Filter ${columnMap[column]}`}
+        onChange={(_, data) => {
+          handleFilterChange(column, data.value);
+        }}
+        value={localFilter[column] || ""}
+        options={deviceTypeOptions}
+        style={{ minWidth: "100%" }}
+        clearable
+        closeOnEscape
+      />
+    );
+  }
+  return (
+    <Input
+      value={localFilter[column] || ""}
+      placeholder={`Filter ${columnMap[column]}`}
+      onChange={(e) => onChange(column, e.target.value)}
+      style={{ minWidth: "100%" }}
+    />
+  );
+}
+
+DeviceTableButtonGroup.propTypes = {
+  column: PropTypes.string,
+  filterData: PropTypes.object,
+  handleFilterChange: PropTypes.func,
+};
+
+function DeviceTableHeader({
+  activeColumns,
+  sortColumn,
+  sortDirection,
+  filterActive,
+  filterData,
+  sortClick,
+  handleFilterChange,
+}) {
   return (
     <TableHeader>
       <TableRow>
@@ -217,12 +305,10 @@ function DeviceTableHeader({
         <TableRow>
           {activeColumns.map((column) => (
             <TableHeaderCell key={`filter_${column}`} collapsing>
-              <Input
-                value={localFilter[column] || ""}
-                placeholder={`Filter ${columnMap[column]}`}
-                onChange={(e) => onChange(column, e.target.value)}
-                // fluid
-                style={{ minWidth: "1em" }}
+              <DeviceTableHeaderFilter
+                column={column}
+                filterData={filterData}
+                handleFilterChange={handleFilterChange}
               />
             </TableHeaderCell>
           ))}
@@ -245,9 +331,17 @@ DeviceTableHeader.propTypes = {
 function DeviceTableBodyRowCellContent({ device, column, open }) {
   const value = device[column];
 
-  if (typeof value === "boolean") {
+  if (column === "synchronized" && device.state !== "MANAGED") return;
+  if (column === "synchronized") {
     return (
-      <Icon name={value ? "check" : "delete"} color={value ? "green" : "red"} />
+      <>
+        {value ? "Synchronized" : "Unsynchronized"}
+        <Icon
+          name={value ? "check" : "delete"}
+          color={value ? "green" : "red"}
+          style={{ marginLeft: "5px" }}
+        />
+      </>
     );
   }
   if (column == "id") {
