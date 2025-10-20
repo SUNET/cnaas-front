@@ -1528,8 +1528,6 @@ function DeviceList() {
   }, []);
 
   const getAdditionalDeviceData = (hostname) => {
-    console.log("getAdditionalDeviceData", hostname);
-
     getInterfacesData(hostname);
     getNetboxModelData(hostname);
     getNetboxDeviceData(hostname);
