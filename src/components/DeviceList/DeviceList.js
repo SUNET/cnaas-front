@@ -131,10 +131,7 @@ function DeviceTableButtonGroup({
         <p>Show extra columns:</p>
         <ul>
           {extraColumns.map((columnName) => {
-            let checked = false;
-            if (activeColumns.includes(columnName)) {
-              checked = true;
-            }
+            const checked = activeColumns.includes(columnName);
             return (
               <li key={columnName}>
                 <Checkbox
