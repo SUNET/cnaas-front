@@ -1,10 +1,21 @@
 import React from "react";
-import { Icon, Pagination } from "semantic-ui-react";
-import JobSearchForm from "./JobSearchForm";
-import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
+import {
+  Grid,
+  GridColumn,
+  Icon,
+  Pagination,
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
+} from "semantic-ui-react";
+import checkJsonResponse from "../utils/checkJsonResponse";
 import { formatISODate } from "../utils/formatters";
 import { getResponse } from "../utils/getData";
-import checkJsonResponse from "../utils/checkJsonResponse";
+import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
+import JobSearchForm from "./JobSearchForm";
 
 const io = require("socket.io-client");
 
@@ -387,90 +398,98 @@ class JobList extends React.Component {
       let startArgs = null;
       if ("start_arguments" in job && job.start_arguments) {
         startArgs = (
-          <tr key="4">
-            <td>Start arguments</td>
-            <td>{JSON.stringify(job.start_arguments, null, 0)}</td>
-          </tr>
+          <TableRow key="4">
+            <TableCell>Start arguments</TableCell>
+            <TableCell>
+              {JSON.stringify(job.start_arguments, null, 0)}
+            </TableCell>
+          </TableRow>
         );
       }
 
       return [
-        <tr key={`job_header_${job.id}`} onClick={this.clickRow.bind(this)}>
-          <td key="0">
+        <TableRow
+          key={`job_header_${job.id}`}
+          onClick={this.clickRow.bind(this)}
+        >
+          <TableCell key="0">
             <Icon name="angle right" />
             {job.id}
-          </td>
-          <td key="1">{job.function_name}</td>
-          <td key="2">{job.status}</td>
-          <td key="3">{job.scheduled_by}</td>
-          <td key="4">{formatISODate(job.finish_time)}</td>
-        </tr>,
-        <tr
+          </TableCell>
+          <TableCell key="1">{job.function_name}</TableCell>
+          <TableCell key="2">{job.status}</TableCell>
+          <TableCell key="3">{job.scheduled_by}</TableCell>
+          <TableCell key="4">{formatISODate(job.finish_time)}</TableCell>
+        </TableRow>,
+        <TableRow
           key={`job_content_${job.id}`}
-          colSpan="5"
           className="device_details_row"
           hidden
         >
-          <td>
-            <table className="device_details_table">
-              <tbody>
-                <tr key="0">
-                  <td>Start time</td>
-                  <td>{formatISODate(job.start_time)}</td>
-                </tr>
-                <tr key="1">
-                  <td>Finish time</td>
-                  <td>{formatISODate(job.finish_time)}</td>
-                </tr>
-                <tr key="2">
-                  <td>Comment</td>
-                  <td>{job.comment}</td>
-                </tr>
-                <tr key="3">
-                  <td>Ticket reference</td>
-                  <td>{job.ticket_ref}</td>
-                </tr>
-                {startArgs}
-                <tr key="5">
-                  <td>Next job id</td>
-                  <td>{job.next_job_id}</td>
-                </tr>
-                <tr key="6">
-                  <td>Change score</td>
-                  <td>{job.change_score}</td>
-                </tr>
-                <tr key="7">
-                  <td>Finished devices</td>
-                  <td>{finishedDevices}</td>
-                </tr>
-              </tbody>
-            </table>
-            {jobDetails}
-          </td>
-        </tr>,
+          <TableCell style={{ display: "block" }}>
+            <Grid columns={2}>
+              <GridColumn>
+                <Table compact basic={"very"}>
+                  <TableBody>
+                    <TableRow key="0">
+                      <TableCell>Start time</TableCell>
+                      <TableCell>{formatISODate(job.start_time)}</TableCell>
+                    </TableRow>
+                    <TableRow key="1">
+                      <TableCell>Finish time</TableCell>
+                      <TableCell>{formatISODate(job.finish_time)}</TableCell>
+                    </TableRow>
+                    <TableRow key="2">
+                      <TableCell>Comment</TableCell>
+                      <TableCell>{job.comment}</TableCell>
+                    </TableRow>
+                    <TableRow key="3">
+                      <TableCell>Ticket reference</TableCell>
+                      <TableCell>{job.ticket_ref}</TableCell>
+                    </TableRow>
+                    {startArgs}
+                    <TableRow key="5">
+                      <TableCell>Next job id</TableCell>
+                      <TableCell>{job.next_job_id}</TableCell>
+                    </TableRow>
+                    <TableRow key="6">
+                      <TableCell>Change score</TableCell>
+                      <TableCell>{job.change_score}</TableCell>
+                    </TableRow>
+                    <TableRow key="7">
+                      <TableCell>Finished devices</TableCell>
+                      <TableCell>{finishedDevices}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </GridColumn>
+              <GridColumn width={16}>{jobDetails}</GridColumn>
+            </Grid>
+          </TableCell>
+        </TableRow>,
       ];
     });
     if (this.state.error) {
       jobTableBody = [
-        <tr key="error">
-          <td colSpan="5">API error: {this.state.error}</td>
-        </tr>,
+        <TableRow key="error">
+          <TableCell colSpan="5">API error: {this.state.error}</TableCell>
+        </TableRow>,
       ];
     } else if (!Array.isArray(jobTableBody) || !jobTableBody.length) {
       if (this.state.loading) {
         jobTableBody = [
-          <tr key="loading">
-            <td colSpan="5">
+          <TableRow key="loading">
+            <TableCell colSpan="5">
               <Icon name="spinner" loading />
               Loading jobs...
-            </td>
-          </tr>,
+            </TableCell>
+          </TableRow>,
         ];
       } else {
         jobTableBody = [
-          <tr key="empty">
-            <td colSpan="5">Empty result</td>
-          </tr>,
+          <TableRow key="empty">
+            <TableCell colSpan="5">Empty result</TableCell>
+          </TableRow>,
         ];
       }
     }
@@ -483,55 +502,61 @@ class JobList extends React.Component {
         <div id="logoutputdiv" className="logoutput">
           <pre>{this.state.logLines}</pre>
         </div>
-        <div id="job_list">
-          <h2>Job list</h2>
-          <div id="data">
-            <table className="job_list">
-              <thead>
-                <tr key="header">
-                  <th onClick={() => this.sortHeader("id")} key="0">
-                    ID
-                    <div className="sync_status_sort">
-                      {this.renderSortButton(this.state.id_sort)}
-                    </div>
-                  </th>
-                  <th onClick={() => this.sortHeader("function_name")} key="1">
-                    Function name
-                    <div className="hostname_sort">
-                      {this.renderSortButton(this.state.function_name_sort)}
-                    </div>
-                  </th>
-                  <th onClick={() => this.sortHeader("status")} key="2">
-                    Status
-                    <div className="device_type_sort">
-                      {this.renderSortButton(this.state.status_sort)}
-                    </div>
-                  </th>
-                  <th onClick={() => this.sortHeader("scheduled_by")} key="3">
-                    Scheduled by
-                    <div className="sync_status_sort">
-                      {this.renderSortButton(this.state.scheduled_by_sort)}
-                    </div>
-                  </th>
-                  <th onClick={() => this.sortHeader("finish_time")} key="4">
-                    Finish time
-                    <div className="sync_status_sort">
-                      {this.renderSortButton(this.state.finish_time_sort)}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>{jobTableBody}</tbody>
-            </table>
-          </div>
-          <div>
-            <Pagination
-              defaultActivePage={1}
-              totalPages={this.state.totalPages}
-              onPageChange={this.pageChange.bind(this)}
-            />
-          </div>
-        </div>
+        <h2>Jobs</h2>
+        <Table>
+          <TableHeader>
+            <TableRow key="header">
+              <TableHeaderCell onClick={() => this.sortHeader("id")} key="0">
+                ID
+                <div className="sync_status_sort">
+                  {this.renderSortButton(this.state.id_sort)}
+                </div>
+              </TableHeaderCell>
+              <TableHeaderCell
+                onClick={() => this.sortHeader("function_name")}
+                key="1"
+              >
+                Function name
+                <div className="hostname_sort">
+                  {this.renderSortButton(this.state.function_name_sort)}
+                </div>
+              </TableHeaderCell>
+              <TableHeaderCell
+                onClick={() => this.sortHeader("status")}
+                key="2"
+              >
+                Status
+                <div className="device_type_sort">
+                  {this.renderSortButton(this.state.status_sort)}
+                </div>
+              </TableHeaderCell>
+              <TableHeaderCell
+                onClick={() => this.sortHeader("scheduled_by")}
+                key="3"
+              >
+                Scheduled by
+                <div className="sync_status_sort">
+                  {this.renderSortButton(this.state.scheduled_by_sort)}
+                </div>
+              </TableHeaderCell>
+              <TableHeaderCell
+                onClick={() => this.sortHeader("finish_time")}
+                key="4"
+              >
+                Finish time
+                <div className="sync_status_sort">
+                  {this.renderSortButton(this.state.finish_time_sort)}
+                </div>
+              </TableHeaderCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>{jobTableBody}</TableBody>
+        </Table>
+        <Pagination
+          defaultActivePage={1}
+          totalPages={this.state.totalPages}
+          onPageChange={this.pageChange.bind(this)}
+        />
       </section>
     );
   }
