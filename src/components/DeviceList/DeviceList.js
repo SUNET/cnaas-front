@@ -776,8 +776,7 @@ function DeviceList() {
   const getModel = (hostname) => {
     // loop through devicesData and return model for matching hostname
     const device = deviceData.find((element) => element.hostname === hostname);
-    if (!device) return null;
-    return device.model;
+    return device ? device.model : null;
   };
 
   const getNetboxModelData = async (hostname) => {
@@ -1025,19 +1024,16 @@ function DeviceList() {
   };
 
   const deleteDeviceAction = () => {
-    const device_id = deleteModalDeviceId;
-    const factory_default = deleteModalFactoryDefault;
-
-    const url = `${process.env.API_URL}/api/v1.0/device/${device_id}`;
+    const url = `${process.env.API_URL}/api/v1.0/device/${deleteModalDeviceId}`;
     const dataToSend = {
-      factory_default,
+      deleteModalFactoryDefault,
     };
 
     // TODO change to async
     deleteData(url, token, dataToSend)
       .then((data) => {
         if (data.job_id !== undefined && typeof data.job_id === "number") {
-          addDeviceJob(device_id, data.job_id);
+          addDeviceJob(deleteModalDeviceId, data.job_id);
           deleteModalClose();
         } else {
           deleteModalClose();
