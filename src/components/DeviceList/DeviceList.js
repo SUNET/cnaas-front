@@ -27,14 +27,13 @@ import { getData, getDataToken, getResponse } from "../../utils/getData";
 import { deleteData, postData, putData } from "../../utils/sendData";
 
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { io } from "socket.io-client";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import AddMgmtDomainModal from "./AddMgmtDomainModal";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
 import ShowConfigModal from "./ShowConfigModal";
 import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
-
-const io = require("socket.io-client");
 
 let socket = null;
 
