@@ -211,55 +211,71 @@ function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
 
   if (column === "synchronized") {
     return (
-      <Select
-        placeholder={`Filter ${columnMap[column]}`}
-        onChange={(_, data) => {
-          handleFilterChange(column, data.value);
-        }}
-        value={localFilter[column] || ""}
-        options={synchronizedOptions}
-        style={{ minWidth: "100%" }}
-        clearable
-        closeOnEscape
+      <Popup
+        content={`Filter ${columnMap[column]}`}
+        trigger={
+          <Select
+            onChange={(_, data) => {
+              handleFilterChange(column, data.value);
+            }}
+            value={localFilter[column] || ""}
+            options={synchronizedOptions}
+            style={{ minWidth: "100%" }}
+            clearable
+            closeOnEscape
+          />
+        }
       />
     );
   }
   if (column === "state") {
     return (
-      <Select
-        placeholder={`Filter ${columnMap[column]}`}
-        onChange={(_, data) => {
-          handleFilterChange(column, data.value);
-        }}
-        value={localFilter[column] || ""}
-        options={stateOptions}
-        style={{ minWidth: "100%" }}
-        clearable
-        closeOnEscape
+      <Popup
+        content={`Filter ${columnMap[column]}`}
+        trigger={
+          <Select
+            onChange={(_, data) => {
+              handleFilterChange(column, data.value);
+            }}
+            value={localFilter[column] || ""}
+            options={stateOptions}
+            style={{ minWidth: "100%" }}
+            clearable
+            closeOnEscape
+          />
+        }
       />
     );
   }
   if (column === "device_type") {
     return (
-      <Select
-        placeholder={`Filter ${columnMap[column]}`}
-        onChange={(_, data) => {
-          handleFilterChange(column, data.value);
-        }}
-        value={localFilter[column] || ""}
-        options={deviceTypeOptions}
-        style={{ minWidth: "100%" }}
-        clearable
-        closeOnEscape
+      <Popup
+        content={`Filter ${columnMap[column]}`}
+        trigger={
+          <Select
+            onChange={(_, data) => {
+              handleFilterChange(column, data.value);
+            }}
+            value={localFilter[column] || ""}
+            options={deviceTypeOptions}
+            style={{ minWidth: "100%" }}
+            clearable
+            closeOnEscape
+          />
+        }
       />
     );
   }
   return (
-    <Input
-      value={localFilter[column] || ""}
-      placeholder={`Filter ${columnMap[column]}`}
-      onChange={(e) => onChange(column, e.target.value)}
-      style={{ minWidth: "100%" }}
+    <Popup
+      content={`Filter ${columnMap[column]}`}
+      trigger={
+        <Input
+          value={localFilter[column] || ""}
+          onChange={(e) => onChange(column, e.target.value)}
+          style={{ minWidth: "100%" }}
+        />
+      }
     />
   );
 }
@@ -292,6 +308,10 @@ function DeviceTableHeader({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                ...(column === "id" && {
+                  maxWidth: "7em",
+                  minWidth: "7em",
+                }),
               }}
               collapsing
             >
@@ -304,7 +324,16 @@ function DeviceTableHeader({
       {filterActive && (
         <TableRow>
           {activeColumns.map((column) => (
-            <TableHeaderCell key={`filter_${column}`} collapsing>
+            <TableHeaderCell
+              key={`filter_${column}`}
+              collapsing
+              style={{
+                ...(column === "id" && {
+                  maxWidth: "7em",
+                  minWidth: "7em",
+                }),
+              }}
+            >
               <DeviceTableHeaderFilter
                 column={column}
                 filterData={filterData}
@@ -417,7 +446,13 @@ function DeviceTableBodyRow({
           <TableCell
             key={`${device.id}_${column}`}
             collapsing
-            style={{ overflow: "hidden" }}
+            style={{
+              overflow: "hidden",
+              ...(column === "id" && {
+                maxWidth: "7em",
+                minWidth: "7em",
+              }),
+            }}
           >
             <DeviceTableBodyRowCellContent
               device={device}
