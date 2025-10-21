@@ -698,7 +698,7 @@ function DeviceList() {
       const updated = { ...prev };
 
       if (deviceId in updated) {
-        updated[deviceId] = [...updated[deviceId], jobId];
+        updated[deviceId].push(jobId);
       } else {
         updated[deviceId] = [jobId];
       }
