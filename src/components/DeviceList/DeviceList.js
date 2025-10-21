@@ -360,6 +360,7 @@ DeviceTableHeader.propTypes = {
 function DeviceTableBodyRowCellContent({ device, column, open }) {
   const value = device[column];
 
+  if (column === "state" && device.deleted) return "DELETED";
   if (column === "synchronized" && device.state !== "MANAGED") return;
   if (column === "synchronized") {
     return (
@@ -662,12 +663,10 @@ function DeviceList() {
   const [showConfigModalOpen, setShowConfigModalOpen] = useState(false);
   const [showConfigModalHostname, setShowConfigModalHostname] = useState(null);
   const [showConfigModalState, setShowConfigModalState] = useState(null);
-
+  const [discoveredDeviceIds, setDiscoveredDeviceIds] = useState(new Set());
   const history = useHistory();
 
   const { token } = useAuthToken();
-
-  let discoveredDeviceIds = new Set();
 
   const populateDiscoveredDevices = async () => {
     const url = `${process.env.API_URL}/api/v1.0/devices?filter[state]=DISCOVERED`;
@@ -675,7 +674,7 @@ function DeviceList() {
       const data = await getData(url, token);
 
       data.data.devices.forEach((dev) => {
-        discoveredDeviceIds.add(dev.id);
+        setDiscoveredDeviceIds((prev) => new Set(prev).add(dev.id));
       });
     } catch (error) {
       setError(error);
@@ -1168,7 +1167,7 @@ function DeviceList() {
   const deleteDeviceAction = () => {
     const url = `${process.env.API_URL}/api/v1.0/device/${deleteModalDeviceId}`;
     const dataToSend = {
-      deleteModalFactoryDefault,
+      factory_default: deleteModalFactoryDefault,
     };
 
     // TODO change to async
@@ -1566,15 +1565,21 @@ function DeviceList() {
                 animation: "bounce",
                 time: 0,
               });
-              discoveredDeviceIdsRef.current.add(data.device_id);
+              setDiscoveredDeviceIds((prev) =>
+                new Set(prev).add(data.device_id),
+              );
             }
           }
           setDeviceData((prev) =>
             prev.map((dev) => (dev.id === data.device_id ? data.object : dev)),
           );
-        } else if (data.action == "DELETED") {
+        } else if (data.action === "DELETED") {
           setDeviceData((prev) =>
-            prev.filter((dev) => dev.id !== data.device_id),
+            prev.map((device) =>
+              device.id === data.device_id
+                ? { ...device, deleted: true }
+                : device,
+            ),
           );
           // If filter is on the current device id set filter to nothing and refetch data
           setFilterData((prev) => {
