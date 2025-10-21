@@ -142,6 +142,12 @@ export default function DeviceInfoBlock({
           </div>
           <Table compact>
             <TableBody>
+              <TableRow key="detail_hostname">
+                <TableCell key="name">Hostname</TableCell>
+                <TableCell key="value">
+                  <div>{device.hostname}</div>
+                </TableCell>
+              </TableRow>
               <TableRow key="detail_mgmtip">
                 <TableCell key="name">Management IP</TableCell>
                 <TableCell key="value">
