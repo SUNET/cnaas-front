@@ -1,31 +1,40 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { Icon, Loader } from "semantic-ui-react";
+import {
+  Icon,
+  Loader,
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
+} from "semantic-ui-react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { getData } from "../utils/getData";
 import permissionsCheck from "../utils/permissions/permissionsCheck";
 
 function GroupLoading() {
   return (
-    <tbody>
-      <tr key="Loading">
-        <td colSpan="5">
+    <TableBody>
+      <TableRow key="Loading">
+        <TableCell colSpan="5">
           <Loader active inline="centered">
             Loading groups...{" "}
           </Loader>
-        </td>
-      </tr>
-    </tbody>
+        </TableCell>
+      </TableRow>
+    </TableBody>
   );
 }
 
 function GroupError({ message }) {
   return (
-    <tbody>
-      <tr key="error">
-        <td colSpan="5">API error: {message}</td>
-      </tr>
-    </tbody>
+    <TableBody>
+      <TableRow key="error">
+        <TableCell colSpan="5">API error: {message}</TableCell>
+      </TableRow>
+    </TableBody>
   );
 }
 
@@ -35,24 +44,24 @@ GroupError.propTypes = {
 
 function GroupEmptyResult() {
   return (
-    <tbody>
-      <tr>
-        <td colSpan="5">Empty result</td>
-      </tr>
-    </tbody>
+    <TableBody>
+      <TableRow>
+        <TableCell colSpan="5">Empty result</TableCell>
+      </TableRow>
+    </TableBody>
   );
 }
 
 function GroupResult({ groupData }) {
   return (
-    <tbody>
+    <TableBody>
       {Object.entries(groupData).map(([group, devices]) => (
-        <tr key={group}>
-          <td>{group}</td>
-          <td>{devices.join(", ")}</td>
+        <TableRow key={group}>
+          <TableCell>{group}</TableCell>
+          <TableCell>{devices.join(", ")}</TableCell>
 
           {permissionsCheck("Groups", "read") && (
-            <td>
+            <TableCell>
               <div>
                 {permissionsCheck("Config change", "write") && (
                   <a
@@ -72,11 +81,11 @@ function GroupResult({ groupData }) {
                   </a>
                 )}
               </div>
-            </td>
+            </TableCell>
           )}
-        </tr>
+        </TableRow>
       ))}
-    </tbody>
+    </TableBody>
   );
 }
 
@@ -131,17 +140,19 @@ function GroupTableBody() {
 function GroupList() {
   return (
     <section>
-      <h2>Group list</h2>
-      <table id="data">
-        <thead>
-          <tr>
-            <th>Group name</th>
-            <th>Group members</th>
-            <th hidden={!permissionsCheck("Groups", "read")}>Actions</th>
-          </tr>
-        </thead>
+      <h2>Groups</h2>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHeaderCell>Group name</TableHeaderCell>
+            <TableHeaderCell>Group members</TableHeaderCell>
+            <TableHeaderCell hidden={!permissionsCheck("Groups", "read")}>
+              Actions
+            </TableHeaderCell>
+          </TableRow>
+        </TableHeader>
         <GroupTableBody />
-      </table>
+      </Table>
     </section>
   );
 }
