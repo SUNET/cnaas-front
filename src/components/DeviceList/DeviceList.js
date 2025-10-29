@@ -673,13 +673,21 @@ function DeviceList() {
   // https://reactrouter.com/api/hooks/useSearchParams
   const searchParams = useQuery();
 
+  const skipNextFilterSync = useRef(false); // skip setting filterData
+  const skipNextUrlSync = useRef(false); // skip pushing to URL
+
   useEffect(() => {
+    if (skipNextFilterSync.current) {
+      skipNextFilterSync.current = false;
+      return; // skip because it came from filterData update
+    }
     // Set filterData on searchParam change
     const locationFilterData = {};
     for (const [key, value] of searchParams.entries()) {
       const match = key.match(/^filter\[(.+)\]$/);
       if (match) locationFilterData[match[1]] = value;
     }
+    skipNextUrlSync.current = true;
 
     setFilterData(locationFilterData);
   }, [searchParams]);
@@ -772,6 +780,10 @@ function DeviceList() {
 
   // Set queryParams on filterData changes
   useEffect(() => {
+    if (skipNextUrlSync.current) {
+      skipNextUrlSync.current = false;
+      return; // skip because it came from searchParams update
+    }
     const filterParams = Object.fromEntries(
       Object.entries(filterData)
         .filter(([, value]) => value) // skip empty values
@@ -783,6 +795,7 @@ function DeviceList() {
 
     // Only push if it have changed
     // Do not push nothing
+    skipNextFilterSync.current = true;
     if (newSearch && newSearch !== location.search) {
       history.push(newSearch);
     } else if (!newSearch && location.search) {
