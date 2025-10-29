@@ -26,6 +26,9 @@ function ProgressBar({ jobStatus, value, total, hidden }) {
       case "EXCEPTION":
         error = true;
         break;
+      case "ABORTED":
+        error = true;
+        break;
       case null:
         disabled = true;
         break;

@@ -151,9 +151,9 @@ class FirmwareUpgrade extends React.Component {
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
       console.log(`total: ${totalCountHeader}`);
       if (step == 2) {
-        this.setState({ step2totalCount: totalCountHeader });
+        this.setState({ step2totalCount: parseInt(totalCountHeader, 10) });
       } else if (step == 3) {
-        this.setState({ step3totalCount: totalCountHeader });
+        this.setState({ step3totalCount: parseInt(totalCountHeader, 10) });
       }
     } else {
       console.log(
