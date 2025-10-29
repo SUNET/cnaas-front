@@ -685,11 +685,8 @@ function DeviceList() {
       const match = key.match(/^filter\[(.+)\]$/);
       if (match) locationFilterData[match[1]] = value;
     }
-    // if (Object.keys(locationFilterData).length > 0) {
+
     setFilterData(locationFilterData);
-    // } else {
-    //   setFilterData({});
-    // }
   }, [searchParams]);
 
   const populateDiscoveredDevices = async () => {
