@@ -1,14 +1,20 @@
-import { Dropdown, Icon, Popup } from "semantic-ui-react";
+import PropTypes from "prop-types";
+import {
+  Dropdown,
+  Grid,
+  GridColumn,
+  GridRow,
+  Popup,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "semantic-ui-react";
 import { usePermissions } from "../../contexts/PermissionsContext";
 import { formatISODate } from "../../utils/formatters";
 
 export default function DeviceInfoBlock({
   device,
-  hostnameExtra,
-  syncStatus,
-  columnData,
-  clickRow,
-  colLength,
   menuActions,
   mgmtip,
   deviceStateExtra,
@@ -18,38 +24,6 @@ export default function DeviceInfoBlock({
   netboxDevice,
 }) {
   const { permissionsCheck } = usePermissions();
-
-  function toggleHidden(target) {
-    const closestTrParent = target.closest("tr");
-    const isHidden = closestTrParent.nextElementSibling.hidden;
-    if (isHidden) {
-      closestTrParent.nextElementSibling.hidden = false;
-      try {
-        closestTrParent.firstElementChild.firstElementChild.className =
-          "angle down icon";
-        return closestTrParent.id;
-      } catch {
-        console.log("Could not change icon for expanded row");
-      }
-    } else {
-      closestTrParent.nextElementSibling.hidden = true;
-      try {
-        closestTrParent.firstElementChild.firstElementChild.className =
-          "angle right icon";
-      } catch {
-        console.log("Could not change icon for collapsed row");
-      }
-    }
-
-    return undefined;
-  }
-
-  function handleClick(e) {
-    const expandedId = toggleHidden(e.target);
-    if (expandedId) {
-      clickRow(expandedId);
-    }
-  }
 
   let modelField = device.model;
   if (model) {
@@ -107,17 +81,17 @@ export default function DeviceInfoBlock({
       ];
     }
     netboxRows.push(
-      <tr key="netbox_status">
-        <td key="name">Netbox Status</td>
-        <td key="value">
+      <TableRow key="netbox_status">
+        <TableCell key="name">Netbox Status</TableCell>
+        <TableCell key="value">
           <p>
             <a href={netboxDevice.display_url} title="Go to device in Netbox">
               {netboxDevice.status.label}
             </a>
             {monitoringLink}
           </p>
-        </td>
-      </tr>,
+        </TableCell>
+      </TableRow>,
     );
     if (netboxDevice.location || netboxDevice.site) {
       const locationParts = [];
@@ -147,93 +121,113 @@ export default function DeviceInfoBlock({
         locationParts.splice(1, 0, <span key="separator"> {"->"} </span>);
       }
       netboxRows.push(
-        <tr key="netbox_location">
-          <td key="name">Netbox Location</td>
-          <td key="value">
+        <TableRow key="netbox_location">
+          <TableCell key="name">Netbox Location</TableCell>
+          <TableCell key="value">
             <div>{locationParts}</div>
-          </td>
-        </tr>,
+          </TableCell>
+        </TableRow>,
       );
     }
   }
 
-  return [
-    <tr id={device.hostname} key={`${device.id}_row`} onClick={handleClick}>
-      <td key={`${device.id}_hostname`}>
-        <Icon name="angle right" />
-        {device.hostname}
-        {hostnameExtra}
-      </td>
-      <td key={`${device.id}_device_type`}>{device.device_type}</td>
-      {syncStatus}
-      {columnData}
-      <td key={`${device.id}_id`}>{device.id}</td>
-    </tr>,
-    <tr
-      key={`${device.id}_content`}
-      colSpan={4 + colLength}
-      className="device_details_row"
-      hidden
-    >
-      <td key="content_data">
-        <div hidden={!permissionsCheck("Devices", "write")}>
-          <Dropdown text="Actions" button>
-            <Dropdown.Menu>{menuActions}</Dropdown.Menu>
-          </Dropdown>
-        </div>
-        <table className="device_details_table">
-          <tbody>
-            <tr key="detail_mgmtip">
-              <td key="name">Management IP</td>
-              <td key="value">
-                <div>{mgmtip}</div>
-              </td>
-            </tr>
-            <tr key="detail_infraip">
-              <td key="name">Infra IP</td>
-              <td key="value">{device.infra_ip}</td>
-            </tr>
-            <tr key="detail_mac">
-              <td key="name">MAC</td>
-              <td key="value">{device.ztp_mac}</td>
-            </tr>
-            <tr key="detail_vendor">
-              <td key="name">Vendor</td>
-              <td key="value">{device.vendor}</td>
-            </tr>
-            <tr key="detail_model">
-              <td key="name">Model</td>
-              <td key="value">{modelField}</td>
-            </tr>
-            <tr key="detail_osversion">
-              <td key="name">OS Version</td>
-              <td key="value">{device.os_version}</td>
-            </tr>
-            <tr key="detail_serial">
-              <td key="name">Serial</td>
-              <td key="value">{device.serial}</td>
-            </tr>
-            <tr key="detail_state">
-              <td key="name">State</td>
-              <td key="value">{device.state}</td>
-            </tr>
-            <tr key="primary_group">
-              <td key="name">Primary group</td>
-              <td key="value">{device.primary_group}</td>
-            </tr>
-            <tr key="seen">
-              <td key="name">Last seen</td>
-              <td key="value">{formatISODate(device.last_seen)}</td>
-            </tr>
-            {netboxRows}
-          </tbody>
-        </table>
-        {deviceStateExtra}
-        {deviceInterfaceData}
-        <div id={`logoutputdiv_device_id_${device.id}`} className="logoutput">
-          <pre>{log[device.id]}</pre>
-        </div>
-      </td>
-    </tr>,
-  ];
+  return (
+    <Grid columns={2}>
+      <GridRow>
+        <GridColumn>
+          <div hidden={!permissionsCheck("Devices", "write")}>
+            <Dropdown text="Actions" button>
+              <Dropdown.Menu>{menuActions}</Dropdown.Menu>
+            </Dropdown>
+          </div>
+          <Table compact>
+            <TableBody>
+              <TableRow key="detail_hostname">
+                <TableCell key="name">Hostname</TableCell>
+                <TableCell key="value">
+                  <div>{device.hostname}</div>
+                </TableCell>
+              </TableRow>
+              <TableRow key="detail_mgmtip">
+                <TableCell key="name">Management IP</TableCell>
+                <TableCell key="value">
+                  <div>{mgmtip}</div>
+                </TableCell>
+              </TableRow>
+              <TableRow key="detail_infraip">
+                <TableCell key="name">Infra IP</TableCell>
+                <TableCell key="value">{device.infra_ip}</TableCell>
+              </TableRow>
+              <TableRow key="detail_mac">
+                <TableCell key="name">MAC</TableCell>
+                <TableCell key="value">{device.ztp_mac}</TableCell>
+              </TableRow>
+              <TableRow key="detail_vendor">
+                <TableCell key="name">Vendor</TableCell>
+                <TableCell key="value">{device.vendor}</TableCell>
+              </TableRow>
+              <TableRow key="detail_model">
+                <TableCell key="name">Model</TableCell>
+                <TableCell key="value">{modelField}</TableCell>
+              </TableRow>
+              <TableRow key="detail_osversion">
+                <TableCell key="name">OS Version</TableCell>
+                <TableCell key="value">{device.os_version}</TableCell>
+              </TableRow>
+              <TableRow key="detail_serial">
+                <TableCell key="name">Serial</TableCell>
+                <TableCell key="value">{device.serial}</TableCell>
+              </TableRow>
+              <TableRow key="detail_state">
+                <TableCell key="name">State</TableCell>
+                <TableCell key="value">{device.state}</TableCell>
+              </TableRow>
+              <TableRow key="primary_group">
+                <TableCell key="name">Primary group</TableCell>
+                <TableCell key="value">{device.primary_group}</TableCell>
+              </TableRow>
+              <TableRow key="seen">
+                <TableCell key="name">Last seen</TableCell>
+                <TableCell key="value">
+                  {formatISODate(device.last_seen)}
+                </TableCell>
+              </TableRow>
+              {netboxRows}
+            </TableBody>
+          </Table>
+        </GridColumn>
+      </GridRow>
+      <GridRow style={{ paddingTop: 0, paddingBottom: 0 }}>
+        <GridColumn width={16}>
+          {deviceStateExtra}
+          {deviceInterfaceData}
+        </GridColumn>
+      </GridRow>
+      {(!log[device.id] || log[device.id]?.length !== 0) && (
+        <GridRow style={{ overflow: "hidden" }}>
+          <GridColumn width={16}>
+            <div
+              id={`logoutputdiv_device_id_${device.id}`}
+              className="logoutput"
+              style={{ margin: 0, overflow: "auto" }}
+            >
+              <pre style={{ width: "1em" }}>{log[device.id]}</pre>
+            </div>
+          </GridColumn>
+        </GridRow>
+      )}
+    </Grid>
+  );
 }
+
+// TODO update these to more specific PropTypes
+DeviceInfoBlock.propTypes = {
+  device: PropTypes.object,
+  menuActions: PropTypes.any,
+  mgmtip: PropTypes.any,
+  deviceStateExtra: PropTypes.any,
+  deviceInterfaceData: PropTypes.any,
+  log: PropTypes.any,
+  model: PropTypes.any,
+  netboxDevice: PropTypes.any,
+};

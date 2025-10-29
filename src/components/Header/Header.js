@@ -31,6 +31,9 @@ function Header() {
         exact
         activeClassName="active"
         hidden={!permissionsCheck("Devices", "read")}
+        onClick={(e) => {
+          if (location.pathname === "/devices") e.preventDefault();
+        }}
         to="/devices"
         key="nav2"
       >

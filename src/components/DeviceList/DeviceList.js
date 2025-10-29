@@ -1,497 +1,946 @@
-import React from "react";
+import PropTypes from "prop-types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom/cjs/react-router-dom";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import {
+  Button,
+  ButtonGroup,
+  Checkbox,
   Dropdown,
+  Grid,
+  GridColumn,
+  GridRow,
   Icon,
+  Input,
+  Loader,
+  Modal,
   Pagination,
   Popup,
-  Button,
   Select,
-  Checkbox,
-  Modal,
-  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
 } from "semantic-ui-react";
-import queryString from "query-string";
-import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
-import DeviceSearchForm from "./DeviceSearchForm";
-import checkResponseStatus from "../../utils/checkResponseStatus";
-import DeviceInitForm from "./DeviceInitForm";
-import { getData, getResponse, getDataToken } from "../../utils/getData";
-import { deleteData } from "../../utils/sendData";
-import DeviceInfoBlock from "./DeviceInfoBlock";
+import { io } from "socket.io-client";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { getData, getDataToken, getResponse } from "../../utils/getData";
+import { deleteData, postData, putData } from "../../utils/sendData";
 import AddMgmtDomainModal from "./AddMgmtDomainModal";
-import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
+import DeviceInfoBlock from "./DeviceInfoBlock";
+import DeviceInitForm from "./DeviceInitForm";
 import ShowConfigModal from "./ShowConfigModal";
-
-const io = require("socket.io-client");
+import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
 
 let socket = null;
 
-class DeviceList extends React.Component {
-  state = {
-    sortField: "id",
-    filterField: null,
-    filterValue: null,
-    hostname_sort: "",
-    device_type_sort: "",
-    state_sort: "",
-    id_sort: "↓",
-    devicesData: [],
-    deviceInterfaceData: {},
-    netboxModelData: {},
-    netboxDeviceData: {},
-    activePage: 1,
-    totalPages: 1,
-    resultsPerPage: 20,
-    deviceJobs: {},
-    logLines: [],
-    queryParamsParsed: false,
-    queryString: "",
-    loading: true,
-    error: null,
-    displayColumns: [],
-    delete_modal_open: false,
-    delete_modal_device_id: null,
-    delete_modal_device_state: null,
-    delete_modal_device_type: null,
-    delete_modal_confirm_name: "",
-    delete_modal_factory_default: false,
-    delete_modal_error: null,
-    mgmtAddModalOpen: false,
-    mgmtUpdateModalOpen: false,
-    mgmtUpdateModalInput: {},
-    mgmtAddModalInput: {},
-    mgmtDomainsData: [],
-    showConfigModalOpen: false,
-    showConfigModalHostname: null,
-    showConfigModalState: null,
+const columnMap = {
+  id: "ID",
+  hostname: "Hostname",
+  device_type: "Device type",
+  state: "State",
+  synchronized: "Synchronized",
+  model: "Model",
+  os_version: "OS version",
+  management_ip: "Management IP",
+  dhcp_ip: "DHCP IP",
+  serial: "Serial",
+  vendor: "Vendor",
+  platform: "Platform",
+};
+
+const perPageOptions = [
+  { key: 20, value: 20, text: "20" },
+  { key: 50, value: 50, text: "50" },
+  { key: 100, value: 100, text: "100" },
+  { key: 500, value: 500, text: "500" },
+  { key: 1000, value: 1000, text: "1000" },
+];
+
+function DeviceTableButtonGroup({
+  activeColumns,
+  setFilterActive,
+  setFilterData,
+  columnSelectorChange,
+  resultsPerPage,
+  setActivePage,
+  setResultsPerPage,
+  setSortColumn,
+  setSortDirection,
+}) {
+  const extraColumns = [
+    "model",
+    "os_version",
+    "management_ip",
+    "dhcp_ip",
+    "serial",
+    "vendor",
+    "platform",
+  ];
+  return (
+    <ButtonGroup icon>
+      <Button
+        icon
+        basic
+        size="small"
+        onClick={() => {
+          setFilterActive((prev) => !prev);
+        }}
+        title="Search / Filter"
+      >
+        <Icon name="filter" />
+      </Button>
+      <Button
+        icon
+        basic
+        size="small"
+        onClick={() => {
+          setFilterActive(false);
+          setFilterData({});
+          setSortColumn(null);
+          setSortDirection(null);
+        }}
+        title="Clear Filter and Sorting"
+      >
+        <Icon name="close" />
+      </Button>
+      <Popup
+        on="click"
+        pinned
+        position="bottom right"
+        trigger={
+          <Button icon basic size="small" title="Select Columns">
+            <Icon name="columns" />
+          </Button>
+        }
+      >
+        <p>Items per page:</p>
+        <Select
+          options={perPageOptions}
+          value={resultsPerPage}
+          onChange={(e, { value }) => {
+            setResultsPerPage(value);
+            // Make sure page resets to 1 when changing this option
+            setActivePage(1);
+          }}
+        />
+        <p>Show extra columns:</p>
+        <ul>
+          {extraColumns.map((columnName) => {
+            const checked = activeColumns.includes(columnName);
+            return (
+              <li key={columnName}>
+                <Checkbox
+                  defaultChecked={checked}
+                  label={columnMap[columnName]}
+                  name={columnName}
+                  onClick={() => {
+                    columnSelectorChange(columnName);
+                  }}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </Popup>
+    </ButtonGroup>
+  );
+}
+
+DeviceTableButtonGroup.propTypes = {
+  activeColumns: PropTypes.arrayOf(PropTypes.string),
+  setFilterActive: PropTypes.func,
+  setFilterData: PropTypes.func,
+  columnSelectorChange: PropTypes.func,
+  resultsPerPage: PropTypes.number,
+  setActivePage: PropTypes.func,
+  setResultsPerPage: PropTypes.func,
+  setSortColumn: PropTypes.func,
+  setSortDirection: PropTypes.func,
+};
+
+function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
+  const [localFilter, setLocalFilter] = useState(filterData);
+  const debounceTimeout = useRef(null);
+
+  useEffect(() => {
+    setLocalFilter(filterData);
+  }, [filterData]);
+
+  const onChange = (column, value) => {
+    // Update input immediately
+    setLocalFilter((prev) => ({ ...prev, [column]: value }));
+
+    // Clear previous debounce
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+    // Set new debounce
+    debounceTimeout.current = setTimeout(() => {
+      handleFilterChange(column, value); // triggers fetch
+    }, 300);
   };
 
-  discovered_device_ids = new Set();
+  const synchronizedOptions = [
+    { key: "NONE", value: "", text: "" },
+    { key: "true", value: "true", text: "Synchronized" },
+    { key: "false", value: "false", text: "Unsynchronized" },
+  ];
 
-  populateDiscoveredDevices() {
-    const credentials = localStorage.getItem("token");
-    const url = `${process.env.API_URL}/api/v1.0/devices?filter[state]=DISCOVERED&per_page=100`;
-    getData(url, credentials)
-      .then((data) => {
-        data.data.devices.forEach((dev) => {
-          this.discovered_device_ids.add(dev.id);
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        this.setState({
-          devicesData: [],
-          loading: false,
-          error,
-        });
-      });
-  }
+  const stateOptions = [
+    { key: "NONE", value: "", text: "" },
+    { key: "MANAGED", value: "MANAGED", text: "MANAGED" },
+    { key: "UNMANAGED", value: "UNMANAGED", text: "UNMANAGED" },
+    { key: "DHCP_BOOT", value: "DHCP_BOOT", text: "DHCP_BOOT" },
+    { key: "DISCOVERED", value: "DISCOVERED", text: "DISCOVERED" },
+    { key: "INIT", value: "INIT", text: "INIT" },
+    { key: "UNKNOWN", value: "UNKNOWN", text: "UNKNOWN" },
+    { key: "PRE_CONFIGURED", value: "PRE_CONFIGURED", text: "PRE_CONFIGURED" },
+  ];
 
-  getAllMgmtDomainsData() {
-    const credentials = localStorage.getItem("token");
-    getData(`${process.env.API_URL}/api/v1.0/mgmtdomains`, credentials)
-      .then((resp) => {
-        this.setState({ mgmtDomainsData: resp.data.mgmtdomains });
-      })
-      .catch((error) => {
-        this.setState({
-          loading: false,
-          error,
-        });
-      });
-  }
+  const deviceTypeOptions = [
+    { key: "NONE", value: "", text: "" },
+    { key: "UNKNOWN", value: "UNKNOWN", text: "UNKNOWN" },
+    { key: "ACCESS", value: "ACCESS", text: "ACCESS" },
+    { key: "DIST", value: "DIST", text: "DIST" },
+    { key: "CORE", value: "CORE", text: "CORE" },
+    { key: "FIREWALL", value: "FIREWALL", text: "FIREWALL" },
+  ];
 
-  parseQueryParams(callback) {
-    if (this.state.queryParamsParsed === false) {
-      const queryParams = queryString.parse(this.props.location.search);
-      this.setState({
-        queryParamsParsed: true,
-        queryString: this.props.location.search,
-      });
-      const filterRegex = /filter\[(?<field>\w+)\]/;
-      let found = false;
-      Object.entries(queryParams).forEach(([field, value]) => {
-        const match = filterRegex.exec(field);
-        if (match) {
-          found = true;
-          this.setState(
-            {
-              filterField: match.groups.field,
-              filterValue: value,
-            },
-            () => {
-              callback();
-            },
-          );
+  if (column === "synchronized") {
+    return (
+      <Popup
+        content={`Filter ${columnMap[column]}`}
+        trigger={
+          <Select
+            onChange={(_, data) => {
+              handleFilterChange(column, data.value);
+            }}
+            value={localFilter[column] || ""}
+            options={synchronizedOptions}
+            style={{ minWidth: "100%" }}
+            clearable
+            closeOnEscape
+          />
         }
-      });
-      if (!found) {
-        callback({ filterField: null, filterValue: null });
+      />
+    );
+  }
+  if (column === "state") {
+    return (
+      <Popup
+        content={`Filter ${columnMap[column]}`}
+        trigger={
+          <Select
+            onChange={(_, data) => {
+              handleFilterChange(column, data.value);
+            }}
+            value={localFilter[column] || ""}
+            options={stateOptions}
+            style={{ minWidth: "100%" }}
+            clearable
+            closeOnEscape
+          />
+        }
+      />
+    );
+  }
+  if (column === "device_type") {
+    return (
+      <Popup
+        content={`Filter ${columnMap[column]}`}
+        trigger={
+          <Select
+            onChange={(_, data) => {
+              handleFilterChange(column, data.value);
+            }}
+            value={localFilter[column] || ""}
+            options={deviceTypeOptions}
+            style={{ minWidth: "100%" }}
+            clearable
+            closeOnEscape
+          />
+        }
+      />
+    );
+  }
+  return (
+    <Popup
+      content={`Filter ${columnMap[column]}`}
+      trigger={
+        <Input
+          value={localFilter[column] || ""}
+          onChange={(e) => onChange(column, e.target.value)}
+          style={{ minWidth: "100%" }}
+        />
       }
+    />
+  );
+}
+
+DeviceTableHeaderFilter.propTypes = {
+  column: PropTypes.string,
+  filterData: PropTypes.object,
+  handleFilterChange: PropTypes.func,
+};
+
+function DeviceTableHeader({
+  activeColumns,
+  sortColumn,
+  sortDirection,
+  filterActive,
+  filterData,
+  sortClick,
+  handleFilterChange,
+}) {
+  return (
+    <TableHeader>
+      <TableRow>
+        {activeColumns.map((column) => {
+          return (
+            <TableHeaderCell
+              key={column}
+              onClick={() => sortClick(column)}
+              sorted={sortColumn === column ? sortDirection : null}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                ...(column === "id" && {
+                  maxWidth: "7em",
+                  minWidth: "7em",
+                }),
+              }}
+              collapsing
+            >
+              {columnMap[column]}
+            </TableHeaderCell>
+          );
+        })}
+      </TableRow>
+      {/* Setup filter data */}
+      {filterActive && (
+        <TableRow>
+          {activeColumns.map((column) => (
+            <TableHeaderCell
+              key={`filter_${column}`}
+              collapsing
+              style={{
+                ...(column === "id" && {
+                  maxWidth: "7em",
+                  minWidth: "7em",
+                }),
+              }}
+            >
+              <DeviceTableHeaderFilter
+                column={column}
+                filterData={filterData}
+                handleFilterChange={handleFilterChange}
+              />
+            </TableHeaderCell>
+          ))}
+        </TableRow>
+      )}
+    </TableHeader>
+  );
+}
+
+DeviceTableHeader.propTypes = {
+  activeColumns: PropTypes.arrayOf(PropTypes.string),
+  sortColumn: PropTypes.string,
+  sortDirection: PropTypes.string,
+  filterActive: PropTypes.bool,
+  filterData: PropTypes.object,
+  sortClick: PropTypes.func,
+  handleFilterChange: PropTypes.func,
+};
+
+function DeviceTableBodyRowCellContent({ device, column, open }) {
+  const value = device[column];
+
+  if (column === "state" && device.deleted) return "DELETED";
+  if (column === "synchronized" && device.state !== "MANAGED") return;
+  if (column === "synchronized") {
+    return (
+      <>
+        {value ? "Synchronized" : "Unsynchronized"}
+        <Icon
+          name={value ? "check" : "delete"}
+          color={value ? "green" : "red"}
+          style={{ marginLeft: "5px" }}
+        />
+      </>
+    );
+  }
+  if (column == "id") {
+    return (
+      <>
+        <Icon name={open ? "angle down" : "angle right"} />
+        {value}
+      </>
+    );
+  }
+  if (
+    column === "hostname" &&
+    device.state === "MANAGED" &&
+    device.device_type === "ACCESS"
+  ) {
+    return (
+      <>
+        {value}
+        {column === "hostname" &&
+          device.state === "MANAGED" &&
+          device.device_type === "ACCESS" && (
+            <a
+              key="interfaceconfig"
+              href={`/interface-config?hostname=${device.hostname}`}
+            >
+              <Icon name="plug" link />
+            </a>
+          )}
+      </>
+    );
+  }
+  return value;
+}
+
+DeviceTableBodyRowCellContent.propTypes = {
+  device: PropTypes.object,
+  column: PropTypes.string,
+  open: PropTypes.bool,
+};
+
+function DeviceTableBodyRow({
+  device,
+  activeColumns,
+  mangleDeviceData,
+  defaultOpen,
+  getAdditionalDeviceData,
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const deviceInfo = mangleDeviceData(device);
+
+  // When device changes and defaultOpen is set open the row
+  useEffect(() => {
+    if (!open && defaultOpen) {
+      getAdditionalDeviceData(device.hostname);
+      setOpen(true);
+      // If the row is already opened we can fetch additional data
+    } else if (open && defaultOpen) {
+      getAdditionalDeviceData(device.hostname);
     }
+  }, [device]);
+
+  const handleRowClick = () => {
+    // Only fetch when opening the row
+    // That means the current state is open == false
+    if (!open) getAdditionalDeviceData(device.hostname);
+    setOpen((prev) => !prev);
+  };
+
+  return (
+    <>
+      <TableRow key={device.id} onClick={() => handleRowClick()}>
+        {activeColumns.map((column) => (
+          <TableCell
+            key={`${device.id}_${column}`}
+            collapsing
+            style={{
+              overflow: "hidden",
+              ...(column === "id" && {
+                maxWidth: "7em",
+                minWidth: "7em",
+              }),
+            }}
+          >
+            <DeviceTableBodyRowCellContent
+              device={device}
+              column={column}
+              open={open}
+            />
+          </TableCell>
+        ))}
+      </TableRow>
+      <TableRow key={`${device.id}_content`} hidden={!open}>
+        <TableCell
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            overflow: "visible",
+          }}
+        >
+          {deviceInfo}
+        </TableCell>
+      </TableRow>
+    </>
+  );
+}
+
+DeviceTableBodyRow.propTypes = {
+  device: PropTypes.object,
+  activeColumns: PropTypes.arrayOf(PropTypes.string),
+  mangleDeviceData: PropTypes.func,
+  defaultOpen: PropTypes.bool,
+  getAdditionalDeviceData: PropTypes.func,
+};
+
+function DeviceTableBody({
+  deviceData,
+  activeColumns,
+  loading,
+  error,
+  mangleDeviceData,
+  defaultOpen,
+  getAdditionalDeviceData,
+}) {
+  if (loading) {
+    return (
+      <TableBody>
+        <TableRow>
+          <TableCell>
+            <Loader active inline="centered">
+              Loading
+            </Loader>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    );
   }
 
-  addDeviceJob = (device_id, job_id) => {
-    const { deviceJobs } = this.state;
-    if (device_id in deviceJobs) {
-      deviceJobs[device_id].push(job_id);
-    } else {
-      deviceJobs[device_id] = [job_id];
+  if (error) {
+    return (
+      <TableBody>
+        <TableRow>
+          <TableCell>API Error: {error.message}</TableCell>
+        </TableRow>
+      </TableBody>
+    );
+  }
+
+  if (deviceData.length === 0) {
+    return (
+      <TableBody>
+        <TableRow>
+          <TableCell>No data</TableCell>
+        </TableRow>
+      </TableBody>
+    );
+  }
+
+  return (
+    <TableBody>
+      {deviceData?.map((device) => (
+        <DeviceTableBodyRow
+          key={`${device.id}_row`}
+          device={device}
+          activeColumns={activeColumns}
+          mangleDeviceData={mangleDeviceData}
+          defaultOpen={defaultOpen}
+          getAdditionalDeviceData={getAdditionalDeviceData}
+        />
+      ))}
+    </TableBody>
+  );
+}
+
+DeviceTableBody.propTypes = {
+  deviceData: PropTypes.arrayOf(PropTypes.object),
+  activeColumns: PropTypes.arrayOf(PropTypes.string),
+  loading: PropTypes.bool,
+  error: PropTypes.object,
+  defaultOpen: PropTypes.bool,
+  mangleDeviceData: PropTypes.func,
+  getAdditionalDeviceData: PropTypes.func,
+};
+
+// Replace with useSearchParams in react-router v6
+const useQuery = () => {
+  const { search } = useLocation();
+  return useMemo(() => new URLSearchParams(search), [search]);
+};
+
+function DeviceList() {
+  const getInitialSettings = () => {
+    const defaultSettings = {
+      activePage: 1,
+      activeColumns: ["id", "hostname", "device_type", "state", "synchronized"],
+      sortColumn: null,
+      sortDirection: null,
+      filterActive: false,
+      filterData: {},
+      resultsPerPage: 20,
+    };
+
+    // Load from localStorage
+    let stored = {};
+    try {
+      stored = JSON.parse(localStorage.getItem("deviceList") || "{}");
+    } catch (e) {
+      console.warn("Failed to parse localStorage deviceList settings:", e);
     }
-    this.setState({ deviceJobs }, () => {
-      console.log("device jobs: ", this.state.deviceJobs);
+
+    // Extract filters from URL query params
+    const params = new URLSearchParams(globalThis.location.search);
+    const locationFilterData = {};
+    for (const [key, value] of params.entries()) {
+      const match = key.match(/^filter\[(.+)\]$/);
+      if (match) locationFilterData[match[1]] = value;
+    }
+    const hasLocationFilterData = Object.keys(locationFilterData).length > 0;
+    // Merge defaults + stored
+    const initial = { ...defaultSettings, ...stored };
+
+    // Ensure filtered columns are visible and unique
+    initial.activeColumns = [
+      ...new Set([
+        ...defaultSettings.activeColumns,
+        ...initial.activeColumns,
+        ...Object.keys(initial.filterData || {}),
+        ...Object.keys(locationFilterData),
+      ]),
+    ].sort(
+      (a, b) =>
+        Object.keys(columnMap).indexOf(a) - Object.keys(columnMap).indexOf(b),
+    );
+
+    // Reset page if URL filters exist
+    if (hasLocationFilterData) {
+      initial.activePage = 1;
+    }
+
+    return {
+      ...initial,
+      filterData: locationFilterData,
+      filterActive: Object.keys(locationFilterData).length > 0,
+    };
+  };
+
+  const [initialSettings] = useState(() => getInitialSettings());
+
+  const [activePage, setActivePage] = useState(initialSettings.activePage);
+  const [activeColumns, setActiveColumns] = useState(
+    initialSettings.activeColumns,
+  );
+  const [sortColumn, setSortColumn] = useState(initialSettings.sortColumn);
+  const [sortDirection, setSortDirection] = useState(
+    initialSettings.sortDirection,
+  );
+  const [filterData, setFilterData] = useState(initialSettings.filterData);
+  const [filterActive, setFilterActive] = useState(
+    initialSettings.filterActive,
+  );
+  const [resultsPerPage, setResultsPerPage] = useState(
+    initialSettings.resultsPerPage,
+  );
+
+  const [totalPages, setTotalPages] = useState(1);
+  const [deviceData, setDeviceData] = useState([]);
+  const [mgmtDomainsData, setMgmtDomainsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState();
+  const [expandResult, setExpandResult] = useState(false);
+
+  const [deviceInterfaceData, setDeviceInterfaceData] = useState({});
+  const [netboxModelData, setNetboxModelData] = useState({});
+  const [netboxDeviceData, setNetboxDeviceData] = useState({});
+  const [deviceJobs, setDeviceJobs] = useState({});
+  const [logLines, setLogLines] = useState([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteModalDeviceId, setDeleteModalDeviceId] = useState(null);
+  const [deleteModalDeviceState, setDeleteModalDeviceState] = useState(null);
+  const [deleteModalDeviceType, setDeleteModalDeviceType] = useState(null);
+  const [deleteModalDeviceHostname, setDeleteModalDeviceHostname] =
+    useState("");
+  const [deleteModalConfirmName, setDeleteModalConfirmName] = useState("");
+  const [deleteModalFactoryDefault, setDeleteModalFactoryDefault] =
+    useState(false);
+  const [deleteModalError, setDeleteModalError] = useState(null);
+  const [mgmtAddModalOpen, setMgmtAddModalOpen] = useState(false);
+  const [mgmtUpdateModalOpen, setMgmtUpdateModalOpen] = useState(false);
+  const [mgmtUpdateModalInput, setMgmtUpdateModalInput] = useState({});
+  const [mgmtAddModalInput, setMgmtAddModalInput] = useState({});
+  const [showConfigModalOpen, setShowConfigModalOpen] = useState(false);
+  const [showConfigModalHostname, setShowConfigModalHostname] = useState(null);
+  const [showConfigModalState, setShowConfigModalState] = useState(null);
+  const [discoveredDeviceIds, setDiscoveredDeviceIds] = useState(new Set());
+  const history = useHistory();
+
+  const { token } = useAuthToken();
+
+  // Change to useSearchParams after updating react-router to v6
+  // https://reactrouter.com/api/hooks/useSearchParams
+  const searchParams = useQuery();
+
+  useEffect(() => {
+    // Set filterData on searchParam change
+    const locationFilterData = {};
+    for (const [key, value] of searchParams.entries()) {
+      const match = key.match(/^filter\[(.+)\]$/);
+      if (match) locationFilterData[match[1]] = value;
+    }
+
+    setFilterData(locationFilterData);
+  }, [searchParams]);
+
+  const populateDiscoveredDevices = async () => {
+    const url = `${process.env.API_URL}/api/v1.0/devices?filter[state]=DISCOVERED`;
+    try {
+      const data = await getData(url, token);
+
+      data.data.devices.forEach((dev) => {
+        setDiscoveredDeviceIds((prev) => new Set(prev).add(dev.id));
+      });
+    } catch (error) {
+      setError(error);
+    }
+  };
+
+  const getAllMgmtDomainsData = async () => {
+    try {
+      const data = await getData(
+        `${process.env.API_URL}/api/v1.0/mgmtdomains`,
+        token,
+      );
+      setMgmtDomainsData(data.data.mgmtdomains);
+    } catch (error) {
+      setError(error);
+    }
+  };
+
+  const addDeviceJob = (deviceId, jobId) => {
+    setDeviceJobs((prev) => {
+      const updated = { ...prev };
+
+      if (deviceId in updated) {
+        updated[deviceId].push(jobId);
+      } else {
+        updated[deviceId] = [jobId];
+      }
+
+      return updated;
     });
   };
 
-  findAction = (event, options, toast) => {
+  const findAction = (event, filterData, toast) => {
     if (toast) {
       // close toast
       event.target.parentElement.parentElement.parentElement.parentElement.remove();
     }
-    this.props.history.push();
-    this.setState({ activePage: 1, queryParamsParsed: false }, () => {
-      this.getDevicesData(options).then(() => {
-        window.scrollTo(0, 0);
-        // Expand results when looking up device
-        const deviceDetails =
-          document.getElementsByClassName("device_details_row");
-        for (const deviceDetail of deviceDetails) {
-          deviceDetail.hidden = false;
-          this.getInterfacesData(deviceDetail.previousElementSibling.id);
-          this.getNetboxModelData(deviceDetail.previousElementSibling.id);
-          this.getNetboxDeviceData(deviceDetail.previousElementSibling.id);
-        }
-      });
-    });
+    setActivePage(1);
+    setFilterData(filterData);
+    setFilterActive(Object.keys(filterData).length > 0);
+    // Expand results when looking up device
+    setExpandResult(true);
+    window.scrollTo(0, 0);
   };
 
-  searchAction = (options) => {
-    this.setState({ activePage: 1, queryParamsParsed: false }, () => {
-      this.getDevicesData(options);
-      window.scrollTo(0, 0);
-      // Close all expanded table rows when changing results
-      const deviceDetails =
-        document.getElementsByClassName("device_details_row");
-      for (const deviceDetail of deviceDetails) {
-        deviceDetail.hidden = true;
-      }
+  // When devices change (after getDevices updates them), reset expandResult
+  useEffect(() => {
+    if (expandResult) {
+      setExpandResult(false);
+    }
+  }, [deviceData]); // runs after re-render with new devices
+
+  useEffect(() => {
+    const populatePromise = populateDiscoveredDevices();
+    const mgmtDomainsPromise = getAllMgmtDomainsData();
+
+    // Make sure we set loading to false when all fetches have settled
+    Promise.allSettled([populatePromise, mgmtDomainsPromise]).finally(() => {
+      setLoading(false);
     });
-  };
+  }, []);
 
-  getDevicesData = (options) => {
-    if (options === undefined) options = {};
-    const newState = this.state;
-    if (options.sortField !== undefined) {
-      newState.sortField = options.sortField;
-    }
-    if (
-      options.filterField !== undefined &&
-      options.filterValue !== undefined
-    ) {
-      newState.filterField = options.filterField;
-      newState.filterValue = options.filterValue;
+  // Update deviceData on changes
+  useEffect(() => {
+    getDevices();
+  }, [sortColumn, sortDirection, filterData, activePage, resultsPerPage]);
 
-      if (options.filterField === null || options.filterValue === null) {
-        this.props.history.replace("devices");
-        newState.queryString = "";
-      } else {
-        this.props.history.replace(
-          `devices?filter[${options.filterField}]=${options.filterValue}`,
-        );
-      }
-    }
-    if (options.pageNum !== undefined) {
-      newState.activePage = options.pageNum;
-    }
-    this.setState(newState);
-    return this.getDevicesAPIData(
-      newState.sortField,
-      newState.filterField,
-      newState.filterValue,
-      newState.activePage,
+  // Set localStorage on changes
+  useEffect(() => {
+    const storageData = {
+      activeColumns,
+      sortColumn,
+      sortDirection,
+      resultsPerPage,
+      activePage,
+    };
+    localStorage.setItem("deviceList", JSON.stringify(storageData));
+  }, [activeColumns, sortColumn, sortDirection, activePage, resultsPerPage]);
+
+  // Set queryParams on filterData changes
+  useEffect(() => {
+    const filterParams = Object.fromEntries(
+      Object.entries(filterData)
+        .filter(([, value]) => value) // skip empty values
+        .map(([key, value]) => [`filter[${key}]`, value]),
     );
-  };
 
-  /**
-   * Handle sorting on different columns when clicking the header fields
-   */
-  sortHeader = (header) => {
-    const newState = this.state;
-    let sortField = "id";
-    const oldValue = this.state[`${header}_sort`];
-    newState.hostname_sort = "";
-    newState.device_type_sort = "";
-    newState.state_sort = "";
-    newState.id_sort = "";
-    if (oldValue == "" || oldValue == "↑") {
-      newState[`${header}_sort`] = "↓";
-      sortField = header;
-    } else if (oldValue == "↓") {
-      newState[`${header}_sort`] = "↑";
-      sortField = `-${header}`;
-    }
-    this.setState(newState);
-    this.getDevicesData({ sortField });
-    // Close all expanded table rows when resorting the table
-    const deviceDetails = document.getElementsByClassName("device_details_row");
-    for (const deviceDetail of deviceDetails) {
-      deviceDetail.hidden = true;
-    }
-  };
+    const queryString = new URLSearchParams(filterParams).toString();
+    const newSearch = queryString ? `?${queryString}` : "";
 
-  componentDidUpdate() {
-    // if queryparams are updated, for example when browser uses Back button to same baseurl but different query params
-    if (this.state.queryString != this.props.location.search) {
-      this.setState({ queryParamsParsed: false }, () => {
-        this.parseQueryParams(this.getDevicesData);
-      });
+    // Only push if it have changed
+    // Do not push nothing
+    if (newSearch && newSearch !== location.search) {
+      history.push(newSearch);
+    } else if (!newSearch && location.search) {
+      history.push("/devices");
     }
-  }
+  }, [filterData]);
 
-  componentDidMount() {
-    const credentials = localStorage.getItem("token");
-    if (credentials === null) {
-      throw "no API token found";
+  const getDevices = async () => {
+    const operatorMap = {
+      id: "[equals]",
+      // eslint-disable-next-line camelcase
+      device_type: "[ilike]",
+      state: "[ilike]",
+      synchronized: "",
+    };
+
+    const urlParams = { page: activePage, perPage: resultsPerPage };
+
+    if (sortDirection && sortColumn) {
+      const prefix = sortDirection === "ascending" ? "" : "-";
+      urlParams.sort = `${prefix}${sortColumn}`;
     }
-    if (this.state.queryParamsParsed === false) {
-      this.parseQueryParams(this.getDevicesData);
-    } else {
-      this.getDevicesData();
+
+    for (const [key, value] of Object.entries(filterData)) {
+      if (!value) continue; // skip empty values
+
+      const operator = operatorMap[key] ?? "[contains]";
+      urlParams[`filter[${key}]${operator}`] = value;
     }
-    this.populateDiscoveredDevices();
-    this.getAllMgmtDomainsData();
-    socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", function () {
-      console.log("Websocket connected!");
-      socket.emit("events", { update: "device" });
-      socket.emit("events", { update: "job" });
-      socket.emit("events", { loglevel: "DEBUG" });
-    });
-    socket.on("events", (data) => {
-      // device update event
-      if (data.device_id !== undefined) {
-        if (data.action == "UPDATED") {
-          if (data.object.state == "DISCOVERED") {
-            if (
-              data.device_id !== undefined &&
-              data.device_id !== null &&
-              !this.discovered_device_ids.has(data.device_id)
-            ) {
-              toast({
-                type: "info",
-                icon: "paper plane",
-                title: `Device discovered: ${data.hostname}`,
-                description: (
-                  <p>
-                    Model: {data.object.model}, Serial: {data.object.serial}
-                    <br />
-                    <Button
-                      basic
-                      compact
-                      onClick={(e) =>
-                        this.findAction(
-                          e,
-                          { filterField: "id", filterValue: data.device_id },
-                          true,
-                        )
-                      }
-                    >
-                      Go to device
-                    </Button>
-                  </p>
-                ),
-                animation: "bounce",
-                time: 0,
-              });
-              this.discovered_device_ids.add(data.device_id);
-            }
-          }
-          const newDevicesData = this.state.devicesData.map((dev) => {
-            if (dev.id == data.device_id) {
-              return data.object;
-            }
-            return dev;
-          });
-          this.setState({ devicesData: newDevicesData });
-        } else if (data.action == "DELETED") {
-          const newDevicesData = this.state.devicesData.map((dev) => {
-            if (dev.id == data.device_id) {
-              const new_dev = dev;
-              new_dev.deleted = true;
-              return new_dev;
-            }
-            return dev;
-          });
-          this.setState({ devicesData: newDevicesData });
-        } else if (data.action == "CREATED") {
-          if (data.device_id !== undefined && data.device_id !== null) {
-            toast({
-              type: "info",
-              icon: "paper plane",
-              title: `Device added: ${data.hostname}`,
-              description: (
-                <p>
-                  State: {data.object.state}
-                  <br />
-                  <Button
-                    basic
-                    compact
-                    onClick={(e) =>
-                      this.findAction(
-                        e,
-                        { filterField: "id", filterValue: data.device_id },
-                        true,
-                      )
-                    }
-                  >
-                    Go to device
-                  </Button>
-                </p>
-              ),
-              animation: "bounce",
-              time: 0,
-            });
-          }
-        }
-        // job update event
-      } else if (data.job_id !== undefined) {
-        const newLogLines = this.state.logLines;
-        if (data.status === "EXCEPTION") {
-          newLogLines.push(
-            `job #${data.job_id} changed status to ${data.status}: ${data.exception}\n`,
-          );
-        } else {
-          newLogLines.push(
-            `job #${data.job_id} changed status to ${data.status}\n`,
-          );
-        }
-        this.setState({ logLines: newLogLines });
 
-        // if finished && next_job id, push next_job_id to array
-        if (
-          data.next_job_id !== undefined &&
-          typeof data.next_job_id === "number"
-        ) {
-          const newDeviceInitJobs = {};
-          Object.keys(this.state.deviceJobs).map((device_id) => {
-            if (this.state.deviceJobs[device_id][0] == data.job_id) {
-              newDeviceInitJobs[device_id] = [data.job_id, data.next_job_id];
-            } else {
-              newDeviceInitJobs[device_id] = this.state.deviceJobs[device_id];
-            }
-          });
-          this.setState({ deviceJobs: newDeviceInitJobs }, () => {
-            console.log("next_job_updated list: ", this.state.deviceJobs);
-          });
-        }
-        // log events
-      } else if (typeof data === "string" || data instanceof String) {
-        const newLogLines = this.state.logLines;
-        if (newLogLines.length >= 1000) {
-          newLogLines.shift();
-        }
-        newLogLines.push(`${data}\n`);
-        this.setState({ logLines: newLogLines });
-      }
-    });
-  }
+    const filterString = new URLSearchParams(urlParams).toString();
 
-  componentWillUnmount() {
-    if (socket !== null) {
-      socket.off("events");
-    }
-  }
-
-  readHeaders = (response) => {
-    const totalCountHeader = response.headers.get("X-Total-Count");
-    if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
-      console.log(`total: ${totalCountHeader}`);
-      const totalPages = Math.ceil(
-        totalCountHeader / this.state.resultsPerPage,
+    try {
+      const resp = await getResponse(
+        `${process.env.API_URL}/api/v1.0/devices?${filterString}`,
+        token,
       );
-      this.setState({ totalPages });
-    } else {
-      console.log("Could not find X-Total-Count header, only showing one page");
-    }
-    return response;
-  };
 
-  getDevicesAPIData = (sortField = "id", filterField, filterValue, pageNum) => {
-    this.setState({ loading: true, error: null });
-    const credentials = localStorage.getItem("token");
-    // Build filter part of the URL to only return specific devices from the API
-    // TODO: filterValue should probably be urlencoded?
-    let filterParams = "";
-    let filterFieldOperator = "";
-    const stringFields = [
-      "hostname",
-      "management_ip",
-      "serial",
-      "ztp_mac",
-      "platform",
-      "vendor",
-      "model",
-      "os_version",
-    ];
-    const false_strings = ["false", "no", "0"];
-    if (
-      filterField !== null &&
-      filterValue !== null &&
-      filterField !== "null" &&
-      filterValue !== "null"
-    ) {
-      if (stringFields.indexOf(filterField) !== -1) {
-        filterFieldOperator = "[contains]";
-      }
-      if (filterField == "synchronized") {
-        if (false_strings.indexOf(filterValue) !== -1) {
-          filterParams = "&filter[synchronized]=false&filter[state]=MANAGED";
-        } else {
-          filterParams = "&filter[synchronized]=true&filter[state]=MANAGED";
-        }
+      const totalCountHeader = resp.headers.get("X-Total-Count");
+      if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
+        const totalPages = Math.ceil(totalCountHeader / resultsPerPage);
+        setTotalPages(totalPages);
       } else {
-        filterParams = `&filter[${filterField}]${filterFieldOperator}=${filterValue}`;
+        setTotalPages(1);
       }
+
+      const data = await resp.json();
+
+      setDeviceData(data.data.devices);
+    } catch {
+      setDeviceData([]);
     }
-    return getResponse(
-      `${process.env.API_URL}/api/v1.0/devices?sort=${sortField}${filterParams}&page=${pageNum}&per_page=${this.state.resultsPerPage}`,
-      credentials,
-    )
-      .then((response) => this.readHeaders(response))
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("this should be data", data);
-        {
-          this.setState(
-            {
-              devicesData: data.data.devices,
-              loading: false,
-            },
-            () => {
-              console.log("this is new state", this.state.devicesData);
-            },
-          );
-        }
-      })
-      .catch((error) => {
-        this.setState({
-          devicesData: [],
-          loading: false,
-          error,
-        });
-      });
+  };
+  const sortClick = (column) => {
+    if (column === sortColumn) {
+      setSortDirection((prev) =>
+        prev === "ascending" ? "descending" : "ascending",
+      );
+    } else {
+      setSortDirection("descending");
+    }
+    setSortColumn(column);
   };
 
-  getModel(hostname) {
-    const { devicesData } = this.state;
-    // loop through devicesData and return model for matching hostname
-    const device = devicesData.find((element) => element.hostname === hostname);
-    if (!device) return null;
-    return device.model;
-  }
+  const handleFilterChange = (column, value) => {
+    setFilterData((prev) => ({
+      ...prev,
+      [column]: value,
+    }));
+  };
 
-  getNetboxModelData(hostname) {
-    const model = this.getModel(hostname);
+  const handleAddMgmtDomains = (id) => {
+    toast({
+      type: "success",
+      title: `Management domain ${id} added`,
+      time: 5000,
+    });
+    getAllMgmtDomainsData();
+    setMgmtAddModalOpen(false);
+  };
+
+  const handleDeleteMgmtDomain = (id) => {
+    toast({
+      type: "success",
+      title: `Management domain ${id} deleted`,
+      time: 5000,
+    });
+    getAllMgmtDomainsData();
+    setMgmtUpdateModalOpen(false);
+  };
+
+  const handleUpdateMgmtDomains = (id) => {
+    toast({
+      type: "success",
+      title: `Management domain ${id} updated`,
+      time: 5000,
+    });
+    getAllMgmtDomainsData();
+    setMgmtUpdateModalOpen(false);
+  };
+
+  const handleMgmtAddModalOpen = (deviceA, deviceBCandidates) => {
+    setMgmtAddModalInput({
+      deviceA,
+      deviceBCandidates,
+    });
+    setMgmtAddModalOpen(true);
+  };
+
+  const handleMgmtAddDomainModalClose = () => {
+    setMgmtAddModalInput({});
+    setMgmtAddModalOpen(false);
+  };
+
+  const handleMgmtUpdateModalOpen = ({
+    id,
+    device_a,
+    device_b,
+    ipv4_gw,
+    ipv6_gw,
+    vlan,
+  }) => {
+    setMgmtUpdateModalInput({
+      mgmtId: id,
+      deviceA: device_a,
+      deviceB: device_b,
+      ipv4Initial: ipv4_gw,
+      ipv6Initial: ipv6_gw,
+      vlanInitial: vlan,
+    });
+    setMgmtUpdateModalOpen(true);
+  };
+
+  const mgmtUpdateModalClose = () => {
+    setMgmtUpdateModalInput({});
+    setMgmtUpdateModalOpen(false);
+  };
+
+  const handleShowConfigModalOpen = (hostname, state) => {
+    setShowConfigModalOpen(true);
+    setShowConfigModalHostname(hostname);
+    setShowConfigModalState(state);
+  };
+
+  const handleShowConfigModalClose = () => {
+    setShowConfigModalOpen(false);
+    setShowConfigModalHostname(null);
+    setShowConfigModalState(null);
+  };
+
+  const getModel = (hostname) => {
+    // loop through devicesData and return model for matching hostname
+    const device = deviceData.find((element) => element.hostname === hostname);
+    return device ? device.model : null;
+  };
+
+  const getNetboxModelData = async (hostname) => {
+    const model = getModel(hostname);
     if (!process.env.NETBOX_API_URL) {
       return null;
     }
@@ -505,27 +954,29 @@ class DeviceList extends React.Component {
     }
 
     // if this.state.netboxModelData map does not have an object for model, fetch data from netbox
-    const mod = this.state.netboxModelData[model];
+    const mod = netboxModelData[model];
     if (mod) return mod;
 
-    getFunc(
-      `${url}/api/dcim/device-types/?part_number__ie=${model}`,
-      credentials,
-    ).then((data) => {
+    try {
+      const data = await getFunc(
+        `${url}/api/dcim/device-types/?part_number__ie=${model}`,
+        credentials,
+      );
       if (data.count === 1) {
-        this.setState((prevState) => ({
-          netboxModelData: {
-            ...prevState.netboxModelData,
-            [model]: data.results.pop(),
-          },
+        setNetboxModelData((prev) => ({
+          ...prev,
+          [model]: data.results.pop(),
         }));
       } else {
         console.log("no data found for model", model);
       }
-    });
-  }
+    } catch (error) {
+      console.log(error);
+      // Do nothing
+    }
+  };
 
-  getNetboxDeviceData(hostname) {
+  const getNetboxDeviceData = async (hostname) => {
     if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
       return null;
     }
@@ -538,81 +989,63 @@ class DeviceList extends React.Component {
       url = `${process.env.API_URL}/netbox`;
     }
 
-    getFunc(
-      `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
-      credentials,
-    ).then((data) => {
+    const host = netboxDeviceData[hostname];
+    if (host) return host;
+
+    try {
+      const data = await getFunc(
+        `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
+        credentials,
+      );
+
       if (data.count === 1) {
-        this.setState((prevState) => ({
-          netboxDeviceData: {
-            ...prevState.netboxDeviceData,
-            [hostname]: data.results.pop(),
-          },
+        setNetboxDeviceData((prev) => ({
+          ...prev,
+          [hostname]: data.results.pop(),
         }));
       } else {
         console.log("no data found device", hostname);
       }
-    });
-  }
-
-  getInterfacesData(hostname) {
-    const credentials = localStorage.getItem("token");
-    getData(
-      `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces`,
-      credentials,
-    )
-      .then((data) => {
-        console.log("this should be interface data", data);
-        {
-          const newDeviceInterfaceData = this.state.deviceInterfaceData;
-          if (
-            Array.isArray(data.data.interfaces) &&
-            data.data.interfaces.length
-          ) {
-            newDeviceInterfaceData[hostname] = data.data.interfaces;
-            this.setState({
-              deviceInterfaceData: newDeviceInterfaceData,
-            });
-          }
-        }
-      })
-      .catch((error) => {
-        this.setState({
-          loading: false,
-          error,
-        });
-      });
-  }
-
-  clickRow(closestTrParentId) {
-    if (closestTrParentId in this.state.deviceInterfaceData === false) {
-      this.getInterfacesData(closestTrParentId);
-      this.getNetboxModelData(closestTrParentId);
-      this.getNetboxDeviceData(closestTrParentId);
+    } catch (error) {
+      console.log(error);
     }
-  }
+  };
 
-  pageChange(e, data) {
-    // Update active page and then reload data
-    this.setState({ activePage: data.activePage }, () => {
-      this.getDevicesData({ numPage: data.activePage });
-      window.scrollTo(0, 0);
-      // Close all expanded table rows when changing page
-      const deviceDetails =
-        document.getElementsByClassName("device_details_row");
-      for (const deviceDetail of deviceDetails) {
-        deviceDetail.hidden = true;
-      }
-    });
-  }
+  const getInterfacesData = async (hostname) => {
+    try {
+      const data = await getData(
+        `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces`,
+        token,
+      );
 
-  checkJobId(job_id) {
+      // If interface data already exists return
+      if (deviceInterfaceData[hostname]) return;
+
+      setDeviceInterfaceData((prev) => {
+        if (
+          !Array.isArray(data.data.interfaces) ||
+          !data.data.interfaces.length
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [hostname]: data.data.interfaces,
+        };
+      });
+    } catch (error) {
+      setError(error);
+      setLoading(false);
+    }
+  };
+
+  const checkJobId = (job_id) => {
     return function (logLine) {
       return logLine.toLowerCase().includes(`job #${job_id}`);
     };
-  }
+  };
 
-  renderMlagLink(interfaceData) {
+  const renderMlagLink = (interfaceData) => {
     return interfaceData
       .filter((intf) => intf.configtype === "MLAG_PEER")
       .map((intf) => {
@@ -621,21 +1054,15 @@ class DeviceList extends React.Component {
             compact
             icon="exchange"
             key={intf.name}
-            onClick={(e) =>
-              this.findAction(
-                e,
-                { filterField: "id", filterValue: intf.data.neighbor_id },
-                false,
-              )
-            }
+            onClick={(e) => findAction(e, { id: intf.data.neighbor_id }, false)}
             title="Go to MLAG peer device"
             content={`${intf.name}: MLAG peer`}
           />
         );
       });
-  }
+  };
 
-  renderUplinkLink(interfaceData) {
+  const renderUplinkLink = (interfaceData) => {
     return interfaceData
       .filter((intf) => intf.configtype === "ACCESS_UPLINK")
       .map((intf) => {
@@ -645,34 +1072,30 @@ class DeviceList extends React.Component {
             icon="arrow up"
             key={intf.name}
             onClick={(e) =>
-              this.findAction(
-                e,
-                { filterField: "hostname", filterValue: intf.data.neighbor },
-                false,
-              )
+              findAction(e, { hostname: intf.data.neighbor }, false)
             }
             title="Go to uplink device"
             content={`${intf.name}: Uplink to ${intf.data.neighbor}`}
           />
         );
       });
-  }
+  };
 
-  getMgmgtDomainForDevice(hostname) {
-    return this.state.mgmtDomainsData.filter(
+  const getMgmgtDomainForDevice = (hostname) => {
+    return mgmtDomainsData.filter(
       (data) => hostname === data.device_a || hostname === data.device_b,
     );
-  }
+  };
 
-  renderMgmtDomainsButton(device) {
+  const renderMgmtDomainsButton = (device) => {
     const includeCore = process.env.MGMT_DOMAIN_CORE_ENABLED === "true";
-    const mgmtDomainForDevice = this.getMgmgtDomainForDevice(device.hostname);
+    const mgmtDomainForDevice = getMgmgtDomainForDevice(device.hostname);
     const isCorrectDeviceType = (dev) =>
       dev.device_type === "DIST" || (includeCore && dev.device_type === "CORE");
     const isNotInMgmgtDomain = (dev) =>
-      !this.getMgmgtDomainForDevice(dev.hostname).length;
+      !getMgmgtDomainForDevice(dev.hostname).length;
     if (!mgmtDomainForDevice.length) {
-      const deviceBCandidates = this.state.devicesData
+      const deviceBCandidates = deviceData
         .filter(isCorrectDeviceType)
         .filter(isNotInMgmgtDomain);
       return (
@@ -681,7 +1104,7 @@ class DeviceList extends React.Component {
           icon="plus"
           key={`${device.id}_mgmgt_add`}
           onClick={() =>
-            this.mgmtAddModalOpen(device.hostname, deviceBCandidates)
+            handleMgmtAddModalOpen(device.hostname, deviceBCandidates)
           }
           content="Add management domain"
         />
@@ -697,157 +1120,92 @@ class DeviceList extends React.Component {
         compact
         icon="arrow up"
         key={`${device.id}_mgmgt_add`}
-        onClick={() => this.mgmtUpdateModalOpen(mgmtDomainForDevice[0])}
+        onClick={() => handleMgmtUpdateModalOpen(mgmtDomainForDevice[0])}
         content="Management domain"
       />
     );
-  }
+  };
 
-  handleAddMgmtDomains(id) {
-    toast({
-      type: "success",
-      title: `Management domain ${id} added`,
-      time: 5000,
-    });
-    this.getAllMgmtDomainsData();
-    this.setState({ mgmtAddModalOpen: false });
-  }
+  const syncDeviceAction = (hostname) => {
+    history.push(`config-change?hostname=${hostname}`);
+  };
 
-  handleDeleteMgmtDomain(id) {
-    toast({
-      type: "success",
-      title: `Management domain ${id} deleted`,
-      time: 5000,
-    });
-    this.getAllMgmtDomainsData();
-    this.setState({ mgmtUpdateModalOpen: false });
-  }
+  const upgradeDeviceAction = (hostname) => {
+    history.push(`firmware-upgrade?hostname=${hostname}`);
+  };
 
-  handleUpdateMgmtDomains(id) {
-    toast({
-      type: "success",
-      title: `Management domain ${id} updated`,
-      time: 5000,
-    });
-    this.getAllMgmtDomainsData();
-    this.setState({ mgmtUpdateModalOpen: false });
-  }
+  const configurePortsAction = (hostname) => {
+    history.push(`interface-config?hostname=${hostname}`);
+  };
 
-  renderSortButton(key) {
-    if (key === "↑") {
-      return <Icon name="sort up" />;
-    }
-    if (key === "↓") {
-      return <Icon name="sort down" />;
-    }
-    return <Icon name="sort" />;
-  }
-
-  syncDeviceAction(hostname) {
-    this.props.history.push(`config-change?hostname=${hostname}`);
-  }
-
-  upgradeDeviceAction(hostname) {
-    this.props.history.push(`firmware-upgrade?hostname=${hostname}`);
-  }
-
-  configurePortsAction(hostname) {
-    this.props.history.push(`interface-config?hostname=${hostname}`);
-  }
-
-  updateFactsAction(hostname, device_id) {
+  const updateFactsAction = async (hostname, device_id) => {
     console.log(`Update facts for hostname: ${hostname}`);
-    const credentials = localStorage.getItem("token");
 
-    const url = `${process.env.API_URL}/api/v1.0/device_update_facts`;
     const dataToSend = {
       hostname,
     };
+    const data = await postData(
+      `${process.env.API_URL}/api/v1.0/device_update_facts`,
+      token,
+      dataToSend,
+    );
 
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${credentials}`,
-      },
-      body: JSON.stringify(dataToSend),
-    })
-      .then((response) => checkResponseStatus(response))
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.job_id !== undefined && typeof data.job_id === "number") {
-          this.addDeviceJob(device_id, data.job_id);
-        } else {
-          console.log(
-            "error when submitting device_update_facts job",
-            data.job_id,
-          );
-        }
-      });
-  }
-
-  updateDeleteModalConfirmName(e) {
-    const val = e.target.value;
-    this.setState({
-      delete_modal_confirm_name: val,
-    });
-  }
-
-  deleteDeviceFactoryDefaultAction = (event, data) => {
-    this.setState({ delete_modal_factory_default: data.checked }, () => {
-      console.log(
-        `factory_default: ${this.state.delete_modal_factory_default}`,
-      );
-    });
+    if (data.job_id !== undefined && typeof data.job_id === "number") {
+      addDeviceJob(device_id, data.job_id);
+    } else {
+      console.log("error when submitting device_update_facts job", data.job_id);
+    }
   };
 
-  deleteModalOpen(device_id, device_hostname, device_state, device_type) {
+  const deleteDeviceFactoryDefaultAction = (event, data) => {
+    setDeleteModalFactoryDefault(data.checked);
+  };
+
+  const handleDeleteModalOpen = (
+    device_id,
+    device_hostname,
+    device_state,
+    device_type,
+  ) => {
     let factory_default = false;
     if (device_state == "MANAGED" && device_type == "ACCESS") {
       factory_default = true;
     }
-    this.setState({
-      delete_modal_open: true,
-      delete_modal_device_id: device_id,
-      delete_modal_device_hostname: device_hostname,
-      delete_modal_device_state: device_state,
-      delete_modal_device_type: device_type,
-      delete_modal_confirm_name: "",
-      delete_modal_factory_default: factory_default,
-    });
-  }
 
-  deleteModalClose() {
-    this.setState({
-      delete_modal_open: false,
-      delete_modal_device_id: null,
-      delete_modal_device_hostname: null,
-      delete_modal_device_state: null,
-      delete_modal_device_type: null,
-      delete_modal_confirm_name: "",
-      delete_modal_factory_default: false,
-      delete_modal_error: null,
-    });
-  }
+    setDeleteModalOpen(true);
+    setDeleteModalDeviceId(device_id);
+    setDeleteModalDeviceHostname(device_hostname);
+    setDeleteModalDeviceState(device_state);
+    setDeleteModalDeviceType(device_type);
+    setDeleteModalConfirmName("");
+    setDeleteModalFactoryDefault(factory_default);
+  };
 
-  deleteDeviceAction() {
-    const device_id = this.state.delete_modal_device_id;
-    const factory_default = this.state.delete_modal_factory_default;
+  const deleteModalClose = () => {
+    setDeleteModalOpen(false);
+    setDeleteModalDeviceId(null);
+    setDeleteModalDeviceHostname(null);
+    setDeleteModalDeviceState(null);
+    setDeleteModalDeviceType(null);
+    setDeleteModalConfirmName("");
+    setDeleteModalFactoryDefault(false);
+    setDeleteModalError(null);
+  };
 
-    const credentials = localStorage.getItem("token");
-
-    const url = `${process.env.API_URL}/api/v1.0/device/${device_id}`;
+  const deleteDeviceAction = () => {
+    const url = `${process.env.API_URL}/api/v1.0/device/${deleteModalDeviceId}`;
     const dataToSend = {
-      factory_default,
+      factory_default: deleteModalFactoryDefault,
     };
 
-    deleteData(url, credentials, dataToSend)
+    // TODO change to async
+    deleteData(url, token, dataToSend)
       .then((data) => {
         if (data.job_id !== undefined && typeof data.job_id === "number") {
-          this.addDeviceJob(device_id, data.job_id);
-          this.deleteModalClose();
+          addDeviceJob(deleteModalDeviceId, data.job_id);
+          deleteModalClose();
         } else {
-          this.deleteModalClose();
+          deleteModalClose();
         }
       })
       .catch((error) => {
@@ -857,138 +1215,38 @@ class DeviceList extends React.Component {
             .json()
             .then((jsonError) => {
               console.log(jsonError);
-              this.setState({
-                delete_modal_error: `JSON error from API: ${jsonError.message}`,
-              });
+
+              setDeleteModalError(`JSON error from API: ${jsonError.message}`);
             })
             .catch(() => {
               console.log(error.statusText);
-              this.setState({
-                delete_modal_error: `Error from API: ${error.statusText}`,
-              });
+
+              setDeleteModalError(`Error from API: ${error.statusText}`);
             });
         } else {
           console.log(error);
-          this.setState({ delete_modal_error: `Fetch error: ${error}` });
+          setDeleteModalError(`Fetch error: ${error}`);
         }
       });
-  }
+  };
 
-  mgmtAddModalOpen(deviceA, deviceBCandidates) {
-    this.setState({
-      mgmtAddModalInput: {
-        deviceA,
-        deviceBCandidates,
-      },
-      mgmtAddModalOpen: true,
-    });
-  }
-
-  mgmtAddDomainModalClose() {
-    this.setState({
-      mgmtAddModalInput: {
-        deviceA: null,
-        deviceBCandidates: null,
-      },
-      mgmtAddModalOpen: false,
-    });
-  }
-
-  mgmtUpdateModalOpen({ id, device_a, device_b, ipv4_gw, ipv6_gw, vlan }) {
-    this.setState({
-      mgmtUpdateModalInput: {
-        mgmtId: id,
-        deviceA: device_a,
-        deviceB: device_b,
-        ipv4Initial: ipv4_gw,
-        ipv6Initial: ipv6_gw,
-        vlanInitial: vlan,
-      },
-      mgmtUpdateModalOpen: true,
-    });
-  }
-
-  mgmtUpdateModalClose() {
-    this.setState({
-      mgmtUpdateModalInput: {
-        mgmtId: null,
-        deviceA: null,
-        deviceB: null,
-        ipv4Initial: null,
-        ipv6Initial: null,
-        vlanInitial: null,
-      },
-      mgmtUpdateModalOpen: false,
-    });
-  }
-
-  showConfigModalOpen(hostname, state) {
-    this.setState({
-      showConfigModalOpen: true,
-      showConfigModalHostname: hostname,
-      showConfigModalState: state,
-    });
-  }
-
-  showConfigModalClose() {
-    this.setState({
-      showConfigModalOpen: false,
-      showConfigModalHostname: null,
-      showConfigModalState: null,
-    });
-  }
-
-  changeStateAction(device_id, state) {
+  const changeStateAction = async (device_id, state) => {
     console.log(`Change state for device_id: ${device_id}`);
-    const credentials = localStorage.getItem("token");
 
     const url = `${process.env.API_URL}/api/v1.0/device/${device_id}`;
     const dataToSend = {
       state,
       synchronized: false,
     };
+    const data = await putData(url, token, dataToSend);
 
-    fetch(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${credentials}`,
-      },
-      body: JSON.stringify(dataToSend),
-    })
-      .then((response) => checkResponseStatus(response))
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status !== "success") {
-          console.log("error when updating state:", data.error);
-        }
-      });
-  }
-
-  updatePerPageOption(e, option) {
-    const val = option.value;
-    this.setState(
-      {
-        resultsPerPage: val,
-      },
-      () => this.getDevicesData(),
-    );
-  }
-
-  columnSelectorChange = (e, data) => {
-    const newDisplayColumns = this.state.displayColumns;
-    if (data.checked === true && newDisplayColumns.indexOf(data.name) === -1) {
-      newDisplayColumns.push(data.name);
-    } else if (data.checked === false) {
-      const index = newDisplayColumns.indexOf(data.name);
-      if (index > -1) {
-        newDisplayColumns.splice(index, 1);
-      }
+    if (data.status !== "success") {
+      console.log("error when updating state:", data.error);
     }
-    this.setState({ displayColumns: newDisplayColumns });
+    getDevices();
   };
 
-  createMgmtIP(mgmt_ip, key_prefix = "") {
+  const createMgmtIP = (mgmt_ip, key_prefix = "") => {
     const mgmtip = [];
     mgmtip.push(<i key={`${key_prefix}mgmt_ip`}>{mgmt_ip} </i>);
     mgmtip.push(
@@ -1021,9 +1279,9 @@ class DeviceList extends React.Component {
     );
 
     return mgmtip;
-  }
+  };
 
-  createMenuActionsForDevice(device) {
+  const createMenuActionsForDevice = (device) => {
     let menuActions = [
       <Dropdown.Item
         key="noaction"
@@ -1037,7 +1295,7 @@ class DeviceList extends React.Component {
           key="delete"
           text="Delete device..."
           onClick={() =>
-            this.deleteModalOpen(
+            handleDeleteModalOpen(
               device.id,
               device.hostname,
               device.state,
@@ -1052,7 +1310,7 @@ class DeviceList extends React.Component {
           key="delete"
           text="Delete device..."
           onClick={() =>
-            this.deleteModalOpen(
+            handleDeleteModalOpen(
               device.id,
               device.hostname,
               device.state,
@@ -1066,35 +1324,35 @@ class DeviceList extends React.Component {
         <Dropdown.Item
           key="sync"
           text="Sync device..."
-          onClick={() => this.syncDeviceAction(device.hostname)}
+          onClick={() => syncDeviceAction(device.hostname)}
         />,
         <Dropdown.Item
           key="fwupgrade"
           text="Firmware upgrade..."
-          onClick={() => this.upgradeDeviceAction(device.hostname)}
+          onClick={() => upgradeDeviceAction(device.hostname)}
         />,
         <Dropdown.Item
           key="facts"
           text="Update facts"
-          onClick={() => this.updateFactsAction(device.hostname, device.id)}
+          onClick={() => updateFactsAction(device.hostname, device.id)}
         />,
         <Dropdown.Item
           key="makeunmanaged"
           text="Make unmanaged"
-          onClick={() => this.changeStateAction(device.id, "UNMANAGED")}
+          onClick={() => changeStateAction(device.id, "UNMANAGED")}
         />,
         <Dropdown.Item
           key="showconfig"
           text="Show configuration"
           onClick={() =>
-            this.showConfigModalOpen(device.hostname, device.state)
+            handleShowConfigModalOpen(device.hostname, device.state)
           }
         />,
         <Dropdown.Item
           key="delete"
           text="Delete device..."
           onClick={() =>
-            this.deleteModalOpen(
+            handleDeleteModalOpen(
               device.id,
               device.hostname,
               device.state,
@@ -1113,7 +1371,7 @@ class DeviceList extends React.Component {
           <Dropdown.Item
             key="configports"
             text="Configure ports"
-            onClick={() => this.configurePortsAction(device.hostname)}
+            onClick={() => configurePortsAction(device.hostname)}
           />,
         );
       }
@@ -1122,25 +1380,23 @@ class DeviceList extends React.Component {
         <Dropdown.Item
           key="facts"
           text="Update facts"
-          onClick={() => this.updateFactsAction(device.hostname, device.id)}
+          onClick={() => updateFactsAction(device.hostname, device.id)}
         />,
         <Dropdown.Item
           key="makemanaged"
           text="Make managed"
-          onClick={() => this.changeStateAction(device.id, "MANAGED")}
+          onClick={() => changeStateAction(device.id, "MANAGED")}
         />,
         <Dropdown.Item
           key="showconfig"
           text="Show configuration"
-          onClick={() =>
-            this.showConfigModalOpen(device.hostname, device.state)
-          }
+          onClick={() => showConfigModalOpen(device.hostname, device.state)}
         />,
         <Dropdown.Item
           key="delete"
           text="Delete device..."
           onClick={() =>
-            this.deleteModalOpen(
+            handleDeleteModalOpen(
               device.id,
               device.hostname,
               device.state,
@@ -1162,66 +1418,18 @@ class DeviceList extends React.Component {
     }
 
     return menuActions;
-  }
+  };
 
-  createHostnameExtraForDevice(device) {
-    if (device?.deleted) {
-      return [<Icon key="deleted" name="delete" color="red" />];
-    }
-
-    const hostnameExtra = [];
-    if (device.state == "MANAGED" && device.device_type === "ACCESS") {
-      hostnameExtra.push(
-        <a
-          key="interfaceconfig"
-          href={`/interface-config?hostname=${device.hostname}`}
-        >
-          <Icon name="plug" link />
-        </a>,
-      );
-    }
-
-    return hostnameExtra;
-  }
-
-  createSyncStatusForDevice(device) {
-    if (device?.deleted === true) {
-      return <td key={`${device.id}_state`}>DELETED</td>;
-    }
-
-    let syncStatus = "";
-    if (device.state === "MANAGED") {
-      const isSynchronized = device.synchronized === true;
-      syncStatus = (
-        <td key={`${device.id}_state`}>
-          MANAGED / SYNC=
-          <Icon
-            name={isSynchronized ? "check" : "delete"}
-            color={isSynchronized ? "green" : "red"}
-          />
-        </td>
-      );
-    } else {
-      syncStatus = <td key={`${device.id}_state`}>{device.state}</td>;
-    }
-
-    return syncStatus;
-  }
-
-  createDeviceButtonsExtraForDevice(device) {
+  const createDeviceButtonsExtraForDevice = (device) => {
     const deviceButtons = [];
 
-    if (device.hostname in this.state.deviceInterfaceData !== false) {
-      const mlagPeerLink = this.renderMlagLink(
-        this.state.deviceInterfaceData[device.hostname],
-      );
+    if (device.hostname in deviceInterfaceData !== false) {
+      const mlagPeerLink = renderMlagLink(deviceInterfaceData[device.hostname]);
       if (mlagPeerLink !== null) {
         deviceButtons.push.apply(deviceButtons, mlagPeerLink);
       }
 
-      const uplinkLink = this.renderUplinkLink(
-        this.state.deviceInterfaceData[device.hostname],
-      );
+      const uplinkLink = renderUplinkLink(deviceInterfaceData[device.hostname]);
       if (uplinkLink !== null) {
         deviceButtons.push.apply(deviceButtons, uplinkLink);
       }
@@ -1232,330 +1440,379 @@ class DeviceList extends React.Component {
       device.device_type === "DIST" ||
       (includeCore && device.device_type === "CORE")
     ) {
-      deviceButtons.push(this.renderMgmtDomainsButton(device));
+      deviceButtons.push(renderMgmtDomainsButton(device));
     }
 
     return deviceButtons;
-  }
+  };
 
-  mangleDeviceData(devicesData) {
-    return devicesData.map((device) => {
-      const deviceStateExtra = [];
-      if (device.state == "DISCOVERED") {
-        deviceStateExtra.push(
-          <DeviceInitForm
-            key={`${device.id}_initform`}
-            deviceId={device.id}
-            jobIdCallback={this.addDeviceJob.bind(this)}
-          />,
-        );
-      } else if (device.state == "INIT") {
-        if (device.id in this.state.deviceJobs) {
-          deviceStateExtra.push(
-            <p key="initjobs">
-              Init jobs: {this.state.deviceJobs[device.id].join(", ")}
-            </p>,
-          );
-        }
-      }
-
-      const deviceButtonsExtra = this.createDeviceButtonsExtraForDevice(device);
-      if (deviceButtonsExtra.length > 0) {
-        deviceStateExtra.push(
-          <div key="btngroup">
-            <Button.Group vertical labeled icon>
-              {deviceButtonsExtra}
-            </Button.Group>
-          </div>,
-        );
-      }
-
-      const log = {};
-      Object.keys(this.state.deviceJobs).map((device_id) => {
-        log[device_id] = "";
-        this.state.deviceJobs[device_id].map((job_id) => {
-          this.state.logLines.filter(this.checkJobId(job_id)).map((logLine) => {
-            log[device_id] = log[device_id] + logLine;
-            const element = document.getElementById(
-              `logoutputdiv_device_id_${device_id}`,
-            );
-            if (element !== null) {
-              element.scrollTop = element.scrollHeight;
-            }
-          });
-        });
-      });
-
-      const columnData = this.state.displayColumns.map(
-        (columnName, colIndex) => {
-          return <td key={100 + colIndex}>{device[columnName]}</td>;
-        },
+  const mangleDeviceData = (device) => {
+    const deviceStateExtra = [];
+    if (device.state == "DISCOVERED") {
+      deviceStateExtra.push(
+        <DeviceInitForm
+          key={`${device.id}_initform`}
+          deviceId={device.id}
+          jobIdCallback={addDeviceJob}
+        />,
       );
-
-      const mgmtip = [];
-      if (device.management_ip) {
-        mgmtip.push(...this.createMgmtIP(device.management_ip));
-      }
-      if (device.secondary_management_ip) {
-        mgmtip.push(
-          ...this.createMgmtIP(device.secondary_management_ip, "secondary_"),
+    } else if (device.state == "INIT") {
+      if (device.id in deviceJobs) {
+        deviceStateExtra.push(
+          <p key="initjobs">Init jobs: {deviceJobs[device.id].join(", ")}</p>,
         );
-      }
-      if (device.dhcp_ip !== null) {
-        mgmtip.push(<i key="dhcp_ip">(DHCP IP: {device.dhcp_ip})</i>);
-      }
-      let model = null;
-      const { netboxModelData } = this.state;
-      if (Object.hasOwn(netboxModelData, device.model)) {
-        model = netboxModelData[device.model];
-      }
-
-      let netboxDevice = null;
-      const { netboxDeviceData } = this.state;
-      if (Object.hasOwn(netboxDeviceData, device.hostname)) {
-        netboxDevice = netboxDeviceData[device.hostname];
-      }
-
-      return (
-        <DeviceInfoBlock
-          key={`${device.id}_device_info`}
-          device={device}
-          hostnameExtra={this.createHostnameExtraForDevice(device)}
-          syncStatus={this.createSyncStatusForDevice(device)}
-          columnData={columnData}
-          clickRow={this.clickRow.bind(this)}
-          colLength={this.state.displayColumns.length}
-          menuActions={this.createMenuActionsForDevice(device)}
-          mgmtip={mgmtip}
-          deviceStateExtra={deviceStateExtra}
-          log={log}
-          model={model}
-          netboxDevice={netboxDevice}
-        />
-      );
-    });
-  }
-
-  render() {
-    let deviceInfo = this.mangleDeviceData(this.state.devicesData);
-    if (this.state.error) {
-      deviceInfo = [
-        <tr key="errorrow">
-          <td colSpan="5">API error: {this.state.error.message}</td>
-        </tr>,
-      ];
-    } else if (!Array.isArray(deviceInfo) || !deviceInfo.length) {
-      if (this.state.loading) {
-        deviceInfo = [
-          <tr key="loadingrow">
-            <td colSpan="5">
-              <Icon name="spinner" loading />
-              Loading devices...
-            </td>
-          </tr>,
-        ];
-      } else {
-        deviceInfo = [
-          <tr key="emptyrow">
-            <td colSpan="5">Empty result</td>
-          </tr>,
-        ];
       }
     }
 
-    const perPageOptions = [
-      { key: 20, value: 20, text: "20" },
-      { key: 50, value: 50, text: "50" },
-      { key: 100, value: 100, text: "100" },
-    ];
+    const deviceButtonsExtra = createDeviceButtonsExtraForDevice(device);
+    if (deviceButtonsExtra.length > 0) {
+      deviceStateExtra.push(
+        <div key="btngroup">
+          <Button.Group vertical labeled icon>
+            {deviceButtonsExtra}
+          </Button.Group>
+        </div>,
+      );
+    }
 
-    const allowedColumns = {
-      model: "Model",
-      os_version: "OS version",
-      management_ip: "Management IP",
-      dhcp_ip: "DHCP IP",
-      serial: "Serial",
-    };
+    const log = {};
+    for (const deviceId of Object.keys(deviceJobs)) {
+      log[deviceId] = "";
 
-    const columnHeaders = this.state.displayColumns.map((columnName) => {
-      return <th key={columnName}>{allowedColumns[columnName]}</th>;
-    });
+      for (const jobId of deviceJobs[deviceId]) {
+        const filteredLines = logLines.filter(checkJobId(jobId));
 
-    const columnSelectors = Object.keys(allowedColumns).map(
-      (columnName, columnIndex) => {
-        let checked = false;
-        if (this.state.displayColumns.indexOf(columnName) !== -1) {
-          checked = true;
+        for (const logLine of filteredLines) {
+          log[deviceId] += logLine;
+
+          const element = document.getElementById(
+            `logoutputdiv_device_id_${deviceId}`,
+          );
+
+          if (element) {
+            element.scrollTop = element.scrollHeight;
+          }
         }
-        return (
-          <li key={columnIndex}>
-            <Checkbox
-              defaultChecked={checked}
-              label={allowedColumns[columnName]}
-              name={columnName}
-              onChange={this.columnSelectorChange.bind(this)}
-            />
-          </li>
-        );
-      },
-    );
+      }
+    }
+
+    const mgmtip = [];
+    if (device.management_ip) {
+      mgmtip.push(...createMgmtIP(device.management_ip));
+    }
+    if (device.secondary_management_ip) {
+      mgmtip.push(
+        ...createMgmtIP(device.secondary_management_ip, "secondary_"),
+      );
+    }
+    if (device.dhcp_ip !== null) {
+      mgmtip.push(<i key="dhcp_ip">(DHCP IP: {device.dhcp_ip})</i>);
+    }
+    let model = null;
+
+    if (Object.hasOwn(netboxModelData, device.model)) {
+      model = netboxModelData[device.model];
+    }
+
+    let netboxDevice = null;
+
+    if (Object.hasOwn(netboxDeviceData, device.hostname)) {
+      netboxDevice = netboxDeviceData[device.hostname];
+    }
 
     return (
-      <section>
-        <div id="search">
-          <DeviceSearchForm searchAction={this.searchAction} />
-        </div>
-        <div id="device_list">
-          <h2>Device list</h2>
-          <SemanticToastContainer position="top-right" maxToasts={3} />
-          <Modal
-            onClose={() => this.deleteModalClose()}
-            open={this.state.delete_modal_open}
-          >
-            <Modal.Header>
-              Delete device {this.state.delete_modal_device_hostname}
-            </Modal.Header>
-            <Modal.Content>
-              <Modal.Description>
-                <p key="confirm">
-                  Are you sure you want to delete device{" "}
-                  {this.state.delete_modal_device_hostname} with device ID{" "}
-                  {this.state.delete_modal_device_id}? Confirm hostname below to
-                  delete
-                </p>
-                <p key="error" hidden={this.state.delete_modal_error === null}>
-                  Error deleting device: {this.state.delete_modal_error}
-                </p>
-                <Input
-                  placeholder="confirm hostname"
-                  onChange={this.updateDeleteModalConfirmName.bind(this)}
-                />
-                <Checkbox
-                  label="Reset device to factory default settings when deleting"
-                  name="factory_default"
-                  checked={this.state.delete_modal_factory_default}
-                  disabled={
-                    this.state.delete_modal_device_state != "MANAGED" ||
-                    this.state.delete_modal_device_type != "ACCESS"
-                  }
-                  onChange={this.deleteDeviceFactoryDefaultAction}
-                />
-              </Modal.Description>
-            </Modal.Content>
-            <Modal.Actions>
-              <Button
-                key="cancel"
-                color="black"
-                onClick={() => this.setState({ delete_modal_open: false })}
-              >
-                Cancel
-              </Button>
-              <Button
-                key="submit"
-                disabled={
-                  this.state.delete_modal_device_hostname !=
-                  this.state.delete_modal_confirm_name
-                }
-                onClick={() => this.deleteDeviceAction()}
-                icon
-                labelPosition="right"
-                negative
-              >
-                Delete
-              </Button>
-            </Modal.Actions>
-          </Modal>
-          <AddMgmtDomainModal
-            {...this.state.mgmtAddModalInput}
-            isOpen={this.state.mgmtAddModalOpen}
-            closeAction={() => this.mgmtAddDomainModalClose()}
-            onAdd={(v) => this.handleAddMgmtDomains(v)}
-          />
-          <UpdateMgmtDomainModal
-            {...this.state.mgmtUpdateModalInput}
-            isOpen={this.state.mgmtUpdateModalOpen}
-            closeAction={() => this.mgmtUpdateModalClose()}
-            onDelete={(v) => this.handleDeleteMgmtDomain(v)}
-            onUpdate={(v) => this.handleUpdateMgmtDomains(v)}
-          />
-          <ShowConfigModal
-            hostname={this.state.showConfigModalHostname}
-            state={this.state.showConfigModalState}
-            isOpen={this.state.showConfigModalOpen}
-            closeAction={() => this.showConfigModalClose()}
-          />
-          <div className="table_options">
-            <Popup
-              on="click"
-              pinned
-              position="bottom right"
-              trigger={
-                <Button className="table_options_button">
-                  <Icon name="table" />
-                </Button>
-              }
-            >
-              <p>Items per page:</p>
-              <Select
-                options={perPageOptions}
-                defaultValue={20}
-                onChange={this.updatePerPageOption.bind(this)}
-              />
-              <p>Show extra columns:</p>
-              <ul>{columnSelectors}</ul>
-            </Popup>
-          </div>
-          <div id="data">
-            <table className="device_list">
-              <thead>
-                <tr>
-                  <th
-                    key="hostname"
-                    onClick={() => this.sortHeader("hostname")}
-                  >
-                    Hostname
-                    <div className="hostname_sort">
-                      {this.renderSortButton(this.state.hostname_sort)}
-                    </div>
-                  </th>
-                  <th
-                    key="device_type"
-                    onClick={() => this.sortHeader("device_type")}
-                  >
-                    Device type
-                    <div className="device_type_sort">
-                      {this.renderSortButton(this.state.device_type_sort)}
-                    </div>
-                  </th>
-                  <th key="state" onClick={() => this.sortHeader("state")}>
-                    State / Sync status
-                    <div className="sync_status_sort">
-                      {this.renderSortButton(this.state.state_sort)}
-                    </div>
-                  </th>
-                  {columnHeaders}
-                  <th key="id" onClick={() => this.sortHeader("id")}>
-                    ID
-                    <div className="sync_status_sort">
-                      {this.renderSortButton(this.state.id_sort)}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>{deviceInfo}</tbody>
-            </table>
-          </div>
-          <div>
-            <Pagination
-              activePage={this.state.activePage}
-              totalPages={this.state.totalPages}
-              onPageChange={this.pageChange.bind(this)}
-            />
-          </div>
-        </div>
-      </section>
+      <DeviceInfoBlock
+        key={`${device.id}_device_info`}
+        device={device}
+        menuActions={createMenuActionsForDevice(device)}
+        mgmtip={mgmtip}
+        deviceStateExtra={deviceStateExtra}
+        log={log}
+        model={model}
+        netboxDevice={netboxDevice}
+      />
     );
-  }
+  };
+
+  const columnSelectorChange = (column) => {
+    setActiveColumns((prev) => {
+      const newColumns = prev.includes(column)
+        ? prev.filter((c) => c !== column)
+        : [...prev, column];
+
+      return newColumns.sort(
+        (a, b) =>
+          Object.keys(columnMap).indexOf(a) - Object.keys(columnMap).indexOf(b),
+      );
+    });
+  };
+
+  const discoveredDeviceIdsRef = useRef(discoveredDeviceIds);
+
+  useEffect(() => {
+    discoveredDeviceIdsRef.current = discoveredDeviceIds;
+  }, [discoveredDeviceIds]);
+
+  useEffect(() => {
+    socket = io(process.env.API_URL, { query: { jwt: token } });
+    socket.on("connect", function () {
+      console.log("Websocket connected!");
+      socket.emit("events", { update: "device" });
+      socket.emit("events", { update: "job" });
+      socket.emit("events", { loglevel: "DEBUG" });
+    });
+    socket.on("events", (data) => {
+      // device update event
+      if (data.device_id !== undefined) {
+        if (data.action == "UPDATED") {
+          if (data.object.state == "DISCOVERED") {
+            if (
+              data.device_id !== undefined &&
+              data.device_id !== null &&
+              !discoveredDeviceIdsRef.current.has(data.device_id)
+            ) {
+              toast({
+                type: "info",
+                icon: "paper plane",
+                title: `Device discovered: ${data.hostname} `,
+                description: (
+                  <p>
+                    Model: {data.object.model}, Serial: {data.object.serial}
+                    <br />
+                    <Button
+                      basic
+                      compact
+                      onClick={(e) =>
+                        findAction(e, { id: data.device_id }, true)
+                      }
+                    >
+                      Go to device
+                    </Button>
+                  </p>
+                ),
+                animation: "bounce",
+                time: 0,
+              });
+              setDiscoveredDeviceIds((prev) =>
+                new Set(prev).add(data.device_id),
+              );
+            }
+          }
+          setDeviceData((prev) =>
+            prev.map((dev) => (dev.id === data.device_id ? data.object : dev)),
+          );
+        } else if (data.action === "DELETED") {
+          setDeviceData((prev) =>
+            prev.map((device) =>
+              device.id === data.device_id
+                ? { ...device, deleted: true }
+                : device,
+            ),
+          );
+          // If filter is on the current device id set filter to nothing and refetch data
+          setFilterData((prev) => {
+            if (prev.id === data.device_id) {
+              setFilterActive(false);
+              setSortColumn(null);
+              setSortDirection(null);
+              return {};
+            }
+            return prev;
+          });
+        } else if (data.action == "CREATED") {
+          if (data.device_id !== undefined && data.device_id !== null) {
+            toast({
+              type: "info",
+              icon: "paper plane",
+              title: `Device added: ${data.hostname}`,
+              description: (
+                <p>
+                  State: {data.object.state}
+                  <br />
+                  <Button
+                    basic
+                    compact
+                    onClick={(e) => findAction(e, { id: data.device_id }, true)}
+                  >
+                    Go to device
+                  </Button>
+                </p>
+              ),
+              animation: "bounce",
+              time: 0,
+            });
+          }
+        }
+        // job update event
+      } else if (data.job_id !== undefined) {
+        setLogLines((prev) => [
+          ...prev,
+          data.status === "EXCEPTION"
+            ? `job #${data.job_id} changed status to ${data.status}: ${data.exception}\n`
+            : `job #${data.job_id} changed status to ${data.status}\n`,
+        ]);
+
+        // if finished && next_job id, push next_job_id to array
+
+        if (typeof data.next_job_id === "number") {
+          setDeviceJobs((prev) => {
+            const newDeviceInitJobs = {};
+
+            for (const deviceId of Object.keys(prev)) {
+              if (prev[deviceId][0] === data.job_id) {
+                newDeviceInitJobs[deviceId] = [data.job_id, data.next_job_id];
+              } else {
+                newDeviceInitJobs[deviceId] = prev[deviceId];
+              }
+            }
+
+            return newDeviceInitJobs;
+          });
+        }
+
+        // log events
+      } else if (typeof data === "string" || data instanceof String) {
+        setLogLines((prev) => {
+          const updated = [...prev, `${data}\n`];
+          if (updated.length > 1000) {
+            updated.shift(); // remove oldest
+          }
+          return updated;
+        });
+      }
+    });
+
+    return () => {
+      // This runs on unmount
+      socket.off("events");
+    };
+  }, []);
+
+  const getAdditionalDeviceData = (hostname) => {
+    getInterfacesData(hostname);
+    getNetboxModelData(hostname);
+    getNetboxDeviceData(hostname);
+  };
+
+  return (
+    <section>
+      <Grid divided="vertically">
+        <GridRow columns={2}>
+          <GridColumn>
+            <h2>Devices</h2>
+          </GridColumn>
+          <GridColumn textAlign="right" verticalAlign="bottom">
+            <DeviceTableButtonGroup
+              activeColumns={activeColumns}
+              setFilterActive={setFilterActive}
+              setFilterData={setFilterData}
+              columnSelectorChange={columnSelectorChange}
+              resultsPerPage={resultsPerPage}
+              setActivePage={setActivePage}
+              setResultsPerPage={setResultsPerPage}
+              setSortColumn={setSortColumn}
+              setSortDirection={setSortDirection}
+            />
+          </GridColumn>
+        </GridRow>
+      </Grid>
+      <SemanticToastContainer position="top-right" maxToasts={3} />
+      <Modal onClose={() => deleteModalClose()} open={deleteModalOpen}>
+        <Modal.Header>Delete device {deleteModalDeviceHostname}</Modal.Header>
+        <Modal.Content>
+          <Modal.Description>
+            <p key="confirm">
+              Are you sure you want to delete device {deleteModalDeviceHostname}{" "}
+              with device ID {deleteModalDeviceId}? Confirm hostname below to
+              delete
+            </p>
+            <p key="error" hidden={deleteModalError === null}>
+              Error deleting device: {deleteModalError}
+            </p>
+            <Input
+              placeholder="confirm hostname"
+              onChange={(e) => setDeleteModalConfirmName(e.target.value)}
+            />
+            <Checkbox
+              label="Reset device to factory default settings when deleting"
+              name="factory_default"
+              checked={deleteModalFactoryDefault}
+              disabled={
+                deleteModalDeviceState != "MANAGED" ||
+                deleteModalDeviceType != "ACCESS"
+              }
+              onChange={deleteDeviceFactoryDefaultAction}
+            />
+          </Modal.Description>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button
+            key="cancel"
+            color="black"
+            onClick={() => setDeleteModalOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            key="submit"
+            disabled={deleteModalDeviceHostname != deleteModalConfirmName}
+            onClick={() => deleteDeviceAction()}
+            icon
+            labelPosition="right"
+            negative
+          >
+            Delete
+          </Button>
+        </Modal.Actions>
+      </Modal>
+      <AddMgmtDomainModal
+        {...mgmtAddModalInput}
+        isOpen={mgmtAddModalOpen}
+        closeAction={() => handleMgmtAddDomainModalClose()}
+        onAdd={(v) => handleAddMgmtDomains(v)}
+      />
+      <UpdateMgmtDomainModal
+        {...mgmtUpdateModalInput}
+        isOpen={mgmtUpdateModalOpen}
+        closeAction={() => mgmtUpdateModalClose()}
+        onDelete={(v) => handleDeleteMgmtDomain(v)}
+        onUpdate={(v) => handleUpdateMgmtDomains(v)}
+      />
+      <ShowConfigModal
+        hostname={showConfigModalHostname}
+        state={showConfigModalState}
+        isOpen={showConfigModalOpen}
+        closeAction={() => handleShowConfigModalClose()}
+      />
+      <Table sortable celled striped>
+        <DeviceTableHeader
+          activeColumns={activeColumns}
+          columnMap={columnMap}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          filterActive={filterActive}
+          filterData={filterData}
+          sortClick={sortClick}
+          handleFilterChange={handleFilterChange}
+        />
+        <DeviceTableBody
+          deviceData={deviceData}
+          activeColumns={activeColumns}
+          loading={loading}
+          error={error}
+          defaultOpen={expandResult}
+          mangleDeviceData={mangleDeviceData}
+          getAdditionalDeviceData={getAdditionalDeviceData}
+        />
+      </Table>
+      <Pagination
+        activePage={activePage}
+        totalPages={totalPages}
+        boundaryRange={5}
+        onPageChange={(e, { activePage }) => setActivePage(activePage)}
+      />
+    </section>
+  );
 }
 
 export default DeviceList;
