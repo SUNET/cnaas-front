@@ -142,11 +142,13 @@ footer {
 }
 
 .task-container h2,
-.task-container p {
+.task-container p,
+.task-container ul {
   padding: 0 16px;
 }
 
-.task-container p {
+.task-container p,
+.task-container ul {
   font-size: 20px;
   font-weight: 400;
 }

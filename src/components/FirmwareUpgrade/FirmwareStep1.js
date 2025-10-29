@@ -47,7 +47,7 @@ class FirmwareStep1 extends React.Component {
 
   renderHostname(hostname) {
     return (
-      <li>
+      <li key={hostname}>
         <a href={`/devices?filter[hostname]=${hostname}`}>{hostname}</a>
       </li>
     );
@@ -60,10 +60,12 @@ class FirmwareStep1 extends React.Component {
         this.state.firmwareInfo.groups[this.props.commitTarget.group];
       os_version_list = Object.keys(os_versions).map((os_version) => {
         return (
-          <p>
-            <b>{os_version}:</b>{" "}
+          <div key={os_version}>
+            <p>
+              <b>{os_version}:</b>{" "}
+            </p>
             <ul>{os_versions[os_version].map(this.renderHostname)}</ul>
-          </p>
+          </div>
         );
       });
     } else if ("devices" in this.state.firmwareInfo) {
