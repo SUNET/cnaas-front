@@ -612,13 +612,8 @@ function DeviceList() {
 
     return {
       ...initial,
-      filterData: hasLocationFilterData
-        ? locationFilterData
-        : initial.filterData,
-      filterActive:
-        Object.keys(
-          hasLocationFilterData ? locationFilterData : initial.filterData,
-        ).length > 0,
+      filterData: locationFilterData,
+      filterActive: Object.keys(locationFilterData).length > 0,
     };
   };
 
@@ -788,8 +783,10 @@ function DeviceList() {
 
     // Only push if it have changed
     // Do not push nothing
-    if (newSearch !== location.search && newSearch) {
+    if (newSearch && newSearch !== location.search) {
       history.push(newSearch);
+    } else if (!newSearch && location.search) {
+      history.push("/devices");
     }
   }, [filterData]);
 
@@ -809,12 +806,12 @@ function DeviceList() {
       urlParams.sort = `${prefix}${sortColumn}`;
     }
 
-    Object.entries(filterData)
-      .filter(([, value]) => value) // skip empty values
-      .forEach(([key, value]) => {
-        const operator = operatorMap[key] ?? "[contains]";
-        urlParams[`filter[${key}]${operator}`] = value;
-      });
+    for (const [key, value] of Object.entries(filterData)) {
+      if (!value) continue; // skip empty values
+
+      const operator = operatorMap[key] ?? "[contains]";
+      urlParams[`filter[${key}]${operator}`] = value;
+    }
 
     const filterString = new URLSearchParams(urlParams).toString();
 
