@@ -1,5 +1,7 @@
 import PropTypes from "prop-types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom/cjs/react-router-dom";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import {
   Button,
@@ -23,12 +25,10 @@ import {
   TableHeaderCell,
   TableRow,
 } from "semantic-ui-react";
-import { getData, getDataToken, getResponse } from "../../utils/getData";
-import { deleteData, postData, putData } from "../../utils/sendData";
-
-import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { io } from "socket.io-client";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { getData, getDataToken, getResponse } from "../../utils/getData";
+import { deleteData, postData, putData } from "../../utils/sendData";
 import AddMgmtDomainModal from "./AddMgmtDomainModal";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
@@ -555,6 +555,12 @@ DeviceTableBody.propTypes = {
   getAdditionalDeviceData: PropTypes.func,
 };
 
+// Replace with useSearchParams in react-router v6
+const useQuery = () => {
+  const { search } = useLocation();
+  return useMemo(() => new URLSearchParams(search), [search]);
+};
+
 function DeviceList() {
   const getInitialSettings = () => {
     const defaultSettings = {
@@ -668,6 +674,24 @@ function DeviceList() {
 
   const { token } = useAuthToken();
 
+  // Change to useSearchParams after updating react-router to v6
+  // https://reactrouter.com/api/hooks/useSearchParams
+  const searchParams = useQuery();
+
+  useEffect(() => {
+    // Set filterData on searchParam change
+    const locationFilterData = {};
+    for (const [key, value] of searchParams.entries()) {
+      const match = key.match(/^filter\[(.+)\]$/);
+      if (match) locationFilterData[match[1]] = value;
+    }
+    // if (Object.keys(locationFilterData).length > 0) {
+    setFilterData(locationFilterData);
+    // } else {
+    //   setFilterData({});
+    // }
+  }, [searchParams]);
+
   const populateDiscoveredDevices = async () => {
     const url = `${process.env.API_URL}/api/v1.0/devices?filter[state]=DISCOVERED`;
     try {
@@ -712,7 +736,6 @@ function DeviceList() {
       // close toast
       event.target.parentElement.parentElement.parentElement.parentElement.remove();
     }
-    history.push();
     setActivePage(1);
     setFilterData(filterData);
     setFilterActive(Object.keys(filterData).length > 0);
@@ -749,19 +772,29 @@ function DeviceList() {
       activeColumns,
       sortColumn,
       sortDirection,
-      filterData,
       resultsPerPage,
       activePage,
     };
     localStorage.setItem("deviceList", JSON.stringify(storageData));
-  }, [
-    activeColumns,
-    sortColumn,
-    sortDirection,
-    filterData,
-    activePage,
-    resultsPerPage,
-  ]);
+  }, [activeColumns, sortColumn, sortDirection, activePage, resultsPerPage]);
+
+  // Set queryParams on filterData changes
+  useEffect(() => {
+    const filterParams = Object.fromEntries(
+      Object.entries(filterData)
+        .filter(([, value]) => value) // skip empty values
+        .map(([key, value]) => [`filter[${key}]`, value]),
+    );
+
+    const queryString = new URLSearchParams(filterParams).toString();
+    const newSearch = queryString ? `?${queryString}` : "";
+
+    // Only push if it have changed
+    // Do not push nothing
+    if (newSearch !== location.search && newSearch) {
+      history.push(newSearch);
+    }
+  }, [filterData]);
 
   const getDevices = async () => {
     const operatorMap = {
@@ -772,24 +805,25 @@ function DeviceList() {
       synchronized: "",
     };
 
-    let sort = "";
+    const urlParams = { page: activePage, perPage: resultsPerPage };
 
     if (sortDirection && sortColumn) {
       const prefix = sortDirection === "ascending" ? "" : "-";
-      sort = `&sort=${prefix}${sortColumn}`;
+      urlParams.sort = `${prefix}${sortColumn}`;
     }
 
-    const filterString = Object.entries(filterData)
-      .filter(([, value]) => value) // skip empty filters
-      .map(([key, value]) => {
+    Object.entries(filterData)
+      .filter(([, value]) => value) // skip empty values
+      .forEach(([key, value]) => {
         const operator = operatorMap[key] ?? "[contains]";
-        return `&filter[${encodeURIComponent(key)}]${operator}=${encodeURIComponent(value)}`;
-      })
-      .join("&");
+        urlParams[`filter[${key}]${operator}`] = value;
+      });
+
+    const filterString = new URLSearchParams(urlParams).toString();
 
     try {
       const resp = await getResponse(
-        `${process.env.API_URL}/api/v1.0/devices?page=${activePage}&per_page=${resultsPerPage}${sort}${filterString}`,
+        `${process.env.API_URL}/api/v1.0/devices?${filterString}`,
         token,
       );
 
