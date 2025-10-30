@@ -256,9 +256,9 @@ function FirmwareStep3({
 FirmwareStep3.propTypes = {
   firmwareUpgradeStart: PropTypes.func.isRequired,
   firmwareUpgradeAbort: PropTypes.func.isRequired,
-  filename: PropTypes.string.isRequired,
-  jobData: PropTypes.object.isRequired,
-  jobStatus: PropTypes.string.isRequired,
+  filename: PropTypes.string,
+  jobData: PropTypes.object,
+  jobStatus: PropTypes.string,
   jobId: PropTypes.string,
   jobFinishedDevices: PropTypes.array.isRequired,
   jobResult: PropTypes.object,
