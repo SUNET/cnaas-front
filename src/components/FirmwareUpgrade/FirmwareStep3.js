@@ -1,8 +1,20 @@
 import React from "react";
-import { Form, Confirm, Input } from "semantic-ui-react";
+import {
+  Form,
+  Confirm,
+  Input,
+  Popup,
+  Modal,
+  ModalHeader,
+  ModalContent,
+  ModalActions,
+  Button,
+} from "semantic-ui-react";
 import FirmwareProgressBar from "./FirmwareProgressBar";
 import FirmwareProgressInfo from "./FirmwareProgressInfo";
 import FirmwareError from "./FirmwareError";
+import { postData } from "../../utils/sendData";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
 
 const dateRegEx = new RegExp(
   "^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?$",
@@ -20,11 +32,18 @@ function FirmwareStep3({
   activateStep3,
   totalCount,
   logLines,
+  commitTarget,
 }) {
+  const { token } = useAuthToken();
+
   const [jobStarted, setJobStarted] = React.useState(false);
   const [confirmDiagOpen, setConfirmDiagOpen] = React.useState(false);
+  const [confirmStaggeredDiagOpen, setConfirmStaggeredDiagOpen] =
+    React.useState(false);
   const [startAt, setStartAt] = React.useState("");
   const [startAtError, setStartAtError] = React.useState(false);
+  const [staggeredSteps, setStaggeredSteps] = React.useState(null);
+  const [staggeredCompatible, setStaggeredCompatible] = React.useState(false);
 
   const openConfirm = React.useCallback(() => {
     setConfirmDiagOpen(true);
@@ -34,10 +53,25 @@ function FirmwareStep3({
     setConfirmDiagOpen(false);
   }, []);
 
+  const openStaggeredConfirm = React.useCallback(() => {
+    setConfirmStaggeredDiagOpen(true);
+    getStaggeredSteps();
+  }, []);
+
+  const closeStaggeredConfirm = React.useCallback(() => {
+    setConfirmStaggeredDiagOpen(false);
+  }, []);
+
   const okConfirm = React.useCallback(() => {
     setConfirmDiagOpen(false);
     setJobStarted(true);
-    firmwareUpgradeStart(3, filename, startAt);
+    firmwareUpgradeStart(3, filename, startAt, false);
+  }, [firmwareUpgradeStart, filename, startAt]);
+
+  const okStaggeredConfirm = React.useCallback(() => {
+    setConfirmStaggeredDiagOpen(false);
+    setJobStarted(true);
+    firmwareUpgradeStart(3, filename, startAt, true);
   }, [firmwareUpgradeStart, filename, startAt]);
 
   const onClickStep3Abort = React.useCallback(() => {
@@ -55,8 +89,45 @@ function FirmwareStep3({
       setStartAtError(true);
     }
   }, []);
+
+  const getStaggeredSteps = React.useCallback(async () => {
+    try {
+      setStaggeredSteps(<p>Loading staggered steps...</p>);
+      const resp = await postData(
+        `${process.env.API_URL}/api/v1.0/firmware/upgradecheck`,
+        token,
+        { group: commitTarget.group },
+      );
+      const groups = resp.data.upgrade_groups;
+      const stepElements = [];
+      // enumerate groups and add step <index> to stepElements
+      groups.forEach((group, index) => {
+        stepElements.push(<h2 key={`stepheader${index}`}>Step {index + 1}</h2>);
+        const devicesElements = [];
+        group.forEach((device) => {
+          devicesElements.push(<li key={device}>{device}</li>);
+        });
+        stepElements.push(<ul key={`steplist${index}`}>{devicesElements}</ul>);
+      });
+      setStaggeredSteps(stepElements);
+      setStaggeredCompatible(true);
+    } catch (error) {
+      if (error.status === 400) {
+        const errorMessage = await error.json();
+        setStaggeredSteps(
+          <p>Error fetching staggered steps: {errorMessage.message}</p>,
+        );
+      } else {
+        setStaggeredSteps(
+          <p>Error fetching staggered steps: {error.message}</p>,
+        );
+      }
+    }
+  }, [filename]);
+
   let error = "";
   let disableStartButton = true;
+  let disableStaggeredButton = true;
   let step3abortDisabled = true;
 
   if (jobStatus === "EXCEPTION") {
@@ -71,6 +142,11 @@ function FirmwareStep3({
     disableStartButton = true;
   } else if (activateStep3 === true) {
     disableStartButton = false;
+    disableStaggeredButton = false;
+  }
+
+  if (commitTarget.group === undefined) {
+    disableStaggeredButton = true;
   }
 
   return (
@@ -105,6 +181,21 @@ function FirmwareStep3({
             >
               Start reboots
             </button>
+            <Popup
+              content="Only for groups of ACCESS only devices. Will reboot devices in steps to minimize impact."
+              wide
+              trigger={
+                <div>
+                  <button
+                    id={"step3buttonStaggered"}
+                    onClick={openStaggeredConfirm}
+                    disabled={disableStaggeredButton}
+                  >
+                    Staggered reboots...
+                  </button>
+                </div>
+              }
+            />
             <button
               id="step3abortButton"
               disabled={step3abortDisabled}
@@ -120,6 +211,30 @@ function FirmwareStep3({
           onCancel={closeConfirm}
           onConfirm={okConfirm}
         />
+        <Modal
+          open={confirmStaggeredDiagOpen}
+          onClose={closeStaggeredConfirm}
+          size="small"
+        >
+          <ModalHeader>Staggered Reboots Steps</ModalHeader>
+          <ModalContent>
+            <p>
+              Are you sure you want to (schedule) reboot devices in the
+              following steps?
+            </p>
+            {staggeredSteps}
+          </ModalContent>
+          <ModalActions>
+            <Button onClick={closeStaggeredConfirm}>Cancel</Button>
+            <Button
+              onClick={okStaggeredConfirm}
+              disabled={!staggeredCompatible}
+              color="blue"
+            >
+              OK
+            </Button>
+          </ModalActions>
+        </Modal>
         <FirmwareProgressBar
           jobStatus={jobStatus}
           jobFinishedDevices={jobFinishedDevices}

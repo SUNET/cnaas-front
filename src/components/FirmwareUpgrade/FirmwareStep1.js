@@ -70,12 +70,14 @@ class FirmwareStep1 extends React.Component {
       });
     } else if ("devices" in this.state.firmwareInfo) {
       os_version_list = (
-        <p>
-          <b>{this.state.firmwareInfo.devices[0].os_version}:</b>{" "}
+        <div key="device">
+          <p>
+            <b>{this.state.firmwareInfo.devices[0].os_version}:</b>{" "}
+          </p>
           <ul>
             {this.renderHostname(this.state.firmwareInfo.devices[0].hostname)}
           </ul>
-        </p>
+        </div>
       );
     }
     return (
