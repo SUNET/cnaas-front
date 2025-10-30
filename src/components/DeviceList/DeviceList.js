@@ -180,7 +180,7 @@ function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
     // Set new debounce
     debounceTimeout.current = setTimeout(() => {
       handleFilterChange(column, value); // triggers fetch
-    }, 300);
+    }, 250);
   };
 
   const synchronizedOptions = [
@@ -756,7 +756,7 @@ function DeviceList() {
   // Update deviceData on changes
   useEffect(() => {
     getDevices();
-  }, [sortColumn, sortDirection, filterData, activePage, resultsPerPage]);
+  }, [sortColumn, sortDirection, searchParams, activePage, resultsPerPage]);
 
   // Set localStorage on changes
   useEffect(() => {
@@ -806,11 +806,13 @@ function DeviceList() {
       urlParams.sort = `${prefix}${sortColumn}`;
     }
 
-    for (const [key, value] of Object.entries(filterData)) {
+    for (const [key, value] of searchParams.entries()) {
       if (!value) continue; // skip empty values
-
-      const operator = operatorMap[key] ?? "[contains]";
-      urlParams[`filter[${key}]${operator}`] = value;
+      const match = key.match(/^filter\[(.+)\]$/);
+      if (!match) continue;
+      const matchedKey = match[1];
+      const operator = operatorMap[matchedKey] ?? "[contains]";
+      urlParams[`filter[${matchedKey}]${operator}`] = value;
     }
 
     const filterString = new URLSearchParams(urlParams).toString();
