@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React from "react";
 import {
   Form,
@@ -101,14 +102,14 @@ function FirmwareStep3({
       const groups = resp.data.upgrade_groups;
       const stepElements = [];
       // enumerate groups and add step <index> to stepElements
-      groups.forEach((group, index) => {
+      for (const [index, group] of groups.entries()) {
         stepElements.push(<h2 key={`stepheader${index}`}>Step {index + 1}</h2>);
         const devicesElements = [];
-        group.forEach((device) => {
+        for (const device of group) {
           devicesElements.push(<li key={device}>{device}</li>);
-        });
+        }
         stepElements.push(<ul key={`steplist${index}`}>{devicesElements}</ul>);
-      });
+      }
       setStaggeredSteps(stepElements);
       setStaggeredCompatible(true);
     } catch (error) {
@@ -131,7 +132,7 @@ function FirmwareStep3({
   let step3abortDisabled = true;
 
   if (jobStatus === "EXCEPTION") {
-    error = [<FirmwareError devices={jobResult.devices} />];
+    error = [<FirmwareError key="exception" devices={jobResult.devices} />];
   } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
     step3abortDisabled = false;
   }
@@ -251,5 +252,20 @@ function FirmwareStep3({
     </div>
   );
 }
+
+FirmwareStep3.propTypes = {
+  firmwareUpgradeStart: PropTypes.func.isRequired,
+  firmwareUpgradeAbort: PropTypes.func.isRequired,
+  filename: PropTypes.string.isRequired,
+  jobData: PropTypes.object.isRequired,
+  jobStatus: PropTypes.string.isRequired,
+  jobId: PropTypes.string.isRequired,
+  jobFinishedDevices: PropTypes.array.isRequired,
+  jobResult: PropTypes.object,
+  activateStep3: PropTypes.bool.isRequired,
+  totalCount: PropTypes.number.isRequired,
+  logLines: PropTypes.array.isRequired,
+  commitTarget: PropTypes.object.isRequired,
+};
 
 export default FirmwareStep3;
