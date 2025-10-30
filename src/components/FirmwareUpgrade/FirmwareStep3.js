@@ -259,7 +259,7 @@ FirmwareStep3.propTypes = {
   filename: PropTypes.string.isRequired,
   jobData: PropTypes.object.isRequired,
   jobStatus: PropTypes.string.isRequired,
-  jobId: PropTypes.string.isRequired,
+  jobId: PropTypes.string,
   jobFinishedDevices: PropTypes.array.isRequired,
   jobResult: PropTypes.object,
   activateStep3: PropTypes.bool.isRequired,
