@@ -330,35 +330,35 @@ progress::-moz-progress-bar {
 }
 
 /* diff box styles */
-#diff-box {
+.diff-box {
   background-color: #ececec;
   margin: 0 1rem;
 }
 
-#diff-box li {
+.diff-box li {
   margin: 1rem 0;
 }
 
-#diff-box li .device-name {
+.diff-box li .device-name {
   background-color: lightgray;
 }
 
-#diff-box .device-name {
+.diff-box .device-name {
   color: #003049;
   padding: 1rem;
   margin: 0;
 }
 
-#diff-box pre {
+.diff-box pre {
   padding-left: 1rem;
 }
 
-#diff-box pre.exception {
+.diff-box pre.exception {
   white-space: pre-wrap;
   color: #ff4500;
 }
 
-#diff-box pre.traceback {
+.diff-box pre.traceback {
   white-space: pre-wrap;
   color: #000;
   height: 1em;

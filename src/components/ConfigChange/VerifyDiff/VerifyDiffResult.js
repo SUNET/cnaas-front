@@ -38,7 +38,7 @@ function VerifyDiffResult({ deviceNames, deviceData }) {
 
   return (
     <div>
-      <section id="diff-box">
+      <section className="diff-box">
         <ul>
           {hasEmptyDiffs ? (
             <li>
@@ -59,7 +59,7 @@ function VerifyDiffResult({ deviceNames, deviceData }) {
         </ul>
       </section>
 
-      <section id="diff-box">
+      <section className="diff-box">
         <ul>
           {deviceExceptions.map((device, i) => (
             <li key={`${device.name}-exception-${i}`}>

@@ -257,13 +257,13 @@ progress::-moz-progress-bar {
 
 /* diff box styles */
 
-#diff-box {
+.diff-box {
   background-color: lightgray;
   color: red;
   margin: 0 16px;
 }
 
-#diff-box pre {
+.diff-box pre {
   white-space: pre-wrap;
   overflow-wrap: break-word;
   word-break: break-all;
