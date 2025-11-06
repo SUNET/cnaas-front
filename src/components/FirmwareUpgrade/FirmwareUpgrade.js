@@ -151,9 +151,9 @@ class FirmwareUpgrade extends React.Component {
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
       console.log(`total: ${totalCountHeader}`);
       if (step == 2) {
-        this.setState({ step2totalCount: totalCountHeader });
+        this.setState({ step2totalCount: parseInt(totalCountHeader, 10) });
       } else if (step == 3) {
-        this.setState({ step3totalCount: totalCountHeader });
+        this.setState({ step3totalCount: parseInt(totalCountHeader, 10) });
       }
     } else {
       console.log(
@@ -163,7 +163,7 @@ class FirmwareUpgrade extends React.Component {
     return response;
   };
 
-  firmwareUpgradeStart = (step, filename, startAt) => {
+  firmwareUpgradeStart = (step, filename, startAt, staggered_upgrade) => {
     const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/firmware/upgrade`;
     const dataToSend = this.getCommitTarget();
@@ -194,6 +194,10 @@ class FirmwareUpgrade extends React.Component {
 
     if (startAt) {
       dataToSend.start_at = startAt;
+    }
+
+    if (staggered_upgrade) {
+      dataToSend.staggered_upgrade = staggered_upgrade;
     }
 
     console.log(`Starting firmware upgrade job step ${step}`);
@@ -389,6 +393,7 @@ class FirmwareUpgrade extends React.Component {
             logLines={this.state.logLines}
             filename={this.state.filename}
             activateStep3={this.state.activateStep3}
+            commitTarget={commitTarget}
           />
         </section>
       </>
