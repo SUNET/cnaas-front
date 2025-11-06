@@ -788,6 +788,8 @@ function DeviceList() {
     } else if (!newSearch && location.search) {
       history.push("/devices");
     }
+    // Reset to page 1 during filtering
+    setActivePage(1);
   }, [filterData]);
 
   const getDevices = async () => {
