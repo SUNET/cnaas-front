@@ -48,7 +48,7 @@ class InterfaceConfig extends React.Component {
     initialSyncState: null,
     initialConfHash: null,
     awaitingDeviceSynchronization: false,
-    displayColumns: ["vlans"],
+    displayColumns: [],
     tagOptions: [],
     portTemplateOptions: [],
     interfaceBounceRunning: {},
@@ -95,6 +95,20 @@ class InterfaceConfig extends React.Component {
     bpdu_filter: 1,
   };
 
+  accessAllowedColumns = {
+    vlans: "VLANs",
+    tags: "Tags",
+    json: "Raw JSON",
+    aggregate_id: "LACP aggregate ID",
+    bpdu_filter: "BPDU filter",
+  };
+
+  distAllowedColumns = {
+    vlans: "VLANs",
+    tags: "Tags",
+    config: "Custom config",
+  };
+
   componentDidMount() {
     this.hostname = this.getDeviceName();
     if (this.hostname !== null) {
@@ -103,6 +117,7 @@ class InterfaceConfig extends React.Component {
         this.getInterfaceStatusData();
         this.getLldpNeighborData();
         this.getNetboxDeviceData(this.hostname);
+        this.setDisplayColumns();
       });
     }
     const credentials = localStorage.getItem("token");
@@ -205,6 +220,29 @@ class InterfaceConfig extends React.Component {
     });
   }
 
+  setDisplayColumns() {
+    const VALID_COLUMNS = [
+      ...Object.keys(this.accessAllowedColumns),
+      ...Object.keys(this.distAllowedColumns),
+    ];
+
+    const interfaceConfig =
+      JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
+    let newDisplayColumns;
+    if (this.device_type === "ACCESS") {
+      newDisplayColumns = interfaceConfig?.accessDisplayColumns;
+    } else if (this.device_type === "DIST") {
+      newDisplayColumns = interfaceConfig?.distDisplayColumns;
+    }
+
+    // Make sure only valid columns are going to be visible
+    this.setState({
+      displayColumns: [
+        ...new Set([...(newDisplayColumns ?? ["vlans"])]),
+      ].filter((column) => VALID_COLUMNS.includes(column)),
+    });
+  }
+
   getNetboxDeviceData(hostname) {
     if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
       return null;
@@ -221,26 +259,31 @@ class InterfaceConfig extends React.Component {
     getFunc(
       `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
       credentials,
-    ).then((data) => {
-      if (data.count === 1) {
-        const deviceData = data.results.pop();
-        this.setState(() => ({
-          netboxDeviceData: deviceData,
-        }));
-
-        getFunc(
-          `${url}/api/dcim/interfaces/?device_id=${deviceData.id}`,
-          credentials,
-        ).then((interfaceData) => {
-          // save
+    )
+      .then((data) => {
+        if (data.count === 1) {
+          const deviceData = data.results.pop();
           this.setState(() => ({
-            netboxInterfaceData: interfaceData.results,
+            netboxDeviceData: deviceData,
           }));
-        });
-      } else {
-        console.log("no data found device", hostname);
-      }
-    });
+
+          getFunc(
+            `${url}/api/dcim/interfaces/?device_id=${deviceData.id}`,
+            credentials,
+          ).then((interfaceData) => {
+            // save
+            this.setState(() => ({
+              netboxInterfaceData: interfaceData.results,
+            }));
+          });
+        } else {
+          console.log("no data found device", hostname);
+        }
+      })
+      .catch((e) => {
+        // Some netbox error occurred
+        console.log(e);
+      });
   }
 
   getDeviceName() {
@@ -1409,6 +1452,13 @@ class InterfaceConfig extends React.Component {
   };
 
   columnSelectorChange = (e, data) => {
+    let COLUMN_ORDER;
+    if (this.device_type === "ACCESS") {
+      COLUMN_ORDER = Object.keys(this.accessAllowedColumns);
+    } else if (this.device_type === "DIST") {
+      COLUMN_ORDER = Object.keys(this.distAllowedColumns);
+    }
+
     const newDisplayColumns = this.state.displayColumns;
     if (data.checked === true && newDisplayColumns.indexOf(data.name) === -1) {
       newDisplayColumns.push(data.name);
@@ -1418,7 +1468,23 @@ class InterfaceConfig extends React.Component {
         newDisplayColumns.splice(index, 1);
       }
     }
+
+    // Sort columns by their position in the predefined order
+    newDisplayColumns.sort(
+      (a, b) => COLUMN_ORDER.indexOf(a) - COLUMN_ORDER.indexOf(b),
+    );
+
     this.setState({ displayColumns: newDisplayColumns });
+    const interfaceConfig =
+      JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
+
+    if (this.device_type === "ACCESS") {
+      interfaceConfig.accessDisplayColumns = newDisplayColumns;
+    } else if (this.device_type === "DIST") {
+      interfaceConfig.distDisplayColumns = newDisplayColumns;
+    }
+
+    localStorage.setItem("interfaceConfig", JSON.stringify(interfaceConfig));
   };
 
   render() {
@@ -1457,19 +1523,9 @@ class InterfaceConfig extends React.Component {
     let allowedColumns = {};
 
     if (this.device_type == "ACCESS") {
-      allowedColumns = {
-        vlans: "VLANs",
-        tags: "Tags",
-        json: "Raw JSON",
-        aggregate_id: "LACP aggregate ID",
-        bpdu_filter: "BPDU filter",
-      };
+      allowedColumns = this.accessAllowedColumns;
     } else if (this.device_type == "DIST") {
-      allowedColumns = {
-        vlans: "VLANs",
-        tags: "Tags",
-        config: "Custom config",
-      };
+      allowedColumns = this.distAllowedColumns;
     }
 
     const columnHeaders = this.state.displayColumns.map((columnName) => {
@@ -1683,8 +1739,14 @@ class InterfaceConfig extends React.Component {
               pinned
               position="bottom right"
               trigger={
-                <Button className="table_options_button">
-                  <Icon name="table" />
+                <Button
+                  className="table_options_button"
+                  icon
+                  basic
+                  size="small"
+                  title="Select Columns"
+                >
+                  <Icon name="columns" />
                 </Button>
               }
             >
