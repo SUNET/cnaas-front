@@ -221,10 +221,10 @@ class InterfaceConfig extends React.Component {
   }
 
   setDisplayColumns() {
-    const VALID_COLUMNS = [
+    const VALID_COLUMNS = new Set([
       ...Object.keys(this.accessAllowedColumns),
       ...Object.keys(this.distAllowedColumns),
-    ];
+    ]);
 
     const interfaceConfig =
       JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
@@ -237,9 +237,9 @@ class InterfaceConfig extends React.Component {
 
     // Make sure only valid columns are going to be visible
     this.setState({
-      displayColumns: [
-        ...new Set([...(newDisplayColumns ?? ["vlans"])]),
-      ].filter((column) => VALID_COLUMNS.includes(column)),
+      displayColumns: (newDisplayColumns ?? ["vlans"]).filter((column) =>
+        VALID_COLUMNS.has(column),
+      ),
     });
   }
 
