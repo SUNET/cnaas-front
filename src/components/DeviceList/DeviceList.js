@@ -799,7 +799,8 @@ function DeviceList() {
       synchronized: "",
     };
 
-    const urlParams = { page: activePage, perPage: resultsPerPage };
+    // eslint-disable-next-line camelcase
+    const urlParams = { page: activePage, per_page: resultsPerPage };
 
     if (sortDirection && sortColumn) {
       const prefix = sortDirection === "ascending" ? "" : "-";
