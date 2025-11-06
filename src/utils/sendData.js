@@ -12,6 +12,22 @@ const putData = (url, credentials, dataToSend) => {
   }).then((response) => checkJsonResponse(response));
 };
 
+const post = async (url, token, dataToSend) => {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(dataToSend),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw response;
+  }
+  return response;
+};
+
 const postData = (url, credentials, dataToSend) => {
   return fetch(url, {
     method: "POST",
@@ -39,4 +55,4 @@ const deleteData = (url, credentials, dataToSend) => {
     .then((response) => response.json());
 };
 
-module.exports = { putData, postData, deleteData };
+module.exports = { putData, post, postData, deleteData };

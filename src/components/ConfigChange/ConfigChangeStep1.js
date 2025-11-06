@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";
@@ -61,15 +61,6 @@ function ConfigChangeStep1({
     setTriggerDryRun(false);
   }, [commitUpdateInfo, onDryRunReady, triggerDryRun]);
 
-  // function that returns a function that filters the log lines to only return ones which includes any of the specified job ids
-  function checkJobIds(jobIds) {
-    return function filterLogLines(logLine) {
-      return jobIds.some((v) => logLine.toLowerCase().includes(`job #${v}`))
-        ? logLine
-        : null;
-    };
-  }
-
   // this request takes some time, perhaps work in a "loading..."
   async function refreshRepo(repoName) {
     setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "updating..." }));
@@ -126,15 +117,23 @@ function ConfigChangeStep1({
     }
   }
 
-  let log = "";
-  if (logLines !== undefined && logLines.length > 0) {
-    logLines.filter(checkJobIds(repoJobs)).forEach((logLine) => {
-      log += logLine;
-      const element = document.getElementById(`logoutputdiv_refreshrepo`);
-      if (element !== null) {
-        element.scrollTop = element.scrollHeight;
-      }
-    });
+  function checkJobIds(jobIds) {
+    return function filterLogLinesOnJobId(logLine) {
+      return jobIds.some((v) =>
+        logLine.toLowerCase().includes(`job #${String(v).toLowerCase()}`),
+      );
+    };
+  }
+
+  const logRef = useRef(null);
+  const logFiltered = useRef("");
+  if (logLines?.length > 0) {
+    const filtered = logLines.filter(checkJobIds(repoJobs));
+    logFiltered.current = filtered.join("");
+
+    if (logRef.current !== null) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
   }
 
   return (
@@ -193,8 +192,8 @@ function ConfigChangeStep1({
           </button>
           <p>{commitUpdateInfo.templates}</p>
         </div>
-        <div id="logoutputdiv_refreshrepo" className="logoutput">
-          <pre>{log}</pre>
+        <div ref={logRef} id="logoutputdiv_refreshrepo" className="logoutput">
+          <pre>{logFiltered.current}</pre>
         </div>
       </div>
     </div>
