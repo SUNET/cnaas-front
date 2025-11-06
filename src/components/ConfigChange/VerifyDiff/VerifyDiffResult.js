@@ -1,97 +1,79 @@
-import React from "react";
+import { useMemo } from "react";
 import SyntaxHighlight from "../../SyntaxHighlight";
 
-class VerifyDiffResult extends React.Component {
-  render() {
-    // console.log("these are props in step 3", this.props);
-    const { deviceNames } = this.props;
-    const { deviceData } = this.props;
+function VerifyDiffResult({ deviceNames, deviceData }) {
+  // Extract diffs from device data
+  const deviceDiffs = useMemo(() => {
+    return deviceData
+      .map((jobsObj, i) => {
+        const diffs = jobsObj.job_tasks
+          .map((task) => task.diff)
+          .filter((diff) => diff !== "")
+          .join("");
 
-    // creates a 2D array that pairs device name and their diff
-    const deviceNameAndDiffArray = deviceData.map((jobsObj, i) => {
-      const jobTasks = jobsObj.job_tasks;
-      return jobTasks
-        .map((subTasks) => {
-          return subTasks.diff;
-        })
-        .filter((diff) => diff !== "")
-        .reduce((arr, diff) => {
-          return [deviceNames[i], diff];
-        }, []);
-    });
-    // renders name and diff values in the array
-    let deviceNameAndDiffList = deviceNameAndDiffArray.map(
-      (nameAndDiffArray, i) => {
-        if (nameAndDiffArray[0] !== undefined) {
-          return (
-            <li key={i}>
-              <p className="device-name" key={i}>
-                {nameAndDiffArray[0]} diffs
-              </p>
-              <SyntaxHighlight
-                index={i}
-                syntaxLanguage="language-diff diff-highlight"
-                code={nameAndDiffArray[1]}
-              />
+        return diffs ? { name: deviceNames[i], diff: diffs } : null;
+      })
+      .filter(Boolean); // Remove null entries
+  }, [deviceData, deviceNames]);
+
+  // Extract exceptions from device data
+  const deviceExceptions = useMemo(() => {
+    return deviceData
+      .map((jobsObj, i) => {
+        const failedTasks = jobsObj.job_tasks.filter(
+          (task) => task.failed === true,
+        );
+
+        if (failedTasks.length === 0) return null;
+
+        return {
+          name: deviceNames[i],
+          result: failedTasks[0]?.result, // Take first failed task
+        };
+      })
+      .filter(Boolean); // Remove null entries
+  }, [deviceData, deviceNames]);
+
+  const hasEmptyDiffs = deviceData?.length > 0 && deviceDiffs.length === 0;
+
+  return (
+    <div>
+      <section id="diff-box">
+        <ul>
+          {hasEmptyDiffs ? (
+            <li>
+              <p>All devices returned empty diffs</p>
             </li>
-          );
-        }
-      },
-    );
-    // Check if we get a result back, but the result contains only empty diffs
-    if (
-      deviceData?.length !== 0 &&
-      (deviceNameAndDiffList === undefined ||
-        (deviceNameAndDiffList.length === 1 &&
-          deviceNameAndDiffList[0] === undefined))
-    ) {
-      deviceNameAndDiffList = (
-        <li>
-          <p>All devices returned empty diffs</p>
-        </li>
-      );
-    } // creates a 2D array that pairs device name and their exceptions
-    const deviceNameAndExceptionArray = deviceData.map((jobsObj, i) => {
-      const jobTasks = jobsObj.job_tasks;
-      return jobTasks
-        .filter((subTask) => subTask.failed === true)
-        .map((subTasks) => {
-          return subTasks.result;
-        })
-        .reduce((arr, result) => {
-          return [deviceNames[i], result];
-        }, []);
-    });
-    // renders name and diff values in the array
-    const deviceNameAndExceptionList = deviceNameAndExceptionArray.map(
-      (nameAndExceptionArray, i) => {
-        if (nameAndExceptionArray[0] !== undefined) {
-          return (
-            <li key={i}>
-              <p className="device-name" key={i}>
-                {nameAndExceptionArray[0]} failed result
-              </p>
-              <pre className="traceback">{nameAndExceptionArray[1]}</pre>
+          ) : (
+            deviceDiffs.map((device, i) => (
+              <li key={`${device.name}-${i}`}>
+                <p className="device-name">{device.name} diffs</p>
+                <SyntaxHighlight
+                  index={i}
+                  syntaxLanguage="language-diff diff-highlight"
+                  code={device.diff}
+                />
+              </li>
+            ))
+          )}
+        </ul>
+      </section>
+
+      <section id="diff-box">
+        <ul>
+          {deviceExceptions.map((device, i) => (
+            <li key={`${device.name}-exception-${i}`}>
+              <p className="device-name">{device.name} failed result</p>
+              <pre className="traceback">{device.result}</pre>
               <pre className="exception">
-                {nameAndExceptionArray[1].split("\n").slice(-2).join("\n")}
+                {device.result.split("\n").slice(-2).join("\n")}
               </pre>
             </li>
-          );
-        }
-      },
-    );
-
-    return (
-      <div>
-        <div id="diff-box">
-          <ul>{deviceNameAndDiffList}</ul>
-        </div>
-        <div id="diff-box">
-          <ul>{deviceNameAndExceptionList}</ul>
-        </div>
-      </div>
-    );
-  }
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
 }
 
 export default VerifyDiffResult;
