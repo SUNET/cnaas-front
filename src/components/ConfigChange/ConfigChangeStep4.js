@@ -220,7 +220,6 @@ function ConfigChangeStep4({
           dryRunJobStatus={liveRunJobStatus}
           dryRunProgressData={liveRunProgressData}
           jobId={jobId}
-          confirmJobId={confirmJobId}
           logLines={logLines}
           keyNum={1}
         />

@@ -376,14 +376,8 @@ progress::-moz-progress-bar {
 }
 
 /* log output styles */
-.logoutput {
-  overflow-y: scroll;
-  max-height: 10em;
-  overflow-x: hidden;
-  font-family: monospace;
-  background-color: #ddd;
-  margin: 1em;
-  font-size: 90%;
+.language-log span.keyword {
+  display: inherit;
 }
 
 .job_ticket_ref {
