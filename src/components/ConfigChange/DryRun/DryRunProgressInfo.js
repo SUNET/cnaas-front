@@ -5,7 +5,6 @@ import PropTypes from "prop-types";
 class DryRunProgressInfo extends React.Component {
   state = {
     jobId: null,
-    confirmJobId: null,
   };
 
   checkJobId(job_id) {
@@ -62,10 +61,8 @@ DryRunProgressInfo.propTypes = {
   dryRunJobStatus: PropTypes.string,
   dryRunProgressData: PropTypes.arrayOf[PropTypes.string],
   jobId: PropTypes.number,
-  confirmJobId: PropTypes.number,
   logLines: PropTypes.arrayOf[PropTypes.string],
   hidden: PropTypes.bool,
-  keyNum: PropTypes.number,
 };
 
 export default DryRunProgressInfo;
