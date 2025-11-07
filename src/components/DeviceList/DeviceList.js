@@ -813,7 +813,8 @@ function DeviceList() {
       const data = await resp.json();
 
       setDeviceData(data.data.devices);
-    } catch {
+    } catch (error) {
+      setError(error);
       setDeviceData([]);
     }
     // Set loading to false, this should only happen on initial page load
