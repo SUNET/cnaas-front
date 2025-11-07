@@ -63,6 +63,7 @@ DryRunProgressInfo.propTypes = {
   jobId: PropTypes.number,
   logLines: PropTypes.arrayOf[PropTypes.string],
   hidden: PropTypes.bool,
+  keyNum: PropTypes.number,
 };
 
 export default DryRunProgressInfo;
