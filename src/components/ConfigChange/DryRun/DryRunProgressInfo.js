@@ -60,7 +60,7 @@ class DryRunProgressInfo extends React.Component {
 DryRunProgressInfo.propTypes = {
   dryRunJobStatus: PropTypes.string,
   dryRunProgressData: PropTypes.arrayOf[PropTypes.string],
-  jobId: PropTypes.number,
+  jobId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   logLines: PropTypes.arrayOf[PropTypes.string],
   hidden: PropTypes.bool,
   keyNum: PropTypes.number,
