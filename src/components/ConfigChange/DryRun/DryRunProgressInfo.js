@@ -39,7 +39,7 @@ class DryRunProgressInfo extends React.Component {
     }
 
     return (
-      <div key={300 + this.props.key} hidden={this.props.hidden}>
+      <div key={300 + this.props.keyNum} hidden={this.props.hidden}>
         <p>
           status: {jobStatus} (job #{jobId})
         </p>
