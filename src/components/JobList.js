@@ -292,13 +292,6 @@ class JobList extends React.Component {
     return logLine.toLowerCase().includes("job #");
   }
 
-  componentDidUpdate() {
-    const element = document.getElementById("logoutputdiv");
-    if (element !== null) {
-      element.scrollTop = element.scrollHeight;
-    }
-  }
-
   renderJobDetails(job, index) {
     if (job.status === "EXCEPTION") {
       if (job.exception !== undefined && job.exception !== null) {

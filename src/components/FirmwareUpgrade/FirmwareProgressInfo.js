@@ -12,13 +12,6 @@ class FirmwareProgressInfo extends React.Component {
     };
   }
 
-  componentDidUpdate() {
-    const element = document.getElementById("logoutputdiv");
-    if (element !== null) {
-      element.scrollTop = element.scrollHeight;
-    }
-  }
-
   render() {
     const { jobStatus } = this.props;
     const { jobId } = this.props;
