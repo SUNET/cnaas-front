@@ -1,5 +1,6 @@
 import React from "react";
 import LogViewer from "../LogViewer";
+import PropTypes from "prop-types";
 
 class FirmwareProgressInfo extends React.Component {
   state = {
@@ -44,5 +45,12 @@ class FirmwareProgressInfo extends React.Component {
     );
   }
 }
+
+FirmwareProgressInfo.propTypes = {
+  jobStatus: PropTypes.string,
+  jobId: PropTypes.number,
+  jobData: PropTypes.shape,
+  logLines: PropTypes.arrayOf[PropTypes.string],
+};
 
 export default FirmwareProgressInfo;

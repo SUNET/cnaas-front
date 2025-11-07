@@ -1,5 +1,6 @@
 import React from "react";
 import LogViewer from "../../LogViewer";
+import PropTypes from "prop-types";
 
 class DryRunProgressInfo extends React.Component {
   state = {
@@ -56,5 +57,15 @@ class DryRunProgressInfo extends React.Component {
     keyNum: 1,
   };
 }
+
+DryRunProgressInfo.propTypes = {
+  dryRunJobStatus: PropTypes.string,
+  dryRunProgressData: PropTypes.arrayOf[PropTypes.string],
+  jobId: PropTypes.number,
+  confirmJobId: PropTypes.number,
+  logLines: PropTypes.arrayOf[PropTypes.string],
+  hidden: PropTypes.bool,
+  keyNum: PropTypes.number,
+};
 
 export default DryRunProgressInfo;
