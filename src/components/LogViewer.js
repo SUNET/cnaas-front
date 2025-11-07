@@ -18,7 +18,6 @@ import PropTypes from "prop-types";
 
 const highlightLogs = (logs) => {
   if (!logs || logs.length === 0) return "";
-  // return logs.map((line) => Prism.highlight(line, Prism.languages.log, "log"));
   return Prism.highlight(logs.join(""), Prism.languages.log, "log");
 };
 
