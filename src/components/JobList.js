@@ -114,9 +114,9 @@ class JobList extends React.Component {
       this.setState({ logLines: newLogLines });
     });
     socket.on("events", (data) => {
+      const newLogLines = [...this.state.logLines];
       // job update event
       if (data.job_id !== undefined) {
-        var newLogLines = [...this.state.logLines];
         if (newLogLines.length >= 1000) {
           newLogLines.shift();
         }
@@ -132,7 +132,6 @@ class JobList extends React.Component {
         this.setState({ logLines: newLogLines });
         this.getJobsData();
       } else if (typeof data === "string" || data instanceof String) {
-        var newLogLines = [...this.state.logLines];
         if (newLogLines.length >= 1000) {
           newLogLines.shift();
         }
