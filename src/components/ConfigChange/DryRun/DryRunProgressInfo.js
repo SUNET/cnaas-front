@@ -1,4 +1,5 @@
 import React from "react";
+import LogViewer from "../../LogViewer";
 
 class DryRunProgressInfo extends React.Component {
   state = {
@@ -12,13 +13,6 @@ class DryRunProgressInfo extends React.Component {
     };
   }
 
-  componentDidUpdate() {
-    const element = document.getElementById(`logoutputdiv${this.props.key}`);
-    if (element !== null) {
-      element.scrollTop = element.scrollHeight;
-    }
-  }
-
   render() {
     // console.log("this is props in configchange progress data", this.props);
     const progressData = this.props.dryRunProgressData;
@@ -28,11 +22,12 @@ class DryRunProgressInfo extends React.Component {
     let jobStartTime = "";
     let jobFinishTime = "";
     let exceptionMessage = "";
-    let log = "";
+    let logViewer = "";
+
     if (this.props.logLines !== undefined && this.props.logLines.length > 0) {
-      this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
-        log += logLine;
-      });
+      logViewer = (
+        <LogViewer logs={this.props.logLines.filter(this.checkJobId(jobId))} />
+      );
     }
 
     if (Object.keys(progressData).length > 0) {
@@ -51,9 +46,7 @@ class DryRunProgressInfo extends React.Component {
         <p className="error">{exceptionMessage}</p>
         <p>start time: {jobStartTime}</p>
         <p>finish time: {jobFinishTime}</p>
-        <div id={`logoutputdiv${this.props.keyNum}`} className="logoutput">
-          <pre>{log}</pre>
-        </div>
+        {logViewer}
       </div>
     );
   }

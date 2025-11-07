@@ -1,10 +1,11 @@
 import PropTypes from "prop-types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";
 import { getData } from "../../utils/getData";
 import { putData } from "../../utils/sendData";
+import LogViewer from "../LogViewer";
 
 function ConfigChangeStep1({
   setRepoWorking,
@@ -125,17 +126,6 @@ function ConfigChangeStep1({
     };
   }
 
-  const logRef = useRef(null);
-  const logFiltered = useRef("");
-  if (logLines?.length > 0) {
-    const filtered = logLines.filter(checkJobIds(repoJobs));
-    logFiltered.current = filtered.join("");
-
-    if (logRef.current !== null) {
-      logRef.current.scrollTop = logRef.current.scrollHeight;
-    }
-  }
-
   return (
     <div className="task-container">
       <div className="heading">
@@ -192,9 +182,7 @@ function ConfigChangeStep1({
           </button>
           <p>{commitUpdateInfo.templates}</p>
         </div>
-        <div ref={logRef} id="logoutputdiv_refreshrepo" className="logoutput">
-          <pre>{logFiltered.current}</pre>
-        </div>
+        <LogViewer logs={logLines.filter(checkJobIds(repoJobs))} />
       </div>
     </div>
   );

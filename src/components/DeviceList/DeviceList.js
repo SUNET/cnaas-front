@@ -1481,21 +1481,13 @@ function DeviceList() {
 
     const log = {};
     for (const deviceId of Object.keys(deviceJobs)) {
-      log[deviceId] = "";
+      log[deviceId] = [];
 
       for (const jobId of deviceJobs[deviceId]) {
         const filteredLines = logLines.filter(checkJobId(jobId));
 
         for (const logLine of filteredLines) {
-          log[deviceId] += logLine;
-
-          const element = document.getElementById(
-            `logoutputdiv_device_id_${deviceId}`,
-          );
-
-          if (element) {
-            element.scrollTop = element.scrollHeight;
-          }
+          log[deviceId].push(logLine);
         }
       }
     }

@@ -16,6 +16,7 @@ import { formatISODate } from "../utils/formatters";
 import { getResponse } from "../utils/getData";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
 import JobSearchForm from "./JobSearchForm";
+import LogViewer from "./LogViewer";
 
 const io = require("socket.io-client");
 
@@ -115,7 +116,7 @@ class JobList extends React.Component {
     socket.on("events", (data) => {
       // job update event
       if (data.job_id !== undefined) {
-        var newLogLines = this.state.logLines;
+        var newLogLines = [...this.state.logLines];
         if (newLogLines.length >= 1000) {
           newLogLines.shift();
         }
@@ -131,7 +132,7 @@ class JobList extends React.Component {
         this.setState({ logLines: newLogLines });
         this.getJobsData();
       } else if (typeof data === "string" || data instanceof String) {
-        var newLogLines = this.state.logLines;
+        var newLogLines = [...this.state.logLines];
         if (newLogLines.length >= 1000) {
           newLogLines.shift();
         }
@@ -388,7 +389,10 @@ class JobList extends React.Component {
   }
 
   render() {
-    const { jobsData } = this.state;
+    const { jobsData, logLines } = this.state;
+
+    let logViewer = <LogViewer logs={logLines} />;
+
     let jobTableBody = jobsData.map((job, index) => {
       const jobDetails = this.renderJobDetails(job, index);
       let finishedDevices = "";
@@ -499,9 +503,7 @@ class JobList extends React.Component {
         <div id="search">
           <JobSearchForm searchAction={this.getJobsData} />
         </div>
-        <div id="logoutputdiv" className="logoutput">
-          <pre>{this.state.logLines}</pre>
-        </div>
+        {logViewer}
         <h2>Jobs</h2>
         <Table striped>
           <TableHeader>

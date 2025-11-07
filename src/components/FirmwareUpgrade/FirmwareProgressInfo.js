@@ -1,4 +1,5 @@
 import React from "react";
+import LogViewer from "../LogViewer";
 
 class FirmwareProgressInfo extends React.Component {
   state = {
@@ -25,10 +26,9 @@ class FirmwareProgressInfo extends React.Component {
     let jobStartTime = "";
     let jobFinishTime = "";
     let exceptionMessage = "";
-    let log = "";
-    this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
-      log += logLine;
-    });
+    let logViewer = (
+      <LogViewer logs={this.props.logLines.filter(this.checkJobId(jobId))} />
+    );
 
     if (jobData !== null) {
       jobStartTime = jobData.start_time;
@@ -46,9 +46,7 @@ class FirmwareProgressInfo extends React.Component {
         <p className="error">{exceptionMessage}</p>
         <p>start time: {jobStartTime}</p>
         <p>finish time: {jobFinishTime}</p>
-        <div id="logoutputdiv" className="logoutput">
-          <pre>{log}</pre>
-        </div>
+        {logViewer}
       </div>
     );
   }

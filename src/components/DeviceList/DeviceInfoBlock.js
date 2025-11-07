@@ -12,6 +12,7 @@ import {
 } from "semantic-ui-react";
 import { usePermissions } from "../../contexts/PermissionsContext";
 import { formatISODate } from "../../utils/formatters";
+import LogViewer from "../LogViewer";
 
 export default function DeviceInfoBlock({
   device,
@@ -203,19 +204,13 @@ export default function DeviceInfoBlock({
           {deviceInterfaceData}
         </GridColumn>
       </GridRow>
-      {(!log[device.id] || log[device.id]?.length !== 0) && (
-        <GridRow style={{ overflow: "hidden" }}>
+      <GridRow style={{ overflow: "hidden" }}>
+        {(!log[device.id] || log[device.id]?.length !== 0) && (
           <GridColumn width={16}>
-            <div
-              id={`logoutputdiv_device_id_${device.id}`}
-              className="logoutput"
-              style={{ margin: 0, overflow: "auto" }}
-            >
-              <pre style={{ width: "1em" }}>{log[device.id]}</pre>
-            </div>
+            <LogViewer logs={log[device.id]} />
           </GridColumn>
-        </GridRow>
-      )}
+        )}
+      </GridRow>
     </Grid>
   );
 }
