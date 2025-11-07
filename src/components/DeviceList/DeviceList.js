@@ -747,13 +747,8 @@ function DeviceList() {
   }, [deviceData]); // runs after re-render with new devices
 
   useEffect(() => {
-    const populatePromise = populateDiscoveredDevices();
-    const mgmtDomainsPromise = getAllMgmtDomainsData();
-
-    // Make sure we set loading to false when all fetches have settled
-    Promise.allSettled([populatePromise, mgmtDomainsPromise]).finally(() => {
-      setLoading(false);
-    });
+    populateDiscoveredDevices();
+    getAllMgmtDomainsData();
   }, []);
 
   // Update deviceData on changes
@@ -821,6 +816,8 @@ function DeviceList() {
     } catch {
       setDeviceData([]);
     }
+    // Set loading to false, this should only happen on initial page load
+    if (loading) setLoading(false);
   };
   const sortClick = (column) => {
     if (column === sortColumn) {
