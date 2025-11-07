@@ -50,7 +50,7 @@ FirmwareProgressInfo.propTypes = {
   jobStatus: PropTypes.string,
   jobId: PropTypes.number,
   jobData: PropTypes.shape,
-  logLines: PropTypes.arrayOf[PropTypes.string],
+  logLines: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default FirmwareProgressInfo;
