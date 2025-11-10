@@ -11,7 +11,6 @@
   "source": "src/index.html",
   "scripts": {
     "start": "rm -rf .parcel-cache/* && parcel --no-cache",
-    "dockerstart": "parcel --port 8083",
     "test": "jest --verbose",
     "build": "rm -rf dist/ && parcel build",
     "lint": "eslint . && prettier . --check",
