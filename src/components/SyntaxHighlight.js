@@ -8,9 +8,16 @@ function SyntaxHighlight({ index, syntaxLanguage, code }) {
     Prism.highlightAll();
   }, []);
 
+  const normalizeDiffSymbols = (code) => {
+    return code
+      .split("\n")
+      .map((line) => line.replace(/^(\s*)([+-])(\S)/, "$2$1$3"))
+      .join("\n");
+  };
+
   return (
     <pre key={index + 1} className={syntaxLanguage}>
-      <code className={syntaxLanguage}>{code}</code>
+      <code className={syntaxLanguage}>{normalizeDiffSymbols(code)}</code>
     </pre>
   );
 }
