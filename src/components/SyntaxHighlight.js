@@ -12,7 +12,7 @@ function SyntaxHighlight({ index, syntaxLanguage, code }) {
   const normalizeDiffSymbols = (code) => {
     return code
       .split("\n")
-      .map((line) => line.replace(/^(\s*)([+-])(\S)/, "$2$1$3"))
+      .map((line) => line.replace(/^(\s+)([+-])(\S)/, "$2$1$3"))
       .join("\n");
   };
 
