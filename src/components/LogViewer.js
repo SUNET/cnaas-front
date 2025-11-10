@@ -71,14 +71,9 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
         </Grid>
       </ModalHeader>
       <ModalContent style={{ height: "90%" }}>
-        <pre
-          ref={codeRef}
-          className="language-log"
-          style={{ lineHeight: "normal", height: "100%" }}
-        >
+        <pre ref={codeRef} className="language-log expand-log-viewer">
           <code
-            className="language-log"
-            style={{ lineHeight: "normal", textWrap: "wrap" }}
+            className="language-log text-wrap"
             dangerouslySetInnerHTML={{ __html: filteredHtml }}
           />
         </pre>
@@ -122,22 +117,10 @@ function LogViewer({ logs }) {
   return (
     <>
       <ExpanedLogViewer logs={logs} open={open} setOpen={setOpen} />
-      <div style={{ position: "relative", maxHeight: "10em", margin: "1em" }}>
-        <pre
-          ref={codeRef}
-          className="language-log"
-          style={{
-            lineHeight: "normal",
-            minHeight: "4em",
-            maxHeight: "10em",
-            height: "100%",
-            margin: "0",
-            padding: 0,
-          }}
-        >
+      <div className="inline-log-viewer">
+        <pre ref={codeRef} className="language-log inline-log-viewer">
           <code
-            className="language-log"
-            style={{ lineHeight: "normal", textWrap: "wrap" }}
+            className="language-log text-wrap"
             dangerouslySetInnerHTML={{ __html: html }}
           />
 
@@ -146,15 +129,10 @@ function LogViewer({ logs }) {
             trigger={
               <Button
                 onClick={() => setOpen((prev) => !prev)}
+                className="button-expand-log-viewer"
                 icon="expand"
                 basic
                 size="tiny"
-                style={{
-                  position: "absolute",
-                  bottom: "0.5rem",
-                  right: "0.5rem",
-                  margin: 0,
-                }}
               />
             }
           />
