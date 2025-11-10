@@ -2,6 +2,7 @@ import "../styles/prism.css";
 import { useEffect } from "react";
 import Prism from "prismjs";
 import "prismjs/components/prism-diff.js";
+import PropTypes from "prop-types";
 
 function SyntaxHighlight({ index, syntaxLanguage, code }) {
   useEffect(() => {
@@ -21,5 +22,11 @@ function SyntaxHighlight({ index, syntaxLanguage, code }) {
     </pre>
   );
 }
+
+SyntaxHighlight.propTypes = {
+  index: PropTypes.number,
+  syntaxLanguage: PropTypes.string,
+  code: PropTypes.string,
+};
 
 export default SyntaxHighlight;
