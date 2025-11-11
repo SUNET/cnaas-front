@@ -409,7 +409,6 @@ progress::-moz-progress-bar {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-size: unset;
 }
 
 .language-log span.keyword {
