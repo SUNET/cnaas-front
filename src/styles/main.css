@@ -379,6 +379,13 @@ progress::-moz-progress-bar {
 }
 
 /* log output styles */
+.log-viewer-modal-content {
+  padding: 0 !important;
+  background: #f5f2f0 !important;
+  max-height: calc(80vh - 10em);
+  min-height: calc(80vh - 10em);
+}
+
 .div-inline-log-viewer {
   position: relative;
   max-height: 10rem;

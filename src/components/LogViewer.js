@@ -8,9 +8,11 @@ import {
   GridColumn,
   Input,
   Modal,
+  ModalActions,
   ModalContent,
   ModalHeader,
   Popup,
+  Ref,
 } from "semantic-ui-react";
 
 import "../styles/prism.css";
@@ -44,7 +46,7 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
     if (codeRef.current) {
       codeRef.current.scrollTop = codeRef.current.scrollHeight;
     }
-  }, [filteredHtml]);
+  }, [open, filteredHtml]);
 
   return (
     <Modal
@@ -52,7 +54,6 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
       onClose={() => setOpen(false)}
       closeOnDimmerClick
       size="fullscreen"
-      style={{ height: "95%" }}
     >
       <ModalHeader>
         <Grid>
@@ -70,14 +71,19 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
           </GridColumn>
         </Grid>
       </ModalHeader>
-      <ModalContent style={{ height: "90%" }}>
-        <pre ref={codeRef} className="language-log expand-log-viewer">
-          <code
-            className="language-log text-wrap"
-            dangerouslySetInnerHTML={{ __html: filteredHtml }}
-          />
-        </pre>
-      </ModalContent>
+      <Ref innerRef={codeRef}>
+        <ModalContent scrolling className="log-viewer-modal-content">
+          <pre className="language-log expand-log-viewer">
+            <code
+              className="language-log text-wrap"
+              dangerouslySetInnerHTML={{ __html: filteredHtml }}
+            />
+          </pre>
+        </ModalContent>
+      </Ref>
+      <ModalActions>
+        <Button onClick={() => setOpen(false)}>Close</Button>
+      </ModalActions>
     </Modal>
   );
 }
