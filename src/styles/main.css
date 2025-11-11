@@ -402,6 +402,8 @@ progress::-moz-progress-bar {
 .language-log.expand-log-viewer {
   line-height: normal;
   height: 100%;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .language-log.text-wrap {
