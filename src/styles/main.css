@@ -394,8 +394,8 @@ progress::-moz-progress-bar {
 
 .button-expand-log-viewer {
   position: absolute;
-  bottom: 0.5rem;
-  right: 0.5rem;
+  bottom: var(--size-xxs);
+  right: var(--size-xxs);
   margin: 0;
 }
 
