@@ -379,13 +379,13 @@ progress::-moz-progress-bar {
 }
 
 /* log output styles */
-div.inline-log-viewer {
+.div-inline-log-viewer {
   position: relative;
-  max-height: 10em;
-  margin: 1em;
+  max-height: 10rem;
+  margin: 1rem;
 }
 
-button.button-expand-log-viewer {
+.button-expand-log-viewer {
   position: absolute;
   bottom: 0.5rem;
   right: 0.5rem;
@@ -404,8 +404,8 @@ button.button-expand-log-viewer {
 
 .language-log.inline-log-viewer {
   line-height: normal;
-  min-height: 4em;
-  max-height: 10em;
+  min-height: 4rem;
+  max-height: 10rem;
   height: 100%;
   margin: 0;
   padding: 0;

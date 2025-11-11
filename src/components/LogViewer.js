@@ -117,7 +117,7 @@ function LogViewer({ logs }) {
   return (
     <>
       <ExpanedLogViewer logs={logs} open={open} setOpen={setOpen} />
-      <div className="inline-log-viewer">
+      <div className="div-inline-log-viewer">
         <pre ref={codeRef} className="language-log inline-log-viewer">
           <code
             className="language-log text-wrap"
