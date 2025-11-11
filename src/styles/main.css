@@ -1,32 +1,35 @@
+@import "./variables.css";
+
+html,
+body,
+#root,
+.container {
+  height: 100%;
+}
+
 body {
-  height: calc(100vh - 4px);
-  background: #fff;
+  background: var(--color-background);
   font-family: "Karla", sans-serif;
-  font-size: 14px;
-  color: #003049;
+  font-size: var(--size-sm);
+  color: var(--color-primary);
   font-weight: 700;
   line-height: 1.2;
   overflow-x: scroll;
 }
 
-#root {
-  height: calc(100% - 4px);
-}
-
 .container {
-  height: calc(100% - 4px);
   display: flex;
   flex-direction: column;
 }
 
 header {
-  border-bottom: #ff4500 solid 1px;
+  border-bottom: var(--color-secondary) solid 1px;
   display: flex;
 }
 
 nav {
   flex: 1;
-  margin: 16px;
+  margin: 1rem;
   display: flex;
 }
 
@@ -42,15 +45,15 @@ nav ul {
 }
 
 nav li {
-  margin-right: 8px;
-  margin-left: 8px;
+  margin-right: var(--size-xxs);
+  margin-left: var(--size-xxs);
   display: flex;
   align-items: center;
   height: 100%;
 }
 
 a {
-  color: #003049;
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
@@ -59,31 +62,31 @@ nav a {
 }
 
 nav a.active {
-  color: #ff4500;
+  color: var(--color-secondary);
   text-decoration: underline;
 }
 
 h1,
 h2 {
-  font-size: 24px;
-  margin: 32px 0;
+  font-size: var(--size-lg);
+  margin: var(--size-xl) 0;
   line-height: 1.2;
 }
 
 h2:first-child {
-  margin-top: 32px;
+  margin-top: var(--size-xl);
 }
 
 p {
-  font-size: 16px;
-  margin: 16px 0;
+  font-size: var(--size-md);
+  margin: var(--size-md) 0;
   line-height: 1.2;
   font-weight: 400;
 }
 
 p.tokenexpired {
   font-weight: bold;
-  color: #ff0000;
+  color: var(--color-error);
 }
 
 /* p:first-child {
@@ -91,28 +94,28 @@ p.tokenexpired {
 } */
 
 button {
-  background: #ff4500;
+  background: var(--color-secondary);
   font-family: "Montserrat", sans-serif;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-background);
   letter-spacing: 1px;
 
   border: transparent solid 1px;
-  border-radius: 20px;
+  border-radius: var(--size-lg);
 
-  padding: 16px 32px;
-  margin: 16px;
+  padding: var(--size-md) var(--size-xl);
+  margin: var(--size-md);
 }
 
 button:hover {
-  border: #ff4500 solid 1px;
-  background: #ffe7dd;
-  color: #ff4500;
+  border: var(--color-secondary) solid 1px;
+  background: var(--color-surface);
+  color: var(--color-secondary);
 }
 
 button:disabled {
-  background: #cccccc;
+  background: var(--color-disabled-bg);
 }
 
 section {
@@ -123,51 +126,51 @@ section {
 
 /* long-term maybe panel can be removed */
 #panel {
-  padding: 16px;
+  padding: var(--size-md);
   display: flex;
   flex: 1;
   flex-direction: column;
 }
 
 footer {
-  border-top: #ff4500 solid 1px;
+  border-top: var(--color-secondary) solid 1px;
   display: flex;
-  padding: 16px;
+  padding: var(--size-md);
 }
 
 /* task styles */
 .task-container {
   border: solid gray 1px;
-  margin: 16px 0;
+  margin: var(--size-md) 0;
 }
 
 .task-container h2,
 .task-container p,
 .task-container ul {
-  padding: 0 16px;
+  padding: 0 var(--size-md);
 }
 
 .task-container p,
 .task-container ul {
-  font-size: 20px;
+  font-size: var(--size-lg);
   font-weight: 400;
 }
 
 .task-container .heading {
   display: flex;
   justify-content: space-between;
-  background-color: #f4f4f4;
+  background-color: var(--color-surface);
 }
 
 .task-container .heading h2 {
-  margin: 32px 0 32px 0;
+  margin: var(--size-xl) 0 var(--size-xl) 0;
 }
 
 .task-container .close {
   background: transparent;
   border: none;
   text-transform: capitalize;
-  color: #ff4500;
+  color: var(--color-secondary);
 }
 
 .task-container .close:hover {
@@ -178,11 +181,11 @@ footer {
 }
 
 .task-collapsable {
-  margin-top: 16px;
+  margin-top: var(--size-md);
 }
 
 .task-collapsable .tablecontainer {
-  margin: 16px;
+  margin: var(--size-md);
 }
 
 .task-collapsable .info {
@@ -191,12 +194,12 @@ footer {
 }
 
 .ui.checkbox {
-  margin: 16px;
+  margin: var(--size-md);
 }
 
 .task-container .ui.input.job_comment,
 .task-container .ui.input.job_ticket_ref {
-  margin-left: 16px;
+  margin-left: var(--size-md);
 }
 
 .task-container .job_comment {
@@ -216,12 +219,12 @@ tr {
 }
 
 thead {
-  font-size: 16px;
+  font-size: var(--size-md);
   font-weight: bold;
 }
 
 tbody {
-  font-size: 16px;
+  font-size: var(--size-md);
   font-weight: normal;
 }
 
@@ -229,7 +232,7 @@ th,
 td {
   display: flex;
   flex: 1;
-  padding: 16px;
+  padding: var(--size-md);
 }
 
 .table_options_button {
@@ -239,7 +242,7 @@ td {
 /* progress bar styles */
 
 #progressbar {
-  margin: 16px;
+  margin: var(--size-md);
 }
 
 progress {
@@ -257,26 +260,26 @@ progress {
 }
 
 progress::-webkit-progress-bar {
-  background-color: #ffe7dd;
+  background-color: var(--color-surface);
 }
 progress::-webkit-progress-value {
-  background-color: #ff4500;
+  background-color: var(--color-secondary);
 }
 progress::-moz-progress-bar {
-  background-color: #ff4500;
+  background-color: var(--color-secondary);
 }
 
 /* DeviceList styles */
 
 #search {
-  padding: 16px 0;
+  padding: var(--size-md) 0;
 }
 
 #device_list {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 16px 0;
+  padding: var(--size-md) 0;
 }
 
 /* make ID column small */
@@ -293,7 +296,7 @@ progress::-moz-progress-bar {
 }
 
 #data {
-  margin: 16px 0;
+  margin: var(--size-md) 0;
   background: lightgray;
 }
 
@@ -326,44 +329,44 @@ progress::-moz-progress-bar {
 
 /* error styles */
 .error {
-  color: #ff4500;
+  color: var(--color-secondary);
 }
 
 /* diff box styles */
 #diff-box {
-  background-color: #ececec;
-  margin: 0 1rem;
+  background-color: var(--color-surface);
+  margin: 0 var(--size-md);
 }
 
 #diff-box li {
-  margin: 1rem 0;
+  margin: var(--size-md) 0;
 }
 
 #diff-box li .device-name {
-  background-color: lightgray;
+  background-color: var(--color-surface);
 }
 
 #diff-box .device-name {
-  color: #003049;
-  padding: 1rem;
+  color: var(--color-primary);
+  padding: var(--size-md);
   margin: 0;
 }
 
 #diff-box pre {
-  padding-left: 1rem;
+  padding-left: var(--size-md);
 }
 
 #diff-box pre.exception {
   white-space: pre-wrap;
-  color: #ff4500;
+  color: var(--color-secondary);
 }
 
 #diff-box pre.traceback {
   white-space: pre-wrap;
-  color: #000;
-  height: 1em;
+  color: var(--color-black);
+  height: var(--size-md);
   overflow-y: scroll;
-  font-size: 80%;
+  font-size: var(--size-sm);
 }
 
 .fullconfig {
@@ -372,7 +375,7 @@ progress::-moz-progress-bar {
 
 .table-button-compact.button {
   max-height: min-content;
-  padding: 0.35em 1em 0.35em;
+  padding: 0.35em var(--size-md) 0.35em;
 }
 
 /* log output styles */
@@ -392,5 +395,5 @@ progress::-moz-progress-bar {
 }
 
 .ui.dimmer .ui.modalloader.loader:after {
-  border-color: #767676 transparent transparent;
+  border-color: var(--color-dimmer) transparent transparent;
 }
