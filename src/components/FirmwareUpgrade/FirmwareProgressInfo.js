@@ -1,4 +1,6 @@
 import React from "react";
+import LogViewer from "../LogViewer";
+import PropTypes from "prop-types";
 
 class FirmwareProgressInfo extends React.Component {
   state = {
@@ -11,13 +13,6 @@ class FirmwareProgressInfo extends React.Component {
     };
   }
 
-  componentDidUpdate() {
-    const element = document.getElementById("logoutputdiv");
-    if (element !== null) {
-      element.scrollTop = element.scrollHeight;
-    }
-  }
-
   render() {
     const { jobStatus } = this.props;
     const { jobId } = this.props;
@@ -25,10 +20,9 @@ class FirmwareProgressInfo extends React.Component {
     let jobStartTime = "";
     let jobFinishTime = "";
     let exceptionMessage = "";
-    let log = "";
-    this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
-      log += logLine;
-    });
+    let logViewer = (
+      <LogViewer logs={this.props.logLines.filter(this.checkJobId(jobId))} />
+    );
 
     if (jobData !== null) {
       jobStartTime = jobData.start_time;
@@ -46,12 +40,17 @@ class FirmwareProgressInfo extends React.Component {
         <p className="error">{exceptionMessage}</p>
         <p>start time: {jobStartTime}</p>
         <p>finish time: {jobFinishTime}</p>
-        <div id="logoutputdiv" className="logoutput">
-          <pre>{log}</pre>
-        </div>
+        {logViewer}
       </div>
     );
   }
 }
+
+FirmwareProgressInfo.propTypes = {
+  jobStatus: PropTypes.string,
+  jobId: PropTypes.number,
+  jobData: PropTypes.shape,
+  logLines: PropTypes.arrayOf(PropTypes.string),
+};
 
 export default FirmwareProgressInfo;

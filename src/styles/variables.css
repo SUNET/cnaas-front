@@ -1,0 +1,23 @@
+:root {
+  /* sizes */
+  --size-xxs: 0.5rem; /* 8 px */
+  --size-xs: 0.75rem; /* 12 px */
+  --size-sm: 0.875rem; /* 14 px */
+  --size-md: 1rem; /* 16 px */
+  --size-lg: 1.5rem; /* 24 px */
+  --size-xl: 2rem; /* 32 px */
+
+  /* colors https://m2.material.io/design/color/the-color-system.html#color-usage-and-palettes */
+  --color-primary: #003049; /* for primary interface elements. */
+  --color-secondary: #ff4500; /* for secondary interface elements. */
+  --color-error: #ff0000; /* for elements that the user should be made aware of. */
+  /* --color-warning:  /* for potentially dangerous actions or important messages. */
+  /* --color-info      /* for highlighting neutral information. */
+  /* --color-success   /* for indicating the successful completion of an action that the user triggered. */
+  /* Not in MUI */
+  --color-background: #ffffff;
+  --color-surface: #f4f4f4;
+  --color-black: #000000;
+  --color-disabled-bg: #cccccc;
+  --color-dimmer: #767676; /* this should be refactored */
+}

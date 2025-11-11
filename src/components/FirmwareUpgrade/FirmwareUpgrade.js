@@ -262,7 +262,7 @@ class FirmwareUpgrade extends React.Component {
         this.state.step2jobStatus === "SCHEDULED"
       ) {
         jobId = this.state.step2jobId;
-        var newLogLines = this.state.logLines;
+        var newLogLines = [...this.state.logLines];
         if (newLogLines.length >= 1000) {
           newLogLines.shift();
         }
@@ -277,7 +277,7 @@ class FirmwareUpgrade extends React.Component {
         this.state.step3jobStatus === "SCHEDULED"
       ) {
         jobId = this.state.step3jobId;
-        var newLogLines = this.state.logLines;
+        var newLogLines = [...this.state.logLines];
         if (newLogLines.length >= 1000) {
           newLogLines.shift();
         }
@@ -319,7 +319,7 @@ class FirmwareUpgrade extends React.Component {
       console.log(ret);
     });
     socket.on("events", (data) => {
-      const newLogLines = this.state.logLines;
+      const newLogLines = [...this.state.logLines];
       if (newLogLines.length >= 1000) {
         newLogLines.shift();
       }

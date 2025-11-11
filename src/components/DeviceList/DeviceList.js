@@ -63,7 +63,7 @@ const perPageOptions = [
 function DeviceTableButtonGroup({
   activeColumns,
   setFilterActive,
-  setFilterData,
+  handleFilterChange,
   columnSelectorChange,
   resultsPerPage,
   setActivePage,
@@ -99,7 +99,7 @@ function DeviceTableButtonGroup({
         size="small"
         onClick={() => {
           setFilterActive(false);
-          setFilterData({});
+          handleFilterChange({});
           setSortColumn(null);
           setSortDirection(null);
         }}
@@ -153,7 +153,7 @@ function DeviceTableButtonGroup({
 DeviceTableButtonGroup.propTypes = {
   activeColumns: PropTypes.arrayOf(PropTypes.string),
   setFilterActive: PropTypes.func,
-  setFilterData: PropTypes.func,
+  handleFilterChange: PropTypes.func,
   columnSelectorChange: PropTypes.func,
   resultsPerPage: PropTypes.number,
   setActivePage: PropTypes.func,
@@ -162,7 +162,11 @@ DeviceTableButtonGroup.propTypes = {
   setSortDirection: PropTypes.func,
 };
 
-function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
+function DeviceTableHeaderFilter({
+  column,
+  filterData,
+  handleFilterColumnChange,
+}) {
   const [localFilter, setLocalFilter] = useState(filterData);
   const debounceTimeout = useRef(null);
 
@@ -179,7 +183,7 @@ function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
 
     // Set new debounce
     debounceTimeout.current = setTimeout(() => {
-      handleFilterChange(column, value); // triggers fetch
+      handleFilterColumnChange(column, value); // triggers fetch
     }, 250);
   };
 
@@ -216,7 +220,7 @@ function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
         trigger={
           <Select
             onChange={(_, data) => {
-              handleFilterChange(column, data.value);
+              handleFilterColumnChange(column, data.value);
             }}
             value={localFilter[column] || ""}
             options={synchronizedOptions}
@@ -235,7 +239,7 @@ function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
         trigger={
           <Select
             onChange={(_, data) => {
-              handleFilterChange(column, data.value);
+              handleFilterColumnChange(column, data.value);
             }}
             value={localFilter[column] || ""}
             options={stateOptions}
@@ -254,7 +258,7 @@ function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
         trigger={
           <Select
             onChange={(_, data) => {
-              handleFilterChange(column, data.value);
+              handleFilterColumnChange(column, data.value);
             }}
             value={localFilter[column] || ""}
             options={deviceTypeOptions}
@@ -283,7 +287,7 @@ function DeviceTableHeaderFilter({ column, filterData, handleFilterChange }) {
 DeviceTableHeaderFilter.propTypes = {
   column: PropTypes.string,
   filterData: PropTypes.object,
-  handleFilterChange: PropTypes.func,
+  handleFilterColumnChange: PropTypes.func,
 };
 
 function DeviceTableHeader({
@@ -293,7 +297,7 @@ function DeviceTableHeader({
   filterActive,
   filterData,
   sortClick,
-  handleFilterChange,
+  handleFilterColumnChange,
 }) {
   return (
     <TableHeader>
@@ -337,7 +341,7 @@ function DeviceTableHeader({
               <DeviceTableHeaderFilter
                 column={column}
                 filterData={filterData}
-                handleFilterChange={handleFilterChange}
+                handleFilterColumnChange={handleFilterColumnChange}
               />
             </TableHeaderCell>
           ))}
@@ -354,7 +358,7 @@ DeviceTableHeader.propTypes = {
   filterActive: PropTypes.bool,
   filterData: PropTypes.object,
   sortClick: PropTypes.func,
-  handleFilterChange: PropTypes.func,
+  handleFilterColumnChange: PropTypes.func,
 };
 
 function DeviceTableBodyRowCellContent({ device, column, open }) {
@@ -728,8 +732,7 @@ function DeviceList() {
       // close toast
       event.target.parentElement.parentElement.parentElement.parentElement.remove();
     }
-    setActivePage(1);
-    setFilterData(filterData);
+    handleFilterChange(filterData);
     setFilterActive(Object.keys(filterData).length > 0);
     // Expand results when looking up device
     setExpandResult(true);
@@ -744,13 +747,8 @@ function DeviceList() {
   }, [deviceData]); // runs after re-render with new devices
 
   useEffect(() => {
-    const populatePromise = populateDiscoveredDevices();
-    const mgmtDomainsPromise = getAllMgmtDomainsData();
-
-    // Make sure we set loading to false when all fetches have settled
-    Promise.allSettled([populatePromise, mgmtDomainsPromise]).finally(() => {
-      setLoading(false);
-    });
+    populateDiscoveredDevices();
+    getAllMgmtDomainsData();
   }, []);
 
   // Update deviceData on changes
@@ -769,28 +767,6 @@ function DeviceList() {
     };
     localStorage.setItem("deviceList", JSON.stringify(storageData));
   }, [activeColumns, sortColumn, sortDirection, activePage, resultsPerPage]);
-
-  // Set queryParams on filterData changes
-  useEffect(() => {
-    const filterParams = Object.fromEntries(
-      Object.entries(filterData)
-        .filter(([, value]) => value) // skip empty values
-        .map(([key, value]) => [`filter[${key}]`, value]),
-    );
-
-    const queryString = new URLSearchParams(filterParams).toString();
-    const newSearch = queryString ? `?${queryString}` : "";
-
-    // Only push if it have changed
-    // Do not push nothing
-    if (newSearch && newSearch !== location.search) {
-      history.push(newSearch);
-    } else if (!newSearch && location.search) {
-      history.push("/devices");
-    }
-    // Reset to page 1 during filtering
-    setActivePage(1);
-  }, [filterData]);
 
   const getDevices = async () => {
     const operatorMap = {
@@ -837,9 +813,12 @@ function DeviceList() {
       const data = await resp.json();
 
       setDeviceData(data.data.devices);
-    } catch {
+    } catch (error) {
+      setError(error);
       setDeviceData([]);
     }
+    // Set loading to false, this should only happen on initial page load
+    if (loading) setLoading(false);
   };
   const sortClick = (column) => {
     if (column === sortColumn) {
@@ -852,11 +831,31 @@ function DeviceList() {
     setSortColumn(column);
   };
 
-  const handleFilterChange = (column, value) => {
-    setFilterData((prev) => ({
-      ...prev,
-      [column]: value,
-    }));
+  const handleFilterColumnChange = (column, value) => {
+    handleFilterChange({ ...filterData, [column]: value });
+  };
+
+  const handleFilterChange = (filterData) => {
+    // Reset to page 1 during filtering
+    setActivePage(1);
+    setFilterData(filterData);
+    // Set queryParams on filterData change
+    const filterParams = Object.fromEntries(
+      Object.entries(filterData)
+        .filter(([, value]) => value) // skip empty values
+        .map(([key, value]) => [`filter[${key}]`, value]),
+    );
+
+    const queryString = new URLSearchParams(filterParams).toString();
+    const newSearch = queryString ? `?${queryString}` : "";
+
+    // Only push if it have changed
+    // Do not push nothing
+    if (newSearch && newSearch !== location.search) {
+      history.push(newSearch);
+    } else if (!newSearch && location.search) {
+      history.push("/devices");
+    }
   };
 
   const handleAddMgmtDomains = (id) => {
@@ -1482,21 +1481,13 @@ function DeviceList() {
 
     const log = {};
     for (const deviceId of Object.keys(deviceJobs)) {
-      log[deviceId] = "";
+      log[deviceId] = [];
 
       for (const jobId of deviceJobs[deviceId]) {
         const filteredLines = logLines.filter(checkJobId(jobId));
 
         for (const logLine of filteredLines) {
-          log[deviceId] += logLine;
-
-          const element = document.getElementById(
-            `logoutputdiv_device_id_${deviceId}`,
-          );
-
-          if (element) {
-            element.scrollTop = element.scrollHeight;
-          }
+          log[deviceId].push(logLine);
         }
       }
     }
@@ -1617,6 +1608,7 @@ function DeviceList() {
           // If filter is on the current device id set filter to nothing and refetch data
           setFilterData((prev) => {
             if (prev.id === data.device_id) {
+              handleFilterChange({});
               setFilterActive(false);
               setSortColumn(null);
               setSortDirection(null);
@@ -1710,7 +1702,7 @@ function DeviceList() {
             <DeviceTableButtonGroup
               activeColumns={activeColumns}
               setFilterActive={setFilterActive}
-              setFilterData={setFilterData}
+              handleFilterChange={handleFilterChange}
               columnSelectorChange={columnSelectorChange}
               resultsPerPage={resultsPerPage}
               setActivePage={setActivePage}
@@ -1798,7 +1790,7 @@ function DeviceList() {
           filterActive={filterActive}
           filterData={filterData}
           sortClick={sortClick}
-          handleFilterChange={handleFilterChange}
+          handleFilterColumnChange={handleFilterColumnChange}
         />
         <DeviceTableBody
           deviceData={deviceData}

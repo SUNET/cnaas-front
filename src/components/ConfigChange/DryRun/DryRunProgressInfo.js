@@ -1,22 +1,16 @@
 import React from "react";
+import LogViewer from "../../LogViewer";
+import PropTypes from "prop-types";
 
 class DryRunProgressInfo extends React.Component {
   state = {
     jobId: null,
-    confirmJobId: null,
   };
 
   checkJobId(job_id) {
     return function (logLine) {
       return logLine.toLowerCase().includes(`job #${job_id}`);
     };
-  }
-
-  componentDidUpdate() {
-    const element = document.getElementById(`logoutputdiv${this.props.key}`);
-    if (element !== null) {
-      element.scrollTop = element.scrollHeight;
-    }
   }
 
   render() {
@@ -28,11 +22,12 @@ class DryRunProgressInfo extends React.Component {
     let jobStartTime = "";
     let jobFinishTime = "";
     let exceptionMessage = "";
-    let log = "";
+    let logViewer = "";
+
     if (this.props.logLines !== undefined && this.props.logLines.length > 0) {
-      this.props.logLines.filter(this.checkJobId(jobId)).map((logLine) => {
-        log += logLine;
-      });
+      logViewer = (
+        <LogViewer logs={this.props.logLines.filter(this.checkJobId(jobId))} />
+      );
     }
 
     if (Object.keys(progressData).length > 0) {
@@ -44,16 +39,14 @@ class DryRunProgressInfo extends React.Component {
     }
 
     return (
-      <div key={300 + this.props.key} hidden={this.props.hidden}>
+      <div key={300 + this.props.keyNum} hidden={this.props.hidden}>
         <p>
           status: {jobStatus} (job #{jobId})
         </p>
         <p className="error">{exceptionMessage}</p>
         <p>start time: {jobStartTime}</p>
         <p>finish time: {jobFinishTime}</p>
-        <div id={`logoutputdiv${this.props.keyNum}`} className="logoutput">
-          <pre>{log}</pre>
-        </div>
+        {logViewer}
       </div>
     );
   }
@@ -63,5 +56,14 @@ class DryRunProgressInfo extends React.Component {
     keyNum: 1,
   };
 }
+
+DryRunProgressInfo.propTypes = {
+  dryRunJobStatus: PropTypes.string,
+  dryRunProgressData: PropTypes.object,
+  jobId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  logLines: PropTypes.arrayOf(PropTypes.string),
+  hidden: PropTypes.bool,
+  keyNum: PropTypes.number,
+};
 
 export default DryRunProgressInfo;
