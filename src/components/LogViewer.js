@@ -8,9 +8,11 @@ import {
   GridColumn,
   Input,
   Modal,
+  ModalActions,
   ModalContent,
   ModalHeader,
   Popup,
+  Ref,
 } from "semantic-ui-react";
 
 import "../styles/prism.css";
@@ -44,7 +46,7 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
     if (codeRef.current) {
       codeRef.current.scrollTop = codeRef.current.scrollHeight;
     }
-  }, [filteredHtml]);
+  }, [open, filteredHtml]);
 
   return (
     <Modal
@@ -52,7 +54,6 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
       onClose={() => setOpen(false)}
       closeOnDimmerClick
       size="fullscreen"
-      style={{ height: "95%" }}
     >
       <ModalHeader>
         <Grid>
@@ -70,19 +71,19 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
           </GridColumn>
         </Grid>
       </ModalHeader>
-      <ModalContent style={{ height: "90%" }}>
-        <pre
-          ref={codeRef}
-          className="language-log"
-          style={{ lineHeight: "normal", height: "100%" }}
-        >
-          <code
-            className="language-log"
-            style={{ lineHeight: "normal", textWrap: "wrap" }}
-            dangerouslySetInnerHTML={{ __html: filteredHtml }}
-          />
-        </pre>
-      </ModalContent>
+      <Ref innerRef={codeRef}>
+        <ModalContent scrolling className="log-viewer-modal-content">
+          <pre className="language-log expand-log-viewer">
+            <code
+              className="language-log text-wrap"
+              dangerouslySetInnerHTML={{ __html: filteredHtml }}
+            />
+          </pre>
+        </ModalContent>
+      </Ref>
+      <ModalActions>
+        <Button onClick={() => setOpen(false)}>Close</Button>
+      </ModalActions>
     </Modal>
   );
 }
@@ -122,22 +123,10 @@ function LogViewer({ logs }) {
   return (
     <>
       <ExpanedLogViewer logs={logs} open={open} setOpen={setOpen} />
-      <div style={{ position: "relative", maxHeight: "10em", margin: "1em" }}>
-        <pre
-          ref={codeRef}
-          className="language-log"
-          style={{
-            lineHeight: "normal",
-            minHeight: "4em",
-            maxHeight: "10em",
-            height: "100%",
-            margin: "0",
-            padding: 0,
-          }}
-        >
+      <div className="div-inline-log-viewer">
+        <pre ref={codeRef} className="language-log inline-log-viewer">
           <code
-            className="language-log"
-            style={{ lineHeight: "normal", textWrap: "wrap" }}
+            className="language-log text-wrap"
             dangerouslySetInnerHTML={{ __html: html }}
           />
 
@@ -146,15 +135,10 @@ function LogViewer({ logs }) {
             trigger={
               <Button
                 onClick={() => setOpen((prev) => !prev)}
+                className="button-expand-log-viewer"
                 icon="expand"
                 basic
                 size="tiny"
-                style={{
-                  position: "absolute",
-                  bottom: "0.5rem",
-                  right: "0.5rem",
-                  margin: 0,
-                }}
               />
             }
           />

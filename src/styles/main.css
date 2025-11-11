@@ -379,6 +379,47 @@ progress::-moz-progress-bar {
 }
 
 /* log output styles */
+.log-viewer-modal-content {
+  padding: 0 !important;
+  background: #f5f2f0 !important;
+  max-height: calc(80vh - 10em);
+  min-height: calc(80vh - 10em);
+}
+
+.div-inline-log-viewer {
+  position: relative;
+  max-height: 10rem;
+  margin: var(--size-md);
+}
+
+.button-expand-log-viewer {
+  position: absolute;
+  bottom: var(--size-xxs);
+  right: var(--size-xxs);
+  margin: 0;
+}
+
+.language-log.expand-log-viewer {
+  line-height: normal;
+  height: 100%;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.language-log.text-wrap {
+  line-height: normal;
+  text-wrap: wrap;
+}
+
+.language-log.inline-log-viewer {
+  line-height: normal;
+  min-height: 4rem;
+  max-height: 10rem;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .language-log span.keyword {
   display: inherit;
 }
