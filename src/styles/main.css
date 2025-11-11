@@ -389,7 +389,7 @@ progress::-moz-progress-bar {
 .div-inline-log-viewer {
   position: relative;
   max-height: 10rem;
-  margin: 1rem;
+  margin: var(--size-md);
 }
 
 .button-expand-log-viewer {
