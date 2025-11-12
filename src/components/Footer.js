@@ -11,7 +11,7 @@ export function Footer() {
         >
           Documentation
         </a>{" "}
-        {!process.env.MONITORING_WEB_URL && (
+        {process.env.MONITORING_WEB_URL && (
           <>
             |{" "}
             <a
