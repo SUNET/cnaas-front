@@ -1,12 +1,14 @@
 import "../styles/prism.css";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Prism from "prismjs";
 import "prismjs/components/prism-diff.js";
 import PropTypes from "prop-types";
 
 function SyntaxHighlight({ index, syntaxLanguage, code }) {
+  const preRef = useRef();
+
   useEffect(() => {
-    Prism.highlightAll();
+    Prism.highlightAllUnder(preRef.current);
   }, []);
 
   const normalizeDiffSymbols = (code) => {
@@ -17,7 +19,7 @@ function SyntaxHighlight({ index, syntaxLanguage, code }) {
   };
 
   return (
-    <pre key={index + 1} className={syntaxLanguage}>
+    <pre ref={preRef} key={index + 1} className={syntaxLanguage}>
       <code className={syntaxLanguage}>{normalizeDiffSymbols(code)}</code>
     </pre>
   );
