@@ -16,6 +16,7 @@ import { useAuthToken } from "../../contexts/AuthTokenContext.js";
 import { io } from "socket.io-client";
 
 import "../../styles/react-semantic-alert.css";
+import { useFreshRef } from "../../hooks/useFreshRef.js";
 let socket = null;
 
 const STATUS_STOPPED = ["FINISHED", "EXCEPTION", "ABORTED"];
@@ -48,6 +49,7 @@ const showAnotherSessionDidRefreshToast = (jobId) => {
 
 function ConfigChange({ location }) {
   const { token } = useAuthToken();
+  const tokenRef = useFreshRef(token);
 
   const [blockNavigation, setBlockNavigation] = useState(false);
   const [confirmRunProgressData, setConfirmRunProgressData] = useState({});
@@ -352,7 +354,7 @@ function ConfigChange({ location }) {
       if (options.force) setSynctoForce(true);
     }
 
-    const response = await post(url, token, dataToSend);
+    const response = await post(url, tokenRef.current, dataToSend);
     readHeaders(response, dataToSend.dry_run);
     const responseJson = await response.json();
 
@@ -391,7 +393,7 @@ function ConfigChange({ location }) {
     // Set up interval
     pollIntervalRef.current = setInterval(async () => {
       try {
-        const response = await getData(url, token);
+        const response = await getData(url, tokenRef.current);
         const payload = response.data.jobs[0];
         updateJobType(jobType, payload);
 
