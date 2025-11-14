@@ -26,9 +26,11 @@ const highlightLogs = (logs) => {
 function ExpanedLogViewer({ logs, open, setOpen }) {
   const [localLogs, setLocalLogs] = useState([]);
   const [filter, setFilter] = useState("");
+  const [activeFilter, setActiveFilter] = useState("");
   const [filteredHtml, setFilteredHtml] = useState(null);
 
   const codeRef = useRef(null);
+  const debounceTimeout = useRef(null);
 
   useEffect(() => {
     if (!logs || !Array.isArray(logs)) return;
@@ -36,11 +38,13 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
   }, [logs]);
 
   useEffect(() => {
-    const filteredLogs = localLogs.filter((value) => value.includes(filter));
+    const filteredLogs = localLogs.filter((value) =>
+      value.includes(activeFilter),
+    );
     const filteredHtml = highlightLogs(filteredLogs);
 
     setFilteredHtml(filteredHtml);
-  }, [localLogs, filter]);
+  }, [localLogs, activeFilter]);
 
   useEffect(() => {
     if (codeRef.current) {
@@ -61,7 +65,16 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
           <GridColumn floated="right" width={3}>
             <Input
               onChange={(e, data) => {
+                //Set filter directly
                 setFilter(data.value);
+                // Clear previous debounce
+                if (debounceTimeout.current)
+                  clearTimeout(debounceTimeout.current);
+
+                // Set new debounce
+                debounceTimeout.current = setTimeout(() => {
+                  setActiveFilter(data.value);
+                }, 250);
               }}
               value={filter}
               placeholder="Filter"
