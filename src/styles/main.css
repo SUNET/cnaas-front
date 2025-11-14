@@ -356,12 +356,12 @@ progress::-moz-progress-bar {
   padding-left: var(--size-md);
 }
 
-#diff-box pre.exception {
+.diff-box pre.exception {
   white-space: pre-wrap;
   color: var(--color-secondary);
 }
 
-#diff-box pre.traceback {
+.diff-box pre.traceback {
   white-space: pre-wrap;
   color: var(--color-black);
   height: var(--size-md);
