@@ -9,7 +9,7 @@ export function useFreshRef(value) {
   // Always keep ref.current in sync with the latest value
   useEffect(() => {
     ref.current = value;
-  });
+  }, [value]);
 
   return ref;
 }
