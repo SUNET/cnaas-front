@@ -54,7 +54,7 @@ chmod 600 /opt/cnaas/cert/cnaasfront.key
 
 # Create config.js dynamically using a here-doc
 cat > "/opt/cnaas/static/config.js" <<EOF
-var API_URL = "${CNAAS_FRONT_URL:-${CNAAS_API_URL:-}}"
+var API_URL = "${CNAAS_FRONT_URL:-${CNAAS_API_URL:-}}";
 var AUTH_URL = "${CNAAS_AUTH_URL:-}";
 var NETBOX_API_URL = "${NETBOX_API_URL:-}";
 var NETBOX_TENANT_ID = "${NETBOX_TENANT_ID:-}";
