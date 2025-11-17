@@ -20,6 +20,17 @@ ARISTA_DETECT_ARCH"
 # Set this variable dynamically
 export HTTPD_URL=$(echo $API_URL | sed 's/https/http/g')
 
+# Disable Netbox / Graphite in nginx config if not set.
+if [ -z "$NETBOX_API_URL" ]; then
+    echo "Disabling Netbox integration in nginx.conf"
+    sed -i "/location.*netbox/,/}/d" /etc/nginx/conf.d/default.conf
+fi
+
+if [ -z "$GRAPHITE_URL" ]; then
+    echo "Disabling Graphite integration in nginx.conf"
+    sed -i "/location.*graphite/,/}/d" /etc/nginx/conf.d/default.conf
+fi
+
 for key in $VARS; do
     value=$(printenv "$key")
     if [ -n "$value" ]; then
@@ -42,4 +53,7 @@ if [ ! -f /opt/cnaas/cert/cnaasfront_combined.crt ]; then
 fi
 chown nginx:nginx /opt/cnaas/cert/cnaasfront.key
 chmod 600 /opt/cnaas/cert/cnaasfront.key
+
+
+
 
