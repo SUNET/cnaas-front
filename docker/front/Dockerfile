@@ -11,6 +11,10 @@ RUN npm install --ignore-scripts
 COPY src src
 COPY docker/front/config/build.env .env
 
+# Update js files to reference window instead of process.env
+RUN find /opt/cnaas-front/src -type f -name '*.js' -exec \
+    sed -i "s|process\.env\.|window\.|g" '{}' +
+
 RUN npm run-script build
 
 FROM nginx:1.27.0-alpine
