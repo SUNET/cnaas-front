@@ -18,7 +18,7 @@ PERMISSIONS_DISABLED \
 ARISTA_DETECT_ARCH"
 
 # Set this variable dynamically
-export HTTPD_URL=`echo $API_URL | sed 's/https/http/g'`
+export HTTPD_URL=$(echo $API_URL | sed 's/https/http/g')
 
 for key in $VARS; do
     value=$(printenv "$key")
