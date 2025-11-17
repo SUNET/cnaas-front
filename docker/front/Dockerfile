@@ -28,12 +28,12 @@ COPY docker/front/cert/* /etc/nginx/conf.d/
 # Copy over pre-start script
 COPY docker/front/config/env.sh /docker-entrypoint.d/env.sh
 RUN chmod +x /docker-entrypoint.d/env.sh && \
-chown -R nginx:nginx \
-/var/cache/nginx \
-/opt/cnaas/cert \
-/opt/cnaas/static \
-/etc/nginx/conf.d \
-/docker-entrypoint.d/env.sh
+    chown -R nginx:nginx \
+    /var/cache/nginx \
+    /opt/cnaas/cert \
+    /opt/cnaas/static \
+    /etc/nginx/conf.d \
+    /docker-entrypoint.d/env.sh
 
 USER nginx
 
