@@ -9,7 +9,6 @@ COPY package*.json ./
 RUN npm install --ignore-scripts
 
 COPY src src
-COPY docker/front/config/build.env .env
 
 # Update js files to reference window instead of process.env
 RUN find /opt/cnaas-front/src -type f -name '*.js' -exec \
