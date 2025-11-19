@@ -17,6 +17,29 @@ OIDC_ENABLED \
 PERMISSIONS_DISABLED \
 ARISTA_DETECT_ARCH"
 
+REQUIRED_VARS="CNAAS_API_URL \
+TEMPLATES_WEB_URL \
+SETTINGS_WEB_URL"
+
+for v in $REQUIRED_VARS; do
+    if [ -z "$(printenv "$v")" ]; then
+        echo "ERROR: Required environment variable $v is not set."
+        exit 1
+    fi
+done
+
+if [ "$OIDC_ENABLED" = "true" ]; then
+    if [ -z "$CNAAS_AUTH_URL" ]; then
+        echo "ERROR: CNAAS_AUTH_URL is required when OIDC_ENABLED=true."
+        exit 1
+    fi
+else
+    if [ -z "$CNAAS_AUTH_URL" ]; then
+        # Default CNAAS_AUTH_URL to API if not defined
+        export CNAAS_AUTH_URL=$CNAAS_API_URL
+    fi
+fi
+
 # Set this variable dynamically
 export CNAAS_HTTPD_URL=$(echo $CNAAS_API_URL | sed 's/https/http/g')
 
