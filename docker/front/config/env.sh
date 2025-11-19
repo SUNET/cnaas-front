@@ -23,14 +23,14 @@ SETTINGS_WEB_URL"
 
 for v in $REQUIRED_VARS; do
     if [ -z "$(printenv "$v")" ]; then
-        echo "ERROR: Required environment variable $v is not set."
+        echo "ERROR: Required environment variable $v is not set." >&2
         exit 1
     fi
 done
 
 if [ "$OIDC_ENABLED" = "true" ]; then
     if [ -z "$CNAAS_AUTH_URL" ]; then
-        echo "ERROR: CNAAS_AUTH_URL is required when OIDC_ENABLED=true."
+        echo "ERROR: CNAAS_AUTH_URL is required when OIDC_ENABLED=true." >&2
         exit 1
     fi
 else
