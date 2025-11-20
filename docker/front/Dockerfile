@@ -18,6 +18,10 @@ RUN npm run-script build
 
 FROM nginx:1.27.0-alpine
 
+LABEL org.opencontainers.image.vendor="SUNET"
+LABEL org.opencontainers.image.source="https://github.com/SUNET/cnaas-front"
+LABEL org.opencontainers.image.description="CNaaS Front"
+
 RUN mkdir -p /opt/cnaas/static/styles /opt/cnaas/cert
 
 COPY --from=build /opt/cnaas-front/dist/* /opt/cnaas/static
