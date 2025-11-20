@@ -117,19 +117,25 @@ You should be able to log into the frontend with the user credentials mentioned
 ## Docker
 
 ### Build
+
 Be at root of the repo
+
 ```bash
 docker build -f docker/front/Dockerfile -t cnaas-front .
 ```
 
 ### Environment variables
+
 Check [docker/docker-compose.yaml](docker/docker-compose.yaml)
+
 #### Must have variables:
+
 - CNAAS_API_URL
 - SETTINGS_WEB_URL
 - TEMPLATES_WEB_URL
 
 #### Optional variables:
+
 - ARISTA_DETECT_ARCH
 - CNAAS_FIRMWARE_REPO_METADATA_URL
 - CNAAS_FIRMWARE_REPO_URL
@@ -141,9 +147,10 @@ Check [docker/docker-compose.yaml](docker/docker-compose.yaml)
 - NETBOX_API_URL
 - NETBOX_TENANT_ID
 - OIDC_ENABLED
-When OIDC_ENABLED is true CNAAS_AUTH_URL also needs to be set.
+  When OIDC_ENABLED is true CNAAS_AUTH_URL also needs to be set.
 
 ### Run
+
 ```bash
 docker run -p 4443:4443 --name cnaas-front --env-file .env-docker --rm -it cnaas-front
 ```
