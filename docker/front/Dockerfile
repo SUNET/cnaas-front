@@ -24,7 +24,7 @@ LABEL org.opencontainers.image.description="CNaaS Front"
 
 RUN mkdir -p /opt/cnaas/static/styles /opt/cnaas/cert
 
-COPY --from=build /opt/cnaas-front/dist/* /opt/cnaas/static
+COPY --from=build /opt/cnaas-front/dist/* /opt/cnaas/static/
 COPY src/styles/*.css /opt/cnaas/static/styles/
 
 # Copy over nginx config

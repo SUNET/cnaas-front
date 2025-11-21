@@ -19,3 +19,4 @@ extra_jobs:
     docker_context_dir: .
     docker_tags:
       - "v1.8.0"
+      - "v1.8"
