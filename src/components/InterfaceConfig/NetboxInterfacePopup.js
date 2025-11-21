@@ -44,10 +44,6 @@ function NeighborInfoList({ neighbors }) {
 }
 
 export function NetboxInterfacePopup({ netboxInterface }) {
-  if (Object.keys(netboxInterface).length === 0) {
-    return null;
-  }
-
   const content = useMemo(() => {
     const { type, cable, connected_endpoints } = netboxInterface;
 
@@ -59,6 +55,10 @@ export function NetboxInterfacePopup({ netboxInterface }) {
       </>
     );
   }, [netboxInterface]);
+
+  if (Object.keys(netboxInterface).length === 0) {
+    return null;
+  }
 
   return (
     <Popup
