@@ -18,13 +18,13 @@ import {
 } from "semantic-ui-react";
 import YAML from "yaml";
 import { getData, getDataHeaders, getDataToken } from "../../utils/getData";
-import InterfaceCurrentConfig from "./InterfaceCurrentConfig";
+import { InterfaceCurrentConfig } from "./InterfaceCurrentConfig";
 import { putData, postData } from "../../utils/sendData";
-import GraphiteInterface from "./GraphiteInterface";
-import NetboxDevice from "./NetboxDevice";
-import NetboxInterfacePopup from "./NetboxInterfacePopup";
-import LldpNeighborPopup from "./LldpNeighborPopup";
-import NewInterface from "./NewInterface";
+import { GraphiteInterface } from "./GraphiteInterface";
+import { NetboxDevice } from "./NetboxDevice";
+import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
+import { LldpNeighborPopup } from "./LldpNeighborPopup";
+import { NewInterface } from "./NewInterface";
 
 const io = require("socket.io-client");
 

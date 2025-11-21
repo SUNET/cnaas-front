@@ -1,39 +1,41 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button, Modal, Icon, Dropdown } from "semantic-ui-react";
 
 import PropTypes from "prop-types";
 
-function NewInterface({ suggestedInterfaces, addNewInterface }) {
+export function NewInterface({ suggestedInterfaces, addNewInterface }) {
   const [open, setOpen] = useState(false);
   const [interfaceName, setInterfaceName] = useState("");
 
-  const addInterfaceOption = (e, data) => {
-    const { value } = data;
-    setInterfaceName(value);
+  const handleSetInterfaceName = (_, { value }) => setInterfaceName(value);
+
+  const handleAdd = () => {
+    interfaceName && addNewInterface(interfaceName);
+    setOpen(false);
   };
 
-  const selectInterface = (e, data) => {
-    const { value } = data;
-    setInterfaceName(value);
-  };
+  const interfaceOptions = useMemo(() => {
+    const baseOptions = suggestedInterfaces.map((name) => ({
+      key: name,
+      text: name,
+      value: name,
+    }));
 
-  const interfaceOptions = suggestedInterfaces.map((optionName) => ({
-    key: optionName,
-    text: optionName,
-    value: optionName,
-  }));
-
-  if (interfaceName) {
-    // if interfaceOptions array does not have object with text equal to interface
-    if (!interfaceOptions.find((option) => option.text === interfaceName)) {
-      interfaceOptions.push({
+    // If user typed something not in the list, add it
+    if (
+      interfaceName &&
+      !baseOptions.some((opt) => opt.value === interfaceName)
+    ) {
+      baseOptions.push({
         key: interfaceName,
         text: interfaceName,
         value: interfaceName,
       });
     }
-  }
+
+    return baseOptions;
+  }, [suggestedInterfaces, interfaceName]);
 
   return (
     <Modal
@@ -55,30 +57,17 @@ function NewInterface({ suggestedInterfaces, addNewInterface }) {
           selection
           search
           allowAdditions
-          defaultValue={interfaceName}
+          value={interfaceName}
           options={interfaceOptions}
-          onAddItem={addInterfaceOption}
-          onChange={selectInterface}
+          onAddItem={handleSetInterfaceName}
+          onChange={handleSetInterfaceName}
         />
       </Modal.Content>
       <Modal.Actions>
-        <Button
-          key="close"
-          color="black"
-          onClick={() => {
-            setOpen(false);
-          }}
-        >
+        <Button color="black" onClick={() => setOpen(false)}>
           Close
         </Button>
-        <Button
-          key="add"
-          onClick={() => {
-            addNewInterface(interfaceName);
-            setOpen(false);
-          }}
-          positive
-        >
+        <Button positive onClick={handleAdd}>
           Add
         </Button>
       </Modal.Actions>
