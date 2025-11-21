@@ -13,7 +13,9 @@ extra_jobs:
       branch: develop
     builders:
       - docker
+    pre_build_script:
+      - cp docker/front/Dockerfile .
     docker_name: cnaas/front
-    docker_context_dir: docker/front
+    docker_context_dir: .
     docker_tags:
-      - "latest"
+      - "v1.8.0"

@@ -1,37 +1,48 @@
-FROM node:22
+FROM node:22 AS build
 
-# Create directories
-RUN mkdir -p /opt/cnaas/static/styles
+RUN mkdir -p /opt/cnaas-front
 
-# Setup script
-COPY setup.sh /opt/cnaas/setup.sh
-RUN /opt/cnaas/setup.sh
+WORKDIR /opt/cnaas-front
 
-# Prepare for supervisord, uwsgi, ngninx
-COPY config/supervisord_app.conf /etc/supervisor/supervisord.conf
-COPY config/nginx_app.conf /etc/nginx/sites-available/
-COPY config/nginx.conf /etc/nginx/
-COPY config/example.env /opt/cnaas/.env
-COPY cert/* /etc/nginx/conf.d/
-COPY index.html /opt/cnaas/static/
-COPY styles/* /opt/cnaas/static/styles/
-COPY start-nginx.sh /opt/cnaas/
+COPY package*.json ./
 
-# Give nginx some special treatment
-RUN unlink /etc/nginx/sites-enabled/default
-RUN ln -s /etc/nginx/sites-available/nginx_app.conf /etc/nginx/sites-enabled/default
-#RUN chown www-data:www-data /var/log/nginx
-#RUN chown -R  www-data:www-data /var/log/nginx/
-#RUN chown -R www-data:www-data /var/lib/nginx
-#RUN chown www-data:www-data /var/lib/nginx/
-#RUN chown root:www-data /opt/cnaas/start-nginx.sh
-#RUN chmod g+rx /opt/cnaas/start-nginx.sh
-#RUN chown root:www-data /etc/nginx/sites-available/nginx_app.conf
-#RUN chmod g+rw /etc/nginx/sites-available/nginx_app.conf
+RUN npm install --ignore-scripts
 
+COPY src src
+
+# Update js files to reference window instead of process.env
+RUN find /opt/cnaas-front/src -type f -name '*.js' -exec \
+    sed -i "s|process\.env\.|window\.|g" '{}' +
+
+RUN npm run-script build
+
+FROM nginx:1.27.0-alpine
+
+LABEL org.opencontainers.image.vendor="SUNET"
+LABEL org.opencontainers.image.source="https://github.com/SUNET/cnaas-front"
+LABEL org.opencontainers.image.description="CNaaS Front"
+
+RUN mkdir -p /opt/cnaas/static/styles /opt/cnaas/cert
+
+COPY --from=build /opt/cnaas-front/dist/* /opt/cnaas/static
+COPY src/styles/*.css /opt/cnaas/static/styles/
+
+# Copy over nginx config
+COPY docker/front/config/nginx_app.conf /etc/nginx/conf.d/default.conf
+COPY docker/front/config/nginx.conf /etc/nginx/
+COPY docker/front/cert/* /etc/nginx/conf.d/
+
+# Copy over pre-start script
+COPY docker/front/config/env.sh /docker-entrypoint.d/env.sh
+RUN chmod +x /docker-entrypoint.d/env.sh && \
+    chown -R nginx:nginx \
+    /var/cache/nginx \
+    /opt/cnaas/cert \
+    /opt/cnaas/static \
+    /etc/nginx/conf.d \
+    /docker-entrypoint.d/env.sh
+
+USER nginx
 
 # Expose HTTPS
 EXPOSE 4443
-
-ENTRYPOINT supervisord -c /etc/supervisor/supervisord.conf
-
