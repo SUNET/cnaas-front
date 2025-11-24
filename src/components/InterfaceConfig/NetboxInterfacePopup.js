@@ -17,14 +17,14 @@ function CableInfo({ cable }) {
 }
 
 CableInfo.propTypes = {
-  cable: PropTypes.shape({ label: PropTypes.string }),
+  cable: PropTypes.shape({ display: PropTypes.string }),
 };
 
 function NeighborInfoList({ neighbors }) {
   if (!Array.isArray(neighbors)) return null;
 
   return neighbors.map((neighbor) => (
-    <p key={neighbor.device.name}>
+    <p key={`${neighbor.device.name}-${neighbor.name}`}>
       Neighbor:{" "}
       <a
         href={neighbor.device.url.replace("/api", "")}
@@ -52,11 +52,16 @@ function NeighborInfoList({ neighbors }) {
 }
 
 NeighborInfoList.propTypes = {
-  neighbors: PropTypes.shape({
-    device: PropTypes.object,
-    url: PropTypes.string,
-    name: PropTypes.string,
-  }),
+  neighbors: PropTypes.arrayOf(
+    PropTypes.shape({
+      device: PropTypes.shape({
+        name: PropTypes.string,
+        url: PropTypes.string,
+      }),
+      url: PropTypes.string,
+      name: PropTypes.string,
+    }),
+  ),
 };
 
 export function NetboxInterfacePopup({ netboxInterface }) {
