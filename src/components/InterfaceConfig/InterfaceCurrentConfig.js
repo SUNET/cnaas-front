@@ -26,12 +26,14 @@ export function InterfaceCurrentConfig({ hostname, interface: interfaceName }) {
     fetchCofig();
   }, [hostname, interfaceName, token]);
 
-  return error ? (
-    <p>Failed to load configuration</p>
-  ) : !config ? (
-    <Icon name="spinner" loading />
-  ) : (
+  if (error) {
+    <p>Failed to load configuration</p>;
+  }
+
+  return config ? (
     <textarea key="config" defaultValue={config} rows={3} cols={50} readOnly />
+  ) : (
+    <Icon name="spinner" loading />
   );
 }
 
