@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { getData } from "../../utils/getData";
 import { formatISODate } from "../../utils/formatters";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { checkResponseStatus } from "../../utils/checkResponseStatus";
 
 export function GraphiteInterface({ hostname, interfaceName }) {
   const { token } = useAuthToken();
@@ -47,7 +46,6 @@ export function GraphiteInterface({ hostname, interfaceName }) {
           responseType: "blob",
         });
 
-        checkResponseStatus(response);
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
         setImageBlob(blobUrl);
