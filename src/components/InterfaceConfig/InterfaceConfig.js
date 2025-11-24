@@ -99,13 +99,21 @@ function InterfaceStatusDown({
 }
 
 function PortTypeCellAccess({
-  configTypeOptions,
   currentConfigtype,
   editDisabled,
   fields,
   item,
   updateFieldData,
 }) {
+  const configTypeOptions = [
+    { value: "ACCESS_AUTO", text: "Auto/dot1x" },
+    { value: "ACCESS_UNTAGGED", text: "Untagged/access" },
+    { value: "ACCESS_TAGGED", text: "Tagged/trunk" },
+    { value: "ACCESS_DOWNLINK", text: "Downlink" },
+    { value: "ACCESS_UPLINK", text: "Uplink", disabled: true },
+    { value: "MLAG_PEER", text: "MLAG peer interface", disabled: true },
+  ];
+
   return (
     <Table.Cell>
       <Dropdown
@@ -142,13 +150,19 @@ function PortTypeCellAccess({
 function PortTypeCellDist({
   currentIfClass,
   editDisabled,
-  ifClassOptions,
   item,
   addPortTemplateOption,
   updateFieldData,
   portTemplate,
   portTemplateOptions,
 }) {
+  ifClassOptions = [
+    { value: "downlink", text: "Downlink" },
+    { value: "fabric", text: "Fabric link" },
+    { value: "custom", text: "Custom" },
+    { value: "port_template", text: "Port template" },
+  ];
+
   return (
     <Table.Cell>
       <Dropdown
@@ -179,6 +193,34 @@ function PortTypeCellDist({
   );
 }
 
+const CONFIG_TYPES_ENABLED = [
+  "ACCESS_AUTO",
+  "ACCESS_UNTAGGED",
+  "ACCESS_TAGGED",
+  "ACCESS_DOWNLINK",
+];
+
+const IF_CLASSES_ENABLED = ["custom", "downlink"]; // anything starting with port_template is also allowed
+
+const ALLOWED_COLUMNS_ACCESS = {
+  vlans: "VLANs",
+  tags: "Tags",
+  json: "Raw JSON",
+  aggregate_id: "LACP aggregate ID",
+  bpdu_filter: "BPDU filter",
+};
+
+const ALLOWED_COLUMNS_DIST = {
+  vlans: "VLANs",
+  tags: "Tags",
+  config: "Custom config",
+};
+
+const VALID_COLUMNS = new Set([
+  ...Object.keys(ALLOWED_COLUMNS_ACCESS),
+  ...Object.keys(ALLOWED_COLUMNS_DIST),
+]);
+
 class InterfaceConfig extends React.Component {
   state = {
     interfaceData: [],
@@ -208,55 +250,7 @@ class InterfaceConfig extends React.Component {
   };
 
   hostname = null;
-
   device_type = null;
-
-  configTypeOptions = [
-    { value: "ACCESS_AUTO", text: "Auto/dot1x" },
-    { value: "ACCESS_UNTAGGED", text: "Untagged/access" },
-    { value: "ACCESS_TAGGED", text: "Tagged/trunk" },
-    { value: "ACCESS_DOWNLINK", text: "Downlink" },
-    { value: "ACCESS_UPLINK", text: "Uplink", disabled: true },
-    { value: "MLAG_PEER", text: "MLAG peer interface", disabled: true },
-  ];
-
-  ifClassOptions = [
-    { value: "downlink", text: "Downlink" },
-    { value: "fabric", text: "Fabric link" },
-    { value: "custom", text: "Custom" },
-    { value: "port_template", text: "Port template" },
-  ];
-
-  configTypesEnabled = [
-    "ACCESS_AUTO",
-    "ACCESS_UNTAGGED",
-    "ACCESS_TAGGED",
-    "ACCESS_DOWNLINK",
-  ];
-
-  ifClassesEnabled = ["custom", "downlink"]; // anything starting with port_template is also allowed
-
-  columnWidths = {
-    vlans: 4,
-    tags: 3,
-    json: 1,
-    aggregate_id: 3,
-    bpdu_filter: 1,
-  };
-
-  accessAllowedColumns = {
-    vlans: "VLANs",
-    tags: "Tags",
-    json: "Raw JSON",
-    aggregate_id: "LACP aggregate ID",
-    bpdu_filter: "BPDU filter",
-  };
-
-  distAllowedColumns = {
-    vlans: "VLANs",
-    tags: "Tags",
-    config: "Custom config",
-  };
 
   componentDidMount() {
     this.hostname = this.getDeviceName();
@@ -370,11 +364,6 @@ class InterfaceConfig extends React.Component {
   }
 
   setDisplayColumns() {
-    const VALID_COLUMNS = new Set([
-      ...Object.keys(this.accessAllowedColumns),
-      ...Object.keys(this.distAllowedColumns),
-    ]);
-
     const interfaceConfig =
       JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
     let newDisplayColumns;
@@ -807,14 +796,14 @@ class InterfaceConfig extends React.Component {
     }));
   }
 
-  addTagOption = (e, data) => {
+  addTagOption = (_e, data) => {
     const { value } = data;
     this.setState((prevState) => ({
       tagOptions: [{ text: value, value }, ...prevState.tagOptions],
     }));
   };
 
-  addPortTemplateOption = (e, data) => {
+  addPortTemplateOption = (_e, data) => {
     const { value } = data;
     this.setState((prevState) => ({
       portTemplateOptions: [
@@ -824,7 +813,7 @@ class InterfaceConfig extends React.Component {
     }));
   };
 
-  updateFieldData = (e, data) => {
+  updateFieldData = (_e, data) => {
     const nameSplit = data.name.split("|", 2);
     const interfaceName = nameSplit[1];
     const json_key = nameSplit[0];
@@ -916,7 +905,7 @@ class InterfaceConfig extends React.Component {
       });
   }
 
-  untaggedClick = (event, data) => {
+  untaggedClick = (_e, data) => {
     if (data.name === "untagged") {
       // Untagged button was clicked
       const newData = this.state.interfaceToggleUntagged;
@@ -936,12 +925,12 @@ class InterfaceConfig extends React.Component {
       let ifDataUpdated = null;
       let editDisabled = true;
       if (this.device_type === "ACCESS") {
-        editDisabled = !this.configTypesEnabled.includes(item.configtype);
+        editDisabled = !CONFIG_TYPES_ENABLED.includes(item.configtype);
       } else if (this.device_type === "DIST") {
         if (item.ifclass.startsWith("port_template")) {
           editDisabled = false;
         } else {
-          editDisabled = !this.ifClassesEnabled.includes(item.ifclass);
+          editDisabled = !IF_CLASSES_ENABLED.includes(item.ifclass);
         }
       }
       let updated = false;
@@ -1506,7 +1495,6 @@ class InterfaceConfig extends React.Component {
               currentConfigtype={currentConfigtype}
               fields={fields}
               editDisabled={editDisabled}
-              configTypeOptions={this.configTypeOptions}
               updateFieldData={this.updateFieldData}
             />
           )}
@@ -1516,7 +1504,6 @@ class InterfaceConfig extends React.Component {
               currentIfClass={currentIfClass}
               portTemplate={portTemplate}
               editDisabled={editDisabled}
-              ifClassOptions={this.ifClassOptions}
               portTemplateOptions={this.state.portTemplateOptions}
               updateFieldData={this.updateFieldData}
               addPortTemplateOption={this.addPortTemplateOption}
@@ -1529,7 +1516,7 @@ class InterfaceConfig extends React.Component {
     });
   }
 
-  accordionClick = (e, titleProps) => {
+  accordionClick = (_e, titleProps) => {
     const { index } = titleProps;
     const { accordionActiveIndex } = this.state;
     const newIndex = accordionActiveIndex === index ? -1 : index;
@@ -1537,12 +1524,12 @@ class InterfaceConfig extends React.Component {
     this.setState({ accordionActiveIndex: newIndex });
   };
 
-  columnSelectorChange = (e, data) => {
+  columnSelectorChange = (_e, data) => {
     let COLUMN_ORDER;
     if (this.device_type === "ACCESS") {
-      COLUMN_ORDER = Object.keys(this.accessAllowedColumns);
+      COLUMN_ORDER = Object.keys(ALLOWED_COLUMNS_ACCESS);
     } else if (this.device_type === "DIST") {
-      COLUMN_ORDER = Object.keys(this.distAllowedColumns);
+      COLUMN_ORDER = Object.keys(ALLOWED_COLUMNS_DIST);
     }
 
     const newDisplayColumns = this.state.displayColumns;
@@ -1609,17 +1596,22 @@ class InterfaceConfig extends React.Component {
     let allowedColumns = {};
 
     if (this.device_type == "ACCESS") {
-      allowedColumns = this.accessAllowedColumns;
+      allowedColumns = ALLOWED_COLUMNS_ACCESS;
     } else if (this.device_type == "DIST") {
-      allowedColumns = this.distAllowedColumns;
+      allowedColumns = ALLOWED_COLUMNS_DIST;
     }
 
     const columnHeaders = this.state.displayColumns.map((columnName) => {
+      const columnWidths = {
+        vlans: 4,
+        tags: 3,
+        json: 1,
+        aggregate_id: 3,
+        bpdu_filter: 1,
+      };
+
       return (
-        <Table.HeaderCell
-          width={this.columnWidths[columnName]}
-          key={columnName}
-        >
+        <Table.HeaderCell width={columnWidths[columnName]} key={columnName}>
           {allowedColumns[columnName]}
         </Table.HeaderCell>
       );
