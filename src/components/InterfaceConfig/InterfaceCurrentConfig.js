@@ -27,7 +27,7 @@ export function InterfaceCurrentConfig({ hostname, interface: interfaceName }) {
   }, [hostname, interfaceName, token]);
 
   if (error) {
-    <p>Failed to load configuration</p>;
+    return <p>Failed to load configuration</p>;
   }
 
   return config ? (
