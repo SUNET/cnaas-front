@@ -5,4 +5,4 @@ const checkResponseStatus = (response) => {
   return Promise.reject(response);
 };
 
-export default checkResponseStatus;
+module.exports = checkResponseStatus;
