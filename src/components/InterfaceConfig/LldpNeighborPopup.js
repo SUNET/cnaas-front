@@ -19,11 +19,25 @@ function NeighborInfo({ neighbor }) {
   );
 }
 
+NeighborInfo.propTypes = {
+  neighbor: PropTypes.shape({
+    remote_system_name: PropTypes.string,
+    remote_chassis_id: PropTypes.string,
+    remote_port: PropTypes.string,
+    remote_port_description: PropTypes.string,
+    remote_system_description: PropTypes.string,
+    remote_system_capab: PropTypes.array,
+  }),
+};
+
 export function LldpNeighborPopup({ lldpNeighborData }) {
   const neighborTable = useMemo(
     () =>
-      lldpNeighborData.map((neigh, idx) => (
-        <NeighborInfo key={`lldap_neigh_${idx}`} neighbor={neigh} />
+      lldpNeighborData.map((neigh) => (
+        <NeighborInfo
+          key={`lldp_neigh_${neigh.remote_chassis_id}_${neigh.remote_port}`}
+          neighbor={neigh}
+        />
       )),
     [lldpNeighborData],
   );
@@ -41,7 +55,16 @@ export function LldpNeighborPopup({ lldpNeighborData }) {
 }
 
 LldpNeighborPopup.propTypes = {
-  lldpNeighborData: PropTypes.array,
+  lldpNeighborData: PropTypes.arrayOf(
+    PropTypes.shape({
+      remote_system_name: PropTypes.string,
+      remote_chassis_id: PropTypes.string,
+      remote_port: PropTypes.string,
+      remote_port_description: PropTypes.string,
+      remote_system_description: PropTypes.string,
+      remote_system_capab: PropTypes.array,
+    }),
+  ),
 };
 
 LldpNeighborPopup.defaultProps = {

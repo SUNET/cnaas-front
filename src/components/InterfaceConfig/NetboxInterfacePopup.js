@@ -7,10 +7,18 @@ function InterfaceType({ type }) {
   return <p>Interface type: {type.label}</p>;
 }
 
+InterfaceType.propTypes = {
+  type: PropTypes.shape({ label: PropTypes.string }),
+};
+
 function CableInfo({ cable }) {
   if (!cable) return null;
   return <p>Cable: {cable.display}</p>;
 }
+
+CableInfo.propTypes = {
+  cable: PropTypes.shape({ label: PropTypes.string }),
+};
 
 function NeighborInfoList({ neighbors }) {
   if (!Array.isArray(neighbors)) return null;
@@ -43,6 +51,14 @@ function NeighborInfoList({ neighbors }) {
   ));
 }
 
+NeighborInfoList.propTypes = {
+  neighbors: PropTypes.shape({
+    device: PropTypes.object,
+    url: PropTypes.string,
+    name: PropTypes.string,
+  }),
+};
+
 export function NetboxInterfacePopup({ netboxInterface }) {
   const content = useMemo(() => {
     const { type, cable, connected_endpoints } = netboxInterface;
@@ -73,7 +89,11 @@ export function NetboxInterfacePopup({ netboxInterface }) {
 }
 
 NetboxInterfacePopup.propTypes = {
-  netboxInterface: PropTypes.object,
+  netboxInterface: PropTypes.shape({
+    type: PropTypes.object,
+    cable: PropTypes.object,
+    connected_endpoints: PropTypes.object,
+  }),
 };
 
 NetboxInterfacePopup.defaultProps = {
