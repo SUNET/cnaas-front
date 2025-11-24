@@ -30,6 +30,155 @@ const io = require("socket.io-client");
 
 let socket = null;
 
+function InterfaceStatusUp({
+  name,
+  speed,
+  toggleEnabled,
+  bounceInterfaceButton,
+  statusMessage,
+  graphiteHtml,
+}) {
+  return (
+    <Popup
+      header={name}
+      content={[
+        <p key="status">Interface is up, speed: {speed} Mbit/s</p>,
+        toggleEnabled,
+        bounceInterfaceButton,
+        statusMessage,
+        graphiteHtml,
+      ]}
+      position="right center"
+      wide
+      hoverable
+      trigger={<Icon color="green" name="circle" />}
+    />
+  );
+}
+
+function InterfaceStatusAdminDisabled({ name, toggleEnabled, graphiteHtml }) {
+  return (
+    <Popup
+      header={name}
+      content={[
+        <p key="status">Interface is admin disabled</p>,
+        toggleEnabled,
+        graphiteHtml,
+      ]}
+      position="right center"
+      wide
+      hoverable
+      trigger={<Icon color="red" name="circle" />}
+    />
+  );
+}
+
+function InterfaceStatusDown({
+  name,
+  toggleEnabled,
+  bounceInterfaceButton,
+  statusMessage,
+  graphiteHtml,
+}) {
+  return (
+    <Popup
+      header={name}
+      content={[
+        <p key="status">Interface is down</p>,
+        toggleEnabled,
+        bounceInterfaceButton,
+        statusMessage,
+        graphiteHtml,
+      ]}
+      position="right center"
+      wide
+      hoverable
+      trigger={<Icon color="grey" name="circle outline" />}
+    />
+  );
+}
+
+function PortTypeCellAccess({
+  configTypeOptions,
+  currentConfigtype,
+  editDisabled,
+  fields,
+  item,
+  updateFieldData,
+}) {
+  return (
+    <Table.Cell>
+      <Dropdown
+        key={`configtype|${item.name}`}
+        name={`configtype|${item.name}`}
+        selection
+        options={configTypeOptions}
+        defaultValue={item.configtype}
+        disabled={editDisabled}
+        onChange={updateFieldData}
+      />
+
+      {currentConfigtype === "ACCESS_DOWNLINK" && (
+        <Popup
+          key="doIneedThisKey?"
+          header="Redundant Link: true/false"
+          content="Disable ZTP redundant link check for this downlink interface by unchecking this box"
+          wide
+          trigger={
+            <Checkbox
+              key={`redundant_link|${item.name}`}
+              name={`redundant_link|${item.name}`}
+              defaultChecked={fields.redundant_link}
+              disabled={editDisabled}
+              onChange={updateFieldData}
+            />
+          }
+        />
+      )}
+    </Table.Cell>
+  );
+}
+
+function PortTypeCellDist({
+  currentIfClass,
+  editDisabled,
+  ifClassOptions,
+  item,
+  addPortTemplateOption,
+  updateFieldData,
+  portTemplate,
+  portTemplateOptions,
+}) {
+  return (
+    <Table.Cell>
+      <Dropdown
+        key={`ifclass|${item.name}`}
+        name={`ifclass|${item.name}`}
+        selection
+        options={ifClassOptions}
+        defaultValue={currentIfClass}
+        disabled={editDisabled}
+        onChange={updateFieldData}
+      />
+      {currentIfClass == "port_template" && (
+        <Dropdown
+          key={`port_template|${item.name}`}
+          name={`port_template|${item.name}`}
+          fluid
+          selection
+          search
+          allowAdditions
+          options={portTemplateOptions}
+          defaultValue={portTemplate}
+          disabled={editDisabled}
+          onAddItem={addPortTemplateOption}
+          onChange={updateFieldData}
+        />
+      )}
+    </Table.Cell>
+  );
+}
+
 class InterfaceConfig extends React.Component {
   state = {
     interfaceData: [],
@@ -1265,119 +1414,34 @@ class InterfaceConfig extends React.Component {
 
         if (itemInterfaceStatusData.is_up === true) {
           statusIcon = (
-            <Popup
-              header={item.name}
-              content={[
-                <p key="status">
-                  Interface is up, speed: {itemInterfaceStatusData.speed} Mbit/s
-                </p>,
-                toggleEnabled,
-                bounceInterfaceButton,
-                statusMessage,
-                graphiteHtml,
-              ]}
-              position="right center"
-              wide
-              hoverable
-              trigger={<Icon color="green" name="circle" />}
+            <InterfaceStatusUp
+              name={item.name}
+              speed={itemInterfaceStatusData.speed}
+              toggleEnabled={toggleEnabled}
+              bounceInterfaceButton={bounceInterfaceButton}
+              statusMessage={statusMessage}
+              graphiteHtml={graphiteHtml}
             />
           );
         } else if (itemInterfaceStatusData.is_enabled === false) {
           statusIcon = (
-            <Popup
-              header={item.name}
-              content={[
-                <p key="status">Interface is admin disabled</p>,
-                toggleEnabled,
-                graphiteHtml,
-              ]}
-              position="right center"
-              wide
-              hoverable
-              trigger={<Icon color="red" name="circle" />}
+            <InterfaceStatusAdminDisabled
+              name={item.name}
+              toggleEnabled={toggleEnabled}
+              graphiteHtml={graphiteHtml}
             />
           );
         } else {
           statusIcon = (
-            <Popup
-              header={item.name}
-              content={[
-                <p key="status">Interface is down</p>,
-                toggleEnabled,
-                bounceInterfaceButton,
-                statusMessage,
-                graphiteHtml,
-              ]}
-              position="right center"
-              wide
-              hoverable
-              trigger={<Icon color="grey" name="circle outline" />}
+            <InterfaceStatusDown
+              name={item.name}
+              toggleEnabled={toggleEnabled}
+              bounceInterfaceButton={bounceInterfaceButton}
+              statusMessage={statusMessage}
+              graphiteHtml={graphiteHtml}
             />
           );
         }
-      }
-
-      let portType = null;
-      if (this.device_type == "ACCESS") {
-        portType = (
-          <Table.Cell>
-            <Dropdown
-              key={`configtype|${item.name}`}
-              name={`configtype|${item.name}`}
-              selection
-              options={this.configTypeOptions}
-              defaultValue={item.configtype}
-              disabled={editDisabled}
-              onChange={this.updateFieldData}
-            />
-            {currentConfigtype === "ACCESS_DOWNLINK" ? (
-              <Popup
-                key="nonredundant"
-                header="Redundant Link: true/false"
-                content="Disable ZTP redundant link check for this downlink interface by unchecking this box"
-                wide
-                trigger={
-                  <Checkbox
-                    key={`redundant_link|${item.name}`}
-                    name={`redundant_link|${item.name}`}
-                    defaultChecked={fields.redundant_link}
-                    onChange={this.updateFieldData}
-                    disabled={editDisabled}
-                  />
-                }
-              />
-            ) : null}
-          </Table.Cell>
-        );
-      } else if (this.device_type == "DIST") {
-        portType = (
-          <Table.Cell>
-            <Dropdown
-              key={`ifclass|${item.name}`}
-              name={`ifclass|${item.name}`}
-              selection
-              options={this.ifClassOptions}
-              defaultValue={currentIfClass}
-              disabled={editDisabled}
-              onChange={this.updateFieldData}
-            />
-            {currentIfClass == "port_template" ? (
-              <Dropdown
-                key={`port_template|${item.name}`}
-                name={`port_template|${item.name}`}
-                fluid
-                selection
-                search
-                allowAdditions
-                options={this.state.portTemplateOptions}
-                defaultValue={portTemplate}
-                disabled={editDisabled}
-                onAddItem={this.addPortTemplateOption}
-                onChange={this.updateFieldData}
-              />
-            ) : null}
-          </Table.Cell>
-        );
       }
 
       const { netboxInterfaceData } = this.state;
@@ -1436,7 +1500,29 @@ class InterfaceConfig extends React.Component {
             />
             {descriptionDetails}
           </Table.Cell>
-          {portType}
+          {this.device_type == "ACCESS" && (
+            <PortTypeCellAccess
+              item={item}
+              currentConfigtype={currentConfigtype}
+              fields={fields}
+              editDisabled={editDisabled}
+              configTypeOptions={this.configTypeOptions}
+              updateFieldData={this.updateFieldData}
+            />
+          )}
+          {this.device_type == "DIST" && (
+            <PortTypeCellDist
+              item={item}
+              currentIfClass={currentIfClass}
+              portTemplate={portTemplate}
+              editDisabled={editDisabled}
+              ifClassOptions={this.ifClassOptions}
+              portTemplateOptions={this.state.portTemplateOptions}
+              updateFieldData={this.updateFieldData}
+              addPortTemplateOption={this.addPortTemplateOption}
+            />
+          )}
+
           {optionalColumns}
         </Table.Row>,
       ];
