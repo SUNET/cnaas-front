@@ -213,6 +213,7 @@ const ALLOWED_COLUMNS_ACCESS = {
 const ALLOWED_COLUMNS_DIST = {
   vlans: "VLANs",
   tags: "Tags",
+  aggregate_id: "LACP aggregate ID",
   config: "Custom config",
 };
 
@@ -255,17 +256,19 @@ class InterfaceConfig extends React.Component {
   componentDidMount() {
     this.hostname = this.getDeviceName();
     if (this.hostname !== null) {
-      this.getDeviceData().then(() => {
-        this.getInterfaceData();
-        this.getInterfaceStatusData();
-        this.getLldpNeighborData();
-        this.getNetboxDeviceData(this.hostname);
-        this.setDisplayColumns();
-      });
+      this.getDeviceData()
+        .then(() => { // refactor callback to useEffect
+          this.getInterfaceData();
+          this.getInterfaceStatusData();
+          this.getLldpNeighborData();
+          this.getNetboxDeviceData(this.hostname);
+          this.setDisplayColumns();
+        });
     }
+
     const credentials = localStorage.getItem("token");
     socket = io(process.env.API_URL, { query: { jwt: credentials } });
-    socket.on("connect", function () {
+    socket.on("connect", function() {
       console.log("Websocket connected!");
       socket.emit("events", { update: "device" });
       socket.emit("events", { update: "job" });
@@ -277,14 +280,11 @@ class InterfaceConfig extends React.Component {
         data.device_id == this.state.deviceData.id &&
         data.action == "UPDATED"
       ) {
-        console.log("DEBUG: ");
-        console.log(this.state.deviceData);
-        console.log(data.object);
         if (
           this.state.awaitingDeviceSynchronization === true &&
           data.object.synchronized === true
         ) {
-          console.log("update data after job finish");
+          // Synchronize done
           this.setState(
             {
               initialSyncState: null,
@@ -381,7 +381,7 @@ class InterfaceConfig extends React.Component {
     });
   }
 
-  getNetboxDeviceData(hostname) {
+  async getNetboxDeviceData(hostname) {
     if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
       return null;
     }
@@ -394,34 +394,31 @@ class InterfaceConfig extends React.Component {
       url = `${process.env.API_URL}/netbox`;
     }
 
-    getFunc(
-      `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
-      credentials,
-    )
-      .then((data) => {
-        if (data.count === 1) {
-          const deviceData = data.results.pop();
+    try {
+      const netboxDevicesUrl = `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`;
+      const data = await getFunc(netboxDevicesUrl, credentials);
+      if (data.count === 1) {
+        const deviceData = data.results.pop();
+        if (deviceData) {
           this.setState(() => ({
             netboxDeviceData: deviceData,
           }));
-
-          getFunc(
-            `${url}/api/dcim/interfaces/?device_id=${deviceData.id}`,
-            credentials,
-          ).then((interfaceData) => {
-            // save
-            this.setState(() => ({
-              netboxInterfaceData: interfaceData.results,
-            }));
-          });
-        } else {
-          console.log("no data found device", hostname);
         }
-      })
-      .catch((e) => {
-        // Some netbox error occurred
-        console.log(e);
-      });
+
+        const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?device_id=${deviceData.id}&limit=100`;
+        const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
+        if (interfaceData) {
+          this.setState(() => ({
+            netboxInterfaceData: interfaceData.results,
+          }));
+        }
+      } else {
+        console.log("no data found device", hostname);
+      }
+    } catch (e) {
+      // Some netbox error occurred
+      console.log(e);
+    }
   }
 
   getDeviceName() {
@@ -432,68 +429,61 @@ class InterfaceConfig extends React.Component {
     return null;
   }
 
-  getInterfaceData() {
+  async getInterfaceData() {
     const credentials = localStorage.getItem("token");
     if (this.device_type === "ACCESS") {
-      const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interfaces`;
-      return getData(url, credentials)
-        .then((data) => {
-          const usedTags = this.state.tagOptions;
-          data.data.interfaces.forEach((item) => {
-            const ifData = item.data;
-            if (ifData !== null && "tags" in ifData) {
-              ifData.tags.forEach((tag) => {
-                if (usedTags.some((e) => e.text === tag)) {
-                  return; // don't add duplicate tags
-                }
-                usedTags.push({ text: tag, value: tag });
-              });
-            }
-          });
+      try {
+        const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interfaces`;
+        const data = await getData(url, credentials);
+        const usedTags = this.state.tagOptions;
 
-          data.data.interfaces.map((item) => {
-            const ifData = item.data;
-            if (ifData !== null && "neighbor_id" in ifData) {
-              const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
-              if (this.state.mlagPeerHostname == null) {
-                getData(mlagDevURL, credentials)
-                  .then((data) => {
-                    this.setState({
-                      mlagPeerHostname: data.data.devices[0].hostname,
-                    });
-                  })
-                  .catch((error) => {
-                    console.log(`MLAG peer not found: ${error}`);
-                  });
+        data.data.interfaces.forEach((item) => {
+          const ifData = item.data;
+          if (ifData !== null && "tags" in ifData) {
+            ifData.tags.forEach((tag) => {
+              if (usedTags.some((e) => e.text === tag)) {
+                return; // don't add duplicate tags
               }
-            }
-          });
-          this.setState({
-            interfaceData: data.data.interfaces,
-            tagOptions: usedTags,
-          });
-        })
-        .catch((error) => {
-          console.log(error);
+              usedTags.push({ text: tag, value: tag });
+            });
+          }
         });
-    }
-    if (this.device_type === "DIST") {
-      const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/generate_config`;
-      return getDataHeaders(url, credentials, {
-        "X-Fields": "available_variables{interfaces,port_template_options}",
-      })
-        .then((data) => {
-          const { tagOptions } = this.state;
-          const usedTags = tagOptions;
-          let usedPortTemplates = [];
-          if (
-            data.data.config.available_variables.port_template_options !==
-              undefined &&
-            data.data.config.available_variables.port_template_options
-          ) {
-            usedPortTemplates = Object.entries(
-              data.data.config.available_variables.port_template_options,
-            ).map(([template_name, template_data]) => {
+
+        for (const item of data.data.interfaces) {
+          const ifData = item.data;
+          if ((ifData !== null && "neighbor_id" in ifData) && this.state.mlagPeerHostname == null) {
+            try {
+              const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
+              const mlagData = await getData(mlagDevURL, credentials);
+              this.setState({
+                mlagPeerHostname: mlagData.data.devices[0].hostname,
+              });
+              break;
+            } catch (error) {
+              console.log(`MLAG peer not found: ${error}`);
+            }
+          }
+        };
+
+        this.setState({
+          interfaceData: data.data.interfaces,
+          tagOptions: usedTags,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    } else if (this.device_type === "DIST") {
+      try {
+        const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/generate_config`;
+        const data = await getDataHeaders(url, credentials, {
+          "X-Fields": "available_variables{interfaces,port_template_options}",
+        });
+        const { tagOptions } = this.state;
+        let usedPortTemplates = [];
+        const _portTemplateOptions = data.data.config.available_variables.port_template_options;
+        if (_portTemplateOptions) {
+          usedPortTemplates = Object.entries(_portTemplateOptions)
+            .map(([template_name, template_data]) => {
               return {
                 text: template_name,
                 value: template_name,
@@ -501,155 +491,152 @@ class InterfaceConfig extends React.Component {
                 vlan_config: template_data.vlan_config,
               };
             });
-          }
-          data.data.config.available_variables.interfaces.forEach((item) => {
-            if (usedTags.length === 0) {
-              if (item.tags !== undefined && item.tags) {
-                item.tags.forEach((tag) => {
-                  if (usedTags.some((e) => e.text === tag)) {
-                    return; // don't add duplicate tags
-                  }
-                  usedTags.push({ text: tag, value: tag });
-                });
-              }
-            }
-            if (item.ifclass.startsWith("port_template")) {
-              const templateName = item.ifclass.substring(
-                "port_template_".length,
-              );
-              if (usedPortTemplates.some((e) => e.text === templateName)) {
+        }
+
+        const usedTags = tagOptions;
+        const _availableInterfaces = data.data.config.available_variables.interfaces;
+        _availableInterfaces.forEach((item) => {
+          if (usedTags.length === 0 && item.tags) {
+            item.tags.forEach((tag) => {
+              if (usedTags.some((e) => e.text === tag)) {
                 return; // don't add duplicate tags
               }
-              usedPortTemplates.push({
-                text: templateName,
-                value: templateName,
-              });
+              usedTags.push({ text: tag, value: tag });
+            });
+          }
+          if (item.ifclass.startsWith("port_template")) {
+            const templateName = item.ifclass.substring(
+              "port_template_".length,
+            );
+            if (usedPortTemplates.some((e) => e.text === templateName)) {
+              return; // don't add duplicate tags
             }
-          });
-
-          this.setState({
-            interfaceData: data.data.config.available_variables.interfaces,
-            portTemplateOptions: usedPortTemplates,
-            tagOptions: usedTags,
-          });
-        })
-        .catch((error) => {
-          console.log(error);
+            usedPortTemplates.push({
+              text: templateName,
+              value: templateName,
+            });
+          }
         });
+
+        this.setState({
+          interfaceData: _availableInterfaces,
+          portTemplateOptions: usedPortTemplates,
+          tagOptions: usedTags,
+        });
+      } catch (error) {
+        console.log(error);
+      };
     }
-    console.error(`Unsupported device type: ${this.device_type}`);
+
+    if (this.device_type !== "ACCESS" && this.device_type !== "DIST") {
+      console.error(`Unsupported device type: ${this.device_type}`);
+    }
   }
 
-  getInterfaceStatusData() {
-    const credentials = localStorage.getItem("token");
+  async getInterfaceStatusData() {
+    const token = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interface_status`;
-    return getData(url, credentials)
-      .then((data) => {
-        const interfaceStatus = data.data.interface_status;
-        this.setState({
-          interfaceStatusData: interfaceStatus,
-        });
-      })
-      .catch((error) => {
-        console.log(error);
+    try {
+      const data = await getData(url, token)
+      const interfaceStatus = data.data.interface_status;
+      this.setState({
+        interfaceStatusData: interfaceStatus,
       });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
-  getLldpNeighborData() {
-    const credentials = localStorage.getItem("token");
-    const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/lldp_neighbors_detail`;
-    return getData(url, credentials)
-      .then((data) => {
-        const lldpNeighbors = {};
-        // save interface status data keys as lowercase, in case yaml interface name is not correct case
-        Object.keys(data.data.lldp_neighbors_detail).forEach((key) => {
-          lldpNeighbors[key.toLowerCase()] =
-            data.data.lldp_neighbors_detail[key];
-        });
-        this.setState({
-          lldpNeighborData: lldpNeighbors,
-        });
-      })
-      .catch((error) => {
-        console.log(error);
+  async getLldpNeighborData() {
+    try {
+      const token = localStorage.getItem("token");
+      const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/lldp_neighbors_detail`;
+      const data = await getData(url, token)
+      const lldpNeighbors = {};
+      // save interface status data keys as lowercase, in case yaml interface name is not correct case
+      Object.keys(data.data.lldp_neighbors_detail).forEach((key) => {
+        lldpNeighbors[key.toLowerCase()] =
+          data.data.lldp_neighbors_detail[key];
       });
+      this.setState({
+        lldpNeighborData: lldpNeighbors,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   refreshInterfaceStatus() {
-    this.setState({ interfaceStatusData: {}, lldpNeighborData: {} }, () => {
+    this.setState({
+      interfaceStatusData: {}, lldpNeighborData: {}
+    }, () => { // refactor to useEffect
       this.getInterfaceStatusData();
       this.getLldpNeighborData();
     });
   }
 
-  getDeviceData() {
-    const credentials = localStorage.getItem("token");
-    let url = `${process.env.API_URL}/api/v1.0/settings?hostname=${this.hostname}`;
-    getData(url, credentials)
-      .then((data) => {
-        const vlanOptions = Object.entries(data.data.settings.vxlans).map(
-          ([, vxlan_data]) => {
-            return {
-              value: vxlan_data.vlan_name,
-              text: vxlan_data.vlan_name,
-              description: vxlan_data.vlan_id,
-            };
-          },
-        );
-        const untaggedVlanOptions = [...vlanOptions];
-        untaggedVlanOptions.push({
-          value: null,
-          text: "None",
-          description: "NA",
+  async getDeviceData() {
+    const token = localStorage.getItem("token");
+    const settingsUrl = `${process.env.API_URL}/api/v1.0/settings?hostname=${this.hostname}`;
+    try {
+      const data = await getData(settingsUrl, token)
+      const vlanOptions = Object.entries(data.data.settings.vxlans).map(
+        ([, vxlan_data]) => {
+          return {
+            value: vxlan_data.vlan_name,
+            text: vxlan_data.vlan_name,
+            description: vxlan_data.vlan_id,
+          };
         });
-        // look for tag options
-        let settingsTagOptions = [];
-        if (
-          data.data.settings.interface_tag_options !== undefined &&
-          data.data.settings.interface_tag_options
-        ) {
-          settingsTagOptions = Object.entries(
-            data.data.settings.interface_tag_options,
-          ).map(([tag_name, tag_data]) => {
+      const untaggedVlanOptions = [...vlanOptions];
+      untaggedVlanOptions.push({
+        value: null,
+        text: "None",
+        description: "NA",
+      });
+      // look for tag options
+      let settingsTagOptions = [];
+      const interfaceTagOptions = data.data.settings.interface_tag_options;
+      if (interfaceTagOptions) {
+        settingsTagOptions = Object.entries(interfaceTagOptions)
+          .map(([tag_name, tag_data]) => {
             return {
               text: tag_name,
               value: tag_name,
               description: tag_data.description,
             };
           });
-        }
+      }
 
-        this.setState({
-          deviceSettings: data.data.settings,
-          vlanOptions,
-          untaggedVlanOptions,
-          tagOptions: settingsTagOptions,
-        });
-      })
-      .catch((error) => {
-        console.log(error);
+      this.setState({
+        deviceSettings: data.data.settings,
+        vlanOptions,
+        untaggedVlanOptions,
+        tagOptions: settingsTagOptions,
       });
-    url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}`;
-    return getData(url, credentials)
-      .then((data) => {
-        const newState = {
-          deviceData: data.data.devices[0],
-          editDisabled: !data.data.devices[0].synchronized,
-        };
-        if (this.state.initialSyncState == null) {
-          newState.initialSyncState = data.data.devices[0].synchronized;
-          newState.initialConfHash = data.data.devices[0].confhash;
-        }
-        this.setState(newState);
-        this.device_type = newState.deviceData.device_type;
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    } catch (error) {
+      console.log(error);
+    }
+
+    try {
+      const deviceUrl = `${process.env.API_URL}/api/v1.0/device/${this.hostname}`;
+      const fetchedDevice = await getData(deviceUrl, token);
+      const newState = {
+        deviceData: fetchedDevice.data.devices[0],
+        editDisabled: !fetchedDevice.data.devices[0].synchronized,
+      };
+      if (this.state.initialSyncState == null) {
+        newState.initialSyncState = fetchedDevice.data.devices[0].synchronized;
+        newState.initialConfHash = fetchedDevice.data.devices[0].confhash;
+      }
+      this.setState(newState);
+      this.device_type = newState.deviceData.device_type;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   prepareSendJson(interfaceData) {
-    // what config keys go in to level, and what goes under ["data"]
     const topLevelKeyNames = ["configtype"];
     // build object in the format API expects interfaces{} -> name{} -> configtype,data{}
     const sendData = { interfaces: {} };
@@ -714,31 +701,29 @@ class InterfaceConfig extends React.Component {
     return sendData;
   }
 
-  sendInterfaceData() {
-    const credentials = localStorage.getItem("token");
-    const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interfaces`;
+  async sendInterfaceData() {
+    try {
+      const credentials = localStorage.getItem("token");
+      const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interfaces`;
 
-    const sendData = this.prepareSendJson(this.state.interfaceDataUpdated);
+      const sendData = this.prepareSendJson(this.state.interfaceDataUpdated);
 
-    return putData(url, credentials, sendData)
-      .then((data) => {
-        console.log("put interface return data: ");
-        console.log(data);
+      const data = await putData(url, credentials, sendData);
 
-        if (data.status === "success") {
-          return true;
-        }
-        this.setState({ errorMessage: data.message });
-        return false;
-      })
-      .catch((error) => {
-        this.setState({ errorMessage: error.message.errors.join(", ") });
-        return false;
-      });
+      if (data.status === "success") {
+        return true;
+      }
+
+      this.setState({ errorMessage: data.message });
+      return false;
+    } catch (error) {
+      this.setState({ errorMessage: error.message.errors.join(", ") });
+      return false;
+    }
   }
 
-  startSynctoAutopush() {
-    const credentials = localStorage.getItem("token");
+  async startSynctoAutopush() {
+    const token = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/device_syncto`;
 
     const sendData = {
@@ -748,36 +733,35 @@ class InterfaceConfig extends React.Component {
       auto_push: true,
     };
 
-    postData(url, credentials, sendData).then((data) => {
+    const data = await postData(url, token, sendData);
+
+    if (data) {
       this.setState({
         autoPushJobs: [{ job_id: data.job_id, status: "RUNNING" }],
         working: true,
       });
-    });
+    }
   }
 
-  saveAndCommitChanges() {
-    // save old state
-    this.sendInterfaceData().then((saveStatus) => {
-      if (saveStatus === true) {
-        this.startSynctoAutopush();
-        this.setState({ accordionActiveIndex: 3 });
-      } else {
-        this.setState({ accordionActiveIndex: 2 });
-      }
-    });
+  async saveAndCommitChanges() {
+    const saveStatus = await this.sendInterfaceData();
+    if (saveStatus) {
+      this.startSynctoAutopush();
+      this.setState({ accordionActiveIndex: 3 });
+    } else {
+      this.setState({ accordionActiveIndex: 2 });
+    }
   }
 
-  saveChanges() {
-    this.sendInterfaceData().then((saveStatus) => {
-      if (saveStatus === true) {
-        this.props.history.push(
-          `/config-change?hostname=${this.hostname}&scrollTo=dry_run&autoDryRun=true`,
-        );
-      } else {
-        this.setState({ accordionActiveIndex: 2 });
-      }
-    });
+  async saveChanges() {
+    const saveStatus = await this.sendInterfaceData();
+    if (saveStatus) {
+      this.props.history.push(
+        `/config-change?hostname=${this.hostname}&scrollTo=dry_run&autoDryRun=true`,
+      );
+    } else {
+      this.setState({ accordionActiveIndex: 2 });
+    }
   }
 
   gotoConfigChange() {
@@ -787,7 +771,6 @@ class InterfaceConfig extends React.Component {
   }
 
   addNewInterface(interfaceName) {
-    console.log(interfaceName);
     this.setState((prevState) => ({
       interfaceData: [
         { name: interfaceName, ifclass: "custom", tags: null },
@@ -879,30 +862,35 @@ class InterfaceConfig extends React.Component {
     });
   };
 
-  submitBounce(intf) {
-    const credentials = localStorage.getItem("token");
+  async submitBounce(intf) {
+    this.setState(prev => ({
+      interfaceBounceRunning: {
+        ...prev.interfaceBounceRunning,
+        [intf]: "running",
+      },
+    }));
+
+    const token = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interface_status`;
-
-    let interfaceBounceRunningNew = this.state.interfaceBounceRunning;
-    interfaceBounceRunningNew[intf] = "running";
-    this.setState({ interfaceBounceRunning: interfaceBounceRunningNew });
-
     const sendData = { bounce_interfaces: [intf] };
-    putData(url, credentials, sendData)
-      .then((data) => {
-        interfaceBounceRunningNew = this.state.interfaceBounceRunning;
-        if (data.status === "success") {
-          interfaceBounceRunningNew[intf] = "finished";
-        } else {
-          interfaceBounceRunningNew[intf] = `error: ${data.data}`;
-        }
-        this.setState({ interfaceBounceRunning: interfaceBounceRunningNew });
-      })
-      .catch((error) => {
-        interfaceBounceRunningNew = this.state.interfaceBounceRunning;
-        interfaceBounceRunningNew[intf] = `error: ${error}`;
-        this.setState({ interfaceBounceRunning: interfaceBounceRunningNew });
-      });
+
+    try {
+      const data = await putData(url, token, sendData);
+      const success = data.status === "success";
+      this.setState(prev => ({
+        interfaceBounceRunning: {
+          ...prev.interfaceBounceRunning,
+          [intf]: success ? "finished" : `error: ${data.data}`,
+        },
+      }));
+    } catch (error) {
+      this.setState(prev => ({
+        interfaceBounceRunning: {
+          ...prev.interfaceBounceRunning,
+          [intf]: `error: ${error}`,
+        },
+      }));
+    };
   }
 
   untaggedClick = (_e, data) => {
