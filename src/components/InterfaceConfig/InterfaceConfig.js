@@ -147,6 +147,13 @@ function PortTypeCellAccess({
   );
 }
 
+const IF_CLASS_OPTIONS = [
+  { value: "downlink", text: "Downlink" },
+  { value: "fabric", text: "Fabric link" },
+  { value: "custom", text: "Custom" },
+  { value: "port_template", text: "Port template" },
+];
+
 function PortTypeCellDist({
   currentIfClass,
   editDisabled,
@@ -156,12 +163,6 @@ function PortTypeCellDist({
   portTemplate,
   portTemplateOptions,
 }) {
-  ifClassOptions = [
-    { value: "downlink", text: "Downlink" },
-    { value: "fabric", text: "Fabric link" },
-    { value: "custom", text: "Custom" },
-    { value: "port_template", text: "Port template" },
-  ];
 
   return (
     <Table.Cell>
@@ -169,7 +170,7 @@ function PortTypeCellDist({
         key={`ifclass|${item.name}`}
         name={`ifclass|${item.name}`}
         selection
-        options={ifClassOptions}
+        options={IF_CLASS_OPTIONS}
         defaultValue={currentIfClass}
         disabled={editDisabled}
         onChange={updateFieldData}
@@ -190,6 +191,23 @@ function PortTypeCellDist({
         />
       )}
     </Table.Cell>
+  );
+}
+
+function BounceInterfaceButton({
+  handleClick, editDisabled, bounceDisabled
+}) {
+  return (
+    <Button
+      disabled={editDisabled || bounceDisabled}
+      loading={bounceDisabled}
+      icon
+      labelPosition="right"
+      onClick={handleClick}
+      size="small"
+    >
+      Bounce interface {<Icon name="retweet" />}
+    </Button>
   );
 }
 
@@ -907,10 +925,19 @@ class InterfaceConfig extends React.Component {
     }
   };
 
+  mapVlanToName(vlan, vlanOptions) {
+    if (typeof vlan === "number") {
+      const mapped = vlanOptions.find(opt => opt.description === vlan);
+      return mapped ? mapped.value : vlan;
+    }
+    return vlan;
+  }
+
   renderTableRows(interfaceData, interfaceDataUpdated, vlanOptions) {
     return interfaceData.map((item, index) => {
-      let ifData = item.data;
-      let ifDataUpdated = null;
+      const ifDataUpdated = item.name in interfaceDataUpdated ? interfaceDataUpdated[item.name] : null;
+      const updated = item.name in interfaceDataUpdated ? true : null;
+
       let editDisabled = true;
       if (this.device_type === "ACCESS") {
         editDisabled = !CONFIG_TYPES_ENABLED.includes(item.configtype);
@@ -921,7 +948,7 @@ class InterfaceConfig extends React.Component {
           editDisabled = !IF_CLASSES_ENABLED.includes(item.ifclass);
         }
       }
-      let updated = false;
+
       let fields = {};
       if (this.device_type === "ACCESS") {
         fields = {
@@ -935,7 +962,6 @@ class InterfaceConfig extends React.Component {
           redundant_link: true,
         };
       } else if (this.device_type === "DIST") {
-        ifData = {};
         fields = {
           description: "",
           untagged_vlan: null,
@@ -944,39 +970,23 @@ class InterfaceConfig extends React.Component {
           enabled: true,
           config: "",
         };
+      }
+
+      let ifData = item.data;
+      // populate ifData for DIST
+      if (this.device_type === "DIST") {
+        ifData = {};
+
         Object.entries(fields).forEach(([key, value]) => {
-          if (item[key] !== undefined && item[key] !== null) {
-            ifData[key] = item[key];
-          } else {
-            ifData[key] = value;
-          }
+          ifData[key] = item[key] ? item[key] : value;
         });
+
         if ("peer_hostname" in item) {
           ifData.description = item.peer_hostname;
         }
       }
-      if (item.name in interfaceDataUpdated) {
-        updated = true;
-        ifDataUpdated = interfaceDataUpdated[item.name];
-      }
-      if (ifData === undefined || ifData === null) {
-        if (ifDataUpdated !== null) {
-          const check_updated_fields = [
-            "untagged_vlan",
-            "tagged_vlan_list",
-            "enabled",
-            "tags",
-            "aggregate_id",
-            "bpdu_filter",
-            "redundant_link",
-          ];
-          check_updated_fields.forEach((field_name) => {
-            if (field_name in ifDataUpdated) {
-              fields[field_name] = ifDataUpdated[field_name];
-            }
-          });
-        }
-      } else {
+
+      if (ifData) {
         if ("description" in ifData) {
           fields.description = ifData.description;
         } else if ("neighbor" in ifData) {
@@ -985,46 +995,24 @@ class InterfaceConfig extends React.Component {
           fields.description = "MLAG peer link";
         }
 
-        if ("tags" in ifData) {
-          fields.tags = ifData.tags;
-        }
+        [
+          "aggregate_id",
+          "bpdu_filter",
+          "enabled",
+          "redundant_link",
+          "tags"
+        ].forEach((fieldName) => {
+          if (fieldName in ifData) {
+            fields[fieldName] = ifData[fieldName];
+          }
+        });
 
-        if ("bpdu_filter" in ifData) {
-          fields.bpdu_filter = ifData.bpdu_filter;
-        }
-
-        if ("aggregate_id" in ifData) {
-          fields.aggregate_id = ifData.aggregate_id;
-        }
-
-        if ("enabled" in ifData) {
-          fields.enabled = ifData.enabled;
-        }
-
-        if ("redundant_link" in ifData) {
-          fields.redundant_link = ifData.redundant_link;
-        }
-
-        if (ifDataUpdated !== null && "untagged_vlan" in ifDataUpdated) {
+        if (ifDataUpdated && "untagged_vlan" in ifDataUpdated) {
           fields.untagged_vlan = ifDataUpdated.untagged_vlan;
         } else if ("untagged_vlan" in ifData) {
-          if (typeof ifData.untagged_vlan === "number") {
-            const untagged_vlan_mapped = vlanOptions.filter(
-              (vlanOptionItem) =>
-                vlanOptionItem.description === ifData.untagged_vlan,
-            );
-            if (
-              Array.isArray(untagged_vlan_mapped) &&
-              untagged_vlan_mapped.length === 1
-            ) {
-              fields.untagged_vlan = untagged_vlan_mapped[0].value;
-            } else {
-              fields.untagged_vlan = null;
-            }
-          } else {
-            fields.untagged_vlan = ifData.untagged_vlan;
-          }
+          fields.untagged_vlan = this.mapVlanToName(ifData.untagged_vlan, vlanOptions);
         }
+
         if (ifDataUpdated !== null && "tagged_vlan_list" in ifDataUpdated) {
           fields.tagged_vlan_list = ifDataUpdated.tagged_vlan_list;
         } else if ("tagged_vlan_list" in ifData) {
@@ -1041,6 +1029,20 @@ class InterfaceConfig extends React.Component {
             return vlan_item;
           });
         }
+      } else if (ifDataUpdated !== null) {
+        [
+          "aggregate_id",
+          "bpdu_filter",
+          "enabled",
+          "redundant_link",
+          "tagged_vlan_list",
+          "tags",
+          "untagged_vlan",
+        ].forEach((fieldName) => {
+          if (fieldName in ifDataUpdated) {
+            fields[fieldName] = ifDataUpdated[fieldName];
+          }
+        });
       }
 
       let currentConfigtype = null;
@@ -1351,7 +1353,6 @@ class InterfaceConfig extends React.Component {
           />
         );
         let bounceDisabled = false;
-        const bounceButtonIcon = <Icon name="retweet" />;
         let statusMessage = null;
         if (item.name in this.state.interfaceBounceRunning) {
           if (this.state.interfaceBounceRunning[item.name] === "running") {
@@ -1364,24 +1365,16 @@ class InterfaceConfig extends React.Component {
             );
           }
         }
-        let bounceInterfaceButton = null;
-        if (this.device_type == "ACCESS") {
-          bounceInterfaceButton = (
-            <Button
-              key="bounce"
-              disabled={editDisabled || bounceDisabled}
-              loading={bounceDisabled}
-              icon
-              labelPosition="right"
-              onClick={() => this.submitBounce(item.name)}
-              size="small"
-            >
-              Bounce interface {bounceButtonIcon}
-            </Button>
-          );
-        }
-        let graphiteHtml = null;
-        graphiteHtml = (
+
+        const bounceInterfaceButton = this.device_type == "ACCESS" ? (
+          <BounceInterfaceButton
+            key={`${item.name}_bounce`}
+            handleClick={() => this.submitBounce(item.name)}
+            editDisabled={editDisabled}
+            bounceDisabled={bounceDisabled} />
+        ) : null;
+
+        const graphiteHtml = (
           <GraphiteInterface
             key="graphite"
             hostname={this.hostname}
