@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { getData } from "../../utils/getData";
-import { formatISODate } from "../../utils/formatters";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { getData } from "../../../utils/getData";
+import { formatISODate } from "../../../utils/formatters";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
 
 export function GraphiteInterface({ hostname, interfaceName }) {
   const { token } = useAuthToken();

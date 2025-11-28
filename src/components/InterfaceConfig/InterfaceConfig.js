@@ -3,222 +3,25 @@ import React from "react";
 import { Link } from "react-router-dom";
 import queryString from "query-string";
 import {
-  Input,
-  Dropdown,
   Icon,
   Table,
   Loader,
   Modal,
   Button,
-  ButtonGroup,
   Accordion,
   Popup,
   Checkbox,
-  TextArea,
 } from "semantic-ui-react";
 import YAML from "yaml";
 import { getData, getDataHeaders, getDataToken } from "../../utils/getData";
-import { InterfaceCurrentConfig } from "./InterfaceCurrentConfig";
+import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { putData, postData } from "../../utils/sendData";
-import { GraphiteInterface } from "./GraphiteInterface";
 import { NetboxDevice } from "./NetboxDevice";
-import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
-import { LldpNeighborPopup } from "./LldpNeighborPopup";
 import { NewInterface } from "./NewInterface";
 
 const io = require("socket.io-client");
 
 let socket = null;
-
-function InterfaceStatusUp({
-  name,
-  speed,
-  toggleEnabled,
-  bounceInterfaceButton,
-  statusMessage,
-  graphiteHtml,
-}) {
-  return (
-    <Popup
-      header={name}
-      content={[
-        <p key="status">Interface is up, speed: {speed} Mbit/s</p>,
-        toggleEnabled,
-        bounceInterfaceButton,
-        statusMessage,
-        graphiteHtml,
-      ]}
-      position="right center"
-      wide
-      hoverable
-      trigger={<Icon color="green" name="circle" />}
-    />
-  );
-}
-
-function InterfaceStatusAdminDisabled({ name, toggleEnabled, graphiteHtml }) {
-  return (
-    <Popup
-      header={name}
-      content={[
-        <p key="status">Interface is admin disabled</p>,
-        toggleEnabled,
-        graphiteHtml,
-      ]}
-      position="right center"
-      wide
-      hoverable
-      trigger={<Icon color="red" name="circle" />}
-    />
-  );
-}
-
-function InterfaceStatusDown({
-  name,
-  toggleEnabled,
-  bounceInterfaceButton,
-  statusMessage,
-  graphiteHtml,
-}) {
-  return (
-    <Popup
-      header={name}
-      content={[
-        <p key="status">Interface is down</p>,
-        toggleEnabled,
-        bounceInterfaceButton,
-        statusMessage,
-        graphiteHtml,
-      ]}
-      position="right center"
-      wide
-      hoverable
-      trigger={<Icon color="grey" name="circle outline" />}
-    />
-  );
-}
-
-function PortTypeCellAccess({
-  currentConfigtype,
-  editDisabled,
-  fields,
-  item,
-  updateFieldData,
-}) {
-  const configTypeOptions = [
-    { value: "ACCESS_AUTO", text: "Auto/dot1x" },
-    { value: "ACCESS_UNTAGGED", text: "Untagged/access" },
-    { value: "ACCESS_TAGGED", text: "Tagged/trunk" },
-    { value: "ACCESS_DOWNLINK", text: "Downlink" },
-    { value: "ACCESS_UPLINK", text: "Uplink", disabled: true },
-    { value: "MLAG_PEER", text: "MLAG peer interface", disabled: true },
-  ];
-
-  return (
-    <Table.Cell>
-      <Dropdown
-        key={`configtype|${item.name}`}
-        name={`configtype|${item.name}`}
-        selection
-        options={configTypeOptions}
-        defaultValue={item.configtype}
-        disabled={editDisabled}
-        onChange={updateFieldData}
-      />
-
-      {currentConfigtype === "ACCESS_DOWNLINK" && (
-        <Popup
-          key="doIneedThisKey?"
-          header="Redundant Link: true/false"
-          content="Disable ZTP redundant link check for this downlink interface by unchecking this box"
-          wide
-          trigger={
-            <Checkbox
-              key={`redundant_link|${item.name}`}
-              name={`redundant_link|${item.name}`}
-              defaultChecked={fields.redundant_link}
-              disabled={editDisabled}
-              onChange={updateFieldData}
-            />
-          }
-        />
-      )}
-    </Table.Cell>
-  );
-}
-
-const IF_CLASS_OPTIONS = [
-  { value: "downlink", text: "Downlink" },
-  { value: "fabric", text: "Fabric link" },
-  { value: "custom", text: "Custom" },
-  { value: "port_template", text: "Port template" },
-];
-
-function PortTypeCellDist({
-  currentIfClass,
-  editDisabled,
-  item,
-  addPortTemplateOption,
-  updateFieldData,
-  portTemplate,
-  portTemplateOptions,
-}) {
-
-  return (
-    <Table.Cell>
-      <Dropdown
-        key={`ifclass|${item.name}`}
-        name={`ifclass|${item.name}`}
-        selection
-        options={IF_CLASS_OPTIONS}
-        defaultValue={currentIfClass}
-        disabled={editDisabled}
-        onChange={updateFieldData}
-      />
-      {currentIfClass == "port_template" && (
-        <Dropdown
-          key={`port_template|${item.name}`}
-          name={`port_template|${item.name}`}
-          fluid
-          selection
-          search
-          allowAdditions
-          options={portTemplateOptions}
-          defaultValue={portTemplate}
-          disabled={editDisabled}
-          onAddItem={addPortTemplateOption}
-          onChange={updateFieldData}
-        />
-      )}
-    </Table.Cell>
-  );
-}
-
-function BounceInterfaceButton({
-  handleClick, editDisabled, bounceDisabled
-}) {
-  return (
-    <Button
-      disabled={editDisabled || bounceDisabled}
-      loading={bounceDisabled}
-      icon
-      labelPosition="right"
-      onClick={handleClick}
-      size="small"
-    >
-      Bounce interface {<Icon name="retweet" />}
-    </Button>
-  );
-}
-
-const CONFIG_TYPES_ENABLED = [
-  "ACCESS_AUTO",
-  "ACCESS_UNTAGGED",
-  "ACCESS_TAGGED",
-  "ACCESS_DOWNLINK",
-];
-
-const IF_CLASSES_ENABLED = ["custom", "downlink"]; // anything starting with port_template is also allowed
 
 const ALLOWED_COLUMNS_ACCESS = {
   vlans: "VLANs",
@@ -284,8 +87,8 @@ class InterfaceConfig extends React.Component {
         });
     }
 
-    const credentials = localStorage.getItem("token");
-    socket = io(process.env.API_URL, { query: { jwt: credentials } });
+    const token = localStorage.getItem("token");
+    socket = io(process.env.API_URL, { query: { jwt: token } });
     socket.on("connect", function() {
       console.log("Websocket connected!");
       socket.emit("events", { update: "device" });
@@ -448,11 +251,11 @@ class InterfaceConfig extends React.Component {
   }
 
   async getInterfaceData() {
-    const credentials = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (this.device_type === "ACCESS") {
       try {
         const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interfaces`;
-        const data = await getData(url, credentials);
+        const data = await getData(url, token);
         const usedTags = this.state.tagOptions;
 
         data.data.interfaces.forEach((item) => {
@@ -472,7 +275,7 @@ class InterfaceConfig extends React.Component {
           if ((ifData !== null && "neighbor_id" in ifData) && this.state.mlagPeerHostname == null) {
             try {
               const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
-              const mlagData = await getData(mlagDevURL, credentials);
+              const mlagData = await getData(mlagDevURL, token);
               this.setState({
                 mlagPeerHostname: mlagData.data.devices[0].hostname,
               });
@@ -493,7 +296,7 @@ class InterfaceConfig extends React.Component {
     } else if (this.device_type === "DIST") {
       try {
         const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/generate_config`;
-        const data = await getDataHeaders(url, credentials, {
+        const data = await getDataHeaders(url, token, {
           "X-Fields": "available_variables{interfaces,port_template_options}",
         });
         const { tagOptions } = this.state;
@@ -570,12 +373,14 @@ class InterfaceConfig extends React.Component {
       const token = localStorage.getItem("token");
       const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/lldp_neighbors_detail`;
       const data = await getData(url, token)
+      const fetchedLldpNeighsDetail = data.data.lldp_neighbors_detail;
       const lldpNeighbors = {};
       // save interface status data keys as lowercase, in case yaml interface name is not correct case
-      Object.keys(data.data.lldp_neighbors_detail).forEach((key) => {
-        lldpNeighbors[key.toLowerCase()] =
-          data.data.lldp_neighbors_detail[key];
-      });
+      Object
+        .keys(fetchedLldpNeighsDetail ?? [])
+        .forEach((key) => {
+          lldpNeighbors[key.toLowerCase()] = fetchedLldpNeighsDetail[key];
+        });
       this.setState({
         lldpNeighborData: lldpNeighbors,
       });
@@ -721,12 +526,11 @@ class InterfaceConfig extends React.Component {
 
   async sendInterfaceData() {
     try {
-      const credentials = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interfaces`;
-
       const sendData = this.prepareSendJson(this.state.interfaceDataUpdated);
 
-      const data = await putData(url, credentials, sendData);
+      const data = await putData(url, token, sendData);
 
       if (data.status === "success") {
         return true;
@@ -735,6 +539,7 @@ class InterfaceConfig extends React.Component {
       this.setState({ errorMessage: data.message });
       return false;
     } catch (error) {
+      console.log(error);
       this.setState({ errorMessage: error.message.errors.join(", ") });
       return false;
     }
@@ -743,7 +548,6 @@ class InterfaceConfig extends React.Component {
   async startSynctoAutopush() {
     const token = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/device_syncto`;
-
     const sendData = {
       dry_run: true,
       comment: "interface update via WebUI",
@@ -818,15 +622,9 @@ class InterfaceConfig extends React.Component {
     const nameSplit = data.name.split("|", 2);
     const interfaceName = nameSplit[1];
     const json_key = nameSplit[0];
-    let val = null;
-    let defaultValue = null;
-    if ("defaultChecked" in data) {
-      defaultValue = data.defaultChecked;
-      val = data.checked;
-    } else {
-      defaultValue = data.defaultValue;
-      val = data.value;
-    }
+    const defaultValue = "defaultChecked" in data ? data.defaultChecked : data.defaultValue;
+    let val = "defaultChecked" in data ? data.checked : data.value;
+
     if (
       this.device_type == "DIST" &&
       ["untagged_vlan", "tagged_vlan_list"].includes(json_key)
@@ -848,7 +646,6 @@ class InterfaceConfig extends React.Component {
       val = parseInt(val, 10);
       if (isNaN(val)) {
         val = null;
-        console.log(`${json_key} value is not a number`);
       }
     }
     const newData = this.state.interfaceDataUpdated;
@@ -902,6 +699,7 @@ class InterfaceConfig extends React.Component {
         },
       }));
     } catch (error) {
+      console.log(error);
       this.setState(prev => ({
         interfaceBounceRunning: {
           ...prev.interfaceBounceRunning,
@@ -912,15 +710,14 @@ class InterfaceConfig extends React.Component {
   }
 
   untaggedClick = (_e, data) => {
+    const { interfaceToggleUntagged } = this.state.interfaceToggleUntagged;
     if (data.name === "untagged") {
       // Untagged button was clicked
-      const newData = this.state.interfaceToggleUntagged;
-      newData[data.id] = true;
-      this.setState({ interfaceToggleUntagged: newData });
+      interfaceToggleUntagged[data.id] = true;
+      this.setState({ interfaceToggleUntagged: interfaceToggleUntagged });
     } else {
       // Tagged button was clicked
-      const newData = this.state.interfaceToggleUntagged;
-      delete newData[data.id];
+      delete interfaceToggleUntagged[data.id];
       this.setState({ interfaceToggleUntagged: newData });
     }
   };
@@ -931,570 +728,6 @@ class InterfaceConfig extends React.Component {
       return mapped ? mapped.value : vlan;
     }
     return vlan;
-  }
-
-  renderTableRows(interfaceData, interfaceDataUpdated, vlanOptions) {
-    return interfaceData.map((item, index) => {
-      const ifDataUpdated = item.name in interfaceDataUpdated ? interfaceDataUpdated[item.name] : null;
-      const updated = item.name in interfaceDataUpdated ? true : null;
-
-      let editDisabled = true;
-      if (this.device_type === "ACCESS") {
-        editDisabled = !CONFIG_TYPES_ENABLED.includes(item.configtype);
-      } else if (this.device_type === "DIST") {
-        if (item.ifclass.startsWith("port_template")) {
-          editDisabled = false;
-        } else {
-          editDisabled = !IF_CLASSES_ENABLED.includes(item.ifclass);
-        }
-      }
-
-      let fields = {};
-      if (this.device_type === "ACCESS") {
-        fields = {
-          description: "",
-          untagged_vlan: null,
-          tagged_vlan_list: null,
-          tags: [],
-          enabled: true,
-          aggregate_id: null,
-          bpdu_filter: false,
-          redundant_link: true,
-        };
-      } else if (this.device_type === "DIST") {
-        fields = {
-          description: "",
-          untagged_vlan: null,
-          tagged_vlan_list: [],
-          tags: [],
-          enabled: true,
-          config: "",
-        };
-      }
-
-      let ifData = item.data;
-      // populate ifData for DIST
-      if (this.device_type === "DIST") {
-        ifData = {};
-
-        Object.entries(fields).forEach(([key, value]) => {
-          ifData[key] = item[key] ? item[key] : value;
-        });
-
-        if ("peer_hostname" in item) {
-          ifData.description = item.peer_hostname;
-        }
-      }
-
-      if (ifData) {
-        if ("description" in ifData) {
-          fields.description = ifData.description;
-        } else if ("neighbor" in ifData) {
-          fields.description = `Uplink to ${ifData.neighbor}`;
-        } else if ("neighbor_id" in ifData) {
-          fields.description = "MLAG peer link";
-        }
-
-        [
-          "aggregate_id",
-          "bpdu_filter",
-          "enabled",
-          "redundant_link",
-          "tags"
-        ].forEach((fieldName) => {
-          if (fieldName in ifData) {
-            fields[fieldName] = ifData[fieldName];
-          }
-        });
-
-        if (ifDataUpdated && "untagged_vlan" in ifDataUpdated) {
-          fields.untagged_vlan = ifDataUpdated.untagged_vlan;
-        } else if ("untagged_vlan" in ifData) {
-          fields.untagged_vlan = this.mapVlanToName(ifData.untagged_vlan, vlanOptions);
-        }
-
-        if (ifDataUpdated !== null && "tagged_vlan_list" in ifDataUpdated) {
-          fields.tagged_vlan_list = ifDataUpdated.tagged_vlan_list;
-        } else if ("tagged_vlan_list" in ifData) {
-          fields.tagged_vlan_list = ifData.tagged_vlan_list.map((vlan_item) => {
-            if (typeof vlan_item === "number") {
-              const vlan_mapped = vlanOptions.filter(
-                (vlanOptionItem) => vlanOptionItem.description === vlan_item,
-              );
-              if (Array.isArray(vlan_mapped) && vlan_mapped.length === 1) {
-                return vlan_mapped[0].value;
-              }
-              return vlan_item;
-            }
-            return vlan_item;
-          });
-        }
-      } else if (ifDataUpdated !== null) {
-        [
-          "aggregate_id",
-          "bpdu_filter",
-          "enabled",
-          "redundant_link",
-          "tagged_vlan_list",
-          "tags",
-          "untagged_vlan",
-        ].forEach((fieldName) => {
-          if (fieldName in ifDataUpdated) {
-            fields[fieldName] = ifDataUpdated[fieldName];
-          }
-        });
-      }
-
-      let currentConfigtype = null;
-      let currentIfClass = null;
-      let displayVlan = false;
-      let displayVlanTagged = false;
-      let displayTaggedToggle = false;
-      let portTemplate = null;
-      let currentEnabled = null;
-      if (this.device_type === "ACCESS") {
-        currentConfigtype = item.configtype;
-        if (
-          item.name in this.state.interfaceDataUpdated &&
-          "configtype" in this.state.interfaceDataUpdated[item.name]
-        ) {
-          currentConfigtype =
-            this.state.interfaceDataUpdated[item.name].configtype;
-        }
-        if (currentConfigtype === "ACCESS_TAGGED") {
-          displayVlanTagged = true;
-          displayTaggedToggle = true;
-        }
-        if (
-          currentConfigtype === "ACCESS_TAGGED" ||
-          currentConfigtype === "ACCESS_UNTAGGED"
-        ) {
-          displayVlan = true;
-        }
-        if (item.name in this.state.interfaceToggleUntagged) {
-          displayVlanTagged = !displayVlanTagged;
-        }
-        currentEnabled = fields.enabled;
-        if (
-          item.name in this.state.interfaceDataUpdated &&
-          "enabled" in this.state.interfaceDataUpdated[item.name]
-        ) {
-          currentEnabled = this.state.interfaceDataUpdated[item.name].enabled;
-        }
-      } else if (this.device_type == "DIST") {
-        if (item.ifclass.startsWith("port_template")) {
-          currentIfClass = "port_template";
-        } else {
-          currentIfClass = item.ifclass;
-        }
-        if (
-          item.name in this.state.interfaceDataUpdated &&
-          "ifclass" in this.state.interfaceDataUpdated[item.name]
-        ) {
-          currentIfClass = this.state.interfaceDataUpdated[item.name].ifclass;
-        }
-        if (currentIfClass.startsWith("port_template")) {
-          if (
-            item.name in this.state.interfaceDataUpdated &&
-            "port_template" in this.state.interfaceDataUpdated[item.name]
-          ) {
-            portTemplate =
-              this.state.interfaceDataUpdated[item.name].port_template;
-          } else {
-            portTemplate = item.ifclass.substring("port_template_".length);
-          }
-          // if portTemplate is available in usedPortTemplates
-          const { portTemplateOptions } = this.state;
-          // if portTemplate exists in text field of any object in portTemplateOptions
-          const dropDownEntry = portTemplateOptions.find(
-            (obj) => obj.text === portTemplate,
-          );
-
-          if (dropDownEntry && dropDownEntry.vlan_config !== undefined) {
-            if (dropDownEntry.vlan_config === "untagged") {
-              displayVlan = true;
-              displayVlanTagged = false;
-            } else if (dropDownEntry.vlan_config === "tagged") {
-              displayVlan = true;
-              displayVlanTagged = true;
-              displayTaggedToggle = true;
-            }
-          } else {
-            displayVlan = true;
-            displayVlanTagged = true;
-            displayTaggedToggle = true;
-          }
-
-          // mirror ifclass
-        } else {
-          displayVlanTagged = false;
-        }
-        if (item.name in this.state.interfaceToggleUntagged) {
-          displayVlanTagged = !displayVlanTagged;
-        }
-        currentEnabled = fields.enabled;
-        if (
-          item.name in this.state.interfaceDataUpdated &&
-          "enabled" in this.state.interfaceDataUpdated[item.name]
-        ) {
-          currentEnabled = this.state.interfaceDataUpdated[item.name].enabled;
-        }
-      }
-
-      const optionalColumns = this.state.displayColumns.map((columnName) => {
-        let colData = [];
-        if (columnName === "vlans") {
-          if (this.state.deviceSettings === null) {
-            colData = [<Loader key="loading" inline active />];
-          } else if (vlanOptions.length == 0) {
-            colData = [<p>No VLANs available</p>];
-          } else if (displayVlan) {
-            if (displayVlanTagged) {
-              colData = [
-                <Dropdown
-                  key={`tagged_vlan_list|${item.name}`}
-                  name={`tagged_vlan_list|${item.name}`}
-                  fluid
-                  multiple
-                  selection
-                  search={(filteredOptions, searchQuery) => {
-                    const re = new RegExp(_.escapeRegExp(searchQuery), "i");
-                    return _.filter(
-                      filteredOptions,
-                      (opt) =>
-                        re.test(opt.text) ||
-                        re.test(opt.description.toString()),
-                    );
-                  }}
-                  options={this.state.vlanOptions}
-                  defaultValue={fields.tagged_vlan_list}
-                  onChange={this.updateFieldData}
-                />,
-              ];
-            } else {
-              colData = [
-                <Dropdown
-                  key={`untagged_vlan|${item.name}`}
-                  name={`untagged_vlan|${item.name}`}
-                  fluid
-                  selection
-                  search={(filteredOptions, searchQuery) => {
-                    const re = new RegExp(_.escapeRegExp(searchQuery), "i");
-                    return _.filter(
-                      filteredOptions,
-                      (opt) =>
-                        re.test(opt.text) ||
-                        re.test(opt.description.toString()),
-                    );
-                  }}
-                  options={this.state.untaggedVlanOptions}
-                  defaultValue={fields.untagged_vlan}
-                  onChange={this.updateFieldData}
-                />,
-              ];
-            }
-            if (displayTaggedToggle) {
-              colData.push(
-                <ButtonGroup key="toggle_tagged" size="mini" vertical>
-                  <Popup
-                    key="untagged_popup"
-                    content="Change untagged VLAN"
-                    position="top right"
-                    trigger={
-                      <Button
-                        id={item.name}
-                        name="untagged"
-                        onClick={this.untaggedClick.bind(this)}
-                        active={item.name in this.state.interfaceToggleUntagged}
-                        className="table-button-compact"
-                      >
-                        U
-                      </Button>
-                    }
-                  />
-                  <Popup
-                    key="tagged_popup"
-                    content="Change list of tagged VLANs"
-                    position="bottom right"
-                    trigger={
-                      <Button
-                        id={item.name}
-                        named="tagged"
-                        onClick={this.untaggedClick.bind(this)}
-                        active={
-                          !(item.name in this.state.interfaceToggleUntagged)
-                        }
-                        className="table-button-compact"
-                      >
-                        T
-                      </Button>
-                    }
-                  />
-                  ,
-                </ButtonGroup>,
-              );
-            }
-          }
-        } else if (columnName == "tags") {
-          colData = [
-            <Dropdown
-              key={`tags|${item.name}`}
-              name={`tags|${item.name}`}
-              fluid
-              multiple
-              selection
-              search
-              allowAdditions
-              options={this.state.tagOptions}
-              defaultValue={fields.tags}
-              onAddItem={this.addTagOption}
-              onChange={this.updateFieldData}
-              disabled={editDisabled}
-            />,
-          ];
-        } else if (columnName == "json") {
-          if (item.data !== null) {
-            colData = [
-              <Popup
-                key="rawjson"
-                header="Raw JSON data"
-                content={JSON.stringify(item.data)}
-                position="top right"
-                wide
-                hoverable
-                trigger={<Icon color="grey" name="ellipsis horizontal" />}
-              />,
-            ];
-          }
-        } else if (columnName === "aggregate_id") {
-          colData = [
-            <Input
-              key={`aggregate_id|${item.name}`}
-              name={`aggregate_id|${item.name}`}
-              defaultValue={fields.aggregate_id}
-              disabled={editDisabled}
-              onChange={this.updateFieldData}
-            />,
-          ];
-        } else if (columnName == "bpdu_filter") {
-          colData = [
-            <Popup
-              key="bpdu_filter"
-              header="Enable spanning-tree BPDU filter on this interface"
-              wide
-              hoverable
-              trigger={
-                <Checkbox
-                  key={`bpdu_filter|${item.name}`}
-                  name={`bpdu_filter|${item.name}`}
-                  defaultChecked={fields.bpdu_filter}
-                  onChange={this.updateFieldData}
-                  disabled={editDisabled}
-                />
-              }
-            />,
-          ];
-        } else if (columnName == "config") {
-          colData = [
-            <TextArea
-              key={`config|${item.name}`}
-              name={`config|${item.name}`}
-              defaultValue={item.config}
-              rows={3}
-              cols={50}
-              hidden={currentIfClass != "custom"}
-              onChange={this.updateFieldData}
-            />,
-            <Popup
-              on="click"
-              pinned
-              position="top right"
-              trigger={
-                <Button compact size="small">
-                  <Icon name="arrow alternate circle down outline" />
-                </Button>
-              }
-            >
-              <p key="title">Current running config:</p>
-              <InterfaceCurrentConfig
-                hostname={this.hostname}
-                interface={item.name}
-              />
-            </Popup>,
-          ];
-        }
-        return (
-          <Table.Cell collapsing key={columnName}>
-            {colData}
-          </Table.Cell>
-        );
-      });
-
-      let statusIcon = <Icon loading color="grey" name="spinner" />;
-      const { interfaceStatusData } = this.state;
-      const interfaceStatusDataLower = Object.fromEntries(
-        Object.entries(interfaceStatusData).map(([k, v]) => [
-          k.toLowerCase(),
-          v,
-        ]),
-      );
-      if (item.name.toLowerCase() in interfaceStatusDataLower) {
-        const itemInterfaceStatusData =
-          interfaceStatusDataLower[item.name.toLowerCase()];
-        const toggleEnabled = (
-          <Checkbox
-            key={`enabled|${item.name}`}
-            name={`enabled|${item.name}`}
-            toggle
-            label={<label>Enable interface</label>}
-            defaultChecked={currentEnabled}
-            onChange={this.updateFieldData}
-            disabled={editDisabled}
-          />
-        );
-        let bounceDisabled = false;
-        let statusMessage = null;
-        if (item.name in this.state.interfaceBounceRunning) {
-          if (this.state.interfaceBounceRunning[item.name] === "running") {
-            bounceDisabled = true;
-          } else {
-            statusMessage = (
-              <p key="message">
-                {this.state.interfaceBounceRunning[item.name]}
-              </p>
-            );
-          }
-        }
-
-        const bounceInterfaceButton = this.device_type == "ACCESS" ? (
-          <BounceInterfaceButton
-            key={`${item.name}_bounce`}
-            handleClick={() => this.submitBounce(item.name)}
-            editDisabled={editDisabled}
-            bounceDisabled={bounceDisabled} />
-        ) : null;
-
-        const graphiteHtml = (
-          <GraphiteInterface
-            key="graphite"
-            hostname={this.hostname}
-            interfaceName={item.name}
-          />
-        );
-
-        if (itemInterfaceStatusData.is_up === true) {
-          statusIcon = (
-            <InterfaceStatusUp
-              name={item.name}
-              speed={itemInterfaceStatusData.speed}
-              toggleEnabled={toggleEnabled}
-              bounceInterfaceButton={bounceInterfaceButton}
-              statusMessage={statusMessage}
-              graphiteHtml={graphiteHtml}
-            />
-          );
-        } else if (itemInterfaceStatusData.is_enabled === false) {
-          statusIcon = (
-            <InterfaceStatusAdminDisabled
-              name={item.name}
-              toggleEnabled={toggleEnabled}
-              graphiteHtml={graphiteHtml}
-            />
-          );
-        } else {
-          statusIcon = (
-            <InterfaceStatusDown
-              name={item.name}
-              toggleEnabled={toggleEnabled}
-              bounceInterfaceButton={bounceInterfaceButton}
-              statusMessage={statusMessage}
-              graphiteHtml={graphiteHtml}
-            />
-          );
-        }
-      }
-
-      const { netboxInterfaceData } = this.state;
-      let netboxInterfacePopup = null;
-      // if netboxInterfaceData is an array and not empty
-      if (
-        Array.isArray(netboxInterfaceData) &&
-        netboxInterfaceData.length > 0
-      ) {
-        // find element in netboxInterfaceData with the same name as the interface item.name
-        const currentNetboxInterfaceData = netboxInterfaceData.find(
-          (netboxInterface) => netboxInterface.name === item.name,
-        );
-        if (currentNetboxInterfaceData) {
-          netboxInterfacePopup = (
-            <NetboxInterfacePopup
-              netboxInterface={currentNetboxInterfaceData}
-            />
-          );
-        }
-      }
-
-      const { lldpNeighborData } = this.state;
-      let lldpNeighborPopup = null;
-      // if netboxInterfaceData is an array and not empty
-      // get key with name equal to item.name in lldpNeighborData object if it exists
-      if (Object.hasOwn(lldpNeighborData, item.name.toLowerCase())) {
-        lldpNeighborPopup = (
-          <LldpNeighborPopup
-            lldpNeighborData={lldpNeighborData[item.name.toLowerCase()]}
-          />
-        );
-      }
-
-      const descriptionDetails = (
-        <div>
-          <ButtonGroup key="toggle_tagged" size="mini" vertical>
-            {netboxInterfacePopup}
-            {lldpNeighborPopup}
-          </ButtonGroup>
-        </div>
-      );
-
-      return [
-        <Table.Row key={`tr_${index}`} warning={updated}>
-          <Table.Cell>
-            {statusIcon} {item.name}
-          </Table.Cell>
-          <Table.Cell>
-            <Input
-              key={`description|${item.name}`}
-              name={`description|${item.name}`}
-              defaultValue={fields.description}
-              disabled={editDisabled}
-              onChange={this.updateFieldData}
-            />
-            {descriptionDetails}
-          </Table.Cell>
-          {this.device_type == "ACCESS" && (
-            <PortTypeCellAccess
-              item={item}
-              currentConfigtype={currentConfigtype}
-              fields={fields}
-              editDisabled={editDisabled}
-              updateFieldData={this.updateFieldData}
-            />
-          )}
-          {this.device_type == "DIST" && (
-            <PortTypeCellDist
-              item={item}
-              currentIfClass={currentIfClass}
-              portTemplate={portTemplate}
-              editDisabled={editDisabled}
-              portTemplateOptions={this.state.portTemplateOptions}
-              updateFieldData={this.updateFieldData}
-              addPortTemplateOption={this.addPortTemplateOption}
-            />
-          )}
-
-          {optionalColumns}
-        </Table.Row>,
-      ];
-    });
   }
 
   accordionClick = (_e, titleProps) => {
@@ -1542,17 +775,40 @@ class InterfaceConfig extends React.Component {
   };
 
   render() {
-    const interfaceTable = this.renderTableRows(
-      this.state.interfaceData,
-      this.state.interfaceDataUpdated,
-      this.state.vlanOptions,
-    );
+    const interfaceTable = this.state.interfaceData.map((item, index) => (
+      <InterfaceTableRow
+        key={item.name}
+        item={item}
+        index={index}
+        deviceType={this.device_type}
+        interfaceDataUpdated={this.state.interfaceDataUpdated}
+        vlanOptions={this.state.vlanOptions}
+        untaggedVlanOptions={this.state.untaggedVlanOptions}
+        displayColumns={this.state.displayColumns}
+        deviceSettings={this.state.deviceSettings}
+        tagOptions={this.state.tagOptions}
+        portTemplateOptions={this.state.portTemplateOptions}
+        interfaceStatusData={this.state.interfaceStatusData}
+        interfaceBounceRunning={this.state.interfaceBounceRunning}
+        netboxInterfaceData={this.state.netboxInterfaceData}
+        lldpNeighborData={this.state.lldpNeighborData}
+        hostname={this.hostname}
+        updateFieldData={this.updateFieldData}
+        addTagOption={this.addTagOption}
+        addPortTemplateOption={this.addPortTemplateOption}
+        submitBounce={() => this.submitBounce(item.name)}
+        untaggedClick={this.untaggedClick}
+        interfaceToggleUntagged={this.state.interfaceToggleUntagged}
+      />
+    ));
+
     const syncStateIcon =
       this.state.deviceData.synchronized === true ? (
         <Icon name="check" color="green" />
       ) : (
         <Icon name="delete" color="red" />
       );
+
     const { accordionActiveIndex } = this.state;
     const commitAutopushDisabled =
       this.state.working ||
@@ -1770,13 +1026,11 @@ class InterfaceConfig extends React.Component {
 
     // find unused interfaces
     const { interfaceData, interfaceStatusData } = this.state;
-    const unusedInterfaces = Object.keys(interfaceStatusData).filter(
-      (ifName) => {
-        return !interfaceData.find(
-          (obj) => obj.name.toLowerCase() === ifName.toLowerCase(),
-        );
-      },
-    );
+    const unusedInterfaces = interfaceStatusData
+      ? Object.keys(interfaceStatusData).filter((ifName) => {
+        return !interfaceData.find((obj) => obj.name.toLowerCase() === ifName.toLowerCase());
+      })
+      : [];
 
     return (
       <section>
