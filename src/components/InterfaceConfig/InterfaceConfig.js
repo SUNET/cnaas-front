@@ -74,11 +74,87 @@ class InterfaceConfig extends React.Component {
   hostname = null;
   device_type = null;
 
+  handleDeviceUpdateEvent(data) {
+    const deviceData = data.object;
+    if (this.state.awaitingDeviceSynchronization && deviceData.synchronized) {
+      // Synchronize done
+      this.setState(
+        {
+          initialSyncState: null,
+          initialConfHash: null,
+          awaitingDeviceSynchronization: false,
+          deviceData: deviceData,
+        },
+        () => { // TODO: refactor into useEffect
+          this.getInterfaceData();
+          this.getDeviceData();
+          this.refreshInterfaceStatus();
+        },
+      );
+    } else {
+      this.setState({ deviceData: deviceData });
+    }
+
+  };
+
+  handleJobUpdateEvent(data) {
+    const newState = {};
+    if (data.function_name === "refresh_repo" && !this.state.thirdPartyUpdated) {
+      newState.thirdPartyUpdated = true;
+    }
+    if (
+      this.state.autoPushJobs.length == 1 &&
+      this.state.autoPushJobs[0].job_id == data.job_id
+    ) {
+      // if finished && next_job id, push next_job_id to array
+      if (typeof data?.next_job_id === "number") {
+        newState.autoPushJobs = [
+          data,
+          { job_id: data.next_job_id, status: "RUNNING" },
+        ];
+      } else if (data.status == "FINISHED" || data.status == "EXCEPTION") {
+        newState.errorMessage = [
+          "Live run job not scheduled! There was an error or the change score was too high to continue with autopush.",
+          " Check ",
+          <Link key="jobs" to="/jobs">
+            job log
+          </Link>,
+          " or do a ",
+          <Link
+            key="dryrun"
+            to={`/config-change?hostname=${this.hostname}`}
+          >
+            dry run
+          </Link>,
+        ];
+
+        newState.working = false;
+        newState.autoPushJobs = [data];
+        newState.accordionActiveIndex = 2;
+      }
+    } else if (
+      this.state.autoPushJobs.length == 2 &&
+      this.state.autoPushJobs[1].job_id == data.job_id
+    ) {
+      newState.autoPushJobs = [this.state.autoPushJobs[0], data];
+      if (data.status == "FINISHED" || data.status == "EXCEPTION") {
+        console.log("jobs finished!");
+        newState.working = false;
+        newState.interfaceDataUpdated = {};
+        this.setState({ awaitingDeviceSynchronization: true });
+      }
+    }
+
+    if (Object.keys(newState).length >= 1) {
+      this.setState(newState);
+    }
+  };
+
   componentDidMount() {
     this.hostname = this.getDeviceName();
     if (this.hostname !== null) {
       this.getDeviceData()
-        .then(() => { // refactor callback to useEffect
+        .then(() => { // TODO: refactor callback to useEffect
           this.getInterfaceData();
           this.getInterfaceStatusData();
           this.getLldpNeighborData();
@@ -94,99 +170,28 @@ class InterfaceConfig extends React.Component {
       socket.emit("events", { update: "device" });
       socket.emit("events", { update: "job" });
     });
+    socket.on("error", (error) => {
+      console.log("SOCKET ERROR", error);
+    });
+    socket.on("disconnect", (reason, details) => {
+      console.log("SOCKET DISCONNECTED", reason, details);
+    });
+
     socket.on("events", (data) => {
-      // device update event
       if (
-        data.device_id !== undefined &&
-        data.device_id == this.state.deviceData.id &&
+        data.device_id &&
+        data?.device_id == this.state.deviceData.id &&
         data.action == "UPDATED"
       ) {
-        if (
-          this.state.awaitingDeviceSynchronization === true &&
-          data.object.synchronized === true
-        ) {
-          // Synchronize done
-          this.setState(
-            {
-              initialSyncState: null,
-              initialConfHash: null,
-              awaitingDeviceSynchronization: false,
-              deviceData: data.object,
-            },
-            () => {
-              this.getInterfaceData();
-              this.getDeviceData();
-              this.refreshInterfaceStatus();
-            },
-          );
-        } else {
-          this.setState({ deviceData: data.object });
-        }
-        // job update event
-      } else if (data.job_id !== undefined) {
-        // if job updated state
-        const newState = {};
-        if (
-          data.function_name === "refresh_repo" &&
-          this.state.thirdPartyUpdated === false
-        ) {
-          newState.thirdPartyUpdated = true;
-        }
-        if (
-          this.state.autoPushJobs.length == 1 &&
-          this.state.autoPushJobs[0].job_id == data.job_id
-        ) {
-          // if finished && next_job id, push next_job_id to array
-          if (
-            data.next_job_id !== undefined &&
-            typeof data.next_job_id === "number"
-          ) {
-            newState.autoPushJobs = [
-              data,
-              { job_id: data.next_job_id, status: "RUNNING" },
-            ];
-          } else if (data.status == "FINISHED" || data.status == "EXCEPTION") {
-            newState.errorMessage = [
-              "Live run job not scheduled! There was an error or the change score was too high to continue with autopush.",
-              " Check ",
-              <Link key="jobs" to="/jobs">
-                job log
-              </Link>,
-              " or do a ",
-              <Link
-                key="dryrun"
-                to={`/config-change?hostname=${this.hostname}`}
-              >
-                dry run
-              </Link>,
-            ];
-
-            newState.working = false;
-            newState.autoPushJobs = [data];
-            newState.accordionActiveIndex = 2;
-          }
-        } else if (
-          this.state.autoPushJobs.length == 2 &&
-          this.state.autoPushJobs[1].job_id == data.job_id
-        ) {
-          newState.autoPushJobs = [this.state.autoPushJobs[0], data];
-          if (data.status == "FINISHED" || data.status == "EXCEPTION") {
-            console.log("jobs finished!");
-            newState.working = false;
-            newState.interfaceDataUpdated = {};
-            this.setState({ awaitingDeviceSynchronization: true });
-          }
-        }
-        if (Object.keys(newState).length >= 1) {
-          this.setState(newState);
-        }
+        this.handleDeviceUpdateEvent(data);
+      } else if (data.job_id) {
+        this.handleJobUpdateEvent(data);
       }
     });
   }
 
   setDisplayColumns() {
-    const interfaceConfig =
-      JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
+    const interfaceConfig = JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
     let newDisplayColumns;
     if (this.device_type === "ACCESS") {
       newDisplayColumns = interfaceConfig?.accessDisplayColumns;
@@ -220,11 +225,9 @@ class InterfaceConfig extends React.Component {
       const data = await getFunc(netboxDevicesUrl, credentials);
       if (data.count === 1) {
         const deviceData = data.results.pop();
-        if (deviceData) {
-          this.setState(() => ({
-            netboxDeviceData: deviceData,
-          }));
-        }
+        this.setState(() => ({
+          netboxDeviceData: deviceData,
+        }));
 
         const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?device_id=${deviceData.id}&limit=100`;
         const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
@@ -255,10 +258,10 @@ class InterfaceConfig extends React.Component {
     if (this.device_type === "ACCESS") {
       try {
         const url = `${process.env.API_URL}/api/v1.0/device/${this.hostname}/interfaces`;
-        const data = await getData(url, token);
+        const fetchedInterfaces = (await getData(url, token)).data.interfaces;
         const usedTags = this.state.tagOptions;
 
-        data.data.interfaces.forEach((item) => {
+        fetchedInterfaces.forEach((item) => {
           const ifData = item.data;
           if (ifData !== null && "tags" in ifData) {
             ifData.tags.forEach((tag) => {
@@ -270,7 +273,7 @@ class InterfaceConfig extends React.Component {
           }
         });
 
-        for (const item of data.data.interfaces) {
+        for (const item of fetchedInterfaces) {
           const ifData = item.data;
           if ((ifData !== null && "neighbor_id" in ifData) && this.state.mlagPeerHostname == null) {
             try {
@@ -287,7 +290,7 @@ class InterfaceConfig extends React.Component {
         };
 
         this.setState({
-          interfaceData: data.data.interfaces,
+          interfaceData: fetchedInterfaces,
           tagOptions: usedTags,
         });
       } catch (error) {
@@ -299,9 +302,10 @@ class InterfaceConfig extends React.Component {
         const data = await getDataHeaders(url, token, {
           "X-Fields": "available_variables{interfaces,port_template_options}",
         });
+        const fetchedAvailaleVariables = data.data.config.available_variables;
         const { tagOptions } = this.state;
         let usedPortTemplates = [];
-        const _portTemplateOptions = data.data.config.available_variables.port_template_options;
+        const _portTemplateOptions = fetchedAvailaleVariables.port_template_options;
         if (_portTemplateOptions) {
           usedPortTemplates = Object.entries(_portTemplateOptions)
             .map(([template_name, template_data]) => {
@@ -315,7 +319,7 @@ class InterfaceConfig extends React.Component {
         }
 
         const usedTags = tagOptions;
-        const _availableInterfaces = data.data.config.available_variables.interfaces;
+        const _availableInterfaces = fetchedAvailaleVariables.interfaces;
         _availableInterfaces.forEach((item) => {
           if (usedTags.length === 0 && item.tags) {
             item.tags.forEach((tag) => {
@@ -537,12 +541,12 @@ class InterfaceConfig extends React.Component {
       }
 
       this.setState({ errorMessage: data.message });
-      return false;
     } catch (error) {
       console.log(error);
       this.setState({ errorMessage: error.message.errors.join(", ") });
-      return false;
     }
+
+    return false;
   }
 
   async startSynctoAutopush() {
@@ -556,7 +560,6 @@ class InterfaceConfig extends React.Component {
     };
 
     const data = await postData(url, token, sendData);
-
     if (data) {
       this.setState({
         autoPushJobs: [{ job_id: data.job_id, status: "RUNNING" }],
@@ -648,6 +651,7 @@ class InterfaceConfig extends React.Component {
         val = null;
       }
     }
+
     const newData = this.state.interfaceDataUpdated;
     if (JSON.stringify(val) !== JSON.stringify(defaultValue)) {
       if (interfaceName in newData) {
@@ -666,12 +670,14 @@ class InterfaceConfig extends React.Component {
         delete newData[interfaceName];
       }
     }
+
     if (json_key === "ifclass") {
       if (val !== "port_template") {
         delete newData[interfaceName].port_template;
         console.log(newData);
       }
     }
+
     this.setState({
       interfaceDataUpdated: newData,
     });
@@ -803,7 +809,7 @@ class InterfaceConfig extends React.Component {
     ));
 
     const syncStateIcon =
-      this.state.deviceData.synchronized === true ? (
+      this.state.deviceData.synchronized ? (
         <Icon name="check" color="green" />
       ) : (
         <Icon name="delete" color="red" />
