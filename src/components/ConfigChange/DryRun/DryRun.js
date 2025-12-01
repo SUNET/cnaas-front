@@ -29,6 +29,7 @@ class DryRun extends React.Component {
     const { dryRunProgressData } = this.props;
     const { dryRunJobStatus } = this.props;
     const { jobId } = this.props;
+    const { synctoForce, setSynctoForce } = this.props;
     let error = "";
     let dryrunButtonDisabled = this.props.dryRunDisable;
     let resetButtonDisabled = true;
@@ -42,6 +43,8 @@ class DryRun extends React.Component {
           dryRunProgressData={dryRunProgressData}
           devices={this.props.devices}
           resync={this.state.resync}
+          synctoForce={synctoForce}
+          setSynctoForce={setSynctoForce}
         />,
       ];
     }
