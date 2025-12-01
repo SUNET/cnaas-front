@@ -1,5 +1,6 @@
 import DryRunFailList from "./DryRunFailList";
 import { Checkbox } from "semantic-ui-react";
+import PropTypes from "prop-types";
 
 function DryRunError({
   devices,
@@ -23,5 +24,13 @@ function DryRunError({
     </div>
   );
 }
+
+DryRunError.propTypes = {
+  devices: PropTypes.object.isRequired,
+  dryRunSyncStart: PropTypes.func.isRequired,
+  resync: PropTypes.bool.isRequired,
+  synctoForce: PropTypes.bool.isRequired,
+  setSynctoForce: PropTypes.func.isRequired,
+};
 
 export default DryRunError;

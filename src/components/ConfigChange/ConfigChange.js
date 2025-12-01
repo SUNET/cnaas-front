@@ -70,7 +70,7 @@ function ConfigChange({ location }) {
 
   const dryRun = useMemo(() => {
     if (Object.keys(dryRunProgressData).length === 0) {
-      return { status: "", results: "", changeScore: "", jobId: "NA" };
+      return { status: "", results: {}, changeScore: "", jobId: "NA" };
     }
 
     return {
@@ -80,7 +80,7 @@ function ConfigChange({ location }) {
       results:
         dryRunProgressData.status === "FINISHED"
           ? dryRunProgressData.result.devices
-          : "",
+          : {},
     };
   }, [dryRunProgressData]);
 
