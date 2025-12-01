@@ -130,6 +130,14 @@ export default function DeviceInfoBlock({
         </TableRow>,
       );
     }
+    if (netboxDevice.asset_tag) {
+      netboxRows.push(
+        <TableRow key="netbox_assettag">
+          <TableCell key="name">Netbox Asset Tag</TableCell>
+          <TableCell key="value">{netboxDevice.asset_tag}</TableCell>
+        </TableRow>,
+      );
+    }
   }
 
   return (
