@@ -135,7 +135,6 @@ function ConfigChange({ location }) {
     setLogLines([]);
     setStoppedRepoJobs([]);
     setSyncEventCounter(0);
-    setSynctoForce(false);
     repoJobIdRef.current = null;
     isRepoRefreshingRef.current = false;
 
@@ -349,9 +348,8 @@ function ConfigChange({ location }) {
     };
 
     // Handle force flag
-    if (options.force || (!dataToSend.dry_run && synctoForce)) {
+    if (synctoForce) {
       dataToSend.force = true;
-      if (options.force) setSynctoForce(true);
     }
 
     const response = await post(url, tokenRef.current, dataToSend);
@@ -409,6 +407,9 @@ function ConfigChange({ location }) {
           ) {
             pollJobStatus(payload.next_job_id, "confirm_run");
           }
+          if (jobType === "live_run") {
+            setSynctoForce(false);
+          }
         }
       } catch (error) {
         console.error("Polling error:", error);
@@ -450,6 +451,8 @@ function ConfigChange({ location }) {
           logLines={logLines}
           resetState={resetState}
           repoWorkingState={isRepoRefreshingRef.current}
+          synctoForce={synctoForce}
+          setSynctoForce={setSynctoForce}
         />
         <VerifyDiff
           dryRunChangeScore={dryRun.changeScore}

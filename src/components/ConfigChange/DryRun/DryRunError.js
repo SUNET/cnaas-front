@@ -1,33 +1,27 @@
-import React from "react";
 import DryRunFailList from "./DryRunFailList";
+import { Checkbox } from "semantic-ui-react";
 
-class DryRunError extends React.Component {
-  render() {
-    return (
+function DryRunError({
+  devices,
+  dryRunSyncStart,
+  resync,
+  synctoForce,
+  setSynctoForce,
+}) {
+  return (
+    <div>
+      <DryRunFailList devices={devices} />
       <div>
-        <DryRunFailList devices={this.props.devices} />
-        <div>
-          <button
-            onClick={() =>
-              this.props.dryRunSyncStart({ resync: this.props.resync })
-            }
-          >
-            Retry
-          </button>
-          <button
-            onClick={() =>
-              this.props.dryRunSyncStart({
-                force: true,
-                resync: this.props.resync,
-              })
-            }
-          >
-            Force retry
-          </button>
-        </div>
+        <button onClick={() => dryRunSyncStart({ resync })}>Retry</button>
+        <Checkbox
+          label="Force overwrite of local changes"
+          name="force"
+          checked={synctoForce}
+          onChange={(e, data) => setSynctoForce(data.checked)}
+        />
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export default DryRunError;
