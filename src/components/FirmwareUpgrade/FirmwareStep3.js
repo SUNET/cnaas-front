@@ -131,7 +131,7 @@ function FirmwareStep3({
   let disableStaggeredButton = true;
   let step3abortDisabled = true;
 
-  if (jobStatus === "EXCEPTION") {
+  if (jobStatus === "EXCEPTION" && jobResult && jobResult.devices) {
     error = [<FirmwareError key="exception" devices={jobResult.devices} />];
   } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
     step3abortDisabled = false;

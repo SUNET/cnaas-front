@@ -128,7 +128,7 @@ function FirmwareStep2({
   let step2abortDisabled = true;
   let step2disabled = true;
 
-  if (jobStatus === "EXCEPTION") {
+  if (jobStatus === "EXCEPTION" && jobResult && jobResult.devices) {
     // console.log("jobStatus errored");
     error = [<FirmwareError key="exception" devices={jobResult.devices} />];
   } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
