@@ -1,10 +1,9 @@
-import {
-  Icon,
-  Button,
-} from "semantic-ui-react";
+import { Icon, Button } from "semantic-ui-react";
 
 export function BounceInterfaceButton({
-  handleClick, editDisabled, bounceDisabled
+  handleClick,
+  editDisabled,
+  bounceDisabled,
 }) {
   return (
     <Button

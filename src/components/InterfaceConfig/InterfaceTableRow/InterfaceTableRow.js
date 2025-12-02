@@ -33,7 +33,7 @@ const IF_CLASSES_ENABLED = ["custom", "downlink"];
 
 function mapVlanToName(vlan, vlanOptions) {
   if (typeof vlan === "number") {
-    const mapped = vlanOptions.find(opt => opt.description === vlan);
+    const mapped = vlanOptions.find((opt) => opt.description === vlan);
     return mapped ? mapped.value : vlan;
   }
   return vlan;
@@ -62,9 +62,8 @@ export function InterfaceTableRow({
   untaggedClick,
   interfaceToggleUntagged,
 }) {
-  const ifDataUpdated = item.name in interfaceDataUpdated
-    ? interfaceDataUpdated[item.name]
-    : null;
+  const ifDataUpdated =
+    item.name in interfaceDataUpdated ? interfaceDataUpdated[item.name] : null;
   const updated = item.name in interfaceDataUpdated;
 
   // Determine if editing is disabled
@@ -129,7 +128,13 @@ export function InterfaceTableRow({
       fields.description = "MLAG peer link";
     }
 
-    ["aggregate_id", "bpdu_filter", "enabled", "redundant_link", "tags"].forEach((fieldName) => {
+    [
+      "aggregate_id",
+      "bpdu_filter",
+      "enabled",
+      "redundant_link",
+      "tags",
+    ].forEach((fieldName) => {
       if (fieldName in ifData) {
         fields[fieldName] = ifData[fieldName];
       }
@@ -199,11 +204,12 @@ export function InterfaceTableRow({
     }
 
     if (currentIfClass?.startsWith("port_template")) {
-      portTemplate = ifDataUpdated?.port_template
-        ?? item.ifclass?.substring("port_template_".length);
+      portTemplate =
+        ifDataUpdated?.port_template ??
+        item.ifclass?.substring("port_template_".length);
 
       const dropDownEntry = portTemplateOptions.find(
-        (obj) => obj.text === portTemplate
+        (obj) => obj.text === portTemplate,
       );
 
       if (dropDownEntry?.vlan_config === "untagged") {
@@ -253,8 +259,7 @@ export function InterfaceTableRow({
                 return _.filter(
                   filteredOptions,
                   (opt) =>
-                    re.test(opt.text) ||
-                    re.test(opt.description?.toString()),
+                    re.test(opt.text) || re.test(opt.description?.toString()),
                 );
               }}
               options={vlanOptions}
@@ -274,8 +279,7 @@ export function InterfaceTableRow({
                 return _.filter(
                   filteredOptions,
                   (opt) =>
-                    re.test(opt.text) ||
-                    re.test(opt.description?.toString()),
+                    re.test(opt.text) || re.test(opt.description?.toString()),
                 );
               }}
               options={untaggedVlanOptions}
@@ -320,7 +324,7 @@ export function InterfaceTableRow({
                   </Button>
                 }
               />
-            </ButtonGroup>
+            </ButtonGroup>,
           );
         }
       }
@@ -406,10 +410,7 @@ export function InterfaceTableRow({
           }
         >
           <p key="title">Current running config:</p>
-          <InterfaceCurrentConfig
-            hostname={hostname}
-            interface={item.name}
-          />
+          <InterfaceCurrentConfig hostname={hostname} interface={item.name} />
         </Popup>,
       ];
     }
@@ -424,11 +425,12 @@ export function InterfaceTableRow({
   // Render status icon
   let statusIcon = <Icon loading color="grey" name="spinner" />;
   const interfaceStatusDataLower = Object.fromEntries(
-    Object.entries(interfaceStatusData).map(([k, v]) => [k.toLowerCase(), v])
+    Object.entries(interfaceStatusData).map(([k, v]) => [k.toLowerCase(), v]),
   );
 
   if (item.name.toLowerCase() in interfaceStatusDataLower) {
-    const itemInterfaceStatusData = interfaceStatusDataLower[item.name.toLowerCase()];
+    const itemInterfaceStatusData =
+      interfaceStatusDataLower[item.name.toLowerCase()];
 
     const toggleEnabled = (
       <Checkbox
@@ -454,14 +456,15 @@ export function InterfaceTableRow({
       }
     }
 
-    const bounceInterfaceButton = deviceType === "ACCESS" ? (
-      <BounceInterfaceButton
-        key={`${item.name}_bounce`}
-        handleClick={submitBounce}
-        editDisabled={editDisabled}
-        bounceDisabled={bounceDisabled}
-      />
-    ) : null;
+    const bounceInterfaceButton =
+      deviceType === "ACCESS" ? (
+        <BounceInterfaceButton
+          key={`${item.name}_bounce`}
+          handleClick={submitBounce}
+          editDisabled={editDisabled}
+          bounceDisabled={bounceDisabled}
+        />
+      ) : null;
 
     const graphiteHtml = (
       <GraphiteInterface
@@ -507,7 +510,7 @@ export function InterfaceTableRow({
   let netboxInterfacePopup = null;
   if (Array.isArray(netboxInterfaceData) && netboxInterfaceData.length > 0) {
     const currentNetboxInterfaceData = netboxInterfaceData.find(
-      (netboxInterface) => netboxInterface.name === item.name
+      (netboxInterface) => netboxInterface.name === item.name,
     );
     if (currentNetboxInterfaceData) {
       netboxInterfacePopup = (

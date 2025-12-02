@@ -1,18 +1,13 @@
-import {
-  Dropdown,
-  Table,
-  Popup,
-  Checkbox,
-} from "semantic-ui-react";
+import { Dropdown, Table, Popup, Checkbox } from "semantic-ui-react";
 
-  const CONFIG_TYPE_OPTIONS = [
-    { value: "ACCESS_AUTO", text: "Auto/dot1x" },
-    { value: "ACCESS_UNTAGGED", text: "Untagged/access" },
-    { value: "ACCESS_TAGGED", text: "Tagged/trunk" },
-    { value: "ACCESS_DOWNLINK", text: "Downlink" },
-    { value: "ACCESS_UPLINK", text: "Uplink", disabled: true },
-    { value: "MLAG_PEER", text: "MLAG peer interface", disabled: true },
-  ];
+const CONFIG_TYPE_OPTIONS = [
+  { value: "ACCESS_AUTO", text: "Auto/dot1x" },
+  { value: "ACCESS_UNTAGGED", text: "Untagged/access" },
+  { value: "ACCESS_TAGGED", text: "Tagged/trunk" },
+  { value: "ACCESS_DOWNLINK", text: "Downlink" },
+  { value: "ACCESS_UPLINK", text: "Uplink", disabled: true },
+  { value: "MLAG_PEER", text: "MLAG peer interface", disabled: true },
+];
 
 export function PortTypeCellAccess({
   currentConfigtype,

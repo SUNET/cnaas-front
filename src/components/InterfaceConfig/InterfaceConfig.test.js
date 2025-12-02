@@ -1,11 +1,15 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
-import InterfaceConfig from "./InterfaceConfig";
+import { InterfaceConfig } from "./InterfaceConfig";
 import { getData } from "../../utils/getData";
 import { putData, postData } from "../../utils/sendData";
 
 // Mock dependencies
+jest.mock("../../contexts/AuthTokenContext", () => ({
+  useAuthToken: () => ({ token: "test-token" }),
+}));
+
 jest.mock("../../utils/getData");
 jest.mock("../../utils/sendData");
 jest.mock("socket.io-client", () => {
@@ -29,7 +33,7 @@ beforeEach(() => {
     if (key === "interfaceConfig") return null;
     return null;
   });
-  jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => { });
+  jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => {});
 });
 
 afterAll(() => {
@@ -40,14 +44,16 @@ afterAll(() => {
 // Mock data helpers
 const mockDeviceData = (deviceType = "ACCESS", synchronized = true) => ({
   data: {
-    devices: [{
-      id: 1,
-      hostname: "test-switch",
-      device_type: deviceType,
-      synchronized,
-      confhash: "abc123",
-    }]
-  }
+    devices: [
+      {
+        id: 1,
+        hostname: "test-switch",
+        device_type: deviceType,
+        synchronized,
+        confhash: "abc123",
+      },
+    ],
+  },
 });
 
 const mockSettingsData = () => ({
@@ -59,9 +65,9 @@ const mockSettingsData = () => ({
       },
       interface_tag_options: {
         uplink: { description: "Uplink port" },
-      }
-    }
-  }
+      },
+    },
+  },
 });
 
 const mockInterfaceDataAccess = () => ({
@@ -76,7 +82,7 @@ const mockInterfaceDataAccess = () => ({
           untagged_vlan: "DATA",
           enabled: true,
           tags: ["uplink"],
-        }
+        },
       },
       {
         name: "Ethernet2",
@@ -86,10 +92,10 @@ const mockInterfaceDataAccess = () => ({
           description: "Trunk port",
           tagged_vlan_list: ["DATA", "VOICE"],
           enabled: true,
-        }
-      }
-    ]
-  }
+        },
+      },
+    ],
+  },
 });
 
 const mockInterfaceStatusData = () => ({
@@ -97,22 +103,24 @@ const mockInterfaceStatusData = () => ({
     interface_status: {
       Ethernet1: { is_up: true, is_enabled: true, speed: 1000 },
       Ethernet2: { is_up: false, is_enabled: true, speed: 1000 },
-    }
-  }
+    },
+  },
 });
 
 const mockLldpData = () => ({
   data: {
     lldp_neighbors_detail: {
-      Ethernet1: [{
-        remote_system_name: "neighbor-switch",
-        remote_chassis_id: "00:11:22:33:44:55",
-        remote_port: "Eth1/1",
-        remote_port_description: "",
-        remote_system_description: "",
-      }]
-    }
-  }
+      Ethernet1: [
+        {
+          remote_system_name: "neighbor-switch",
+          remote_chassis_id: "00:11:22:33:44:55",
+          remote_port: "Eth1/1",
+          remote_port_description: "",
+          remote_system_description: "",
+        },
+      ],
+    },
+  },
 });
 
 function renderComponent(locationSearch = "?hostname=test-switch") {
@@ -120,16 +128,13 @@ function renderComponent(locationSearch = "?hostname=test-switch") {
   const mockHistory = { push: jest.fn() };
 
   return render(
-    <InterfaceConfig
-      location={mockLocation}
-      history={mockHistory}
-    />
+    <InterfaceConfig location={mockLocation} history={mockHistory} />,
   );
 }
 
 describe("InterfaceConfig - Basic Rendering", () => {
   test("renders loading state initially", () => {
-    getData.mockImplementation(() => new Promise(() => { })); // Never resolves
+    getData.mockImplementation(() => new Promise(() => {})); // Never resolves
     renderComponent();
     expect(screen.getByText(/Interface configuration/i)).toBeInTheDocument();
   });
@@ -142,7 +147,12 @@ describe("InterfaceConfig - Basic Rendering", () => {
       if (url.includes("/settings")) {
         return Promise.resolve(mockSettingsData());
       }
-      if (url.includes("/device/test-switch") && !url.includes("/interfaces") && !url.includes("/interface_status") && !url.includes("/lldp")) {
+      if (
+        url.includes("/device/test-switch") &&
+        !url.includes("/interfaces") &&
+        !url.includes("/interface_status") &&
+        !url.includes("/lldp")
+      ) {
         return Promise.resolve(mockDeviceData("ACCESS"));
       }
       if (url.includes("/device/test-switch/interfaces")) {
@@ -160,12 +170,12 @@ describe("InterfaceConfig - Basic Rendering", () => {
 
     renderComponent();
 
-    // Debug: check what's actually in state
-    await waitFor(() => {
-      const tbody = document.querySelector('tbody');
-      console.debug("tbody children:", tbody?.children.length);
-      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Ethernet1")).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
 
     expect(screen.getByText("Ethernet2")).toBeInTheDocument();
   });
@@ -304,7 +314,9 @@ describe("InterfaceConfig - Save Operations", () => {
       expect(screen.getByText(/Save and dry run/i)).toBeInTheDocument();
     });
 
-    const dryRunButton = screen.getByRole("button", { name: /Save and dry run/i });
+    const dryRunButton = screen.getByRole("button", {
+      name: /Save and dry run/i,
+    });
     await userEvent.click(dryRunButton);
 
     await waitFor(() => {
@@ -315,11 +327,11 @@ describe("InterfaceConfig - Save Operations", () => {
           interfaces: expect.objectContaining({
             Ethernet1: expect.objectContaining({
               data: expect.objectContaining({
-                description: "New description"
-              })
-            })
-          })
-        })
+                description: "New description",
+              }),
+            }),
+          }),
+        }),
       );
     });
   });
@@ -377,16 +389,16 @@ describe("InterfaceConfig - Column Display", () => {
     await userEvent.click(columnButton);
 
     // Toggle a column (e.g., Tags)
-    const checkboxes = screen.getAllByRole('checkbox');
-    const tagsCheckbox = checkboxes.find(cb =>
-      cb.closest('li')?.textContent.includes('Tags')
+    const checkboxes = screen.getAllByRole("checkbox");
+    const tagsCheckbox = checkboxes.find((cb) =>
+      cb.closest("li")?.textContent.includes("Tags"),
     );
     await userEvent.click(tagsCheckbox);
 
     await waitFor(() => {
       expect(setItemSpy).toHaveBeenCalledWith(
         "interfaceConfig",
-        expect.stringContaining("accessDisplayColumns")
+        expect.stringContaining("accessDisplayColumns"),
       );
     });
   });
@@ -421,10 +433,10 @@ describe("InterfaceConfig - Interface Status", () => {
 
     await waitFor(() => {
       // Ethernet1 is up (green icon)
-      const greenIcons = document.querySelectorAll('.green.circle.icon');
+      const greenIcons = document.querySelectorAll(".green.circle.icon");
       expect(greenIcons.length).toBeGreaterThan(0);
 
-      const grayIcons = document.querySelectorAll('.green.circle.icon');
+      const grayIcons = document.querySelectorAll(".green.circle.icon");
       expect(grayIcons.length).toBeGreaterThan(0);
     });
   });
@@ -436,7 +448,9 @@ describe("InterfaceConfig - Interface Status", () => {
       expect(screen.getByText("Ethernet1")).toBeInTheDocument();
     });
 
-    const refreshButton = screen.getByRole("button", { name: /Refresh interface status/i });
+    const refreshButton = screen.getByRole("button", {
+      name: /Refresh interface status/i,
+    });
 
     // Clear previous calls
     getData.mockClear();
@@ -446,7 +460,7 @@ describe("InterfaceConfig - Interface Status", () => {
     await waitFor(() => {
       expect(getData).toHaveBeenCalledWith(
         expect.stringContaining("/interface_status"),
-        mockToken
+        mockToken,
       );
     });
   });

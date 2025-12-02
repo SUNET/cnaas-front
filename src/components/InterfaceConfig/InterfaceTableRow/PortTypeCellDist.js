@@ -1,7 +1,4 @@
-import {
-  Dropdown,
-  Table,
-} from "semantic-ui-react";
+import { Dropdown, Table } from "semantic-ui-react";
 
 const IF_CLASS_OPTIONS = [
   { value: "downlink", text: "Downlink" },
@@ -19,7 +16,6 @@ export function PortTypeCellDist({
   portTemplate,
   portTemplateOptions,
 }) {
-
   return (
     <Table.Cell>
       <Dropdown

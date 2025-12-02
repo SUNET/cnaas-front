@@ -1,7 +1,4 @@
-import {
-  Icon,
-  Popup,
-} from "semantic-ui-react";
+import { Icon, Popup } from "semantic-ui-react";
 
 export function InterfaceStatusDown({
   name,

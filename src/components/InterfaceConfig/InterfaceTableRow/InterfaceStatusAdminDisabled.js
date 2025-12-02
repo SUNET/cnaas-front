@@ -1,10 +1,10 @@
-import {
-  Icon,
-  Popup,
-} from "semantic-ui-react";
+import { Icon, Popup } from "semantic-ui-react";
 
-
-export function InterfaceStatusAdminDisabled({ name, toggleEnabled, graphiteHtml }) {
+export function InterfaceStatusAdminDisabled({
+  name,
+  toggleEnabled,
+  graphiteHtml,
+}) {
   return (
     <Popup
       header={name}
