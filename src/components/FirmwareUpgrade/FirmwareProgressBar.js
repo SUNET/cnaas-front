@@ -1,26 +1,26 @@
-import React from "react";
+import PropTypes from "prop-types";
 import ProgressBar from "../ProgressBar";
 
-class FirmwareProgressBar extends React.Component {
-  render() {
-    const { jobFinishedDevices } = this.props;
-    const { jobStatus } = this.props;
-    const { totalCount } = this.props;
+function FirmwareProgressBar({ jobFinishedDevices, jobStatus, totalCount }) {
+  let finishedDevicesNum = 0;
 
-    let finishedDevicesNum = 0;
-
-    if (jobStatus === "RUNNING" || jobStatus === "FINISHED") {
-      finishedDevicesNum = jobFinishedDevices.length;
-    }
-
-    return (
-      <ProgressBar
-        value={finishedDevicesNum}
-        total={totalCount}
-        jobStatus={jobStatus}
-      />
-    );
+  if (jobStatus === "RUNNING" || jobStatus === "FINISHED") {
+    finishedDevicesNum = jobFinishedDevices.length;
   }
+
+  return (
+    <ProgressBar
+      value={finishedDevicesNum}
+      total={totalCount}
+      jobStatus={jobStatus}
+    />
+  );
 }
+
+FirmwareProgressBar.propTypes = {
+  jobFinishedDevices: PropTypes.array.isRequired,
+  jobStatus: PropTypes.string,
+  totalCount: PropTypes.number.isRequired,
+};
 
 export default FirmwareProgressBar;

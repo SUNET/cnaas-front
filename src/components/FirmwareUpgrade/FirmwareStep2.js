@@ -1,56 +1,68 @@
-import React from "react";
+import { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import { Form, Confirm, Select } from "semantic-ui-react";
 import FirmwareProgressBar from "./FirmwareProgressBar";
 import FirmwareProgressInfo from "./FirmwareProgressInfo";
 import { getData } from "../../utils/getData";
 import FirmwareError from "./FirmwareError";
 
-class FirmwareStep2 extends React.Component {
-  state = {
-    filename: null,
-    firmware_options: [],
-    firmware_locked: false,
-    firmware_selected: false,
-    confirmDiagOpen: false,
-  };
+function FirmwareStep2({
+  firmwareUpgradeStart,
+  firmwareUpgradeAbort,
+  jobStatus,
+  jobId,
+  jobResult,
+  jobFinishedDevices,
+  jobData,
+  totalCount,
+  logLines,
+  skipStep2,
+}) {
+  const [filename, setFilename] = useState(null);
+  const [firmware_options, setFirmwareOptions] = useState([]);
+  const [firmware_locked, setFirmwareLocked] = useState(false);
+  const [firmware_selected, setFirmwareSelected] = useState(false);
+  const [confirmDiagOpen, setConfirmDiagOpen] = useState(false);
 
-  openConfirm = () => {
-    this.setState({ confirmDiagOpen: true });
-  };
+  const openConfirm = useCallback(() => {
+    setConfirmDiagOpen(true);
+  }, []);
 
-  closeConfirm = () => {
-    this.setState({ confirmDiagOpen: false });
-  };
+  const closeConfirm = useCallback(() => {
+    setConfirmDiagOpen(false);
+  }, []);
 
-  okConfirm = () => {
-    this.setState({ confirmDiagOpen: false, firmware_locked: true });
-    this.props.skipStep2();
-  };
+  const okConfirm = useCallback(() => {
+    setConfirmDiagOpen(false);
+    setFirmwareLocked(true);
+    skipStep2();
+  }, [skipStep2]);
 
-  updateFilename(e, option) {
-    if (this.state.firmware_locked === false) {
-      const val = option.value;
-      this.setState({
-        filename: val,
-      });
-    }
-    this.setState({ firmware_selected: true });
-  }
+  const updateFilename = useCallback(
+    (e, option) => {
+      if (!firmware_locked) {
+        const val = option.value;
+        setFilename(val);
+      }
+      setFirmwareSelected(true);
+    },
+    [firmware_locked],
+  );
 
-  onClickStep2 = () => {
-    this.setState({ firmware_locked: true });
-    this.props.firmwareUpgradeStart(2, this.state.filename, null);
+  const onClickStep2 = useCallback(() => {
+    setFirmwareLocked(true);
+    firmwareUpgradeStart(2, filename, null);
     const confirmButtonElem = document.getElementById("step2button");
     confirmButtonElem.disabled = true;
-  };
+  }, [firmwareUpgradeStart, filename]);
 
-  onClickStep2Abort = () => {
-    this.props.firmwareUpgradeAbort(2);
+  const onClickStep2Abort = useCallback(() => {
+    firmwareUpgradeAbort(2);
     const confirmButtonElem = document.getElementById("step2abortButton");
     confirmButtonElem.disabled = true;
-  };
+  }, [firmwareUpgradeAbort]);
 
-  getFirmwareFiles() {
+  const getFirmwareFiles = useCallback(() => {
     const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/firmware`;
     getData(url, credentials).then((data) => {
@@ -102,112 +114,113 @@ class FirmwareStep2 extends React.Component {
             });
           }
         });
-        this.setState(
-          {
-            firmware_options,
-          },
-          () => {
-            console.log("this is new state", this.state.firmwareInfo);
-          },
-        );
+        setFirmwareOptions(firmware_options);
+        console.log("this is new state", firmware_options);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    getFirmwareFiles();
+  }, [getFirmwareFiles]);
+
+  let error = "";
+  let step2abortDisabled = true;
+  let step2disabled = true;
+
+  if (jobStatus === "EXCEPTION") {
+    // console.log("jobStatus errored");
+    error = [<FirmwareError key="exception" devices={jobResult.devices} />];
+  } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
+    step2abortDisabled = false;
   }
 
-  componentDidMount() {
-    this.getFirmwareFiles();
+  if (firmware_selected === false) {
+    step2disabled = true;
+  } else if (firmware_locked === true) {
+    step2disabled = true;
+  } else {
+    step2disabled = false;
   }
 
-  render() {
-    const { jobData } = this.props;
-    const { jobStatus } = this.props;
-    const { jobId } = this.props;
-    const { jobFinishedDevices } = this.props;
-    let error = "";
-    let step2abortDisabled = true;
-    let step2disabled = true;
-
-    if (jobStatus === "EXCEPTION") {
-      // console.log("jobStatus errored");
-      error = [<FirmwareError devices={this.props.jobResult.devices} />];
-    } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
-      step2abortDisabled = false;
-    }
-
-    if (this.state.firmware_selected === false) {
-      step2disabled = true;
-    } else if (this.state.firmware_locked === true) {
-      step2disabled = true;
-    } else {
-      step2disabled = false;
-    }
-
-    return (
-      <div className="task-container">
-        <div className="heading">
-          <h2>Activate firmware (2/3)</h2>
-          <a href="#">
-            <button className="close">Close</button>
-          </a>
-        </div>
-        <div className="task-collapsable">
-          <p>
-            Step 2 of 3: Download firmware to device and activate it for next
-            reboot
-          </p>
-          <Form>
-            <Select
-              placeholder="filename"
-              options={this.state.firmware_options}
-              onChange={this.updateFilename.bind(this)}
-              disabled={this.state.firmware_locked}
-            />
-            <div className="info">
-              <button
-                id="step2button"
-                disabled={step2disabled}
-                onClick={() => this.onClickStep2()}
-              >
-                Start activate firmware
-              </button>
-              <button
-                id="step2skipButton"
-                disabled={step2disabled}
-                onClick={(e) => this.openConfirm(e)}
-              >
-                Skip to step 3
-              </button>
-              <button
-                id="step2abortButton"
-                disabled={step2abortDisabled}
-                onClick={() => this.onClickStep2Abort()}
-              >
-                Abort!
-              </button>
-            </div>
-          </Form>
-          <Confirm
-            content="Are you sure all selected devices already have the target firmware downloaded and activated?"
-            open={this.state.confirmDiagOpen}
-            onCancel={this.closeConfirm}
-            onConfirm={this.okConfirm}
-          />
-          <FirmwareProgressBar
-            jobStatus={jobStatus}
-            jobFinishedDevices={jobFinishedDevices}
-            totalCount={this.props.totalCount}
-          />
-          <FirmwareProgressInfo
-            jobStatus={jobStatus}
-            jobId={jobId}
-            jobData={jobData}
-            logLines={this.props.logLines}
-          />
-        </div>
-        {error}
+  return (
+    <div className="task-container">
+      <div className="heading">
+        <h2>Activate firmware (2/3)</h2>
+        <a href="#">
+          <button className="close">Close</button>
+        </a>
       </div>
-    );
-  }
+      <div className="task-collapsable">
+        <p>
+          Step 2 of 3: Download firmware to device and activate it for next
+          reboot
+        </p>
+        <Form>
+          <Select
+            placeholder="filename"
+            options={firmware_options}
+            onChange={updateFilename}
+            disabled={firmware_locked}
+          />
+          <div className="info">
+            <button
+              id="step2button"
+              disabled={step2disabled}
+              onClick={() => onClickStep2()}
+            >
+              Start activate firmware
+            </button>
+            <button
+              id="step2skipButton"
+              disabled={step2disabled}
+              onClick={(e) => openConfirm(e)}
+            >
+              Skip to step 3
+            </button>
+            <button
+              id="step2abortButton"
+              disabled={step2abortDisabled}
+              onClick={() => onClickStep2Abort()}
+            >
+              Abort!
+            </button>
+          </div>
+        </Form>
+        <Confirm
+          content="Are you sure all selected devices already have the target firmware downloaded and activated?"
+          open={confirmDiagOpen}
+          onCancel={closeConfirm}
+          onConfirm={okConfirm}
+        />
+        <FirmwareProgressBar
+          jobStatus={jobStatus}
+          jobFinishedDevices={jobFinishedDevices}
+          totalCount={totalCount}
+        />
+        <FirmwareProgressInfo
+          jobStatus={jobStatus}
+          jobId={jobId}
+          jobData={jobData}
+          logLines={logLines}
+        />
+      </div>
+      {error}
+    </div>
+  );
 }
+
+FirmwareStep2.propTypes = {
+  firmwareUpgradeStart: PropTypes.func.isRequired,
+  firmwareUpgradeAbort: PropTypes.func.isRequired,
+  jobStatus: PropTypes.string,
+  jobId: PropTypes.number,
+  jobResult: PropTypes.object,
+  jobFinishedDevices: PropTypes.array.isRequired,
+  jobData: PropTypes.object,
+  totalCount: PropTypes.number.isRequired,
+  logLines: PropTypes.array.isRequired,
+  skipStep2: PropTypes.func.isRequired,
+};
 
 export default FirmwareStep2;
