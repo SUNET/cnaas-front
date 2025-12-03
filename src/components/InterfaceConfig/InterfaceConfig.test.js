@@ -37,10 +37,37 @@ beforeEach(() => {
 });
 
 afterAll(() => {
-  global.Storage.prototype.getItem.mockRestore();
-  global.Storage.prototype.setItem.mockRestore();
+  globalThis.Storage.prototype.getItem.mockRestore();
+  globalThis.Storage.prototype.setItem.mockRestore();
 });
 
+function defaultGetDataMock(url) {
+  if (url.includes("/device/test-switch/interfaces")) {
+    return Promise.resolve(mockInterfaceDataAccess());
+  }
+  if (url.includes("/device/test-switch/interface_status")) {
+    return Promise.resolve(mockInterfaceStatusData());
+  }
+  if (url.includes("/device/test-switch/lldp")) {
+    return Promise.resolve(mockLldpData());
+  }
+  if (url.includes("/device/test-switch") && !url.includes("/interfaces")) {
+    return Promise.resolve(mockDeviceData("ACCESS"));
+  }
+  if (url.includes("/settings")) {
+    return Promise.resolve(mockSettingsData());
+  }
+  return Promise.resolve({ data: {} });
+}
+
+async function waitForEthernet1() {
+  await waitFor(
+    () => {
+      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
+    },
+    { timeout: 3000 },
+  );
+}
 // Mock data helpers
 const mockDeviceData = (deviceType = "ACCESS", synchronized = true) => ({
   data: {
@@ -170,12 +197,7 @@ describe("InterfaceConfig - Basic Rendering", () => {
 
     renderComponent();
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-      },
-      { timeout: 3000 },
-    );
+    await waitForEthernet1();
 
     expect(screen.getByText("Ethernet2")).toBeInTheDocument();
   });
@@ -199,38 +221,27 @@ describe("InterfaceConfig - Basic Rendering", () => {
   });
 });
 
+async function changeDescriptionTo(inputDesc, newDesc) {
+  const descriptionInput = screen.getByDisplayValue(inputDesc);
+  await userEvent.clear(descriptionInput);
+  await userEvent.type(descriptionInput, newDesc);
+  return descriptionInput;
+}
+
 describe("InterfaceConfig - Interface Updates", () => {
   beforeEach(() => {
-    getData.mockImplementation((url) => {
-      if (url.includes("/device/test-switch/interfaces")) {
-        return Promise.resolve(mockInterfaceDataAccess());
-      }
-      if (url.includes("/device/test-switch/interface_status")) {
-        return Promise.resolve(mockInterfaceStatusData());
-      }
-      if (url.includes("/device/test-switch/lldp")) {
-        return Promise.resolve(mockLldpData());
-      }
-      if (url.includes("/device/test-switch") && !url.includes("/interfaces")) {
-        return Promise.resolve(mockDeviceData("ACCESS"));
-      }
-      if (url.includes("/settings")) {
-        return Promise.resolve(mockSettingsData());
-      }
-      return Promise.resolve({ data: {} });
-    });
+    getData.mockImplementation(defaultGetDataMock);
   });
 
   test("allows editing interface description", async () => {
     renderComponent();
 
-    await waitFor(() => {
-      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-    });
+    await waitForEthernet1();
 
-    const descriptionInput = screen.getByDisplayValue("Test port");
-    await userEvent.clear(descriptionInput);
-    await userEvent.type(descriptionInput, "Updated description");
+    const descriptionInput = await changeDescriptionTo(
+      "Test port",
+      "Updated description",
+    );
 
     expect(descriptionInput.value).toBe("Updated description");
   });
@@ -238,9 +249,7 @@ describe("InterfaceConfig - Interface Updates", () => {
   test("highlights updated rows", async () => {
     renderComponent();
 
-    await waitFor(() => {
-      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-    });
+    await waitForEthernet1();
 
     const descriptionInput = screen.getByDisplayValue("Test port");
     await userEvent.type(descriptionInput, " modified");
@@ -255,25 +264,7 @@ describe("InterfaceConfig - Interface Updates", () => {
 
 describe("InterfaceConfig - Save Operations", () => {
   beforeEach(() => {
-    getData.mockImplementation((url) => {
-      if (url.includes("/device/test-switch/interfaces")) {
-        return Promise.resolve(mockInterfaceDataAccess());
-      }
-      if (url.includes("/device/test-switch/interface_status")) {
-        return Promise.resolve(mockInterfaceStatusData());
-      }
-      if (url.includes("/device/test-switch/lldp")) {
-        return Promise.resolve(mockLldpData());
-      }
-      if (url.includes("/device/test-switch") && !url.includes("/interfaces")) {
-        return Promise.resolve(mockDeviceData("ACCESS"));
-      }
-      if (url.includes("/settings")) {
-        return Promise.resolve(mockSettingsData());
-      }
-      return Promise.resolve({ data: {} });
-    });
-
+    getData.mockImplementation(defaultGetDataMock);
     putData.mockResolvedValue({ status: "success" });
     postData.mockResolvedValue({ job_id: 123 });
   });
@@ -281,9 +272,7 @@ describe("InterfaceConfig - Save Operations", () => {
   test("opens save modal when clicking save button", async () => {
     renderComponent();
 
-    await waitFor(() => {
-      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-    });
+    await waitForEthernet1();
 
     const saveButton = screen.getByRole("button", { name: /save & commit/i });
     await userEvent.click(saveButton);
@@ -297,14 +286,8 @@ describe("InterfaceConfig - Save Operations", () => {
   test("sends interface updates when saving", async () => {
     renderComponent();
 
-    await waitFor(() => {
-      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-    });
-
-    // Make a change
-    const descriptionInput = screen.getByDisplayValue("Test port");
-    await userEvent.clear(descriptionInput);
-    await userEvent.type(descriptionInput, "New description");
+    await waitForEthernet1();
+    await changeDescriptionTo("Test port", "New description");
 
     // Open modal and save
     const saveButton = screen.getByRole("button", { name: /save & commit/i });
@@ -339,32 +322,13 @@ describe("InterfaceConfig - Save Operations", () => {
 
 describe("InterfaceConfig - Column Display", () => {
   beforeEach(() => {
-    getData.mockImplementation((url) => {
-      if (url.includes("/device/test-switch/interfaces")) {
-        return Promise.resolve(mockInterfaceDataAccess());
-      }
-      if (url.includes("/device/test-switch/interface_status")) {
-        return Promise.resolve(mockInterfaceStatusData());
-      }
-      if (url.includes("/device/test-switch/lldp")) {
-        return Promise.resolve(mockLldpData());
-      }
-      if (url.includes("/device/test-switch") && !url.includes("/interfaces")) {
-        return Promise.resolve(mockDeviceData("ACCESS"));
-      }
-      if (url.includes("/settings")) {
-        return Promise.resolve(mockSettingsData());
-      }
-      return Promise.resolve({ data: {} });
-    });
+    getData.mockImplementation(defaultGetDataMock);
   });
 
   test("allows toggling column visibility", async () => {
     renderComponent();
 
-    await waitFor(() => {
-      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-    });
+    await waitForEthernet1();
 
     // Open column selector
     const columnButton = screen.getByTitle("Select Columns");
@@ -381,9 +345,7 @@ describe("InterfaceConfig - Column Display", () => {
 
     renderComponent();
 
-    await waitFor(() => {
-      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-    });
+    await waitForEthernet1();
 
     const columnButton = screen.getByTitle("Select Columns");
     await userEvent.click(columnButton);
@@ -406,25 +368,7 @@ describe("InterfaceConfig - Column Display", () => {
 
 describe("InterfaceConfig - Interface Status", () => {
   beforeEach(() => {
-    getData.mockImplementation((url) => {
-      if (url.includes("/device/test-switch/interfaces")) {
-        return Promise.resolve(mockInterfaceDataAccess());
-      }
-      if (url.includes("/device/test-switch/interface_status")) {
-        return Promise.resolve(mockInterfaceStatusData());
-      }
-      if (url.includes("/device/test-switch/lldp")) {
-        return Promise.resolve(mockLldpData());
-      }
-      if (url.includes("/device/test-switch") && !url.includes("/interfaces")) {
-        return Promise.resolve(mockDeviceData("ACCESS"));
-      }
-      if (url.includes("/settings")) {
-        return Promise.resolve(mockSettingsData());
-      }
-      return Promise.resolve({ data: {} });
-    });
-
+    getData.mockImplementation(defaultGetDataMock);
     putData.mockResolvedValue({ status: "success" });
   });
 
@@ -444,9 +388,7 @@ describe("InterfaceConfig - Interface Status", () => {
   test("allows refreshing interface status", async () => {
     renderComponent();
 
-    await waitFor(() => {
-      expect(screen.getByText("Ethernet1")).toBeInTheDocument();
-    });
+    await waitForEthernet1();
 
     const refreshButton = screen.getByRole("button", {
       name: /Refresh interface status/i,
