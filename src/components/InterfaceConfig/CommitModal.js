@@ -1,5 +1,14 @@
+import PropTypes from "prop-types";
 import { Accordion, Button, Icon, Modal, Popup } from "semantic-ui-react";
 import YAML from "yaml";
+
+CommitModalAccess.propTypes = {
+  accordionActiveIndex: PropTypes.number,
+  accordionClick: PropTypes.func,
+  autoPushJobsHTML: PropTypes.array,
+  errorMessage: PropTypes.string,
+  interfaceDataUpdatedJSON: PropTypes.object,
+};
 
 export function CommitModalAccess({
   accordionActiveIndex,
@@ -50,6 +59,11 @@ export function CommitModalAccess({
     </Modal.Content>
   );
 }
+
+CommitModalDist.propTypes = {
+  hostname: PropTypes.string,
+  ifDataYaml: PropTypes.object,
+};
 
 export function CommitModalDist({ hostname, ifDataYaml }) {
   const editUrl = process.env.SETTINGS_WEB_URL.split("/").slice(0, 5).join("/");

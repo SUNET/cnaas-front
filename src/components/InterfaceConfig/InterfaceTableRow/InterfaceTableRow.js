@@ -21,6 +21,7 @@ import { InterfaceStatusDown } from "./InterfaceStatusDown";
 import { BounceInterfaceButton } from "./BounceInterfaceButton";
 import { PortTypeCellAccess } from "./PortTypeCellAccess";
 import { PortTypeCellDist } from "./PortTypeCellDist";
+import PropTypes from "prop-types";
 
 const CONFIG_TYPES_ENABLED = [
   "ACCESS_AUTO",
@@ -39,28 +40,52 @@ function mapVlanToName(vlan, vlanOptions) {
   return vlan;
 }
 
+InterfaceStatusUp.propTypes = {
+  addPortTemplateOption: PropTypes.func,
+  addTagOption: PropTypes.func,
+  deviceSettings: PropTypes.object,
+  deviceType: PropTypes.string,
+  displayColumns: PropTypes.array,
+  hostname: PropTypes.string,
+  index: PropTypes.number,
+  interfaceBounceRunning: PropTypes.object,
+  interfaceDataUpdated: PropTypes.object,
+  interfaceStatusData: PropTypes.array,
+  interfaceToggleUntagged: PropTypes.array,
+  item: PropTypes.object,
+  lldpNeighborData: PropTypes.object,
+  netboxInterfaceData: PropTypes.array,
+  portTemplateOptions: PropTypes.array,
+  submitBounce: PropTypes.func,
+  tagOptions: PropTypes.array,
+  untaggedClick: PropTypes.func,
+  untaggedVlanOptions: PropTypes.array,
+  updateFieldData: PropTypes.func,
+  vlanOptions: PropTypes.array,
+};
+
 export function InterfaceTableRow({
-  item,
-  index,
-  deviceType,
-  interfaceDataUpdated,
-  vlanOptions,
-  untaggedVlanOptions,
-  displayColumns,
-  deviceSettings,
-  tagOptions,
-  portTemplateOptions,
-  interfaceStatusData,
-  interfaceBounceRunning,
-  netboxInterfaceData,
-  lldpNeighborData,
-  hostname,
-  updateFieldData,
-  addTagOption,
   addPortTemplateOption,
-  submitBounce,
-  untaggedClick,
+  addTagOption,
+  deviceSettings,
+  deviceType,
+  displayColumns,
+  hostname,
+  index,
+  interfaceBounceRunning,
+  interfaceDataUpdated,
+  interfaceStatusData,
   interfaceToggleUntagged,
+  item,
+  lldpNeighborData,
+  netboxInterfaceData,
+  portTemplateOptions,
+  submitBounce,
+  tagOptions,
+  untaggedClick,
+  untaggedVlanOptions,
+  updateFieldData,
+  vlanOptions,
 }) {
   const ifDataUpdated =
     item.name in interfaceDataUpdated ? interfaceDataUpdated[item.name] : null;

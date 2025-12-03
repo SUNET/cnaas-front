@@ -18,6 +18,7 @@ import { NewInterface } from "./NewInterface";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { useFreshRef } from "../../hooks/useFreshRef";
+import PropTypes from "prop-types";
 
 const io = require("socket.io-client");
 let socket = null;
@@ -41,6 +42,11 @@ const VALID_COLUMNS = new Set([
   ...Object.keys(ALLOWED_COLUMNS_ACCESS),
   ...Object.keys(ALLOWED_COLUMNS_DIST),
 ]);
+
+InterfaceConfig.propTypes = {
+  history: PropTypes.array,
+  location: PropTypes.object,
+};
 
 export function InterfaceConfig({ history, location }) {
   const { token } = useAuthToken();
@@ -656,10 +662,7 @@ export function InterfaceConfig({ history, location }) {
       const newData = { ...prev };
 
       if (JSON.stringify(val) !== JSON.stringify(defaultValue)) {
-        newData[interfaceName] = {
-          ...(newData[interfaceName] || {}),
-          [jsonKey]: val,
-        };
+        newData[interfaceName] = { ...newData[interfaceName], [jsonKey]: val };
       } else if (newData[interfaceName]?.[jsonKey] !== undefined) {
         const rest = { ...newData[interfaceName] };
         delete rest[jsonKey];
@@ -826,7 +829,7 @@ export function InterfaceConfig({ history, location }) {
 
   const columnSelectors = Object.keys(allowedColumns).map(
     (columnName, columnIndex) => {
-      const checked = displayColumns.indexOf(columnName) !== -1;
+      const checked = displayColumns.includes(columnName);
 
       // if value has been changed for an optional column, don't allow
       // hiding that column since the defaultValue will be wrong if re-adding it later

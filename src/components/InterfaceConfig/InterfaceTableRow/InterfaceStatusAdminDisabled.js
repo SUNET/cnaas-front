@@ -1,4 +1,11 @@
+import PropTypes from "prop-types";
 import { Icon, Popup } from "semantic-ui-react";
+
+InterfaceStatusAdminDisabled.propTypes = {
+  name: PropTypes.string,
+  toggleEnabled: PropTypes.bool,
+  graphiteHtml: PropTypes.string,
+};
 
 export function InterfaceStatusAdminDisabled({
   name,

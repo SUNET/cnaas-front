@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { Dropdown, Table } from "semantic-ui-react";
 
 const IF_CLASS_OPTIONS = [
@@ -7,14 +8,24 @@ const IF_CLASS_OPTIONS = [
   { value: "port_template", text: "Port template" },
 ];
 
+PortTypeCellDist.propTypes = {
+  addPortTemplateOption: PropTypes.func,
+  currentIfClass: PropTypes.string,
+  editDisabled: PropTypes.bool,
+  item: PropTypes.object,
+  portTemplate: PropTypes.string,
+  portTemplateOptions: PropTypes.array,
+  updateFieldData: PropTypes.func,
+};
+
 export function PortTypeCellDist({
+  addPortTemplateOption,
   currentIfClass,
   editDisabled,
   item,
-  addPortTemplateOption,
-  updateFieldData,
   portTemplate,
   portTemplateOptions,
+  updateFieldData,
 }) {
   return (
     <Table.Cell>

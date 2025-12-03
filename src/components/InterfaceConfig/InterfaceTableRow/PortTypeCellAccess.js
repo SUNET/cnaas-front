@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { Dropdown, Table, Popup, Checkbox } from "semantic-ui-react";
 
 const CONFIG_TYPE_OPTIONS = [
@@ -8,6 +9,14 @@ const CONFIG_TYPE_OPTIONS = [
   { value: "ACCESS_UPLINK", text: "Uplink", disabled: true },
   { value: "MLAG_PEER", text: "MLAG peer interface", disabled: true },
 ];
+
+PortTypeCellAccess.propTypes = {
+  currentConfigtype: PropTypes.string,
+  editDisabled: PropTypes.bool,
+  fields: PropTypes.object,
+  item: PropTypes.object,
+  updateFieldData: PropTypes.func,
+};
 
 export function PortTypeCellAccess({
   currentConfigtype,

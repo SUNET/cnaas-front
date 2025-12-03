@@ -1,4 +1,11 @@
+import PropTypes from "prop-types";
 import { Icon, Button } from "semantic-ui-react";
+
+BounceInterfaceButton.propTypes = {
+  handleClick: PropTypes.func,
+  editDisabled: PropTypes.bool,
+  bounceDisabled: PropTypes.bool,
+};
 
 export function BounceInterfaceButton({
   handleClick,
