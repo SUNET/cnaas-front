@@ -40,7 +40,7 @@ function mapVlanToName(vlan, vlanOptions) {
   return vlan;
 }
 
-InterfaceStatusUp.propTypes = {
+InterfaceTableRow.propTypes = {
   addPortTemplateOption: PropTypes.func,
   addTagOption: PropTypes.func,
   deviceSettings: PropTypes.object,
