@@ -1,9 +1,7 @@
-import _ from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import queryString from "query-string";
 import {
-  Accordion,
   Button,
   Checkbox,
   Icon,
@@ -12,112 +10,17 @@ import {
   Popup,
   Table,
 } from "semantic-ui-react";
-import YAML from "yaml";
 import { getData, getDataHeaders, getDataToken } from "../../utils/getData";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { putData, postData } from "../../utils/sendData";
 import { NetboxDevice } from "./NetboxDevice";
 import { NewInterface } from "./NewInterface";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { CommitModalAccess, CommitModalDist } from "./CommitModal";
+import { useFreshRef } from "../../hooks/useFreshRef";
 
 const io = require("socket.io-client");
 let socket = null;
-
-function CommitModalAccess({
-  accordionActiveIndex,
-  accordionClick,
-  autoPushJobsHTML,
-  errorMessage,
-  interfaceDataUpdatedJSON,
-}) {
-  return (
-    <Modal.Content>
-      <Modal.Description>
-        <Accordion>
-          <Accordion.Title
-            active={accordionActiveIndex === 1}
-            index={1}
-            onClick={accordionClick}
-          >
-            <Icon name="dropdown" />
-            POST JSON:
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 1}>
-            <pre>{JSON.stringify(interfaceDataUpdatedJSON, null, 2)}</pre>
-          </Accordion.Content>
-          <Accordion.Title
-            active={accordionActiveIndex === 2}
-            index={2}
-            onClick={accordionClick}
-          >
-            <Icon name="dropdown" />
-            POST error:
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 2}>
-            <p>{errorMessage}</p>
-          </Accordion.Content>
-          <Accordion.Title
-            active={accordionActiveIndex === 3}
-            index={3}
-            onClick={accordionClick}
-          >
-            <Icon name="dropdown" />
-            Job output:
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 3}>
-            <ul>{autoPushJobsHTML}</ul>
-          </Accordion.Content>
-        </Accordion>
-      </Modal.Description>
-    </Modal.Content>
-  );
-}
-
-function CommitModalDist({ hostname, ifDataYaml }) {
-  const editUrl = process.env.SETTINGS_WEB_URL.split("/").slice(0, 5).join("/");
-  const yaml = YAML.stringify(ifDataYaml, null, 2);
-
-  return (
-    <Modal.Content>
-      <Modal.Description>
-        <Accordion>
-          <Accordion.Title active index={1}>
-            <Icon name="dropdown" />
-            YAML:
-          </Accordion.Title>
-          <Accordion.Content active>
-            <pre>{yaml}</pre>
-            <Popup
-              content="Copy YAML"
-              trigger={
-                <Button
-                  onClick={() =>
-                    navigator.clipboard.writeText(
-                      yaml.split("\n").slice(1).join("\n"),
-                    )
-                  }
-                  icon="copy"
-                  size="tiny"
-                />
-              }
-              position="bottom right"
-            />
-            <p>
-              <a
-                href={`${editUrl}/_edit/main/devices/${hostname}/interfaces.yml`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Edit in Git
-              </a>{" "}
-              (edit and commit the file in git before starting dry run)
-            </p>
-          </Accordion.Content>
-        </Accordion>
-      </Modal.Description>
-    </Modal.Content>
-  );
-}
 
 const ALLOWED_COLUMNS_ACCESS = {
   vlans: "VLANs",
@@ -145,8 +48,6 @@ export function InterfaceConfig({ history, location }) {
   // state
   const [accordionActiveIndex, setAccordionActiveIndex] = useState(0);
   const [autoPushJobs, setAutoPushJobs] = useState([]);
-  const [awaitingDeviceSynchronization, setAwaitingDeviceSynchronization] =
-    useState(false);
   const [deviceData, setDeviceData] = useState({});
   const [deviceSettings, setDeviceSettings] = useState(null);
   const [deviceType, setDeviceType] = useState(null);
@@ -171,50 +72,9 @@ export function InterfaceConfig({ history, location }) {
   const [vlanOptions, setVlanOptions] = useState([]);
   const [working, setWorking] = useState(false);
 
-  const hostname = useRef(null);
-  hostname.current = queryString.parse(location.search)?.hostname ?? null;
-
-  //  handleDeviceUpdateEvent(data) {
-  //    const deviceData = data.object;
-  //    if (this.state.awaitingDeviceSynchronization && deviceData.synchronized) {
-  //      // Synchronize done
-  //      this.setState(
-  //        {
-  //          initialSyncState: null,
-  //          initialConfHash: null,
-  //          awaitingDeviceSynchronization: false,
-  //          deviceData: deviceData,
-  //        },
-  //        () => {
-  //          this.getInterfaceData();
-  //          this.getDeviceData();
-  //          this.refreshInterfaceStatus();
-  //        },
-  //      );
-  //    } else {
-  //      this.setState({ deviceData: deviceData });
-  //    }
-  //
-  //  };
-  /**
-   * On device update, after synchronize done.
-   */
-  useEffect(() => {
-    if (
-      !initialConfHash &&
-      !initialSyncState &&
-      !awaitingDeviceSynchronization
-    ) {
-      getInterfaceData();
-      getDeviceData();
-      refreshInterfaceStatus();
-    }
-  }, [
-    deviceData,
-    awaitingDeviceSynchronization,
-    initialSyncState,
-    initialConfHash,
-  ]);
+  const autoPushJobsRef = useFreshRef(autoPushJobs);
+  const awaitingDeviceSynchronizationRef = useRef(false);
+  const hostname = useRef(queryString.parse(location.search)?.hostname ?? null);
 
   /**
    * On mount
@@ -223,7 +83,7 @@ export function InterfaceConfig({ history, location }) {
     if (hostname.current) {
       getDeviceData();
     }
-  }, [hostname.current]); // TODO: does this work?
+  }, [hostname.current]);
 
   /**
    * On mount after device data
@@ -275,7 +135,6 @@ export function InterfaceConfig({ history, location }) {
   }, []);
 
   useEffect(() => {
-    // TODO: why not just call these directly?
     if (
       Object.keys(interfaceStatusData || {}).length === 0 &&
       Object.keys(lldpNeighborData || {}).length === 0
@@ -286,23 +145,36 @@ export function InterfaceConfig({ history, location }) {
   }, [interfaceStatusData, lldpNeighborData]);
 
   const onDeviceUpdateEvent = (data) => {
+    console.debug("Device update event", data);
+
     const updatedDeviceData = data.object;
-    if (awaitingDeviceSynchronization && updatedDeviceData.synchronized) {
+    setDeviceData(updatedDeviceData); // TODO: it makes not sense to update it here, then later again in trigger refresh
+
+    if (
+      awaitingDeviceSynchronizationRef.current &&
+      updatedDeviceData.synchronized
+    ) {
       // Synchronize done
       setInitialSyncState(null);
       setInitialConfHash(null);
-      setAwaitingDeviceSynchronization(false);
-    }
+      awaitingDeviceSynchronizationRef.current = false;
 
-    setDeviceData(updatedDeviceData);
+      getInterfaceData();
+      getDeviceData(); // TODO: -> sets deviceData again
+      refreshInterfaceStatus();
+    }
   };
 
   const onJobUpdateEvent = (data) => {
+    console.debug("Job update event", data);
     if (data.function_name === "refresh_repo" && !thirdPartyUpdated) {
       setThirdPartyUpdated(true);
     }
 
-    if (autoPushJobs.length == 1 && autoPushJobs[0].job_id == data.job_id) {
+    if (
+      autoPushJobsRef.current.length === 1 &&
+      autoPushJobsRef.current[0].job_id === data.job_id
+    ) {
       // if finished && next_job id, push next_job_id to array
       if (typeof data?.next_job_id === "number") {
         setAutoPushJobs([
@@ -326,15 +198,15 @@ export function InterfaceConfig({ history, location }) {
         setAccordionActiveIndex(2);
       }
     } else if (
-      autoPushJobs.length == 2 &&
-      autoPushJobs[1].job_id == data.job_id
+      autoPushJobsRef.current.length === 2 &&
+      autoPushJobsRef.current[1].job_id === data.job_id
     ) {
       setAutoPushJobs((prev) => [prev[0], data]);
       if (data.status == "FINISHED" || data.status == "EXCEPTION") {
         console.log("Jobs finished");
         setWorking(false);
         setInterfaceDataUpdated({});
-        setAwaitingDeviceSynchronization(true);
+        awaitingDeviceSynchronizationRef.current = true;
       }
     }
   };
@@ -449,9 +321,6 @@ export function InterfaceConfig({ history, location }) {
       console.log(e);
     }
   };
-
-  const getDeviceName = () =>
-    queryString.parse(location.search)?.hostname ?? null;
 
   const getInterfaceData = async () => {
     if (deviceType === "ACCESS") {
@@ -618,50 +487,55 @@ export function InterfaceConfig({ history, location }) {
     return sendData;
   };
 
-  const prepareYaml = (ifData) => {
+  const prepareYaml = () => {
     const sendData = { interfaces: [] };
 
-    Object.entries(ifData).forEach(([interfaceName, formData]) => {
-      const ifData = { name: interfaceName };
+    Object.entries(interfaceDataUpdated).forEach(
+      ([interfaceName, formData]) => {
+        const ifData = { name: interfaceName };
 
-      // Copy previous values from state
-      const prevIntf = interfaceData.find(
-        (intf) => intf.name === interfaceName,
-      );
+        // Copy previous values from state
+        const prevIntf = interfaceData.find(
+          (intf) => intf.name === interfaceName,
+        );
 
-      if (prevIntf) {
-        Object.entries(prevIntf).forEach(([prevKey, prevValue]) => {
-          if (
-            prevKey === "indexnum" ||
-            prevValue === null ||
-            prevValue === "" ||
-            (prevKey === "redundant_link" && prevValue === true) ||
-            prevKey === "data"
-          ) {
-            // skip these keys since they are not needed in rendered yaml
+        if (prevIntf) {
+          Object.entries(prevIntf).forEach(([prevKey, prevValue]) => {
+            if (
+              prevKey === "indexnum" ||
+              prevValue === null ||
+              prevValue === "" ||
+              (prevKey === "redundant_link" && prevValue === true) ||
+              prevKey === "data"
+            ) {
+              // skip these keys since they are not needed in rendered yaml
+            } else {
+              ifData[prevKey] = prevValue;
+            }
+          });
+        }
+
+        let skipIfClass = false;
+        Object.entries(formData).forEach(([formKey, formValue]) => {
+          // port_template is not a separate value in the result yaml, but a suffix on ifclass
+          if (formKey == "port_template") {
+            if (
+              formData.ifclass == "port_template" ||
+              !("ifclass" in formData)
+            ) {
+              ifData.ifclass = `port_template_${formValue}`;
+              skipIfClass = true;
+            }
+          } else if (formKey == "ifclass" && !skipIfClass) {
+            ifData.ifclass = formData.ifclass;
           } else {
-            ifData[prevKey] = prevValue;
+            ifData[formKey] = formValue;
           }
         });
-      }
 
-      let skipIfClass = false;
-      Object.entries(formData).forEach(([formKey, formValue]) => {
-        // port_template is not a separate value in the result yaml, but a suffix on ifclass
-        if (formKey == "port_template") {
-          if (formData.ifclass == "port_template" || !("ifclass" in formData)) {
-            ifData.ifclass = `port_template_${formValue}`;
-            skipIfClass = true;
-          }
-        } else if (formKey == "ifclass" && !skipIfClass) {
-          ifData.ifclass = formData.ifclass;
-        } else {
-          ifData[formKey] = formValue;
-        }
-      });
-
-      sendData.interfaces.push(ifData);
-    });
+        sendData.interfaces.push(ifData);
+      },
+    );
 
     return sendData;
   };
@@ -675,7 +549,7 @@ export function InterfaceConfig({ history, location }) {
       if (data.status === "success") {
         return true;
       } else {
-        setErrorMessage(data.message); // why is there an error message here?
+        setErrorMessage(data.message); // TODO: why is there an error message here?
       }
     } catch (error) {
       console.log(error);
@@ -696,10 +570,8 @@ export function InterfaceConfig({ history, location }) {
       };
       const data = await postData(url, token, sendData);
 
-      if (data) {
-        setAutoPushJobs([{ job_id: data.job_id, status: "RUNNING" }]);
-        setWorking(true);
-      }
+      setAutoPushJobs([{ job_id: data.job_id, status: "RUNNING" }]);
+      setWorking(true);
     } catch (error) {
       console.log(error);
     }
@@ -789,7 +661,8 @@ export function InterfaceConfig({ history, location }) {
           [jsonKey]: val,
         };
       } else if (newData[interfaceName]?.[jsonKey] !== undefined) {
-        const { [jsonKey]: _, ...rest } = newData[interfaceName];
+        const rest = { ...newData[interfaceName] };
+        delete rest[jsonKey];
         if (Object.keys(rest).length === 0) {
           delete newData[interfaceName];
         } else {
@@ -836,24 +709,13 @@ export function InterfaceConfig({ history, location }) {
       const newState = { ...prev };
 
       if (data.name === "untagged") {
-        // Untagged button was clicked
         newState[data.id] = true;
       } else {
-        // Tagged button was clicked
         delete newState[data.id];
       }
 
       return newState;
     });
-  };
-
-  const mapVlanToName = (vlan, vlanOptions) => {
-    if (typeof vlan === "number") {
-      const mapped = vlanOptions.find((opt) => opt.description === vlan);
-      return mapped ? mapped.value : vlan;
-    }
-
-    return vlan;
   };
 
   const accordionClick = (_e, titleProps) => {
@@ -932,7 +794,6 @@ export function InterfaceConfig({ history, location }) {
   if (initialSyncState === null) {
     stateWarning = <Loader active />;
   } else if (!initialSyncState || initialConfHash != deviceData.confhash) {
-    // NOTE: intialSyncState is undefined
     stateWarning = (
       <p>
         <Icon name="warning sign" color="orange" size="large" />
@@ -987,23 +848,26 @@ export function InterfaceConfig({ history, location }) {
     },
   );
 
-  const autoPushJobsHTML = autoPushJobs.map((job, index) => {
-    let jobIcon = null;
-    if (job.status === "RUNNING") {
-      jobIcon = <Icon loading name="cog" color="grey" />;
-    } else if (job.status === "FINISHED") {
-      jobIcon = <Icon name="check" color="green" />;
-    } else {
-      jobIcon = <Icon name="delete" color="red" />;
-    }
+  const autoPushJobsHTML = useCallback(
+    autoPushJobs.map((job, index) => {
+      let jobIcon = null;
+      if (job.status === "RUNNING") {
+        jobIcon = <Icon loading name="cog" color="grey" />;
+      } else if (job.status === "FINISHED") {
+        jobIcon = <Icon name="check" color="green" />;
+      } else {
+        jobIcon = <Icon name="delete" color="red" />;
+      }
 
-    const label = index === 0 ? "Dry run" : "Live run";
-    return (
-      <li key={index}>
-        {label} (job ID {job.job_id}) status: {job.status} {jobIcon}
-      </li>
-    );
-  });
+      const label = index === 0 ? "Dry run" : "Live run";
+      return (
+        <li key={index}>
+          {label} (job ID {job.job_id}) status: {job.status} {jobIcon}
+        </li>
+      );
+    }),
+    [autoPushJobs],
+  );
 
   const mlagPeerInfo = mlagPeerHostname && (
     <p>
@@ -1034,7 +898,7 @@ export function InterfaceConfig({ history, location }) {
       <CommitModalDist
         hostname={hostname.current}
         interfaceDataUpdated={interfaceDataUpdated}
-        ifDataYaml={prepareYaml(interfaceDataUpdated)}
+        ifDataYaml={prepareYaml()}
       />
     );
   }
