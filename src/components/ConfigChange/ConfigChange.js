@@ -22,14 +22,97 @@ let socket = null;
 const STATUS_STOPPED = ["FINISHED", "EXCEPTION", "ABORTED"];
 const STATUS_RUNNING = ["RUNNING"];
 
+// Batch sync toast notifications
+let pendingHostnames = new Set();
+let toastBatchTimer = null;
+const BATCH_INTERVAL_MS = 1000;
+
 const showSyncToast = (syncEventHostname) => {
-  toast({
-    type: "info",
-    icon: "paper plane",
-    title: `Refresh affected: ${syncEventHostname}`,
-    time: 2000,
-  });
+  // Add hostname to the batch
+  pendingHostnames.add(syncEventHostname);
+
+  // Clear existing timer if any
+  if (toastBatchTimer) {
+    clearTimeout(toastBatchTimer);
+  }
+
+  // Set new timer to show batched toast after 1 second
+  toastBatchTimer = setTimeout(() => {
+    const hostnames = Array.from(pendingHostnames);
+    if (hostnames.length > 0) {
+      const title =
+        hostnames.length === 1
+          ? `Refresh affected: ${hostnames[0]}`
+          : `Refresh affected: ${hostnames.length} devices`;
+
+      toast({
+        type: "info",
+        icon: "paper plane",
+        title,
+        time: 2000,
+      });
+
+      pendingHostnames.clear();
+    }
+    toastBatchTimer = null;
+  }, BATCH_INTERVAL_MS);
 };
+
+// Batch sync warning toast notifications
+let pendingSyncWarnings = [];
+let syncWarningBatchTimer = null;
+
+const showSyncWarningToast = (data) => {
+  // Add sync event data to the batch
+  pendingSyncWarnings.push(data);
+
+  // Clear existing timer if any
+  if (syncWarningBatchTimer) {
+    clearTimeout(syncWarningBatchTimer);
+  }
+
+  // Set new timer to show batched toast after 1 second
+  syncWarningBatchTimer = setTimeout(() => {
+    if (pendingSyncWarnings.length > 0) {
+      const count = pendingSyncWarnings.length;
+      const title =
+        count === 1
+          ? `Sync event: ${pendingSyncWarnings[0].syncevent_hostname}`
+          : `Multiple sync events`;
+
+      const description =
+        count === 1 ? (
+          <p>
+            {pendingSyncWarnings[0].syncevent_data.cause} by{" "}
+            {pendingSyncWarnings[0].syncevent_data.by} <br />
+            <Button onClick={() => window.location.reload()}>
+              Reload page
+            </Button>
+          </p>
+        ) : (
+          <p>
+            {count} sync events from other sessions <br />
+            <Button onClick={() => window.location.reload()}>
+              Reload page
+            </Button>
+          </p>
+        );
+
+      toast({
+        type: "warning",
+        icon: "paper plane",
+        title,
+        description,
+        animation: "bounce",
+        time: 0,
+      });
+
+      pendingSyncWarnings = [];
+    }
+    syncWarningBatchTimer = null;
+  }, BATCH_INTERVAL_MS);
+};
+
 const showAnotherSessionDidRefreshToast = (jobId) => {
   toast({
     type: "warning",
@@ -60,8 +143,7 @@ function ConfigChange({ location }) {
   const [liveRunProgressData, setLiveRunProgressData] = useState({});
   const [liveRunTotalCount, setLiveRunTotalCount] = useState(0);
   const [logLines, setLogLines] = useState([]);
-  const [stoppedRepoJobs, setStoppedRepoJobs] = useState([]);
-  const [syncEventCounter, setSyncEventCounter] = useState(0);
+  const stoppedRepoJobs = useRef([]);
   const [syncHistory, setSyncHistory] = useState({});
   const [synctoForce, setSynctoForce] = useState(false);
   const repoJobIdRef = useRef(null); // null, -1, positive number
@@ -110,13 +192,13 @@ function ConfigChange({ location }) {
     };
   }, [confirmRunProgressData]);
 
-  const allRepoJobs = [...stoppedRepoJobs]; // make a copy
+  const allRepoJobs = [...stoppedRepoJobs.current]; // make a copy
   if (repoJobIdRef.current !== null) {
     allRepoJobs.push(repoJobIdRef.current);
   }
 
   const jobIsCurrentOrPrevious = (jobId) =>
-    jobId === repoJobIdRef.current || stoppedRepoJobs.includes(jobId);
+    jobId === repoJobIdRef.current || stoppedRepoJobs.current.includes(jobId);
   const setRepoJobPending = () => {
     repoJobIdRef.current = -1;
   };
@@ -133,8 +215,7 @@ function ConfigChange({ location }) {
     setLiveRunProgressData({});
     setLiveRunTotalCount(0);
     setLogLines([]);
-    setStoppedRepoJobs([]);
-    setSyncEventCounter(0);
+    stoppedRepoJobs.current = [];
     repoJobIdRef.current = null;
     isRepoRefreshingRef.current = false;
 
@@ -163,7 +244,7 @@ function ConfigChange({ location }) {
     if (STATUS_STOPPED.includes(data.status) && repoJobIdRef.current !== null) {
       // Job stopped: update prevRepoJobs and unset repoJobId
       const repoJobId = repoJobIdRef.current;
-      setStoppedRepoJobs((prev) => [...prev, repoJobId]);
+      stoppedRepoJobs.current.push(repoJobId);
       repoJobIdRef.current = null;
     }
   };
@@ -187,23 +268,8 @@ function ConfigChange({ location }) {
     }
 
     if (showWarning) {
-      setSyncEventCounter((prev) => prev + 1);
       // someone else did a refresh
-      toast({
-        type: "warning",
-        icon: "paper plane",
-        title: `Sync event (${syncEventCounter}): ${data.syncevent_hostname}`,
-        description: (
-          <p>
-            {data.syncevent_data.cause} by {data.syncevent_data.by} <br />
-            <Button onClick={() => window.location.reload()}>
-              Reload page
-            </Button>
-          </p>
-        ),
-        animation: "bounce",
-        time: 0,
-      });
+      showSyncWarningToast(data);
     }
   };
 
