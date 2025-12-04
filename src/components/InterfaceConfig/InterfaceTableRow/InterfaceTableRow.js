@@ -12,7 +12,6 @@ import {
   TextArea,
 } from "semantic-ui-react";
 import { InterfaceCurrentConfig } from "./InterfaceCurrentConfig";
-import { GraphiteInterface } from "./GraphiteInterface";
 import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
 import { LldpNeighborPopup } from "./LldpNeighborPopup";
 import { InterfaceStatusUp } from "./InterfaceStatusUp";
@@ -491,41 +490,33 @@ export function InterfaceTableRow({
         />
       ) : null;
 
-    const graphiteHtml = (
-      <GraphiteInterface
-        key="graphite"
-        hostname={hostname}
-        interfaceName={item.name}
-      />
-    );
-
     if (itemInterfaceStatusData.is_up === true) {
       statusIcon = (
         <InterfaceStatusUp
+          bounceInterfaceButton={bounceInterfaceButton}
+          hostname={hostname}
           name={item.name}
           speed={itemInterfaceStatusData.speed}
-          toggleEnabled={toggleEnabled}
-          bounceInterfaceButton={bounceInterfaceButton}
           statusMessage={statusMessage}
-          graphiteHtml={graphiteHtml}
+          toggleEnabled={toggleEnabled}
         />
       );
     } else if (itemInterfaceStatusData.is_enabled === false) {
       statusIcon = (
         <InterfaceStatusAdminDisabled
+          hostname={hostname}
           name={item.name}
           toggleEnabled={toggleEnabled}
-          graphiteHtml={graphiteHtml}
         />
       );
     } else {
       statusIcon = (
         <InterfaceStatusDown
-          name={item.name}
-          toggleEnabled={toggleEnabled}
           bounceInterfaceButton={bounceInterfaceButton}
+          hostname={hostname}
+          name={item.name}
           statusMessage={statusMessage}
-          graphiteHtml={graphiteHtml}
+          toggleEnabled={toggleEnabled}
         />
       );
     }

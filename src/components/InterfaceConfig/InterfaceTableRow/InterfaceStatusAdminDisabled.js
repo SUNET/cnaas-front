@@ -1,17 +1,26 @@
 import PropTypes from "prop-types";
 import { Icon, Popup } from "semantic-ui-react";
+import { GraphiteInterface } from "./GraphiteInterface";
 
 InterfaceStatusAdminDisabled.propTypes = {
+  hostname: PropTypes.string,
   name: PropTypes.string,
   toggleEnabled: PropTypes.bool,
-  graphiteHtml: PropTypes.string,
 };
 
 export function InterfaceStatusAdminDisabled({
+  hostname,
   name,
   toggleEnabled,
-  graphiteHtml,
 }) {
+  const graphiteHtml = (
+    <GraphiteInterface
+      key="graphite"
+      hostname={hostname}
+      interfaceName={name}
+    />
+  );
+
   return (
     <Popup
       header={name}
