@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import queryString from "query-string";
 import {
@@ -848,7 +848,7 @@ export function InterfaceConfig({ history, location }) {
     },
   );
 
-  const autoPushJobsHTML = useMemo(
+  const autoPushJobsHTML = useCallback(
     autoPushJobs.map((job, index) => {
       let jobIcon = null;
       if (job.status === "RUNNING") {
