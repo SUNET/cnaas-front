@@ -311,6 +311,16 @@ function ConfigChange({ location }) {
 
     return () => {
       if (socket !== null) socket.off("events");
+      if (toastBatchTimer) {
+        clearTimeout(toastBatchTimer);
+        toastBatchTimer = null;
+        pendingHostnames.clear();
+      }
+      if (syncWarningBatchTimer) {
+        clearTimeout(syncWarningBatchTimer);
+        syncWarningBatchTimer = null;
+        pendingSyncWarnings = [];
+      }
     };
   }, []);
 
