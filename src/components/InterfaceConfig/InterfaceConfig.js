@@ -138,7 +138,7 @@ export function InterfaceConfig({ history, location }) {
         socket.off("events");
       }
     };
-  }, []);
+  }, [deviceData.id]);
 
   useEffect(() => {
     if (

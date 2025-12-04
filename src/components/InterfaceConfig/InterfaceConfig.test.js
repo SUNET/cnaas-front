@@ -380,7 +380,7 @@ describe("InterfaceConfig - Interface Status", () => {
       const greenIcons = document.querySelectorAll(".green.circle.icon");
       expect(greenIcons.length).toBeGreaterThan(0);
 
-      const grayIcons = document.querySelectorAll(".green.circle.icon");
+      const grayIcons = document.querySelectorAll(".grey.circle.icon");
       expect(grayIcons.length).toBeGreaterThan(0);
     });
   });
