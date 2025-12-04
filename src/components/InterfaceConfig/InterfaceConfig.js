@@ -749,7 +749,7 @@ export function InterfaceConfig({ history, location }) {
       (a, b) => columnOrder.indexOf(a) - columnOrder.indexOf(b),
     );
 
-    setDisplayColumns(newDisplayColumns.splice());
+    setDisplayColumns(newDisplayColumns.slice());
 
     const interfaceConfig =
       JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
