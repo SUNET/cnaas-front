@@ -7,7 +7,7 @@ InterfaceStatusUp.propTypes = {
   hostname: PropTypes.string,
   name: PropTypes.string,
   speed: PropTypes.number,
-  statusMessage: PropTypes.string,
+  statusMessage: PropTypes.node,
   toggleEnabled: PropTypes.object,
 };
 

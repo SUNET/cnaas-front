@@ -4,10 +4,9 @@ import { GraphiteInterface } from "./GraphiteInterface";
 
 InterfaceStatusDown.propTypes = {
   bounceInterfaceButton: PropTypes.object,
-  graphiteHtml: PropTypes.object,
   hostname: PropTypes.string,
   name: PropTypes.string,
-  statusMessage: PropTypes.string,
+  statusMessage: PropTypes.object,
   toggleEnabled: PropTypes.object,
 };
 

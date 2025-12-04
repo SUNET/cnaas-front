@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import queryString from "query-string";
 import {
@@ -124,8 +124,8 @@ export function InterfaceConfig({ history, location }) {
     socket.on("events", (data) => {
       if (
         data.device_id &&
-        data?.device_id == deviceData.id &&
-        data.action == "UPDATED"
+        data?.device_id === deviceData.id &&
+        data.action === "UPDATED"
       ) {
         onDeviceUpdateEvent(data);
       } else if (data.job_id) {
@@ -187,7 +187,7 @@ export function InterfaceConfig({ history, location }) {
           data,
           { job_id: data.next_job_id, status: "RUNNING" },
         ]);
-      } else if (data.status == "FINISHED" || data.status == "EXCEPTION") {
+      } else if (data.status === "FINISHED" || data.status === "EXCEPTION") {
         setErrorMessage([
           "Live run job not scheduled! There was an error or the change score was too high to continue with autopush.",
           " Check ",
@@ -208,7 +208,7 @@ export function InterfaceConfig({ history, location }) {
       autoPushJobsRef.current[1].job_id === data.job_id
     ) {
       setAutoPushJobs((prev) => [prev[0], data]);
-      if (data.status == "FINISHED" || data.status == "EXCEPTION") {
+      if (data.status === "FINISHED" || data.status === "EXCEPTION") {
         console.log("Jobs finished");
         setWorking(false);
         setInterfaceDataUpdated({});
@@ -263,7 +263,7 @@ export function InterfaceConfig({ history, location }) {
     try {
       const deviceUrl = `${process.env.API_URL}/api/v1.0/device/${hostname.current}`;
       const fetchedDevice = await getData(deviceUrl, token);
-      if (initialSyncState == null) {
+      if (!initialSyncState) {
         setInitialSyncState(fetchedDevice.data.devices[0].synchronized);
         setInitialConfHash(fetchedDevice.data.devices[0].confhash);
       }
@@ -349,11 +349,7 @@ export function InterfaceConfig({ history, location }) {
 
         for (const item of fetchedInterfaces) {
           const ifData = item.data;
-          if (
-            ifData !== null &&
-            "neighbor_id" in ifData &&
-            mlagPeerHostname == null
-          ) {
+          if (ifData !== null && "neighbor_id" in ifData && !mlagPeerHostname) {
             try {
               const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
               const mlagData = await getData(mlagDevURL, token);
@@ -524,15 +520,15 @@ export function InterfaceConfig({ history, location }) {
         let skipIfClass = false;
         Object.entries(formData).forEach(([formKey, formValue]) => {
           // port_template is not a separate value in the result yaml, but a suffix on ifclass
-          if (formKey == "port_template") {
+          if (formKey === "port_template") {
             if (
-              formData.ifclass == "port_template" ||
+              formData.ifclass === "port_template" ||
               !("ifclass" in formData)
             ) {
               ifData.ifclass = `port_template_${formValue}`;
               skipIfClass = true;
             }
-          } else if (formKey == "ifclass" && !skipIfClass) {
+          } else if (formKey === "ifclass" && !skipIfClass) {
             ifData.ifclass = formData.ifclass;
           } else {
             ifData[formKey] = formValue;
@@ -636,7 +632,7 @@ export function InterfaceConfig({ history, location }) {
     let val = "defaultChecked" in data ? data.checked : data.value;
 
     if (
-      deviceType == "DIST" &&
+      deviceType === "DIST" &&
       ["untagged_vlan", "tagged_vlan_list"].includes(jsonKey)
     ) {
       // Get VLAN ID instead of name by looking in the description field of the options
@@ -792,12 +788,12 @@ export function InterfaceConfig({ history, location }) {
   ));
 
   const commitAutopushDisabled =
-    working || !initialSyncState || initialConfHash != deviceData.confhash;
+    working || !initialSyncState || initialConfHash !== deviceData.confhash;
 
   let stateWarning = null;
   if (initialSyncState === null) {
     stateWarning = <Loader active />;
-  } else if (!initialSyncState || initialConfHash != deviceData.confhash) {
+  } else if (!initialSyncState || initialConfHash !== deviceData.confhash) {
     stateWarning = (
       <p>
         <Icon name="warning sign" color="orange" size="large" />
@@ -808,9 +804,9 @@ export function InterfaceConfig({ history, location }) {
   }
 
   const allowedColumns =
-    deviceType == "ACCESS"
+    deviceType === "ACCESS"
       ? ALLOWED_COLUMNS_ACCESS
-      : deviceType == "DIST"
+      : deviceType === "DIST"
         ? ALLOWED_COLUMNS_DIST
         : {};
 
@@ -852,7 +848,7 @@ export function InterfaceConfig({ history, location }) {
     },
   );
 
-  const autoPushJobsHTML = useCallback(
+  const autoPushJobsHTML = useMemo(
     autoPushJobs.map((job, index) => {
       let jobIcon = null;
       if (job.status === "RUNNING") {
@@ -887,17 +883,17 @@ export function InterfaceConfig({ history, location }) {
   );
 
   let commitModal = null;
-  if (deviceType == "ACCESS") {
+  if (deviceType === "ACCESS") {
     commitModal = (
       <CommitModalAccess
         accordionActiveIndex={accordionActiveIndex}
         accordionClick={accordionClick}
         autoPushJobsHTML={autoPushJobsHTML}
         errorMessage={errorMessage}
-        interfaceDataUpdated={prepareSendJson()}
+        interfaceDataUpdatedJSON={prepareSendJson()}
       />
     );
-  } else if (deviceType == "DIST") {
+  } else if (deviceType === "DIST") {
     commitModal = (
       <CommitModalDist
         hostname={hostname.current}
@@ -964,7 +960,7 @@ export function InterfaceConfig({ history, location }) {
                 <Table.HeaderCell width={3}>Name</Table.HeaderCell>
                 <Table.HeaderCell width={6}>Description</Table.HeaderCell>
                 <Table.HeaderCell width={3}>
-                  {deviceType == "DIST" ? "Interface class" : "Configtype"}
+                  {deviceType === "DIST" ? "Interface class" : "Configtype"}
                 </Table.HeaderCell>
                 {columnHeaders}
               </Table.Row>

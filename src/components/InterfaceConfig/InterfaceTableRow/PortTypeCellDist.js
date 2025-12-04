@@ -38,7 +38,7 @@ export function PortTypeCellDist({
         disabled={editDisabled}
         onChange={updateFieldData}
       />
-      {currentIfClass == "port_template" && (
+      {currentIfClass === "port_template" && (
         <Dropdown
           key={`port_template|${item.name}`}
           name={`port_template|${item.name}`}

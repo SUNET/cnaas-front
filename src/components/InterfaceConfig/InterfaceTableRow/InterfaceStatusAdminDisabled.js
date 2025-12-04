@@ -5,7 +5,7 @@ import { GraphiteInterface } from "./GraphiteInterface";
 InterfaceStatusAdminDisabled.propTypes = {
   hostname: PropTypes.string,
   name: PropTypes.string,
-  toggleEnabled: PropTypes.bool,
+  toggleEnabled: PropTypes.node,
 };
 
 export function InterfaceStatusAdminDisabled({
