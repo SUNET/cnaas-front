@@ -44,7 +44,7 @@ const VALID_COLUMNS = new Set([
 ]);
 
 InterfaceConfig.propTypes = {
-  history: PropTypes.array,
+  history: PropTypes.object,
   location: PropTypes.object,
 };
 
@@ -735,9 +735,10 @@ export function InterfaceConfig({ history, location }) {
     }
 
     const newDisplayColumns = [...displayColumns];
-    if (data.checked === true && newDisplayColumns.indexOf(data.name) === -1) {
+
+    if (data.checked && !newDisplayColumns.includes(data.name)) {
       newDisplayColumns.push(data.name);
-    } else if (data.checked === false) {
+    } else if (!data.checked) {
       const index = newDisplayColumns.indexOf(data.name);
       if (index > -1) {
         newDisplayColumns.splice(index, 1);
@@ -749,7 +750,7 @@ export function InterfaceConfig({ history, location }) {
       (a, b) => columnOrder.indexOf(a) - columnOrder.indexOf(b),
     );
 
-    setDisplayColumns(newDisplayColumns.slice());
+    setDisplayColumns(newDisplayColumns);
 
     const interfaceConfig =
       JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};

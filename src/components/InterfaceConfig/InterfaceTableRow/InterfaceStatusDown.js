@@ -2,11 +2,11 @@ import PropTypes from "prop-types";
 import { Icon, Popup } from "semantic-ui-react";
 
 InterfaceStatusDown.propTypes = {
-  bounceInterfaceButton: PropTypes.bool,
-  graphiteHtml: PropTypes.string,
+  bounceInterfaceButton: PropTypes.object,
+  graphiteHtml: PropTypes.object,
   name: PropTypes.string,
   statusMessage: PropTypes.string,
-  toggleEnabled: PropTypes.bool,
+  toggleEnabled: PropTypes.object,
 };
 
 export function InterfaceStatusDown({
