@@ -56,7 +56,6 @@ export function InterfaceConfig({ history, location }) {
   const [autoPushJobs, setAutoPushJobs] = useState([]);
   const [deviceData, setDeviceData] = useState({});
   const [deviceSettings, setDeviceSettings] = useState(null);
-  const [deviceType, setDeviceType] = useState(null);
   const [displayColumns, setDisplayColumns] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [initialConfHash, setInitialConfHash] = useState(null);
@@ -81,6 +80,8 @@ export function InterfaceConfig({ history, location }) {
   const autoPushJobsRef = useFreshRef(autoPushJobs);
   const awaitingDeviceSynchronizationRef = useRef(false);
   const hostname = useRef(queryString.parse(location.search)?.hostname ?? null);
+
+  const deviceType = deviceData?.device_type ?? null;
 
   /**
    * On mount
@@ -154,7 +155,6 @@ export function InterfaceConfig({ history, location }) {
     console.debug("Device update event", data);
 
     const updatedDeviceData = data.object;
-    setDeviceData(updatedDeviceData); // TODO: it makes not sense to update it here, then later again in trigger refresh
 
     if (
       awaitingDeviceSynchronizationRef.current &&
@@ -166,8 +166,10 @@ export function InterfaceConfig({ history, location }) {
       awaitingDeviceSynchronizationRef.current = false;
 
       getInterfaceData();
-      getDeviceData(); // TODO: -> sets deviceData again
+      getDeviceData();
       refreshInterfaceStatus();
+    } else {
+      setDeviceData(updatedDeviceData);
     }
   };
 
@@ -262,13 +264,12 @@ export function InterfaceConfig({ history, location }) {
 
     try {
       const deviceUrl = `${process.env.API_URL}/api/v1.0/device/${hostname.current}`;
-      const fetchedDevice = await getData(deviceUrl, token);
+      const fetchedDevice = (await getData(deviceUrl, token)).data.devices[0];
       if (!initialSyncState) {
-        setInitialSyncState(fetchedDevice.data.devices[0].synchronized);
-        setInitialConfHash(fetchedDevice.data.devices[0].confhash);
+        setInitialSyncState(fetchedDevice.synchronized);
+        setInitialConfHash(fetchedDevice.confhash);
       }
-      setDeviceData(fetchedDevice.data.devices[0]);
-      setDeviceType(fetchedDevice.data.devices[0].device_type);
+      setDeviceData(fetchedDevice);
     } catch (error) {
       console.log(error);
     }

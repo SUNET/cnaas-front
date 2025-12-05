@@ -6,7 +6,7 @@ CommitModalAccess.propTypes = {
   accordionActiveIndex: PropTypes.number,
   accordionClick: PropTypes.func,
   autoPushJobsHTML: PropTypes.array,
-  errorMessage: PropTypes.string,
+  errorMessage: PropTypes.array,
   interfaceDataUpdatedJSON: PropTypes.object,
 };
 
