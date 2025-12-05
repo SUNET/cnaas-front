@@ -88,6 +88,7 @@ export function InterfaceConfig({ history, location }) {
    */
   useEffect(() => {
     if (hostname.current) {
+      getDeviceSettings();
       getDeviceData();
     }
   }, [hostname.current]);
@@ -137,19 +138,11 @@ export function InterfaceConfig({ history, location }) {
     return () => {
       if (socket) {
         socket.off("events");
+        socket.disconnect();
+        socket = null;
       }
     };
-  }, [deviceData.id]);
-
-  useEffect(() => {
-    if (
-      Object.keys(interfaceStatusData || {}).length === 0 &&
-      Object.keys(lldpNeighborData || {}).length === 0
-    ) {
-      getInterfaceStatusData();
-      getLldpNeighborData();
-    }
-  }, [interfaceStatusData, lldpNeighborData]);
+  }, []);
 
   const onDeviceUpdateEvent = (data) => {
     console.debug("Device update event", data);
@@ -166,6 +159,7 @@ export function InterfaceConfig({ history, location }) {
       awaitingDeviceSynchronizationRef.current = false;
 
       getInterfaceData();
+      getDeviceSettings();
       getDeviceData();
       refreshInterfaceStatus();
     } else {
@@ -214,12 +208,13 @@ export function InterfaceConfig({ history, location }) {
         console.log("Jobs finished");
         setWorking(false);
         setInterfaceDataUpdated({});
+        // After Dry Run is done, listen for sync events
         awaitingDeviceSynchronizationRef.current = true;
       }
     }
   };
 
-  const getDeviceData = async () => {
+  const getDeviceSettings = async () => {
     const settingsUrl = `${process.env.API_URL}/api/v1.0/settings?hostname=${hostname.current}`;
     try {
       const data = await getData(settingsUrl, token);
@@ -261,7 +256,9 @@ export function InterfaceConfig({ history, location }) {
     } catch (error) {
       console.log(error);
     }
+  };
 
+  const getDeviceData = async () => {
     try {
       const deviceUrl = `${process.env.API_URL}/api/v1.0/device/${hostname.current}`;
       const fetchedDevice = (await getData(deviceUrl, token)).data.devices[0];
@@ -436,6 +433,7 @@ export function InterfaceConfig({ history, location }) {
       setInterfaceStatusData(interfaceStatus);
     } catch (error) {
       console.log(error);
+      setInterfaceStatusData({});
     }
   };
 
@@ -452,12 +450,11 @@ export function InterfaceConfig({ history, location }) {
       setLldpNeighborData(lldpNeighbors);
     } catch (error) {
       console.log(error);
+      setLldpNeighborData({});
     }
   };
 
   const refreshInterfaceStatus = () => {
-    setInterfaceStatusData({});
-    setLldpNeighborData({});
     getInterfaceStatusData();
     getLldpNeighborData();
   };
