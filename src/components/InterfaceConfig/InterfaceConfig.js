@@ -58,8 +58,8 @@ export function InterfaceConfig({ history, location }) {
   const [deviceSettings, setDeviceSettings] = useState(null);
   const [displayColumns, setDisplayColumns] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [initialConfHash, setInitialConfHash] = useState(null);
-  const [initialSyncState, setInitialSyncState] = useState(null);
+  const [latestLocalConfHash, setLatestLocalConfHash] = useState(null);
+  const [latestLocalSyncState, setLatestLocalSyncState] = useState(null);
   const [interfaceBounceRunning, setInterfaceBounceRunning] = useState({});
   const [interfaceData, setInterfaceData] = useState([]);
   const [interfaceDataUpdated, setInterfaceDataUpdated] = useState({});
@@ -72,7 +72,6 @@ export function InterfaceConfig({ history, location }) {
   const [portTemplateOptions, setPortTemplateOptions] = useState([]);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [tagOptions, setTagOptions] = useState([]);
-  const [thirdPartyUpdated, setThirdPartyUpdated] = useState(false);
   const [untaggedVlanOptions, setUntaggedVlanOptions] = useState([]);
   const [vlanOptions, setVlanOptions] = useState([]);
   const [working, setWorking] = useState(false);
@@ -154,8 +153,6 @@ export function InterfaceConfig({ history, location }) {
       updatedDeviceData.synchronized
     ) {
       // Synchronize done
-      setInitialSyncState(null);
-      setInitialConfHash(null);
       awaitingDeviceSynchronizationRef.current = false;
 
       getInterfaceData();
@@ -169,9 +166,6 @@ export function InterfaceConfig({ history, location }) {
 
   const onJobUpdateEvent = (data) => {
     console.debug("Job update event", data);
-    if (data.function_name === "refresh_repo" && !thirdPartyUpdated) {
-      setThirdPartyUpdated(true);
-    }
 
     if (
       autoPushJobsRef.current.length === 1 &&
@@ -217,8 +211,10 @@ export function InterfaceConfig({ history, location }) {
   const getDeviceSettings = async () => {
     const settingsUrl = `${process.env.API_URL}/api/v1.0/settings?hostname=${hostname.current}`;
     try {
-      const data = await getData(settingsUrl, token);
-      const vlanOptions = Object.entries(data.data.settings.vxlans).map(
+      const dataSettings = (await getData(settingsUrl, token)).data.settings;
+      setDeviceSettings(dataSettings);
+
+      const vlanOptions = Object.entries(dataSettings.vxlans).map(
         ([, vxlan_data]) => {
           return {
             value: vxlan_data.vlan_name,
@@ -227,6 +223,7 @@ export function InterfaceConfig({ history, location }) {
           };
         },
       );
+      setVlanOptions(vlanOptions);
 
       const untaggedVlanOptions = [
         ...vlanOptions,
@@ -236,8 +233,10 @@ export function InterfaceConfig({ history, location }) {
           description: "NA",
         },
       ];
+      setUntaggedVlanOptions(untaggedVlanOptions);
+
       // look for tag options
-      const interfaceTagOptions = data.data.settings.interface_tag_options;
+      const interfaceTagOptions = dataSettings.interface_tag_options;
       if (interfaceTagOptions) {
         const settingsTagOptions =
           Object.entries(interfaceTagOptions).map(([tag_name, tag_data]) => {
@@ -249,10 +248,6 @@ export function InterfaceConfig({ history, location }) {
           }) ?? [];
         setTagOptions(settingsTagOptions);
       }
-
-      setDeviceSettings(data.data.settings);
-      setVlanOptions(vlanOptions);
-      setUntaggedVlanOptions(untaggedVlanOptions);
     } catch (error) {
       console.log(error);
     }
@@ -262,12 +257,12 @@ export function InterfaceConfig({ history, location }) {
     try {
       const deviceUrl = `${process.env.API_URL}/api/v1.0/device/${hostname.current}`;
       const fetchedDevice = (await getData(deviceUrl, token)).data.devices[0];
-      if (!initialSyncState) {
-        setInitialSyncState(fetchedDevice.synchronized);
-        setInitialConfHash(fetchedDevice.confhash);
-      }
+      setLatestLocalSyncState(fetchedDevice.synchronized);
+      setLatestLocalConfHash(fetchedDevice.confhash);
       setDeviceData(fetchedDevice);
     } catch (error) {
+      setLatestLocalSyncState(null);
+      setLatestLocalConfHash(null);
       console.log(error);
     }
   };
@@ -786,12 +781,17 @@ export function InterfaceConfig({ history, location }) {
   ));
 
   const commitAutopushDisabled =
-    working || !initialSyncState || initialConfHash !== deviceData.confhash;
+    working ||
+    !latestLocalSyncState ||
+    latestLocalConfHash !== deviceData.confhash;
 
   let stateWarning = null;
-  if (initialSyncState === null) {
+  if (latestLocalSyncState === null) {
     stateWarning = <Loader active />;
-  } else if (!initialSyncState || initialConfHash !== deviceData.confhash) {
+  } else if (
+    !latestLocalSyncState ||
+    latestLocalConfHash !== deviceData.confhash
+  ) {
     stateWarning = (
       <p>
         <Icon name="warning sign" color="orange" size="large" />

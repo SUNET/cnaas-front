@@ -15,8 +15,9 @@ jest.mock("../../utils/sendData");
 jest.mock("socket.io-client", () => {
   return jest.fn(() => ({
     on: jest.fn(),
-    emit: jest.fn(),
     off: jest.fn(),
+    emit: jest.fn(),
+    disconnect: jest.fn(),
   }));
 });
 
