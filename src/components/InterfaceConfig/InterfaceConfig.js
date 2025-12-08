@@ -10,6 +10,7 @@ import {
   Popup,
   Table,
 } from "semantic-ui-react";
+import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import { getData, getDataHeaders, getDataToken } from "../../utils/getData";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { putData, postData } from "../../utils/sendData";
@@ -22,6 +23,8 @@ import PropTypes from "prop-types";
 
 const io = require("socket.io-client");
 let socket = null;
+
+const STATUS_STOPPED = ["FINISHED", "EXCEPTION"]; // TODO: add "ABORTED"?
 
 const ALLOWED_COLUMNS_ACCESS = {
   vlans: "VLANs",
@@ -42,6 +45,16 @@ const VALID_COLUMNS = new Set([
   ...Object.keys(ALLOWED_COLUMNS_ACCESS),
   ...Object.keys(ALLOWED_COLUMNS_DIST),
 ]);
+
+const showDeviceUnmanagedToast = () => {
+  toast({
+    type: "warning",
+    icon: "paper plane",
+    title: `Device is in UNMANAGED state!`,
+    animation: "bounce",
+    time: 0,
+  });
+};
 
 InterfaceConfig.propTypes = {
   history: PropTypes.object,
@@ -77,6 +90,7 @@ export function InterfaceConfig({ history, location }) {
   const [working, setWorking] = useState(false);
 
   const autoPushJobsRef = useFreshRef(autoPushJobs);
+  const deviceId = useFreshRef(deviceData.id);
   const awaitingDeviceSynchronizationRef = useRef(false);
   const hostname = useRef(queryString.parse(location.search)?.hostname ?? null);
 
@@ -125,11 +139,11 @@ export function InterfaceConfig({ history, location }) {
     socket.on("events", (data) => {
       if (
         data.device_id &&
-        data?.device_id === deviceData.id &&
+        data?.device_id === deviceId.current &&
         data.action === "UPDATED"
       ) {
         onDeviceUpdateEvent(data);
-      } else if (data.job_id) {
+      } else if (data?.job_id) {
         onJobUpdateEvent(data);
       }
     });
@@ -159,6 +173,9 @@ export function InterfaceConfig({ history, location }) {
       getDeviceSettings();
       getDeviceData();
       refreshInterfaceStatus();
+    } else if (updatedDeviceData.state === "UNMANAGED") {
+      showDeviceUnmanagedToast();
+      setDeviceData(updatedDeviceData);
     } else {
       setDeviceData(updatedDeviceData);
     }
@@ -166,7 +183,6 @@ export function InterfaceConfig({ history, location }) {
 
   const onJobUpdateEvent = (data) => {
     console.debug("Job update event", data);
-
     if (
       autoPushJobsRef.current.length === 1 &&
       autoPushJobsRef.current[0].job_id === data.job_id
@@ -177,7 +193,7 @@ export function InterfaceConfig({ history, location }) {
           data,
           { job_id: data.next_job_id, status: "RUNNING" },
         ]);
-      } else if (data.status === "FINISHED" || data.status === "EXCEPTION") {
+      } else if (STATUS_STOPPED.includes(data.status)) {
         setErrorMessage([
           "Live run job not scheduled! There was an error or the change score was too high to continue with autopush.",
           " Check ",
@@ -198,7 +214,7 @@ export function InterfaceConfig({ history, location }) {
       autoPushJobsRef.current[1].job_id === data.job_id
     ) {
       setAutoPushJobs((prev) => [prev[0], data]);
-      if (data.status === "FINISHED" || data.status === "EXCEPTION") {
+      if (STATUS_STOPPED.includes(data.status)) {
         console.log("Jobs finished");
         setWorking(false);
         setInterfaceDataUpdated({});
@@ -307,7 +323,7 @@ export function InterfaceConfig({ history, location }) {
         const deviceData = data.results.pop();
         setNetboxDeviceData(deviceData);
 
-        const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?device_id=${deviceData.id}&limit=100`;
+        const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?device_id=${deviceId.current}&limit=100`;
         const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
         if (interfaceData) {
           setNetboxInterfaceData(interfaceData.results);
@@ -913,6 +929,7 @@ export function InterfaceConfig({ history, location }) {
 
   return (
     <section>
+      <SemanticToastContainer position="top-right" maxToasts={3} />
       <div id="device_list">
         <h2>Interface configuration</h2>
         <p>
