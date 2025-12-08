@@ -175,7 +175,7 @@ export function InterfaceConfig({ history, location }) {
       refreshInterfaceStatus();
     } else if (updatedDeviceData.state === "UNMANAGED") {
       showDeviceUnmanagedToast();
-      setDeviceData(updatedDeviceData);
+      getDeviceData()
     } else {
       setDeviceData(updatedDeviceData);
     }
