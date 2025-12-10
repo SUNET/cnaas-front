@@ -560,7 +560,7 @@ export function InterfaceTableRow({
       </Table.Cell>
       <Table.Cell>
         <Input
-          key={`description|${item.name}`}
+          key={`description|${item.name}|${fields.description}`}
           name={`description|${item.name}`}
           defaultValue={fields.description}
           disabled={editDisabled}

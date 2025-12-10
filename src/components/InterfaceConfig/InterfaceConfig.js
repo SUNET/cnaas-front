@@ -18,7 +18,6 @@ import { NetboxDevice } from "./NetboxDevice";
 import { NewInterface } from "./NewInterface";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
-import { useFreshRef } from "../../hooks/useFreshRef";
 import PropTypes from "prop-types";
 
 const io = require("socket.io-client");
@@ -41,6 +40,11 @@ const ALLOWED_COLUMNS_DIST = {
   config: "Custom config",
 };
 
+const ALLOWED_COLUMNS_MAP = {
+  ACCESS: ALLOWED_COLUMNS_ACCESS,
+  DIST: ALLOWED_COLUMNS_DIST,
+};
+
 const VALID_COLUMNS = new Set([
   ...Object.keys(ALLOWED_COLUMNS_ACCESS),
   ...Object.keys(ALLOWED_COLUMNS_DIST),
@@ -51,6 +55,23 @@ const showDeviceUnmanagedToast = () => {
     type: "warning",
     icon: "paper plane",
     title: `Device is in UNMANAGED state!`,
+    animation: "bounce",
+    time: 0,
+  });
+};
+
+const showOutOfSyncToast = (handleClick) => {
+  toast({
+    type: "warning",
+    icon: "paper plane",
+    title: `Device was updated elsewhere!`,
+    description: (
+      <p>
+        Device has been updated by a third party, this page is out of sync.
+        <br />
+        <button onClick={handleClick}>Refresh</button>
+      </p>
+    ),
     animation: "bounce",
     time: 0,
   });
@@ -71,13 +92,15 @@ export function InterfaceConfig({ history, location }) {
   const [deviceSettings, setDeviceSettings] = useState(null);
   const [displayColumns, setDisplayColumns] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [latestLocalConfHash, setLatestLocalConfHash] = useState(null);
-  const [latestLocalSyncState, setLatestLocalSyncState] = useState(null);
   const [interfaceBounceRunning, setInterfaceBounceRunning] = useState({});
   const [interfaceData, setInterfaceData] = useState([]);
   const [interfaceDataUpdated, setInterfaceDataUpdated] = useState({});
   const [interfaceStatusData, setInterfaceStatusData] = useState({});
   const [interfaceToggleUntagged, setInterfaceToggleUntagged] = useState({});
+  const [isDeviceSynchronized, setIsDeviceSynchronized] = useState(
+    deviceData.synchronized ?? null,
+  );
+  const [isWorking, setIsWorking] = useState(false);
   const [lldpNeighborData, setLldpNeighborData] = useState({});
   const [mlagPeerHostname, setMlagPeerHostname] = useState(null);
   const [netboxDeviceData, setNetboxDeviceData] = useState({});
@@ -85,12 +108,10 @@ export function InterfaceConfig({ history, location }) {
   const [portTemplateOptions, setPortTemplateOptions] = useState([]);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [tagOptions, setTagOptions] = useState([]);
+  const [thirdPartyUpdate, setThirdPartyUpdate] = useState(false);
   const [untaggedVlanOptions, setUntaggedVlanOptions] = useState([]);
   const [vlanOptions, setVlanOptions] = useState([]);
-  const [working, setWorking] = useState(false);
 
-  const autoPushJobsRef = useFreshRef(autoPushJobs);
-  const deviceId = useFreshRef(deviceData.id);
   const awaitingDeviceSynchronizationRef = useRef(false);
   const hostname = useRef(queryString.parse(location.search)?.hostname ?? null);
 
@@ -100,10 +121,14 @@ export function InterfaceConfig({ history, location }) {
    * On mount
    */
   useEffect(() => {
-    if (hostname.current) {
-      getDeviceSettings();
-      getDeviceData();
-    }
+    if (!hostname.current) return;
+
+    const fetchData = async () => {
+      await getDeviceSettings();
+      await getDeviceData();
+    };
+
+    fetchData();
   }, [hostname.current]);
 
   /**
@@ -137,15 +162,7 @@ export function InterfaceConfig({ history, location }) {
     });
 
     socket.on("events", (data) => {
-      if (
-        data.device_id &&
-        data?.device_id === deviceId.current &&
-        data.action === "UPDATED"
-      ) {
-        onDeviceUpdateEvent(data);
-      } else if (data?.job_id) {
-        onJobUpdateEvent(data);
-      }
+      handleSocketEventRef.current?.(data);
     });
 
     return () => {
@@ -157,6 +174,26 @@ export function InterfaceConfig({ history, location }) {
     };
   }, []);
 
+  // handleSocketEventRef is used and updated every render to avoid stale closure
+  const handleSocketEventRef = useRef();
+
+  useEffect(() => {
+    handleSocketEventRef.current = (data) => {
+      if (
+        data.device_id &&
+        data?.device_id === deviceData.id &&
+        data.action === "UPDATED"
+      ) {
+        onDeviceUpdateEvent(data);
+      } else if (data?.job_id) {
+        onJobUpdateEvent(data);
+      }
+    };
+  });
+
+  /**
+   *  update event with this device's id
+   */
   const onDeviceUpdateEvent = (data) => {
     console.debug("Device update event", data);
 
@@ -168,25 +205,27 @@ export function InterfaceConfig({ history, location }) {
     ) {
       // Synchronize done
       awaitingDeviceSynchronizationRef.current = false;
-
       getInterfaceData();
       getDeviceSettings();
       getDeviceData();
       refreshInterfaceStatus();
+      setThirdPartyUpdate(false);
     } else if (updatedDeviceData.state === "UNMANAGED") {
       showDeviceUnmanagedToast();
-      getDeviceData()
+      getDeviceData();
     } else {
-      setDeviceData(updatedDeviceData);
+      setIsDeviceSynchronized(updatedDeviceData.synchronized);
+      if (!isWorking && updatedDeviceData.confhash !== deviceData.confhash) {
+        showOutOfSyncToast(reloadDeviceData);
+        setThirdPartyUpdate(true);
+      }
     }
   };
 
   const onJobUpdateEvent = (data) => {
     console.debug("Job update event", data);
-    if (
-      autoPushJobsRef.current.length === 1 &&
-      autoPushJobsRef.current[0].job_id === data.job_id
-    ) {
+
+    if (autoPushJobs.length === 1 && autoPushJobs[0].job_id === data.job_id) {
       // if finished && next_job id, push next_job_id to array
       if (typeof data?.next_job_id === "number") {
         setAutoPushJobs([
@@ -205,18 +244,18 @@ export function InterfaceConfig({ history, location }) {
             dry run
           </Link>,
         ]);
-        setWorking(false);
+        setIsWorking(false);
         setAutoPushJobs([data]);
         setAccordionActiveIndex(2);
       }
     } else if (
-      autoPushJobsRef.current.length === 2 &&
-      autoPushJobsRef.current[1].job_id === data.job_id
+      autoPushJobs.length === 2 &&
+      autoPushJobs[1].job_id === data.job_id
     ) {
       setAutoPushJobs((prev) => [prev[0], data]);
       if (STATUS_STOPPED.includes(data.status)) {
         console.log("Jobs finished");
-        setWorking(false);
+        setIsWorking(false);
         setInterfaceDataUpdated({});
         // After Dry Run is done, listen for sync events
         awaitingDeviceSynchronizationRef.current = true;
@@ -224,7 +263,8 @@ export function InterfaceConfig({ history, location }) {
     }
   };
 
-  const getDeviceSettings = async () => {
+  // --- External Data ---
+  const getDeviceSettings = useCallback(async () => {
     const settingsUrl = `${process.env.API_URL}/api/v1.0/settings?hostname=${hostname.current}`;
     try {
       const dataSettings = (await getData(settingsUrl, token)).data.settings;
@@ -267,41 +307,21 @@ export function InterfaceConfig({ history, location }) {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [token]);
 
-  const getDeviceData = async () => {
+  const getDeviceData = useCallback(async () => {
     try {
       const deviceUrl = `${process.env.API_URL}/api/v1.0/device/${hostname.current}`;
       const fetchedDevice = (await getData(deviceUrl, token)).data.devices[0];
-      setLatestLocalSyncState(fetchedDevice.synchronized);
-      setLatestLocalConfHash(fetchedDevice.confhash);
       setDeviceData(fetchedDevice);
+      setIsDeviceSynchronized(fetchedDevice.synchronized);
+      setThirdPartyUpdate(false);
     } catch (error) {
-      setLatestLocalSyncState(null);
-      setLatestLocalConfHash(null);
       console.log(error);
     }
-  };
+  }, [token]);
 
-  const setDisplayColumnsFn = () => {
-    const interfaceConfig =
-      JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
-    let newDisplayColumns;
-    if (deviceType === "ACCESS") {
-      newDisplayColumns = interfaceConfig?.accessDisplayColumns;
-    } else if (deviceType === "DIST") {
-      newDisplayColumns = interfaceConfig?.distDisplayColumns;
-    }
-
-    // Make sure only valid columns are going to be visible
-    setDisplayColumns(
-      (newDisplayColumns ?? ["vlans"]).filter((column) =>
-        VALID_COLUMNS.has(column),
-      ),
-    );
-  };
-
-  const getNetboxDeviceData = async (hostname) => {
+  const getNetboxDeviceData = useCallback(async (hostname) => {
     if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
       return null;
     }
@@ -323,7 +343,7 @@ export function InterfaceConfig({ history, location }) {
         const deviceData = data.results.pop();
         setNetboxDeviceData(deviceData);
 
-        const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?device_id=${deviceId.current}&limit=100`;
+        const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?device_id=${deviceData.id}&limit=100`;
         const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
         if (interfaceData) {
           setNetboxInterfaceData(interfaceData.results);
@@ -335,108 +355,9 @@ export function InterfaceConfig({ history, location }) {
       // Some netbox error occurred
       console.log(e);
     }
-  };
+  }, []);
 
-  const getInterfaceData = async () => {
-    if (deviceType === "ACCESS") {
-      try {
-        const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/interfaces`;
-        const fetchedInterfaces = (await getData(url, token)).data.interfaces;
-        const usedTags = tagOptions.slice();
-
-        fetchedInterfaces.forEach((item) => {
-          const ifData = item.data;
-          if (ifData !== null && "tags" in ifData) {
-            ifData.tags.forEach((tag) => {
-              if (usedTags.some((e) => e.text === tag)) {
-                return; // don't add duplicate tags
-              }
-              usedTags.push({ text: tag, value: tag });
-            });
-          }
-        });
-
-        for (const item of fetchedInterfaces) {
-          const ifData = item.data;
-          if (ifData !== null && "neighbor_id" in ifData && !mlagPeerHostname) {
-            try {
-              const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
-              const mlagData = await getData(mlagDevURL, token);
-              setMlagPeerHostname(mlagData.data.devices[0].hostname);
-              break;
-            } catch (error) {
-              console.log(`MLAG peer not found: ${error}`);
-            }
-          }
-        }
-
-        setInterfaceData(fetchedInterfaces);
-        setTagOptions(usedTags);
-      } catch (error) {
-        console.log(error);
-      }
-    } else if (deviceType === "DIST") {
-      try {
-        const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/generate_config`;
-        const data = await getDataHeaders(url, token, {
-          "X-Fields": "available_variables{interfaces,port_template_options}",
-        });
-        const fetchedAvailaleVariables = data.data.config.available_variables;
-        let usedPortTemplates = [];
-        const availablePortTemplateOptions =
-          fetchedAvailaleVariables.port_template_options;
-        if (availablePortTemplateOptions) {
-          usedPortTemplates = Object.entries(availablePortTemplateOptions).map(
-            ([template_name, template_data]) => {
-              return {
-                text: template_name,
-                value: template_name,
-                description: template_data.description,
-                vlan_config: template_data.vlan_config,
-              };
-            },
-          );
-        }
-
-        const usedTags = tagOptions.slice();
-        const availableInterfaces = fetchedAvailaleVariables.interfaces;
-        availableInterfaces.forEach((item) => {
-          if (usedTags.length === 0 && item.tags) {
-            item.tags.forEach((tag) => {
-              if (usedTags.some((e) => e.text === tag)) {
-                return; // don't add duplicate tags
-              }
-              usedTags.push({ text: tag, value: tag });
-            });
-          }
-          if (item.ifclass.startsWith("port_template")) {
-            const templateName = item.ifclass.substring(
-              "port_template_".length,
-            );
-            if (usedPortTemplates.some((e) => e.text === templateName)) {
-              return; // don't add duplicate tags
-            }
-            usedPortTemplates.push({
-              text: templateName,
-              value: templateName,
-            });
-          }
-        });
-
-        setInterfaceData(availableInterfaces);
-        setPortTemplateOptions(usedPortTemplates);
-        setTagOptions(usedTags);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    if (deviceType && deviceType !== "ACCESS" && deviceType !== "DIST") {
-      console.error(`Unsupported device type: ${deviceType}`);
-    }
-  };
-
-  const getInterfaceStatusData = async () => {
+  const getInterfaceStatusData = useCallback(async () => {
     try {
       const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/interface_status`;
       const data = await getData(url, token);
@@ -446,9 +367,9 @@ export function InterfaceConfig({ history, location }) {
       console.log(error);
       setInterfaceStatusData({});
     }
-  };
+  }, [token]);
 
-  const getLldpNeighborData = async () => {
+  const getLldpNeighborData = useCallback(async () => {
     try {
       const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/lldp_neighbors_detail`;
       const data = await getData(url, token);
@@ -463,12 +384,159 @@ export function InterfaceConfig({ history, location }) {
       console.log(error);
       setLldpNeighborData({});
     }
+  }, [token]);
+
+  const getInterfaceDataAccess = useCallback(async () => {
+    try {
+      const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/interfaces`;
+      const fetchedInterfaces = (await getData(url, token)).data.interfaces;
+      setInterfaceData(fetchedInterfaces);
+
+      setTagOptions((prev) => {
+        const usedTags = prev.slice();
+        fetchedInterfaces.forEach((item) => {
+          const ifData = item.data;
+          if (ifData !== null && "tags" in ifData) {
+            ifData.tags.forEach((tag) => {
+              if (usedTags.some((e) => e.text === tag)) {
+                return; // don't add duplicate tags
+              }
+              usedTags.push({ text: tag, value: tag });
+            });
+          }
+        });
+
+        return usedTags;
+      });
+
+      for (const item of fetchedInterfaces) {
+        const ifData = item.data;
+        if (ifData !== null && "neighbor_id" in ifData && !mlagPeerHostname) {
+          try {
+            const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
+            const mlagData = await getData(mlagDevURL, token);
+            setMlagPeerHostname(mlagData.data.devices[0].hostname);
+            break;
+          } catch (error) {
+            console.log(`MLAG peer not found: ${error}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [token, mlagPeerHostname]);
+
+  const getInterfaceDataDist = useCallback(async () => {
+    try {
+      const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/generate_config`;
+      const data = await getDataHeaders(url, token, {
+        "X-Fields": "available_variables{interfaces,port_template_options}",
+      });
+      const fetchedAvailableVariables = data.data.config.available_variables;
+
+      const availablePortTemplateOptions =
+        fetchedAvailableVariables.port_template_options;
+      const usedPortTemplates = Object.entries(
+        availablePortTemplateOptions ?? {},
+      ).map(([template_name, template_data]) => {
+        return {
+          text: template_name,
+          value: template_name,
+          description: template_data.description,
+          vlan_config: template_data.vlan_config,
+        };
+      });
+
+      const availableInterfaces = fetchedAvailableVariables.interfaces;
+      setInterfaceData(availableInterfaces);
+
+      const allPortTemplates = [...usedPortTemplates];
+      availableInterfaces.forEach((item) => {
+        if (item.ifclass.startsWith("port_template")) {
+          const templateName = item.ifclass.substring("port_template_".length);
+          if (!allPortTemplates.some((e) => e.text === templateName)) {
+            allPortTemplates.push({
+              text: templateName,
+              value: templateName,
+            });
+          }
+        }
+      });
+      setPortTemplateOptions(allPortTemplates);
+
+      setTagOptions((prev) => {
+        const usedTags = prev.slice();
+
+        availableInterfaces.forEach((item) => {
+          if (usedTags.length === 0 && item.tags) {
+            item.tags.forEach((tag) => {
+              if (!usedTags.some((e) => e.text === tag)) {
+                usedTags.push({ text: tag, value: tag });
+              }
+            });
+          }
+        });
+
+        return usedTags;
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }, [token]);
+
+  const getInterfaceData = useCallback(async () => {
+    if (deviceType === "ACCESS") {
+      await getInterfaceDataAccess();
+    } else if (deviceType === "DIST") {
+      await getInterfaceDataDist();
+    }
+
+    if (deviceType && deviceType !== "ACCESS" && deviceType !== "DIST") {
+      console.error(`Unsupported device type: ${deviceType}`);
+    }
+  }, [deviceType, getInterfaceDataAccess, getInterfaceDataDist]);
+
+  // --- end external data ---
+
+  const setDisplayColumnsFn = () => {
+    const interfaceConfig =
+      JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
+    let newDisplayColumns;
+    if (deviceType === "ACCESS") {
+      newDisplayColumns = interfaceConfig?.accessDisplayColumns;
+    } else if (deviceType === "DIST") {
+      newDisplayColumns = interfaceConfig?.distDisplayColumns;
+    }
+
+    // Make sure only valid columns are going to be visible
+    setDisplayColumns(
+      (newDisplayColumns ?? ["vlans"]).filter((column) =>
+        VALID_COLUMNS.has(column),
+      ),
+    );
   };
 
-  const refreshInterfaceStatus = () => {
+  const refreshInterfaceStatus = useCallback(() => {
     getInterfaceStatusData();
     getLldpNeighborData();
-  };
+  }, [getInterfaceStatusData, getLldpNeighborData]);
+
+  const reloadDeviceData = useCallback(() => {
+    setInterfaceDataUpdated({});
+    setThirdPartyUpdate(false);
+    getDeviceSettings();
+    getDeviceData();
+    getInterfaceData();
+    getInterfaceStatusData();
+    getLldpNeighborData();
+  }, [
+    getDeviceSettings,
+    getDeviceData,
+    getInterfaceData,
+    getInterfaceStatusData,
+    getLldpNeighborData,
+  ]);
 
   const prepareSendJson = () => {
     // build object in the format API expects interfaces{} -> name{} -> configtype,data{}
@@ -560,7 +628,8 @@ export function InterfaceConfig({ history, location }) {
       if (data.status === "success") {
         return true;
       } else {
-        setErrorMessage(data.message); // TODO: why is there an error message here?
+        console.log(data.message);
+        setErrorMessage(data.message);
       }
     } catch (error) {
       console.log(error);
@@ -582,7 +651,7 @@ export function InterfaceConfig({ history, location }) {
       const data = await postData(url, token, sendData);
 
       setAutoPushJobs([{ job_id: data.job_id, status: "RUNNING" }]);
-      setWorking(true);
+      setIsWorking(true);
     } catch (error) {
       console.log(error);
     }
@@ -797,32 +866,9 @@ export function InterfaceConfig({ history, location }) {
   ));
 
   const commitAutopushDisabled =
-    working ||
-    !latestLocalSyncState ||
-    latestLocalConfHash !== deviceData.confhash;
+    isWorking || thirdPartyUpdate || !isDeviceSynchronized;
 
-  let stateWarning = null;
-  if (latestLocalSyncState === null) {
-    stateWarning = <Loader active />;
-  } else if (
-    !latestLocalSyncState ||
-    latestLocalConfHash !== deviceData.confhash
-  ) {
-    stateWarning = (
-      <p>
-        <Icon name="warning sign" color="orange" size="large" />
-        Device is not synchronized, use dry_run and verify diff to apply
-        changes.
-      </p>
-    );
-  }
-
-  const allowedColumns =
-    deviceType === "ACCESS"
-      ? ALLOWED_COLUMNS_ACCESS
-      : deviceType === "DIST"
-        ? ALLOWED_COLUMNS_DIST
-        : {};
+  const allowedColumns = ALLOWED_COLUMNS_MAP[deviceType] || {};
 
   const columnWidths = {
     vlans: 4,
@@ -929,7 +975,7 @@ export function InterfaceConfig({ history, location }) {
 
   return (
     <section>
-      <SemanticToastContainer position="top-right" maxToasts={3} />
+      <SemanticToastContainer position="top-right" maxToasts={1} />
       <div id="device_list">
         <h2>Interface configuration</h2>
         <p>
@@ -938,14 +984,31 @@ export function InterfaceConfig({ history, location }) {
             {hostname.current}
           </a>
           , sync state:{" "}
-          {deviceData.synchronized ? (
+          {isDeviceSynchronized ? (
             <Icon name="check" color="green" />
           ) : (
             <Icon name="delete" color="red" />
           )}
         </p>
         {mlagPeerInfo}
-        {stateWarning}
+        {isDeviceSynchronized === null && <Loader active />}
+        {!isDeviceSynchronized && (
+          <p>
+            <Icon name="warning sign" color="orange" size="large" />
+            Device is not synchronized, use dry_run and verify diff to apply
+            changes.
+          </p>
+        )}
+        {thirdPartyUpdate && (
+          <p>
+            <Icon name="warning sign" color="orange" size="large" />
+            Device has been updated by a third party. Reload page to get the
+            latest changes.
+            <Button size="mini" onClick={reloadDeviceData}>
+              Refresh Data
+            </Button>
+          </p>
+        )}
         {netboxInfo}
         <div className="table_options">
           <Popup
@@ -1012,7 +1075,7 @@ export function InterfaceConfig({ history, location }) {
                       </Button>
                       {deviceType === "ACCESS" && [
                         <Button
-                          key="submit"
+                          key="access_button_saveandcommit"
                           onClick={saveAndCommitChanges}
                           disabled={commitAutopushDisabled}
                           color="yellow"
@@ -1020,9 +1083,9 @@ export function InterfaceConfig({ history, location }) {
                           Save and commit now
                         </Button>,
                         <Button
-                          key="dryrun"
+                          key="access_button_dryrun"
                           onClick={saveChanges}
-                          disabled={working}
+                          disabled={isWorking}
                           positive
                         >
                           Save and dry run...
@@ -1030,7 +1093,7 @@ export function InterfaceConfig({ history, location }) {
                       ]}
                       {deviceType === "DIST" && (
                         <Button
-                          key="dryrun"
+                          key="dist_button_dryrun"
                           onClick={gotoConfigChange}
                           positive
                         >
