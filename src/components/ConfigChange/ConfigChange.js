@@ -23,7 +23,7 @@ const STATUS_STOPPED = ["FINISHED", "EXCEPTION", "ABORTED"];
 const STATUS_RUNNING = ["RUNNING"];
 
 // Batch sync toast notifications
-let pendingHostnames = new Set();
+const pendingHostnames = new Set();
 let toastBatchTimer = null;
 const BATCH_INTERVAL_MS = 1000;
 
