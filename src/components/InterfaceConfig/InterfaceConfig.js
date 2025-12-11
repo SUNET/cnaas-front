@@ -203,11 +203,12 @@ export function InterfaceConfig({ history, location }) {
       getDeviceData();
       refreshInterfaceStatus();
       setThirdPartyUpdate(false);
-    } else if (updatedDeviceData.state === "UNMANAGED") {
-      getDeviceData();
     } else {
       setIsDeviceSynchronized(updatedDeviceData.synchronized);
-      if (isDeviceSynchronized !== updatedDeviceData.synchronized) {
+      if (
+        !isWorking &&
+        isDeviceSynchronized !== updatedDeviceData.synchronized
+      ) {
         showSynchronizedChangedToast(updatedDeviceData.synchronized);
       }
       if (!isWorking && updatedDeviceData.confhash !== deviceData.confhash) {
@@ -518,6 +519,10 @@ export function InterfaceConfig({ history, location }) {
   }, [getInterfaceStatusData, getLldpNeighborData]);
 
   const reloadDeviceData = useCallback(() => {
+    document
+      .querySelectorAll(".ui.floating.message")
+      .forEach((el) => el.remove());
+
     setInterfaceDataUpdated({});
     setThirdPartyUpdate(false);
     getDeviceSettings();
@@ -646,13 +651,13 @@ export function InterfaceConfig({ history, location }) {
       const data = await postData(url, token, sendData);
 
       setAutoPushJobs([{ job_id: data.job_id, status: "RUNNING" }]);
-      setIsWorking(true);
     } catch (error) {
       console.log(error);
     }
   };
 
   const saveAndCommitChanges = async () => {
+    setIsWorking(true);
     const saveStatus = await sendInterfaceData();
     if (saveStatus) {
       startSynctoAutopush();
@@ -661,6 +666,7 @@ export function InterfaceConfig({ history, location }) {
   };
 
   const saveChanges = async () => {
+    setIsWorking(true);
     const saveStatus = await sendInterfaceData();
     if (saveStatus) {
       history.push(
