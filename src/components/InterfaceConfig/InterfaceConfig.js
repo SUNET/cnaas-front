@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import queryString from "query-string";
-import {
-  Button,
-  Checkbox,
-  Icon,
-  Loader,
-  Modal,
-  Popup,
-  Table,
-} from "semantic-ui-react";
+import { Button, Checkbox, Icon, Modal, Popup, Table } from "semantic-ui-react";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import { getData, getDataHeaders, getDataToken } from "../../utils/getData";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
@@ -50,12 +42,13 @@ const VALID_COLUMNS = new Set([
   ...Object.keys(ALLOWED_COLUMNS_DIST),
 ]);
 
-const showDeviceUnmanagedToast = () => {
+const showSynchronizedChangedToast = (sync) => {
   toast({
     type: "warning",
     icon: "paper plane",
-    title: `Device is in UNMANAGED state!`,
+    title: `Synchronized state was changed!`,
     animation: "bounce",
+    description: <p>Device state was changed to {sync} by a third party.</p>,
     time: 0,
   });
 };
@@ -69,7 +62,7 @@ const showOutOfSyncToast = (handleClick) => {
       <p>
         Device has been updated by a third party, this page is out of sync.
         <br />
-        <button onClick={handleClick}>Refresh</button>
+        <Button onClick={handleClick}>Refresh</Button>
       </p>
     ),
     animation: "bounce",
@@ -98,7 +91,7 @@ export function InterfaceConfig({ history, location }) {
   const [interfaceStatusData, setInterfaceStatusData] = useState({});
   const [interfaceToggleUntagged, setInterfaceToggleUntagged] = useState({});
   const [isDeviceSynchronized, setIsDeviceSynchronized] = useState(
-    deviceData.synchronized ?? null,
+    deviceData.synchronized,
   );
   const [isWorking, setIsWorking] = useState(false);
   const [lldpNeighborData, setLldpNeighborData] = useState({});
@@ -211,13 +204,15 @@ export function InterfaceConfig({ history, location }) {
       refreshInterfaceStatus();
       setThirdPartyUpdate(false);
     } else if (updatedDeviceData.state === "UNMANAGED") {
-      showDeviceUnmanagedToast();
       getDeviceData();
     } else {
       setIsDeviceSynchronized(updatedDeviceData.synchronized);
+      if (isDeviceSynchronized !== updatedDeviceData.synchronized) {
+        showSynchronizedChangedToast(updatedDeviceData.synchronized);
+      }
       if (!isWorking && updatedDeviceData.confhash !== deviceData.confhash) {
-        showOutOfSyncToast(reloadDeviceData);
         setThirdPartyUpdate(true);
+        showOutOfSyncToast(reloadDeviceData);
       }
     }
   };
@@ -991,7 +986,6 @@ export function InterfaceConfig({ history, location }) {
           )}
         </p>
         {mlagPeerInfo}
-        {isDeviceSynchronized === null && <Loader active />}
         {!isDeviceSynchronized && (
           <p>
             <Icon name="warning sign" color="orange" size="large" />
@@ -1003,7 +997,7 @@ export function InterfaceConfig({ history, location }) {
           <p>
             <Icon name="warning sign" color="orange" size="large" />
             Device has been updated by a third party. Reload page to get the
-            latest changes.
+            latest changes (local changes will be lost).{" "}
             <Button size="mini" onClick={reloadDeviceData}>
               Refresh Data
             </Button>
