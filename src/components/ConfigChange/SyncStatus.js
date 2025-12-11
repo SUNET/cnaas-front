@@ -13,7 +13,6 @@ function NoEventsContent() {
 }
 
 function EventsTable({ contents, headers }) {
-  console.log("EventsTable", contents);
   return (
     <div key="tablecontainer" className="tablecontainer">
       <Table key="synceventlist" celled collapsing>

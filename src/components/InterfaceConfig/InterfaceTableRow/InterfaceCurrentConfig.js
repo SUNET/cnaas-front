@@ -1,8 +1,13 @@
 import PropTypes from "prop-types";
 import { Icon } from "semantic-ui-react";
-import { getData } from "../../utils/getData";
+import { getData } from "../../../utils/getData";
 import { useEffect, useState } from "react";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
+
+InterfaceCurrentConfig.propTypes = {
+  hostname: PropTypes.string,
+  interface: PropTypes.string,
+};
 
 export function InterfaceCurrentConfig({ hostname, interface: interfaceName }) {
   const { token } = useAuthToken();
