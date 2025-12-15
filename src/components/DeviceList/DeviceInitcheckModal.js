@@ -12,7 +12,6 @@ function DeviceInitcheckModal({
   deviceId,
   hostname,
   device_type,
-  mlag_init = false,
   mlag_peer_hostname = null,
   mlag_peer_id = null,
 }) {
@@ -22,7 +21,7 @@ function DeviceInitcheckModal({
 
   useEffect(() => {
     if (isOpen && initcheckOutput === null) {
-      startInitCheck();
+      initCheck();
     }
     return () => {
       setInitcheckOutput(null);
@@ -34,20 +33,6 @@ function DeviceInitcheckModal({
     const { index } = titleProps;
     setAccordionActiveIndex((prevIndex) => (prevIndex === index ? -1 : index));
   };
-
-  function startInitCheck() {
-    if (mlag_init) {
-      initCheck(
-        deviceId,
-        hostname,
-        device_type,
-        mlag_peer_hostname,
-        mlag_peer_id,
-      );
-    } else {
-      initCheck(deviceId, hostname, device_type);
-    }
-  }
 
   async function initCheck() {
     const credentials = localStorage.getItem("token");
