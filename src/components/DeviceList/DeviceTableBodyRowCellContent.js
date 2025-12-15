@@ -24,7 +24,7 @@ export function DeviceTableBodyRowCellContent({ device, column, open }) {
       </>
     );
   }
-  if (column == "id") {
+  if (column === "id") {
     return (
       <>
         <Icon name={open ? "angle down" : "angle right"} />
@@ -40,16 +40,12 @@ export function DeviceTableBodyRowCellContent({ device, column, open }) {
     return (
       <>
         {value}
-        {column === "hostname" &&
-          device.state === "MANAGED" &&
-          device.device_type === "ACCESS" && (
-            <a
-              key="interfaceconfig"
-              href={`/interface-config?hostname=${device.hostname}`}
-            >
-              <Icon name="plug" link />
-            </a>
-          )}
+        <a
+          key="interfaceconfig"
+          href={`/interface-config?hostname=${device.hostname}`}
+        >
+          <Icon name="plug" link />
+        </a>
       </>
     );
   }
