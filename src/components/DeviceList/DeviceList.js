@@ -1,29 +1,18 @@
-import PropTypes from "prop-types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom/cjs/react-router-dom";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import {
   Button,
-  ButtonGroup,
   Checkbox,
   Dropdown,
   Grid,
   GridColumn,
   GridRow,
-  Icon,
   Input,
-  Loader,
   Modal,
   Pagination,
-  Popup,
-  Select,
   Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableHeaderCell,
-  TableRow,
 } from "semantic-ui-react";
 import { io } from "socket.io-client";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
@@ -34,10 +23,13 @@ import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
 import ShowConfigModal from "./ShowConfigModal";
 import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
+import { DeviceTableBody } from "./DeviceTableBody";
+import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
+import { DeviceTableHeader } from "./DeviceTableHeader";
 
 let socket = null;
 
-const columnMap = {
+export const COLUMN_MAP = {
   id: "ID",
   hostname: "Hostname",
   device_type: "Device type",
@@ -50,513 +42,6 @@ const columnMap = {
   serial: "Serial",
   vendor: "Vendor",
   platform: "Platform",
-};
-
-const perPageOptions = [
-  { key: 20, value: 20, text: "20" },
-  { key: 50, value: 50, text: "50" },
-  { key: 100, value: 100, text: "100" },
-  { key: 500, value: 500, text: "500" },
-  { key: 1000, value: 1000, text: "1000" },
-];
-
-function DeviceTableButtonGroup({
-  activeColumns,
-  setFilterActive,
-  handleFilterChange,
-  columnSelectorChange,
-  resultsPerPage,
-  setActivePage,
-  setResultsPerPage,
-  setSortColumn,
-  setSortDirection,
-}) {
-  const extraColumns = [
-    "model",
-    "os_version",
-    "management_ip",
-    "dhcp_ip",
-    "serial",
-    "vendor",
-    "platform",
-  ];
-  return (
-    <ButtonGroup icon>
-      <Button
-        icon
-        basic
-        size="small"
-        onClick={() => {
-          setFilterActive((prev) => !prev);
-        }}
-        title="Search / Filter"
-      >
-        <Icon name="filter" />
-      </Button>
-      <Button
-        icon
-        basic
-        size="small"
-        onClick={() => {
-          setFilterActive(false);
-          handleFilterChange({});
-          setSortColumn(null);
-          setSortDirection(null);
-        }}
-        title="Clear Filter and Sorting"
-      >
-        <Icon name="close" />
-      </Button>
-      <Popup
-        on="click"
-        pinned
-        position="bottom right"
-        trigger={
-          <Button icon basic size="small" title="Select Columns">
-            <Icon name="columns" />
-          </Button>
-        }
-      >
-        <p>Items per page:</p>
-        <Select
-          options={perPageOptions}
-          value={resultsPerPage}
-          onChange={(e, { value }) => {
-            setResultsPerPage(value);
-            // Make sure page resets to 1 when changing this option
-            setActivePage(1);
-          }}
-        />
-        <p>Show extra columns:</p>
-        <ul>
-          {extraColumns.map((columnName) => {
-            const checked = activeColumns.includes(columnName);
-            return (
-              <li key={columnName}>
-                <Checkbox
-                  defaultChecked={checked}
-                  label={columnMap[columnName]}
-                  name={columnName}
-                  onClick={() => {
-                    columnSelectorChange(columnName);
-                  }}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      </Popup>
-    </ButtonGroup>
-  );
-}
-
-DeviceTableButtonGroup.propTypes = {
-  activeColumns: PropTypes.arrayOf(PropTypes.string),
-  setFilterActive: PropTypes.func,
-  handleFilterChange: PropTypes.func,
-  columnSelectorChange: PropTypes.func,
-  resultsPerPage: PropTypes.number,
-  setActivePage: PropTypes.func,
-  setResultsPerPage: PropTypes.func,
-  setSortColumn: PropTypes.func,
-  setSortDirection: PropTypes.func,
-};
-
-function DeviceTableHeaderFilter({
-  column,
-  filterData,
-  handleFilterColumnChange,
-}) {
-  const [localFilter, setLocalFilter] = useState(filterData);
-  const debounceTimeout = useRef(null);
-
-  useEffect(() => {
-    setLocalFilter(filterData);
-  }, [filterData]);
-
-  const onChange = (column, value) => {
-    // Update input immediately
-    setLocalFilter((prev) => ({ ...prev, [column]: value }));
-
-    // Clear previous debounce
-    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-
-    // Set new debounce
-    debounceTimeout.current = setTimeout(() => {
-      handleFilterColumnChange(column, value); // triggers fetch
-    }, 250);
-  };
-
-  const synchronizedOptions = [
-    { key: "NONE", value: "", text: "" },
-    { key: "true", value: "true", text: "Synchronized" },
-    { key: "false", value: "false", text: "Unsynchronized" },
-  ];
-
-  const stateOptions = [
-    { key: "NONE", value: "", text: "" },
-    { key: "MANAGED", value: "MANAGED", text: "MANAGED" },
-    { key: "UNMANAGED", value: "UNMANAGED", text: "UNMANAGED" },
-    { key: "DHCP_BOOT", value: "DHCP_BOOT", text: "DHCP_BOOT" },
-    { key: "DISCOVERED", value: "DISCOVERED", text: "DISCOVERED" },
-    { key: "INIT", value: "INIT", text: "INIT" },
-    { key: "UNKNOWN", value: "UNKNOWN", text: "UNKNOWN" },
-    { key: "PRE_CONFIGURED", value: "PRE_CONFIGURED", text: "PRE_CONFIGURED" },
-  ];
-
-  const deviceTypeOptions = [
-    { key: "NONE", value: "", text: "" },
-    { key: "UNKNOWN", value: "UNKNOWN", text: "UNKNOWN" },
-    { key: "ACCESS", value: "ACCESS", text: "ACCESS" },
-    { key: "DIST", value: "DIST", text: "DIST" },
-    { key: "CORE", value: "CORE", text: "CORE" },
-    { key: "FIREWALL", value: "FIREWALL", text: "FIREWALL" },
-  ];
-
-  if (column === "synchronized") {
-    return (
-      <Popup
-        content={`Filter ${columnMap[column]}`}
-        trigger={
-          <Select
-            onChange={(_, data) => {
-              handleFilterColumnChange(column, data.value);
-            }}
-            value={localFilter[column] || ""}
-            options={synchronizedOptions}
-            style={{ minWidth: "100%" }}
-            clearable
-            closeOnEscape
-          />
-        }
-      />
-    );
-  }
-  if (column === "state") {
-    return (
-      <Popup
-        content={`Filter ${columnMap[column]}`}
-        trigger={
-          <Select
-            onChange={(_, data) => {
-              handleFilterColumnChange(column, data.value);
-            }}
-            value={localFilter[column] || ""}
-            options={stateOptions}
-            style={{ minWidth: "100%" }}
-            clearable
-            closeOnEscape
-          />
-        }
-      />
-    );
-  }
-  if (column === "device_type") {
-    return (
-      <Popup
-        content={`Filter ${columnMap[column]}`}
-        trigger={
-          <Select
-            onChange={(_, data) => {
-              handleFilterColumnChange(column, data.value);
-            }}
-            value={localFilter[column] || ""}
-            options={deviceTypeOptions}
-            style={{ minWidth: "100%" }}
-            clearable
-            closeOnEscape
-          />
-        }
-      />
-    );
-  }
-  return (
-    <Popup
-      content={`Filter ${columnMap[column]}`}
-      trigger={
-        <Input
-          value={localFilter[column] || ""}
-          onChange={(e) => onChange(column, e.target.value)}
-          style={{ minWidth: "100%" }}
-        />
-      }
-    />
-  );
-}
-
-DeviceTableHeaderFilter.propTypes = {
-  column: PropTypes.string,
-  filterData: PropTypes.object,
-  handleFilterColumnChange: PropTypes.func,
-};
-
-function DeviceTableHeader({
-  activeColumns,
-  sortColumn,
-  sortDirection,
-  filterActive,
-  filterData,
-  sortClick,
-  handleFilterColumnChange,
-}) {
-  return (
-    <TableHeader>
-      <TableRow>
-        {activeColumns.map((column) => {
-          return (
-            <TableHeaderCell
-              key={column}
-              onClick={() => sortClick(column)}
-              sorted={sortColumn === column ? sortDirection : null}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                ...(column === "id" && {
-                  maxWidth: "7em",
-                  minWidth: "7em",
-                }),
-              }}
-              collapsing
-            >
-              {columnMap[column]}
-            </TableHeaderCell>
-          );
-        })}
-      </TableRow>
-      {/* Setup filter data */}
-      {filterActive && (
-        <TableRow>
-          {activeColumns.map((column) => (
-            <TableHeaderCell
-              key={`filter_${column}`}
-              collapsing
-              style={{
-                ...(column === "id" && {
-                  maxWidth: "7em",
-                  minWidth: "7em",
-                }),
-              }}
-            >
-              <DeviceTableHeaderFilter
-                column={column}
-                filterData={filterData}
-                handleFilterColumnChange={handleFilterColumnChange}
-              />
-            </TableHeaderCell>
-          ))}
-        </TableRow>
-      )}
-    </TableHeader>
-  );
-}
-
-DeviceTableHeader.propTypes = {
-  activeColumns: PropTypes.arrayOf(PropTypes.string),
-  sortColumn: PropTypes.string,
-  sortDirection: PropTypes.string,
-  filterActive: PropTypes.bool,
-  filterData: PropTypes.object,
-  sortClick: PropTypes.func,
-  handleFilterColumnChange: PropTypes.func,
-};
-
-function DeviceTableBodyRowCellContent({ device, column, open }) {
-  const value = device[column];
-
-  if (column === "state" && device.deleted) return "DELETED";
-  if (column === "synchronized" && device.state !== "MANAGED") return;
-  if (column === "synchronized") {
-    return (
-      <>
-        {value ? "Synchronized" : "Unsynchronized"}
-        <Icon
-          name={value ? "check" : "delete"}
-          color={value ? "green" : "red"}
-          style={{ marginLeft: "5px" }}
-        />
-      </>
-    );
-  }
-  if (column == "id") {
-    return (
-      <>
-        <Icon name={open ? "angle down" : "angle right"} />
-        {value}
-      </>
-    );
-  }
-  if (
-    column === "hostname" &&
-    device.state === "MANAGED" &&
-    device.device_type === "ACCESS"
-  ) {
-    return (
-      <>
-        {value}
-        {column === "hostname" &&
-          device.state === "MANAGED" &&
-          device.device_type === "ACCESS" && (
-            <a
-              key="interfaceconfig"
-              href={`/interface-config?hostname=${device.hostname}`}
-            >
-              <Icon name="plug" link />
-            </a>
-          )}
-      </>
-    );
-  }
-  return value;
-}
-
-DeviceTableBodyRowCellContent.propTypes = {
-  device: PropTypes.object,
-  column: PropTypes.string,
-  open: PropTypes.bool,
-};
-
-function DeviceTableBodyRow({
-  device,
-  activeColumns,
-  mangleDeviceData,
-  defaultOpen,
-  getAdditionalDeviceData,
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  const deviceInfo = mangleDeviceData(device);
-
-  // When device changes and defaultOpen is set open the row
-  useEffect(() => {
-    if (!open && defaultOpen) {
-      getAdditionalDeviceData(device.hostname);
-      setOpen(true);
-      // If the row is already opened we can fetch additional data
-    } else if (open && defaultOpen) {
-      getAdditionalDeviceData(device.hostname);
-    }
-  }, [device]);
-
-  const handleRowClick = () => {
-    // Only fetch when opening the row
-    // That means the current state is open == false
-    if (!open) getAdditionalDeviceData(device.hostname);
-    setOpen((prev) => !prev);
-  };
-
-  return (
-    <>
-      <TableRow key={device.id} onClick={() => handleRowClick()}>
-        {activeColumns.map((column) => (
-          <TableCell
-            key={`${device.id}_${column}`}
-            collapsing
-            style={{
-              overflow: "hidden",
-              ...(column === "id" && {
-                maxWidth: "7em",
-                minWidth: "7em",
-              }),
-            }}
-          >
-            <DeviceTableBodyRowCellContent
-              device={device}
-              column={column}
-              open={open}
-            />
-          </TableCell>
-        ))}
-      </TableRow>
-      <TableRow key={`${device.id}_content`} hidden={!open}>
-        <TableCell
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            overflow: "visible",
-          }}
-        >
-          {deviceInfo}
-        </TableCell>
-      </TableRow>
-    </>
-  );
-}
-
-DeviceTableBodyRow.propTypes = {
-  device: PropTypes.object,
-  activeColumns: PropTypes.arrayOf(PropTypes.string),
-  mangleDeviceData: PropTypes.func,
-  defaultOpen: PropTypes.bool,
-  getAdditionalDeviceData: PropTypes.func,
-};
-
-function DeviceTableBody({
-  deviceData,
-  activeColumns,
-  loading,
-  error,
-  mangleDeviceData,
-  defaultOpen,
-  getAdditionalDeviceData,
-}) {
-  if (loading) {
-    return (
-      <TableBody>
-        <TableRow>
-          <TableCell>
-            <Loader active inline="centered">
-              Loading
-            </Loader>
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    );
-  }
-
-  if (error) {
-    return (
-      <TableBody>
-        <TableRow>
-          <TableCell>API Error: {error.message}</TableCell>
-        </TableRow>
-      </TableBody>
-    );
-  }
-
-  if (deviceData.length === 0) {
-    return (
-      <TableBody>
-        <TableRow>
-          <TableCell>No data</TableCell>
-        </TableRow>
-      </TableBody>
-    );
-  }
-
-  return (
-    <TableBody>
-      {deviceData?.map((device) => (
-        <DeviceTableBodyRow
-          key={`${device.id}_row`}
-          device={device}
-          activeColumns={activeColumns}
-          mangleDeviceData={mangleDeviceData}
-          defaultOpen={defaultOpen}
-          getAdditionalDeviceData={getAdditionalDeviceData}
-        />
-      ))}
-    </TableBody>
-  );
-}
-
-DeviceTableBody.propTypes = {
-  deviceData: PropTypes.arrayOf(PropTypes.object),
-  activeColumns: PropTypes.arrayOf(PropTypes.string),
-  loading: PropTypes.bool,
-  error: PropTypes.object,
-  defaultOpen: PropTypes.bool,
-  mangleDeviceData: PropTypes.func,
-  getAdditionalDeviceData: PropTypes.func,
 };
 
 // Replace with useSearchParams in react-router v6
@@ -606,7 +91,7 @@ function DeviceList() {
       ]),
     ].sort(
       (a, b) =>
-        Object.keys(columnMap).indexOf(a) - Object.keys(columnMap).indexOf(b),
+        Object.keys(COLUMN_MAP).indexOf(a) - Object.keys(COLUMN_MAP).indexOf(b),
     );
 
     // Reset page if URL filters exist
@@ -820,6 +305,7 @@ function DeviceList() {
     // Set loading to false, this should only happen on initial page load
     if (loading) setLoading(false);
   };
+
   const sortClick = (column) => {
     if (column === sortColumn) {
       setSortDirection((prev) =>
@@ -1538,7 +1024,8 @@ function DeviceList() {
 
       return newColumns.sort(
         (a, b) =>
-          Object.keys(columnMap).indexOf(a) - Object.keys(columnMap).indexOf(b),
+          Object.keys(COLUMN_MAP).indexOf(a) -
+          Object.keys(COLUMN_MAP).indexOf(b),
       );
     });
   };
@@ -1784,7 +1271,6 @@ function DeviceList() {
       <Table sortable celled striped>
         <DeviceTableHeader
           activeColumns={activeColumns}
-          columnMap={columnMap}
           sortColumn={sortColumn}
           sortDirection={sortDirection}
           filterActive={filterActive}
