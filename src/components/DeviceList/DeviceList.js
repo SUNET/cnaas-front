@@ -148,9 +148,12 @@ function DeviceList() {
     useState(false);
   const [deleteModalError, setDeleteModalError] = useState(null);
   const [deviceStateModalIsOpen, setDeviceStateModalIsOpen] = useState(false);
-  const [deviceStateModalHostname, setDeviceStateModalHostname] = useState(null);
-  const [deviceStateModalDeviceId, setDeviceStateModalDeviceId] = useState(null);
-  const [deviceStateModalNewState, setDeviceStateModalNewState] = useState(null);
+  const [deviceStateModalHostname, setDeviceStateModalHostname] =
+    useState(null);
+  const [deviceStateModalDeviceId, setDeviceStateModalDeviceId] =
+    useState(null);
+  const [deviceStateModalNewState, setDeviceStateModalNewState] =
+    useState(null);
   const [mgmtAddModalOpen, setMgmtAddModalOpen] = useState(false);
   const [mgmtUpdateModalOpen, setMgmtUpdateModalOpen] = useState(false);
   const [mgmtUpdateModalInput, setMgmtUpdateModalInput] = useState({});
@@ -682,7 +685,7 @@ function DeviceList() {
         device.id === device_id ? { ...device, state: state } : device,
       ),
     );
-  }
+  };
 
   const deleteModalClose = () => {
     setDeleteModalOpen(false);
