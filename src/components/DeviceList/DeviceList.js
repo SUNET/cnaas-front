@@ -1394,7 +1394,9 @@ function DeviceList() {
         <Dropdown.Item
           key="showconfig"
           text="Show configuration"
-          onClick={() => showConfigModalOpen(device.hostname, device.state)}
+          onClick={() =>
+            handleShowConfigModalOpen(device.hostname, device.state)
+          }
         />,
         <Dropdown.Item
           key="delete"
