@@ -194,7 +194,6 @@ DeviceInitcheckModal.propTypes = {
   deviceId: PropTypes.number,
   hostname: PropTypes.string,
   device_type: PropTypes.string,
-  mlag_init: PropTypes.bool,
   mlag_peer_hostname: PropTypes.string,
   mlag_peer_id: PropTypes.number,
 };

@@ -168,7 +168,6 @@ function DeviceInitForm({ deviceId, jobIdCallback }) {
         deviceId={deviceId}
         hostname={hostname}
         device_type={deviceType}
-        mlag_init={mlagInit}
         mlag_peer_hostname={mlagPeerHostname}
         mlag_peer_id={mlagPeerId}
       />
