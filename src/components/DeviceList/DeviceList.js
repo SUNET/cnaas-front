@@ -23,6 +23,7 @@ import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
 import ShowConfigModal from "./ShowConfigModal";
 import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
+import DeviceReplaceForm from "./DeviceReplaceForm";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
@@ -146,6 +147,13 @@ function DeviceList() {
   const [deleteModalFactoryDefault, setDeleteModalFactoryDefault] =
     useState(false);
   const [deleteModalError, setDeleteModalError] = useState(null);
+  const [deviceStateModalIsOpen, setDeviceStateModalIsOpen] = useState(false);
+  const [deviceStateModalHostname, setDeviceStateModalHostname] =
+    useState(null);
+  const [deviceStateModalDeviceId, setDeviceStateModalDeviceId] =
+    useState(null);
+  const [deviceStateModalNewState, setDeviceStateModalNewState] =
+    useState(null);
   const [mgmtAddModalOpen, setMgmtAddModalOpen] = useState(false);
   const [mgmtUpdateModalOpen, setMgmtUpdateModalOpen] = useState(false);
   const [mgmtUpdateModalInput, setMgmtUpdateModalInput] = useState({});
@@ -671,6 +679,14 @@ function DeviceList() {
     setDeleteModalFactoryDefault(factory_default);
   };
 
+  const changeStateLocally = (device_id, state) => {
+    setDeviceData((prev) =>
+      prev.map((device) =>
+        device.id === device_id ? { ...device, state: state } : device,
+      ),
+    );
+  };
+
   const deleteModalClose = () => {
     setDeleteModalOpen(false);
     setDeleteModalDeviceId(null);
@@ -734,6 +750,13 @@ function DeviceList() {
       console.log("error when updating state:", data.error);
     }
     getDevices();
+  };
+
+  const handleDeviceStateModalOpen = (hostname, deviceId, newState) => {
+    setDeviceStateModalIsOpen(true);
+    setDeviceStateModalHostname(hostname);
+    setDeviceStateModalDeviceId(deviceId);
+    setDeviceStateModalNewState(newState);
   };
 
   const createMgmtIP = (mgmt_ip, key_prefix = "") => {
@@ -838,6 +861,19 @@ function DeviceList() {
             handleShowConfigModalOpen(device.hostname, device.state)
           }
         />,
+        device.device_type === "ACCESS" && (
+          <Dropdown.Item
+            key="replacedevice"
+            text="Replace device..."
+            onClick={() =>
+              handleDeviceStateModalOpen(
+                device.hostname,
+                device.id,
+                "UNMANAGED",
+              )
+            }
+          />
+        ),
         <Dropdown.Item
           key="delete"
           text="Delete device..."
@@ -865,7 +901,7 @@ function DeviceList() {
           />,
         );
       }
-    } else if (device.state == "UNMANAGED") {
+    } else if (device.state.startsWith("UNMANAGED")) {
       menuActions = [
         <Dropdown.Item
           key="facts"
@@ -880,8 +916,19 @@ function DeviceList() {
         <Dropdown.Item
           key="showconfig"
           text="Show configuration"
-          onClick={() => showConfigModalOpen(device.hostname, device.state)}
+          onClick={() =>
+            handleShowConfigModalOpen(device.hostname, device.state)
+          }
         />,
+        device.device_type === "ACCESS" && (
+          <Dropdown.Item
+            key="replacedevice"
+            text="Replace device..."
+            onClick={() =>
+              changeStateLocally(device.id, "UNMANAGED (Replacing)")
+            }
+          />
+        ),
         <Dropdown.Item
           key="delete"
           text="Delete device..."
@@ -952,6 +999,20 @@ function DeviceList() {
           <p key="initjobs">Init jobs: {deviceJobs[device.id].join(", ")}</p>,
         );
       }
+    } else if (device.state == "UNMANAGED (Replacing)") {
+      deviceStateExtra.push(
+        <DeviceReplaceForm
+          key={`${device.id}_replaceform`}
+          hostname={device.hostname}
+          deviceType={device.device_type}
+          deviceId={device.id}
+          deviceModel={device.model}
+          jobIdCallback={addDeviceJob}
+          clearCandidate={() => {
+            changeStateLocally(device.id, "UNMANAGED");
+          }}
+        />,
+      );
     }
 
     const deviceButtonsExtra = createDeviceButtonsExtraForDevice(device);
@@ -1201,6 +1262,45 @@ function DeviceList() {
         </GridRow>
       </Grid>
       <SemanticToastContainer position="top-right" maxToasts={3} />
+      <Modal
+        onClose={() => setDeviceStateModalIsOpen(false)}
+        open={deviceStateModalIsOpen}
+      >
+        <Modal.Header>Device state need to change</Modal.Header>
+        <Modal.Content>
+          <Modal.Description>
+            <p key="confirm">
+              To perform this action the device state need to be changed first.
+              Are you sure you want to change the state of device{" "}
+              {deviceStateModalHostname} to {deviceStateModalNewState}?
+            </p>
+          </Modal.Description>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button
+            key="cancel"
+            color="black"
+            onClick={() => setDeviceStateModalIsOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            key="submit"
+            onClick={() => {
+              changeStateAction(
+                deviceStateModalDeviceId,
+                deviceStateModalNewState,
+              );
+              setDeviceStateModalIsOpen(false);
+            }}
+            icon
+            positive
+            labelPosition="right"
+          >
+            Change state
+          </Button>
+        </Modal.Actions>
+      </Modal>
       <Modal onClose={() => deleteModalClose()} open={deleteModalOpen}>
         <Modal.Header>Delete device {deleteModalDeviceHostname}</Modal.Header>
         <Modal.Content>
