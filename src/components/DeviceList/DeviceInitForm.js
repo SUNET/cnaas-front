@@ -10,9 +10,9 @@ async function submitInitJob(
   hostname,
   device_type,
   jobIdCallback,
+  token,
   mlag_peer_hostname = null,
   mlag_peer_id = null,
-  token,
 ) {
   console.log("Starting device init");
   const url = `${process.env.API_URL}/api/v1.0/device_init/${device_id}`;
@@ -106,9 +106,9 @@ function DeviceInitForm({ deviceId, jobIdCallback }) {
         hostname,
         deviceType,
         jobIdCallback,
+        token,
         mlagPeerHostname,
         mlagPeerId,
-        token,
       );
     } else {
       submitInitJob(deviceId, hostname, deviceType, jobIdCallback, token);
