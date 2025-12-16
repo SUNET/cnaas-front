@@ -1,9 +1,9 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { Select, Input } from "semantic-ui-react";
-import checkResponseStatus from "../../utils/checkResponseStatus";
 import { getData } from "../../utils/getData";
 import DeviceInitcheckModal from "./DeviceInitcheckModal";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
 
 async function submitInitJob(
   device_id,
@@ -12,9 +12,9 @@ async function submitInitJob(
   jobIdCallback,
   mlag_peer_hostname = null,
   mlag_peer_id = null,
+  token,
 ) {
   console.log("Starting device init");
-  const credentials = localStorage.getItem("token");
   const url = `${process.env.API_URL}/api/v1.0/device_init/${device_id}`;
   const dataToSend = {
     hostname,
@@ -26,21 +26,11 @@ async function submitInitJob(
   }
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${credentials}`,
-      },
-      body: JSON.stringify(dataToSend),
-    });
-    const checkedResponse = await checkResponseStatus(response);
-    const data = await checkedResponse.json();
-    console.log("device_init response data", data);
-    if (data.job_id !== undefined && typeof data.job_id === "number") {
-      jobIdCallback(device_id, data.job_id);
+    const response = await postData(url, token, dataToSend);
+    if (response.job_id !== undefined && typeof response.job_id === "number") {
+      jobIdCallback(device_id, response.job_id);
     } else {
-      console.log("error when submitting device_init job", data.job_id);
+      console.log("error when submitting device_init job", response.job_id);
     }
   } catch (error) {
     console.error("Error submitting device init job:", error);
@@ -57,6 +47,7 @@ function DeviceInitForm({ deviceId, jobIdCallback }) {
   const [mlagPeerHostname, setMlagPeerHostname] = useState(null);
   const [mlagPeerId, setMlagPeerId] = useState(null);
   const [mlagPeerCandidates, setMlagPeerCandidates] = useState([]);
+  const { token } = useAuthToken();
 
   const updateHostname = (e) => {
     setHostname(e.target.value);
@@ -67,11 +58,10 @@ function DeviceInitForm({ deviceId, jobIdCallback }) {
   };
 
   const getMlagPeerCandidates = async () => {
-    const credentials = localStorage.getItem("token");
     try {
       const data = await getData(
         `${process.env.API_URL}/api/v1.0/devices?filter[state]=DISCOVERED&per_page=100`,
-        credentials,
+        token,
       );
       console.log("this should be mlag peer candidate data", data);
       const candidates = data.data.devices
@@ -118,9 +108,10 @@ function DeviceInitForm({ deviceId, jobIdCallback }) {
         jobIdCallback,
         mlagPeerHostname,
         mlagPeerId,
+        token,
       );
     } else {
-      submitInitJob(deviceId, hostname, deviceType, jobIdCallback);
+      submitInitJob(deviceId, hostname, deviceType, jobIdCallback, token);
     }
   };
 

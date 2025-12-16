@@ -2,7 +2,8 @@ import { Button, Icon, Modal, Accordion } from "semantic-ui-react";
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-import checkJsonResponse from "../../utils/checkJsonResponse";
+import { postData } from "../../utils/sendData";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
 
 function DeviceInitcheckModal({
   submitDisabled,
@@ -18,6 +19,7 @@ function DeviceInitcheckModal({
   const [initcheckOutput, setInitcheckOutput] = useState(null);
   const [accordionActiveIndex, setAccordionActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const { token } = useAuthToken();
 
   useEffect(() => {
     if (isOpen && initcheckOutput === null) {
@@ -35,7 +37,6 @@ function DeviceInitcheckModal({
   };
 
   async function initCheck() {
-    const credentials = localStorage.getItem("token");
     const url = `${process.env.API_URL}/api/v1.0/device_initcheck/${deviceId}`;
     const dataToSend = {
       hostname,
@@ -47,16 +48,8 @@ function DeviceInitcheckModal({
     }
 
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${credentials}`,
-        },
-        body: JSON.stringify(dataToSend),
-      });
-      const checkedResponse = await checkJsonResponse(response);
-      setInitcheckOutput(checkedResponse.data);
+      const response = await postData(url, token, dataToSend);
+      setInitcheckOutput(response.data);
     } catch (error) {
       setInitcheckOutput(error.message);
     }
@@ -146,7 +139,6 @@ function DeviceInitcheckModal({
   return (
     <Modal
       onClose={() => setIsOpen(false)}
-      // onOpen={() => this.setState({ modal_open: true })}
       open={isOpen}
       trigger={
         <Button

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Select, Loader } from "semantic-ui-react";
-import checkResponseStatus from "../../utils/checkResponseStatus";
 import { getData } from "../../utils/getData";
 import DeviceInitcheckModal from "./DeviceInitcheckModal";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { postData } from "../../utils/sendData";
 
 async function submitInitJob(
   token,
@@ -22,21 +22,12 @@ async function submitInitJob(
   };
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataToSend),
-    });
-    const checkedResponse = await checkResponseStatus(response);
-    const data = await checkedResponse.json();
-    if (data.job_id !== undefined && typeof data.job_id === "number") {
-      jobIdCallback(device_id, data.job_id);
-      jobIdCallback(candidate_device_id, data.job_id);
+    const response = await postData(url, token, dataToSend);
+    if (response.job_id !== undefined && typeof response.job_id === "number") {
+      jobIdCallback(device_id, response.job_id);
+      jobIdCallback(candidate_device_id, response.job_id);
     } else {
-      console.log("error when submitting device_init job", data.job_id);
+      console.log("error when submitting device_init job", response.job_id);
     }
   } catch (error) {
     console.error("Error submitting device init job:", error);

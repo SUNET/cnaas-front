@@ -861,13 +861,19 @@ function DeviceList() {
             handleShowConfigModalOpen(device.hostname, device.state)
           }
         />,
-        <Dropdown.Item
-          key="replacedevice"
-          text="Replace device..."
-          onClick={() =>
-            handleDeviceStateModalOpen(device.hostname, device.id, "UNMANAGED")
-          }
-        />,
+        device.device_type === "ACCESS" && (
+          <Dropdown.Item
+            key="replacedevice"
+            text="Replace device..."
+            onClick={() =>
+              handleDeviceStateModalOpen(
+                device.hostname,
+                device.id,
+                "UNMANAGED",
+              )
+            }
+          />
+        ),
         <Dropdown.Item
           key="delete"
           text="Delete device..."
@@ -914,11 +920,15 @@ function DeviceList() {
             handleShowConfigModalOpen(device.hostname, device.state)
           }
         />,
-        <Dropdown.Item
-          key="replacedevice"
-          text="Replace device..."
-          onClick={() => changeStateLocally(device.id, "UNMANAGED (Replacing)")}
-        />,
+        device.device_type === "ACCESS" && (
+          <Dropdown.Item
+            key="replacedevice"
+            text="Replace device..."
+            onClick={() =>
+              changeStateLocally(device.id, "UNMANAGED (Replacing)")
+            }
+          />
+        ),
         <Dropdown.Item
           key="delete"
           text="Delete device..."
