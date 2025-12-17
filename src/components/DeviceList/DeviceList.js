@@ -220,10 +220,12 @@ function DeviceList() {
     });
   };
 
-  const findAction = (event, filterData, toast) => {
+  const findAction = (filterData, toast) => {
     if (toast) {
       // close toast
-      event.target.parentElement.parentElement.parentElement.parentElement.remove();
+      document
+        .querySelectorAll(".ui.floating.message")
+        .forEach((el) => el.remove());
     }
     handleFilterChange(filterData);
     setFilterActive(Object.keys(filterData).length > 0);
@@ -552,7 +554,7 @@ function DeviceList() {
             compact
             icon="exchange"
             key={intf.name}
-            onClick={(e) => findAction(e, { id: intf.data.neighbor_id }, false)}
+            onClick={() => findAction({ id: intf.data.neighbor_id }, false)}
             title="Go to MLAG peer device"
             content={`${intf.name}: MLAG peer`}
           />
