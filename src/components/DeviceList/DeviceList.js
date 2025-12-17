@@ -21,13 +21,14 @@ import { deleteData, postData, putData } from "../../utils/sendData";
 import AddMgmtDomainModal from "./AddMgmtDomainModal";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
-import ShowConfigModal from "./ShowConfigModal";
+import { ShowConfigModal } from "./actionModals/ShowConfigModal";
 import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
 import DeviceReplaceForm from "./DeviceReplaceForm";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
 import { getMenuActionsConfig } from "./utils";
+import { HostnameModal } from "./actionModals/HostnameModal";
 
 let socket = null;
 
@@ -159,9 +160,19 @@ function DeviceList() {
   const [mgmtUpdateModalOpen, setMgmtUpdateModalOpen] = useState(false);
   const [mgmtUpdateModalInput, setMgmtUpdateModalInput] = useState({});
   const [mgmtAddModalInput, setMgmtAddModalInput] = useState({});
-  const [showConfigModalOpen, setShowConfigModalOpen] = useState(false);
-  const [showConfigModalHostname, setShowConfigModalHostname] = useState(null);
-  const [showConfigModalState, setShowConfigModalState] = useState(null);
+
+  const [showConfigModalConf, setShowConfigModalConf] = useState({
+    isOpen: false,
+    hostname: null,
+    state: null,
+  });
+
+  const [changeHostnameModalConf, setChangeHostnameModalConf] = useState({
+    isOpen: false,
+    deviceId: null,
+    hostname: null,
+  });
+
   const [discoveredDeviceIds, setDiscoveredDeviceIds] = useState(new Set());
   const history = useHistory();
 
@@ -423,15 +434,33 @@ function DeviceList() {
   };
 
   const handleShowConfigModalOpen = (hostname, state) => {
-    setShowConfigModalOpen(true);
-    setShowConfigModalHostname(hostname);
-    setShowConfigModalState(state);
+    setShowConfigModalConf({
+      isOpen: true,
+      hostname,
+      state,
+    });
   };
 
   const handleShowConfigModalClose = () => {
-    setShowConfigModalOpen(false);
-    setShowConfigModalHostname(null);
-    setShowConfigModalState(null);
+    setShowConfigModalConf({
+      isOpen: false,
+      hostname: null,
+      state: null,
+    });
+  };
+
+  const handleShowHostnameModalOpen = async (deviceId, hostname) => {
+    setChangeHostnameModalConf({
+      isOpen: true,
+      deviceId,
+      hostname,
+    });
+  };
+
+  const handleShowHostnameModalClose = async () => {
+    setChangeHostnameModalConf({
+      isOpen: false,
+    });
   };
 
   const getModel = (hostname) => {
@@ -739,10 +768,10 @@ function DeviceList() {
       });
   };
 
-  const changeStateAction = async (device_id, state) => {
-    console.log(`Change state for device_id: ${device_id}`);
+  const changeStateAction = async (deviceId, state) => {
+    console.log(`Change state for device_id: ${deviceId}`);
 
-    const url = `${process.env.API_URL}/api/v1.0/device/${device_id}`;
+    const url = `${process.env.API_URL}/api/v1.0/device/${deviceId}`;
     const dataToSend = {
       state,
       synchronized: false,
@@ -919,15 +948,16 @@ function DeviceList() {
 
   const createMenuActionsForDevice = (device) => {
     const handlers = {
-      handleDeleteModalOpen,
-      syncDeviceAction,
-      upgradeDeviceAction,
-      updateFactsAction,
       changeStateAction,
-      handleShowConfigModalOpen,
-      handleDeviceStateModalOpen,
       changeStateLocally,
       configurePortsAction,
+      handleDeleteModalOpen,
+      handleDeviceStateModalOpen,
+      handleShowConfigModalOpen,
+      handleShowHostnameModal: handleShowHostnameModalOpen,
+      syncDeviceAction,
+      updateFactsAction,
+      upgradeDeviceAction,
     };
 
     const actionsConfig = getMenuActionsConfig(device, handlers);
@@ -1227,11 +1257,17 @@ function DeviceList() {
         onDelete={(v) => handleDeleteMgmtDomain(v)}
         onUpdate={(v) => handleUpdateMgmtDomains(v)}
       />
+      <HostnameModal
+        hostname={changeHostnameModalConf.hostname}
+        deviceId={changeHostnameModalConf.deviceId}
+        isOpen={changeHostnameModalConf.isOpen}
+        closeAction={handleShowHostnameModalClose}
+      />
       <ShowConfigModal
-        hostname={showConfigModalHostname}
-        state={showConfigModalState}
-        isOpen={showConfigModalOpen}
-        closeAction={() => handleShowConfigModalClose()}
+        hostname={showConfigModalConf.hostname}
+        state={showConfigModalConf.state}
+        isOpen={showConfigModalConf.isOpen}
+        closeAction={handleShowConfigModalClose}
       />
       <Table sortable celled striped>
         <DeviceTableHeader

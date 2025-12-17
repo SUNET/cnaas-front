@@ -16,6 +16,12 @@ export const getMenuActionsConfig = (device, handlers) => {
           device.device_type,
         ),
     },
+    changeHostname: {
+      key: "changehostname",
+      text: "Change hostname...",
+      onClick: () =>
+        handlers.handleShowHostnameModal(device.id, device.hostname),
+    },
     sync: {
       key: "sync",
       text: "Sync device...",
@@ -82,7 +88,7 @@ export const getMenuActionsConfig = (device, handlers) => {
   }
 
   const menuByState = {
-    DHCP_BOOT: [deviceActions.delete],
+    DHCP_BOOT: [deviceActions.delete, deviceActions.changeHostname],
     DISCOVERED: [deviceActions.delete],
     MANAGED: [
       deviceActions.sync,
@@ -90,6 +96,7 @@ export const getMenuActionsConfig = (device, handlers) => {
       deviceActions.updateFacts,
       deviceActions.makeUnmanaged,
       deviceActions.showConfig,
+      deviceActions.changeHostname,
       deviceActions.replaceDevice,
       deviceActions.delete,
       deviceActions.configurePorts,
@@ -98,6 +105,7 @@ export const getMenuActionsConfig = (device, handlers) => {
       deviceActions.updateFacts,
       deviceActions.makeManaged,
       deviceActions.showConfig,
+      deviceActions.changeHostname,
       deviceActions.replaceDeviceUnmanged,
       deviceActions.delete,
     ],
