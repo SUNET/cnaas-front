@@ -20,9 +20,16 @@ import {
   DropdownItem,
 } from "semantic-ui-react";
 import PropTypes from "prop-types";
-import { getData } from "../../utils/getData";
+import { getData } from "../../../utils/getData";
 
-function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
+ShowConfigModal.propTypes = {
+  hostname: PropTypes.string,
+  state: PropTypes.string,
+  isOpen: PropTypes.bool.isRequired,
+  closeAction: PropTypes.func.isRequired,
+};
+
+export function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
   const [runningConfig, setRunningConfig] = useState({ config: "" });
   const [generatedConfig, setGeneratedConfig] = useState({
     generated_config: "",
@@ -331,16 +338,7 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
   );
 }
 
-ShowConfigModal.propTypes = {
-  hostname: PropTypes.string,
-  state: PropTypes.string,
-  isOpen: PropTypes.bool.isRequired,
-  closeAction: PropTypes.func.isRequired,
-};
-
 ShowConfigModal.defaultProps = {
   hostname: null,
   state: "MANAGED",
 };
-
-export default ShowConfigModal;
