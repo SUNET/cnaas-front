@@ -27,6 +27,7 @@ import DeviceReplaceForm from "./DeviceReplaceForm";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
+import { getMenuActionsConfig } from "./utils";
 
 let socket = null;
 
@@ -796,169 +797,6 @@ function DeviceList() {
     return mgmtip;
   };
 
-  const createMenuActionsForDevice = (device) => {
-    let menuActions = [
-      <Dropdown.Item
-        key="noaction"
-        text="No actions allowed in this state"
-        disabled
-      />,
-    ];
-    if (device.state == "DHCP_BOOT") {
-      menuActions = [
-        <Dropdown.Item
-          key="delete"
-          text="Delete device..."
-          onClick={() =>
-            handleDeleteModalOpen(
-              device.id,
-              device.hostname,
-              device.state,
-              device.device_type,
-            )
-          }
-        />,
-      ];
-    } else if (device.state == "DISCOVERED") {
-      menuActions = [
-        <Dropdown.Item
-          key="delete"
-          text="Delete device..."
-          onClick={() =>
-            handleDeleteModalOpen(
-              device.id,
-              device.hostname,
-              device.state,
-              device.device_type,
-            )
-          }
-        />,
-      ];
-    } else if (device.state == "MANAGED") {
-      menuActions = [
-        <Dropdown.Item
-          key="sync"
-          text="Sync device..."
-          onClick={() => syncDeviceAction(device.hostname)}
-        />,
-        <Dropdown.Item
-          key="fwupgrade"
-          text="Firmware upgrade..."
-          onClick={() => upgradeDeviceAction(device.hostname)}
-        />,
-        <Dropdown.Item
-          key="facts"
-          text="Update facts"
-          onClick={() => updateFactsAction(device.hostname, device.id)}
-        />,
-        <Dropdown.Item
-          key="makeunmanaged"
-          text="Make unmanaged"
-          onClick={() => changeStateAction(device.id, "UNMANAGED")}
-        />,
-        <Dropdown.Item
-          key="showconfig"
-          text="Show configuration"
-          onClick={() =>
-            handleShowConfigModalOpen(device.hostname, device.state)
-          }
-        />,
-        device.device_type === "ACCESS" && (
-          <Dropdown.Item
-            key="replacedevice"
-            text="Replace device..."
-            onClick={() =>
-              handleDeviceStateModalOpen(
-                device.hostname,
-                device.id,
-                "UNMANAGED",
-              )
-            }
-          />
-        ),
-        <Dropdown.Item
-          key="delete"
-          text="Delete device..."
-          onClick={() =>
-            handleDeleteModalOpen(
-              device.id,
-              device.hostname,
-              device.state,
-              device.device_type,
-            )
-          }
-        />,
-      ];
-      if (
-        device.device_type === "ACCESS" ||
-        (device.device_type === "DIST" &&
-          localStorage.getItem("distPortConfig") &&
-          JSON.parse(localStorage.getItem("distPortConfig")) === true)
-      ) {
-        menuActions.push(
-          <Dropdown.Item
-            key="configports"
-            text="Configure ports"
-            onClick={() => configurePortsAction(device.hostname)}
-          />,
-        );
-      }
-    } else if (device.state.startsWith("UNMANAGED")) {
-      menuActions = [
-        <Dropdown.Item
-          key="facts"
-          text="Update facts"
-          onClick={() => updateFactsAction(device.hostname, device.id)}
-        />,
-        <Dropdown.Item
-          key="makemanaged"
-          text="Make managed"
-          onClick={() => changeStateAction(device.id, "MANAGED")}
-        />,
-        <Dropdown.Item
-          key="showconfig"
-          text="Show configuration"
-          onClick={() =>
-            handleShowConfigModalOpen(device.hostname, device.state)
-          }
-        />,
-        device.device_type === "ACCESS" && (
-          <Dropdown.Item
-            key="replacedevice"
-            text="Replace device..."
-            onClick={() =>
-              changeStateLocally(device.id, "UNMANAGED (Replacing)")
-            }
-          />
-        ),
-        <Dropdown.Item
-          key="delete"
-          text="Delete device..."
-          onClick={() =>
-            handleDeleteModalOpen(
-              device.id,
-              device.hostname,
-              device.state,
-              device.device_type,
-            )
-          }
-        />,
-      ];
-    }
-
-    if (device?.deleted === true) {
-      menuActions = [
-        <Dropdown.Item
-          key="noaction"
-          text="No actions allowed for deleted device"
-          disabled
-        />,
-      ];
-    }
-
-    return menuActions;
-  };
-
   const createDeviceButtonsExtraForDevice = (device) => {
     const deviceButtons = [];
 
@@ -1077,6 +915,31 @@ function DeviceList() {
         netboxDevice={netboxDevice}
       />
     );
+  };
+
+  const createMenuActionsForDevice = (device) => {
+    const handlers = {
+      handleDeleteModalOpen,
+      syncDeviceAction,
+      upgradeDeviceAction,
+      updateFactsAction,
+      changeStateAction,
+      handleShowConfigModalOpen,
+      handleDeviceStateModalOpen,
+      changeStateLocally,
+      configurePortsAction,
+    };
+
+    const actionsConfig = getMenuActionsConfig(device, handlers);
+
+    return actionsConfig.map((action) => (
+      <Dropdown.Item
+        key={action.key}
+        text={action.text}
+        onClick={action.onClick}
+        disabled={action.disabled}
+      />
+    ));
   };
 
   const columnSelectorChange = (column) => {
