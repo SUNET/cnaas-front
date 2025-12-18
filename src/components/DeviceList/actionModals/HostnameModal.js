@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Modal, Input, Loader, Icon } from "semantic-ui-react";
+import { Button, Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import { putData } from "../../../utils/sendData";
@@ -40,30 +40,44 @@ export function HostnameModal({ deviceId, hostname, isOpen, closeAction }) {
     setIsLoading(false);
   };
 
+  const handleClose = () => {
+    setNewHostname("");
+    setIsLoading(false);
+    setSuccess(false);
+    setError(false);
+    closeAction();
+  };
+
   return (
-    <Modal onClose={closeAction} open={isOpen}>
+    <Modal onClose={handleClose} open={isOpen}>
       <Modal.Header>Change hostname for {hostname}</Modal.Header>
       <Modal.Content>
         <Modal.Description>
-          Type the new hostname:{" "}
-          <Input
-            type="text"
-            placeholder="new hostname..."
-            onChange={(e) => setNewHostname(e.target.value)}
-            value={newHostname}
-            fluid
-          />
-          {isLoading && <Loader active inline />}
-          {!isLoading && <Loader active inline />}
-          {error && <p> {error} </p>}
-          <p>
-            {success && (
-              <>
-                <Icon name="check" color="green" />
-                <label>Hostname changed</label>
-              </>
-            )}
-          </p>
+          <Segment>
+            Type the new hostname:{" "}
+            <Input
+              type="text"
+              placeholder="new hostname..."
+              onChange={(e) => setNewHostname(e.target.value)}
+              value={newHostname}
+              fluid
+            />
+            {isLoading && <Loader className="modalloader" />}
+            <p>
+              {error && (
+                <>
+                  <Icon name="delete" color="red" />
+                  <label>{error}</label>
+                </>
+              )}
+              {success && (
+                <>
+                  <Icon name="check" color="green" />
+                  <label>Hostname changed</label>
+                </>
+              )}
+            </p>
+          </Segment>
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>
