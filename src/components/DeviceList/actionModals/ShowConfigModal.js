@@ -188,7 +188,7 @@ export function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
     }
     // if val starts with previous_, then we need to get the previous value
     if (val.startsWith("previous_")) {
-      const number = parseInt(val.replace("previous_", ""), 10);
+      const number = Number.parseInt(val.replace("previous_", ""), 10);
       getPreviousConfig(number);
     }
     if (val !== columnValues[colName]) {
@@ -221,7 +221,7 @@ export function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
       } else if (colValue === "generate_config") {
         config = generatedConfig.generated_config;
       } else if (colValue.startsWith("previous_")) {
-        const number = parseInt(colValue.replace("previous_", ""), 10);
+        const number = Number.parseInt(colValue.replace("previous_", ""), 10);
         config = previousConfig[number].config;
         jobId = previousConfig[number].job_id;
         headerText = `Previous ${number} job config`;

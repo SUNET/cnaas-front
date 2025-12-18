@@ -56,12 +56,13 @@ export function HostnameModal({ deviceId, hostname, isOpen, closeAction }) {
           {isLoading && <Loader active inline />}
           {!isLoading && <Loader active inline />}
           {error && <p> {error} </p>}
-          <p>{success && (
-            <>
-              <Icon name="check" color="green" />
-              <label>Hostname changed</label>
-            </>
-          )}
+          <p>
+            {success && (
+              <>
+                <Icon name="check" color="green" />
+                <label>Hostname changed</label>
+              </>
+            )}
           </p>
         </Modal.Description>
       </Modal.Content>
