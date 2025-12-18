@@ -10,6 +10,7 @@ import { NetboxDevice } from "./NetboxDevice";
 import { NewInterface } from "./NewInterface";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
+import { ImportInterfaceModal } from "./ImportInterfaceModal";
 import PropTypes from "prop-types";
 
 const io = require("socket.io-client");
@@ -100,6 +101,7 @@ export function InterfaceConfig({ history, location }) {
   const [netboxInterfaceData, setNetboxInterfaceData] = useState([]);
   const [portTemplateOptions, setPortTemplateOptions] = useState([]);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [tagOptions, setTagOptions] = useState([]);
   const [thirdPartyUpdate, setThirdPartyUpdate] = useState(false);
   const [untaggedVlanOptions, setUntaggedVlanOptions] = useState([]);
@@ -269,6 +271,7 @@ export function InterfaceConfig({ history, location }) {
       const vlanOptions = Object.entries(dataSettings.vxlans).map(
         ([, vxlan_data]) => {
           return {
+            key: vxlan_data.vni,
             value: vxlan_data.vlan_name,
             text: vxlan_data.vlan_name,
             description: vxlan_data.vlan_id,
@@ -839,6 +842,30 @@ export function InterfaceConfig({ history, location }) {
     localStorage.setItem("interfaceConfig", JSON.stringify(interfaceConfig));
   };
 
+  const exportInterfaceConfig = async (hostname) => {
+    try {
+      const response = await fetch(
+        `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces_export`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const blob = await response.blob();
+      const url = globalThis.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${hostname}_interfaces.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      globalThis.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
+  };
+
   const interfaceTable = interfaceData.map((item, index) => (
     <InterfaceTableRow
       key={item.name}
@@ -974,6 +1001,54 @@ export function InterfaceConfig({ history, location }) {
       )
     : [];
 
+  let tableLevelButtons = [];
+  if (deviceType === "ACCESS") {
+    tableLevelButtons = [
+      <Popup
+        on="hover"
+        position="bottom right"
+        key="export_interface_config"
+        trigger={
+          <Button
+            className="table_options_button"
+            icon
+            basic
+            size="small"
+            title="Export interface configuration"
+            onClick={() => {
+              exportInterfaceConfig(hostname.current);
+            }}
+          >
+            <Icon name="share square" />
+          </Button>
+        }
+      >
+        Export interface configuration as downloadable JSON file
+      </Popup>,
+      <Popup
+        on="hover"
+        position="bottom right"
+        key="import_interface_config"
+        trigger={
+          <Button
+            className="table_options_button"
+            icon
+            basic
+            size="small"
+            title="Import interface configuration"
+            onClick={() => {
+              setImportModalOpen(true);
+            }}
+          >
+            <Icon name="add square" />
+          </Button>
+        }
+      >
+        Import interface configuration from a JSON file
+      </Popup>,
+    ];
+  }
+
   return (
     <section>
       <SemanticToastContainer position="top-right" maxToasts={1} />
@@ -1013,6 +1088,7 @@ export function InterfaceConfig({ history, location }) {
         <div className="table_options">
           <Popup
             on="click"
+            key="select_columns"
             pinned
             position="bottom right"
             trigger={
@@ -1030,6 +1106,7 @@ export function InterfaceConfig({ history, location }) {
             <p>Show extra columns:</p>
             <ul>{columnSelectors}</ul>
           </Popup>
+          {tableLevelButtons}
         </div>
         <div id="data">
           <Table compact>
@@ -1121,6 +1198,13 @@ export function InterfaceConfig({ history, location }) {
               </Table.Row>
             </Table.Footer>
           </Table>
+          <ImportInterfaceModal
+            open={importModalOpen}
+            onClose={() => setImportModalOpen(false)}
+            hostname={hostname.current}
+            getInterfaceData={getInterfaceData}
+            history={history}
+          />
         </div>
       </div>
     </section>
