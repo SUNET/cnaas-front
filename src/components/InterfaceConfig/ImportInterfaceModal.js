@@ -15,28 +15,23 @@ export function ImportInterfaceModal({
   const [errorMessage, setErrorMessage] = useState(null);
   const { token } = useAuthToken();
 
-  function handleUpload() {
+  async function handleUpload() {
     const fileInput = document.getElementById("import-file");
     const file = fileInput.files[0];
-    const reader = new FileReader();
 
-    reader.onload = function (e) {
-      const content = e.target.result;
-      try {
-        const jsonData = JSON.parse(content);
-        console.log("Imported JSON data:", jsonData);
-        if (!jsonData.interfaces) {
-          throw new Error("Invalid format: 'interfaces' key not found");
-        }
-        setFileContent(jsonData);
-        setErrorMessage(null);
-      } catch (error) {
-        setErrorMessage(`Error parsing JSON: ${error.message}`);
-        setFileContent(null);
+    try {
+      const content = await file.text();
+      const jsonData = JSON.parse(content);
+      console.log("Imported JSON data:", jsonData);
+      if (!jsonData.interfaces) {
+        throw new Error("Invalid format: 'interfaces' key not found");
       }
-    };
-
-    reader.readAsText(file);
+      setFileContent(jsonData);
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(`Error parsing JSON: ${error.message}`);
+      setFileContent(null);
+    }
   }
 
   const sendInterfaceData = async () => {

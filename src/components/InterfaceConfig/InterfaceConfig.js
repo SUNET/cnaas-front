@@ -853,14 +853,14 @@ export function InterfaceConfig({ history, location }) {
         },
       );
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const url = globalThis.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.download = `${hostname}_interfaces.json`;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      link.remove();
+      globalThis.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Export failed:", error);
     }
