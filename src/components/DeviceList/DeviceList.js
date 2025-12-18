@@ -601,9 +601,7 @@ function DeviceList() {
             compact
             icon="arrow up"
             key={intf.name}
-            onClick={(e) =>
-              findAction(e, { hostname: intf.data.neighbor }, false)
-            }
+            onClick={() => findAction({ hostname: intf.data.neighbor }, false)}
             title="Go to uplink device"
             content={`${intf.name}: Uplink to ${intf.data.neighbor}`}
           />
@@ -1021,9 +1019,7 @@ function DeviceList() {
                     <Button
                       basic
                       compact
-                      onClick={(e) =>
-                        findAction(e, { id: data.device_id }, true)
-                      }
+                      onClick={() => findAction({ id: data.device_id }, true)}
                     >
                       Go to device
                     </Button>
@@ -1072,7 +1068,7 @@ function DeviceList() {
                   <Button
                     basic
                     compact
-                    onClick={(e) => findAction(e, { id: data.device_id }, true)}
+                    onClick={() => findAction({ id: data.device_id }, true)}
                   >
                     Go to device
                   </Button>
