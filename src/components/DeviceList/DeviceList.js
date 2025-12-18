@@ -21,12 +21,14 @@ import { deleteData, postData, putData } from "../../utils/sendData";
 import AddMgmtDomainModal from "./AddMgmtDomainModal";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
-import ShowConfigModal from "./ShowConfigModal";
+import { ShowConfigModal } from "./actionModals/ShowConfigModal";
 import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
 import DeviceReplaceForm from "./DeviceReplaceForm";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
+import { getMenuActionsConfig } from "./utils";
+import { HostnameModal } from "./actionModals/HostnameModal";
 
 let socket = null;
 
@@ -158,9 +160,19 @@ function DeviceList() {
   const [mgmtUpdateModalOpen, setMgmtUpdateModalOpen] = useState(false);
   const [mgmtUpdateModalInput, setMgmtUpdateModalInput] = useState({});
   const [mgmtAddModalInput, setMgmtAddModalInput] = useState({});
-  const [showConfigModalOpen, setShowConfigModalOpen] = useState(false);
-  const [showConfigModalHostname, setShowConfigModalHostname] = useState(null);
-  const [showConfigModalState, setShowConfigModalState] = useState(null);
+
+  const [showConfigModalConf, setShowConfigModalConf] = useState({
+    isOpen: false,
+    hostname: null,
+    state: null,
+  });
+
+  const [changeHostnameModalConf, setChangeHostnameModalConf] = useState({
+    isOpen: false,
+    deviceId: null,
+    hostname: null,
+  });
+
   const [discoveredDeviceIds, setDiscoveredDeviceIds] = useState(new Set());
   const history = useHistory();
 
@@ -220,10 +232,12 @@ function DeviceList() {
     });
   };
 
-  const findAction = (event, filterData, toast) => {
+  const findAction = (filterData, toast) => {
     if (toast) {
       // close toast
-      event.target.parentElement.parentElement.parentElement.parentElement.remove();
+      document
+        .querySelectorAll(".ui.floating.message")
+        .forEach((el) => el.remove());
     }
     handleFilterChange(filterData);
     setFilterActive(Object.keys(filterData).length > 0);
@@ -420,15 +434,33 @@ function DeviceList() {
   };
 
   const handleShowConfigModalOpen = (hostname, state) => {
-    setShowConfigModalOpen(true);
-    setShowConfigModalHostname(hostname);
-    setShowConfigModalState(state);
+    setShowConfigModalConf({
+      isOpen: true,
+      hostname,
+      state,
+    });
   };
 
   const handleShowConfigModalClose = () => {
-    setShowConfigModalOpen(false);
-    setShowConfigModalHostname(null);
-    setShowConfigModalState(null);
+    setShowConfigModalConf({
+      isOpen: false,
+      hostname: null,
+      state: null,
+    });
+  };
+
+  const handleHostnameModalOpen = async (deviceId, hostname) => {
+    setChangeHostnameModalConf({
+      isOpen: true,
+      deviceId,
+      hostname,
+    });
+  };
+
+  const handleHostnameModalClose = async () => {
+    setChangeHostnameModalConf({
+      isOpen: false,
+    });
   };
 
   const getModel = (hostname) => {
@@ -552,7 +584,7 @@ function DeviceList() {
             compact
             icon="exchange"
             key={intf.name}
-            onClick={(e) => findAction(e, { id: intf.data.neighbor_id }, false)}
+            onClick={() => findAction({ id: intf.data.neighbor_id }, false)}
             title="Go to MLAG peer device"
             content={`${intf.name}: MLAG peer`}
           />
@@ -569,9 +601,7 @@ function DeviceList() {
             compact
             icon="arrow up"
             key={intf.name}
-            onClick={(e) =>
-              findAction(e, { hostname: intf.data.neighbor }, false)
-            }
+            onClick={() => findAction({ hostname: intf.data.neighbor }, false)}
             title="Go to uplink device"
             content={`${intf.name}: Uplink to ${intf.data.neighbor}`}
           />
@@ -736,10 +766,10 @@ function DeviceList() {
       });
   };
 
-  const changeStateAction = async (device_id, state) => {
-    console.log(`Change state for device_id: ${device_id}`);
+  const changeStateAction = async (deviceId, state) => {
+    console.log(`Change state for device_id: ${deviceId}`);
 
-    const url = `${process.env.API_URL}/api/v1.0/device/${device_id}`;
+    const url = `${process.env.API_URL}/api/v1.0/device/${deviceId}`;
     const dataToSend = {
       state,
       synchronized: false,
@@ -792,169 +822,6 @@ function DeviceList() {
     );
 
     return mgmtip;
-  };
-
-  const createMenuActionsForDevice = (device) => {
-    let menuActions = [
-      <Dropdown.Item
-        key="noaction"
-        text="No actions allowed in this state"
-        disabled
-      />,
-    ];
-    if (device.state == "DHCP_BOOT") {
-      menuActions = [
-        <Dropdown.Item
-          key="delete"
-          text="Delete device..."
-          onClick={() =>
-            handleDeleteModalOpen(
-              device.id,
-              device.hostname,
-              device.state,
-              device.device_type,
-            )
-          }
-        />,
-      ];
-    } else if (device.state == "DISCOVERED") {
-      menuActions = [
-        <Dropdown.Item
-          key="delete"
-          text="Delete device..."
-          onClick={() =>
-            handleDeleteModalOpen(
-              device.id,
-              device.hostname,
-              device.state,
-              device.device_type,
-            )
-          }
-        />,
-      ];
-    } else if (device.state == "MANAGED") {
-      menuActions = [
-        <Dropdown.Item
-          key="sync"
-          text="Sync device..."
-          onClick={() => syncDeviceAction(device.hostname)}
-        />,
-        <Dropdown.Item
-          key="fwupgrade"
-          text="Firmware upgrade..."
-          onClick={() => upgradeDeviceAction(device.hostname)}
-        />,
-        <Dropdown.Item
-          key="facts"
-          text="Update facts"
-          onClick={() => updateFactsAction(device.hostname, device.id)}
-        />,
-        <Dropdown.Item
-          key="makeunmanaged"
-          text="Make unmanaged"
-          onClick={() => changeStateAction(device.id, "UNMANAGED")}
-        />,
-        <Dropdown.Item
-          key="showconfig"
-          text="Show configuration"
-          onClick={() =>
-            handleShowConfigModalOpen(device.hostname, device.state)
-          }
-        />,
-        device.device_type === "ACCESS" && (
-          <Dropdown.Item
-            key="replacedevice"
-            text="Replace device..."
-            onClick={() =>
-              handleDeviceStateModalOpen(
-                device.hostname,
-                device.id,
-                "UNMANAGED",
-              )
-            }
-          />
-        ),
-        <Dropdown.Item
-          key="delete"
-          text="Delete device..."
-          onClick={() =>
-            handleDeleteModalOpen(
-              device.id,
-              device.hostname,
-              device.state,
-              device.device_type,
-            )
-          }
-        />,
-      ];
-      if (
-        device.device_type === "ACCESS" ||
-        (device.device_type === "DIST" &&
-          localStorage.getItem("distPortConfig") &&
-          JSON.parse(localStorage.getItem("distPortConfig")) === true)
-      ) {
-        menuActions.push(
-          <Dropdown.Item
-            key="configports"
-            text="Configure ports"
-            onClick={() => configurePortsAction(device.hostname)}
-          />,
-        );
-      }
-    } else if (device.state.startsWith("UNMANAGED")) {
-      menuActions = [
-        <Dropdown.Item
-          key="facts"
-          text="Update facts"
-          onClick={() => updateFactsAction(device.hostname, device.id)}
-        />,
-        <Dropdown.Item
-          key="makemanaged"
-          text="Make managed"
-          onClick={() => changeStateAction(device.id, "MANAGED")}
-        />,
-        <Dropdown.Item
-          key="showconfig"
-          text="Show configuration"
-          onClick={() =>
-            handleShowConfigModalOpen(device.hostname, device.state)
-          }
-        />,
-        device.device_type === "ACCESS" && (
-          <Dropdown.Item
-            key="replacedevice"
-            text="Replace device..."
-            onClick={() =>
-              changeStateLocally(device.id, "UNMANAGED (Replacing)")
-            }
-          />
-        ),
-        <Dropdown.Item
-          key="delete"
-          text="Delete device..."
-          onClick={() =>
-            handleDeleteModalOpen(
-              device.id,
-              device.hostname,
-              device.state,
-              device.device_type,
-            )
-          }
-        />,
-      ];
-    }
-
-    if (device?.deleted === true) {
-      menuActions = [
-        <Dropdown.Item
-          key="noaction"
-          text="No actions allowed for deleted device"
-          disabled
-        />,
-      ];
-    }
-
-    return menuActions;
   };
 
   const createDeviceButtonsExtraForDevice = (device) => {
@@ -1077,6 +944,32 @@ function DeviceList() {
     );
   };
 
+  const createMenuActionsForDevice = (device) => {
+    const handlers = {
+      changeStateAction,
+      changeStateLocally,
+      configurePortsAction,
+      handleDeleteModalOpen,
+      handleDeviceStateModalOpen,
+      handleShowConfigModalOpen,
+      handleShowHostnameModal: handleHostnameModalOpen,
+      syncDeviceAction,
+      updateFactsAction,
+      upgradeDeviceAction,
+    };
+
+    const actionsConfig = getMenuActionsConfig(device, handlers);
+
+    return actionsConfig.map((action) => (
+      <Dropdown.Item
+        key={action.key}
+        text={action.text}
+        onClick={action.onClick}
+        disabled={action.disabled}
+      />
+    ));
+  };
+
   const columnSelectorChange = (column) => {
     setActiveColumns((prev) => {
       const newColumns = prev.includes(column)
@@ -1126,9 +1019,7 @@ function DeviceList() {
                     <Button
                       basic
                       compact
-                      onClick={(e) =>
-                        findAction(e, { id: data.device_id }, true)
-                      }
+                      onClick={() => findAction({ id: data.device_id }, true)}
                     >
                       Go to device
                     </Button>
@@ -1177,7 +1068,7 @@ function DeviceList() {
                   <Button
                     basic
                     compact
-                    onClick={(e) => findAction(e, { id: data.device_id }, true)}
+                    onClick={() => findAction({ id: data.device_id }, true)}
                   >
                     Go to device
                   </Button>
@@ -1362,11 +1253,17 @@ function DeviceList() {
         onDelete={(v) => handleDeleteMgmtDomain(v)}
         onUpdate={(v) => handleUpdateMgmtDomains(v)}
       />
+      <HostnameModal
+        hostname={changeHostnameModalConf.hostname}
+        deviceId={changeHostnameModalConf.deviceId}
+        isOpen={changeHostnameModalConf.isOpen}
+        closeAction={handleHostnameModalClose}
+      />
       <ShowConfigModal
-        hostname={showConfigModalHostname}
-        state={showConfigModalState}
-        isOpen={showConfigModalOpen}
-        closeAction={() => handleShowConfigModalClose()}
+        hostname={showConfigModalConf.hostname}
+        state={showConfigModalConf.state}
+        isOpen={showConfigModalConf.isOpen}
+        closeAction={handleShowConfigModalClose}
       />
       <Table sortable celled striped>
         <DeviceTableHeader

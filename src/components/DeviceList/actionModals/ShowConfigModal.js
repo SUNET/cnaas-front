@@ -20,9 +20,16 @@ import {
   DropdownItem,
 } from "semantic-ui-react";
 import PropTypes from "prop-types";
-import { getData } from "../../utils/getData";
+import { getData } from "../../../utils/getData";
 
-function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
+ShowConfigModal.propTypes = {
+  hostname: PropTypes.string,
+  state: PropTypes.string,
+  isOpen: PropTypes.bool.isRequired,
+  closeAction: PropTypes.func.isRequired,
+};
+
+export function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
   const [runningConfig, setRunningConfig] = useState({ config: "" });
   const [generatedConfig, setGeneratedConfig] = useState({
     generated_config: "",
@@ -181,7 +188,7 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
     }
     // if val starts with previous_, then we need to get the previous value
     if (val.startsWith("previous_")) {
-      const number = parseInt(val.replace("previous_", ""), 10);
+      const number = Number.parseInt(val.replace("previous_", ""), 10);
       getPreviousConfig(number);
     }
     if (val !== columnValues[colName]) {
@@ -214,7 +221,7 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
       } else if (colValue === "generate_config") {
         config = generatedConfig.generated_config;
       } else if (colValue.startsWith("previous_")) {
-        const number = parseInt(colValue.replace("previous_", ""), 10);
+        const number = Number.parseInt(colValue.replace("previous_", ""), 10);
         config = previousConfig[number].config;
         jobId = previousConfig[number].job_id;
         headerText = `Previous ${number} job config`;
@@ -331,16 +338,7 @@ function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
   );
 }
 
-ShowConfigModal.propTypes = {
-  hostname: PropTypes.string,
-  state: PropTypes.string,
-  isOpen: PropTypes.bool.isRequired,
-  closeAction: PropTypes.func.isRequired,
-};
-
 ShowConfigModal.defaultProps = {
   hostname: null,
   state: "MANAGED",
 };
-
-export default ShowConfigModal;
