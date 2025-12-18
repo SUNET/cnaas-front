@@ -449,7 +449,7 @@ function DeviceList() {
     });
   };
 
-  const handleShowHostnameModalOpen = async (deviceId, hostname) => {
+  const handleHostnameModalOpen = async (deviceId, hostname) => {
     setChangeHostnameModalConf({
       isOpen: true,
       deviceId,
@@ -457,7 +457,7 @@ function DeviceList() {
     });
   };
 
-  const handleShowHostnameModalClose = async () => {
+  const handleHostnameModalClose = async () => {
     setChangeHostnameModalConf({
       isOpen: false,
     });
@@ -952,7 +952,7 @@ function DeviceList() {
       handleDeleteModalOpen,
       handleDeviceStateModalOpen,
       handleShowConfigModalOpen,
-      handleShowHostnameModal: handleShowHostnameModalOpen,
+      handleShowHostnameModal: handleHostnameModalOpen,
       syncDeviceAction,
       updateFactsAction,
       upgradeDeviceAction,
@@ -1257,7 +1257,7 @@ function DeviceList() {
         hostname={changeHostnameModalConf.hostname}
         deviceId={changeHostnameModalConf.deviceId}
         isOpen={changeHostnameModalConf.isOpen}
-        closeAction={handleShowHostnameModalClose}
+        closeAction={handleHostnameModalClose}
       />
       <ShowConfigModal
         hostname={showConfigModalConf.hostname}
