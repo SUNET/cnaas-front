@@ -271,6 +271,7 @@ export function InterfaceConfig({ history, location }) {
       const vlanOptions = Object.entries(dataSettings.vxlans).map(
         ([, vxlan_data]) => {
           return {
+            key: vxlan_data.vni,
             value: vxlan_data.vlan_name,
             text: vxlan_data.vlan_name,
             description: vxlan_data.vlan_id,
@@ -1000,6 +1001,54 @@ export function InterfaceConfig({ history, location }) {
       )
     : [];
 
+  let tableLevelButtons = [];
+  if (deviceType === "ACCESS") {
+    tableLevelButtons = [
+      <Popup
+        on="hover"
+        position="bottom right"
+        key="export_interface_config"
+        trigger={
+          <Button
+            className="table_options_button"
+            icon
+            basic
+            size="small"
+            title="Export interface configuration"
+            onClick={() => {
+              exportInterfaceConfig(hostname.current);
+            }}
+          >
+            <Icon name="share square" />
+          </Button>
+        }
+      >
+        Export interface configuration as downloadable JSON file
+      </Popup>,
+      <Popup
+        on="hover"
+        position="bottom right"
+        key="import_interface_config"
+        trigger={
+          <Button
+            className="table_options_button"
+            icon
+            basic
+            size="small"
+            title="Import interface configuration"
+            onClick={() => {
+              setImportModalOpen(true);
+            }}
+          >
+            <Icon name="add square" />
+          </Button>
+        }
+      >
+        Import interface configuration from a JSON file
+      </Popup>,
+    ];
+  }
+
   return (
     <section>
       <SemanticToastContainer position="top-right" maxToasts={1} />
@@ -1039,6 +1088,7 @@ export function InterfaceConfig({ history, location }) {
         <div className="table_options">
           <Popup
             on="click"
+            key="select_columns"
             pinned
             position="bottom right"
             trigger={
@@ -1056,46 +1106,7 @@ export function InterfaceConfig({ history, location }) {
             <p>Show extra columns:</p>
             <ul>{columnSelectors}</ul>
           </Popup>
-          <Popup
-            on="hover"
-            position="bottom right"
-            trigger={
-              <Button
-                className="table_options_button"
-                icon
-                basic
-                size="small"
-                title="Export interface configuration"
-                onClick={() => {
-                  exportInterfaceConfig(hostname.current);
-                }}
-              >
-                <Icon name="share square" />
-              </Button>
-            }
-          >
-            Export interface configuration as downloadable JSON file
-          </Popup>
-          <Popup
-            on="hover"
-            position="bottom right"
-            trigger={
-              <Button
-                className="table_options_button"
-                icon
-                basic
-                size="small"
-                title="Import interface configuration"
-                onClick={() => {
-                  setImportModalOpen(true);
-                }}
-              >
-                <Icon name="add square" />
-              </Button>
-            }
-          >
-            Import interface configuration from a JSON file
-          </Popup>
+          {tableLevelButtons}
         </div>
         <div id="data">
           <Table compact>
