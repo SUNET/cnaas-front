@@ -13,9 +13,9 @@ import {
   ModalDescription,
   ModalHeader,
 } from "semantic-ui-react";
-import { postData } from "../../utils/sendData";
+import { postData } from "../../../utils/sendData";
 
-function AddMgmtDomainModal({
+export function AddMgmtDomainModal({
   deviceA,
   deviceBCandidates,
   isOpen,
@@ -163,5 +163,3 @@ function AddMgmtDomainModal({
     </Modal>
   );
 }
-
-export default AddMgmtDomainModal;
