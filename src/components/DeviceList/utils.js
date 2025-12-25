@@ -8,13 +8,7 @@ export const getMenuActionsConfig = (device, handlers) => {
     delete: {
       key: "delete",
       text: "Delete device...",
-      onClick: () =>
-        handlers.handleDeleteModalOpen(
-          device.id,
-          device.hostname,
-          device.state,
-          device.device_type,
-        ),
+      onClick: () => handlers.handleDeleteModalOpen(device),
     },
     changeHostname: {
       key: "changehostname",

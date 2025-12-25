@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
-import AddMgmtDomainModal from "./AddMgmtDomainModal";
+import { AddMgmtDomainModal } from "./AddMgmtDomainModal";
 
 import { postData as mockPostData } from "../../utils/sendData";
 

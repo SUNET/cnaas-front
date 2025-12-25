@@ -4,12 +4,10 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import {
   Button,
-  Checkbox,
   Dropdown,
   Grid,
   GridColumn,
   GridRow,
-  Input,
   Modal,
   Pagination,
   Table,
@@ -17,8 +15,8 @@ import {
 import { io } from "socket.io-client";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { getData, getDataToken, getResponse } from "../../utils/getData";
-import { deleteData, postData, putData } from "../../utils/sendData";
-import AddMgmtDomainModal from "./AddMgmtDomainModal";
+import { postData, putData } from "../../utils/sendData";
+import { AddMgmtDomainModal } from "./actionModals/AddMgmtDomainModal";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
 import { ShowConfigModal } from "./actionModals/ShowConfigModal";
@@ -29,6 +27,7 @@ import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
 import { getMenuActionsConfig } from "./utils";
 import { HostnameModal } from "./actionModals/HostnameModal";
+import { DeleteModal } from "./actionModals/DeleteModal";
 
 let socket = null;
 
@@ -111,6 +110,12 @@ function DeviceList() {
 
   const [initialSettings] = useState(() => getInitialSettings());
 
+  const { token } = useAuthToken();
+
+  // Change to useSearchParams after updating react-router to v6
+  // https://reactrouter.com/api/hooks/useSearchParams
+  const searchParams = useQuery();
+
   const [activePage, setActivePage] = useState(initialSettings.activePage);
   const [activeColumns, setActiveColumns] = useState(
     initialSettings.activeColumns,
@@ -126,29 +131,22 @@ function DeviceList() {
   const [resultsPerPage, setResultsPerPage] = useState(
     initialSettings.resultsPerPage,
   );
-
   const [totalPages, setTotalPages] = useState(1);
   const [deviceData, setDeviceData] = useState([]);
+
   const [mgmtDomainsData, setMgmtDomainsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
   const [expandResult, setExpandResult] = useState(false);
-
   const [deviceInterfaceData, setDeviceInterfaceData] = useState({});
   const [netboxModelData, setNetboxModelData] = useState({});
   const [netboxDeviceData, setNetboxDeviceData] = useState({});
   const [deviceJobs, setDeviceJobs] = useState({});
   const [logLines, setLogLines] = useState([]);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deleteModalDeviceId, setDeleteModalDeviceId] = useState(null);
-  const [deleteModalDeviceState, setDeleteModalDeviceState] = useState(null);
-  const [deleteModalDeviceType, setDeleteModalDeviceType] = useState(null);
-  const [deleteModalDeviceHostname, setDeleteModalDeviceHostname] =
-    useState("");
-  const [deleteModalConfirmName, setDeleteModalConfirmName] = useState("");
-  const [deleteModalFactoryDefault, setDeleteModalFactoryDefault] =
-    useState(false);
-  const [deleteModalError, setDeleteModalError] = useState(null);
+  const [deleteModalConf, setDeleteModalConf] = useState({
+    device: null,
+    isOpen: false,
+  });
   const [deviceStateModalIsOpen, setDeviceStateModalIsOpen] = useState(false);
   const [deviceStateModalHostname, setDeviceStateModalHostname] =
     useState(null);
@@ -175,12 +173,6 @@ function DeviceList() {
 
   const [discoveredDeviceIds, setDiscoveredDeviceIds] = useState(new Set());
   const history = useHistory();
-
-  const { token } = useAuthToken();
-
-  // Change to useSearchParams after updating react-router to v6
-  // https://reactrouter.com/api/hooks/useSearchParams
-  const searchParams = useQuery();
 
   useEffect(() => {
     // Set filterData on searchParam change
@@ -685,28 +677,18 @@ function DeviceList() {
     }
   };
 
-  const deleteDeviceFactoryDefaultAction = (event, data) => {
-    setDeleteModalFactoryDefault(data.checked);
+  const handleDeleteModalOpen = (device) => {
+    setDeleteModalConf({
+      isOpen: true,
+      device,
+    });
   };
 
-  const handleDeleteModalOpen = (
-    device_id,
-    device_hostname,
-    device_state,
-    device_type,
-  ) => {
-    let factory_default = false;
-    if (device_state == "MANAGED" && device_type == "ACCESS") {
-      factory_default = true;
-    }
-
-    setDeleteModalOpen(true);
-    setDeleteModalDeviceId(device_id);
-    setDeleteModalDeviceHostname(device_hostname);
-    setDeleteModalDeviceState(device_state);
-    setDeleteModalDeviceType(device_type);
-    setDeleteModalConfirmName("");
-    setDeleteModalFactoryDefault(factory_default);
+  const deleteModalClose = () => {
+    setDeleteModalConf({
+      isOpen: false,
+      device: null,
+    });
   };
 
   const changeStateLocally = (device_id, state) => {
@@ -715,55 +697,6 @@ function DeviceList() {
         device.id === device_id ? { ...device, state: state } : device,
       ),
     );
-  };
-
-  const deleteModalClose = () => {
-    setDeleteModalOpen(false);
-    setDeleteModalDeviceId(null);
-    setDeleteModalDeviceHostname(null);
-    setDeleteModalDeviceState(null);
-    setDeleteModalDeviceType(null);
-    setDeleteModalConfirmName("");
-    setDeleteModalFactoryDefault(false);
-    setDeleteModalError(null);
-  };
-
-  const deleteDeviceAction = () => {
-    const url = `${process.env.API_URL}/api/v1.0/device/${deleteModalDeviceId}`;
-    const dataToSend = {
-      factory_default: deleteModalFactoryDefault,
-    };
-
-    // TODO change to async
-    deleteData(url, token, dataToSend)
-      .then((data) => {
-        if (data.job_id !== undefined && typeof data.job_id === "number") {
-          addDeviceJob(deleteModalDeviceId, data.job_id);
-          deleteModalClose();
-        } else {
-          deleteModalClose();
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        if (typeof error.json === "function") {
-          error
-            .json()
-            .then((jsonError) => {
-              console.log(jsonError);
-
-              setDeleteModalError(`JSON error from API: ${jsonError.message}`);
-            })
-            .catch(() => {
-              console.log(error.statusText);
-
-              setDeleteModalError(`Error from API: ${error.statusText}`);
-            });
-        } else {
-          console.log(error);
-          setDeleteModalError(`Fetch error: ${error}`);
-        }
-      });
   };
 
   const changeStateAction = async (deviceId, state) => {
@@ -1119,7 +1052,6 @@ function DeviceList() {
     });
 
     return () => {
-      // This runs on unmount
       socket.off("events");
     };
   }, []);
@@ -1192,54 +1124,13 @@ function DeviceList() {
           </Button>
         </Modal.Actions>
       </Modal>
-      <Modal onClose={() => deleteModalClose()} open={deleteModalOpen}>
-        <Modal.Header>Delete device {deleteModalDeviceHostname}</Modal.Header>
-        <Modal.Content>
-          <Modal.Description>
-            <p key="confirm">
-              Are you sure you want to delete device {deleteModalDeviceHostname}{" "}
-              with device ID {deleteModalDeviceId}? Confirm hostname below to
-              delete
-            </p>
-            <p key="error" hidden={deleteModalError === null}>
-              Error deleting device: {deleteModalError}
-            </p>
-            <Input
-              placeholder="confirm hostname"
-              onChange={(e) => setDeleteModalConfirmName(e.target.value)}
-            />
-            <Checkbox
-              label="Reset device to factory default settings when deleting"
-              name="factory_default"
-              checked={deleteModalFactoryDefault}
-              disabled={
-                deleteModalDeviceState != "MANAGED" ||
-                deleteModalDeviceType != "ACCESS"
-              }
-              onChange={deleteDeviceFactoryDefaultAction}
-            />
-          </Modal.Description>
-        </Modal.Content>
-        <Modal.Actions>
-          <Button
-            key="cancel"
-            color="black"
-            onClick={() => setDeleteModalOpen(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            key="submit"
-            disabled={deleteModalDeviceHostname != deleteModalConfirmName}
-            onClick={() => deleteDeviceAction()}
-            icon
-            labelPosition="right"
-            negative
-          >
-            Delete
-          </Button>
-        </Modal.Actions>
-      </Modal>
+      <DeleteModal
+        key={deleteModalConf.device?.id || "empty"}
+        device={deleteModalConf.device}
+        isOpen={deleteModalConf.isOpen}
+        addDeviceJob={addDeviceJob}
+        closeAction={deleteModalClose}
+      />
       <AddMgmtDomainModal
         {...mgmtAddModalInput}
         isOpen={mgmtAddModalOpen}
