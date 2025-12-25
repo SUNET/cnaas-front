@@ -4,9 +4,9 @@ import "@testing-library/jest-dom";
 
 import { AddMgmtDomainModal } from "./AddMgmtDomainModal";
 
-import { postData as mockPostData } from "../../utils/sendData";
+import { postData as mockPostData } from "../../../utils/sendData";
 
-jest.mock("../../utils/sendData");
+jest.mock("../../../utils/sendData");
 mockPostData.mockResolvedValue({
   success: "ok",
   data: { added_mgmtdomain: { id: 66 } },
