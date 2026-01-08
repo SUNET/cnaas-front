@@ -16,18 +16,18 @@ import { io } from "socket.io-client";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { getData, getDataToken, getResponse } from "../../utils/getData";
 import { postData, putData } from "../../utils/sendData";
-import { AddMgmtDomainModal } from "./actionModals/AddMgmtDomainModal";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
-import { ShowConfigModal } from "./actionModals/ShowConfigModal";
 import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
 import DeviceReplaceForm from "./DeviceReplaceForm";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
 import { getMenuActionsConfig } from "./utils";
-import { HostnameModal } from "./actionModals/HostnameModal";
+import { AddMgmtDomainModal } from "./actionModals/AddMgmtDomainModal";
 import { DeleteModal } from "./actionModals/DeleteModal";
+import { HostnameModal } from "./actionModals/HostnameModal";
+import { ShowConfigModal } from "./actionModals/ShowConfigModal";
 
 let socket = null;
 
@@ -1125,7 +1125,7 @@ function DeviceList() {
         </Modal.Actions>
       </Modal>
       <DeleteModal
-        key={deleteModalConf.device?.id || "empty"}
+        key={deleteModalConf.device?.id || "deletemodal"}
         device={deleteModalConf.device}
         isOpen={deleteModalConf.isOpen}
         addDeviceJob={addDeviceJob}
@@ -1145,10 +1145,20 @@ function DeviceList() {
         onUpdate={(v) => handleUpdateMgmtDomains(v)}
       />
       <HostnameModal
+        key={changeHostnameModalConf.deviceId?.id || "hostnamemodal"}
         hostname={changeHostnameModalConf.hostname}
         deviceId={changeHostnameModalConf.deviceId}
         isOpen={changeHostnameModalConf.isOpen}
         closeAction={handleHostnameModalClose}
+        onSuccess={(oldHostname, newHostname) => {
+          setDeviceInterfaceData((prev) => {
+            const updated = { ...prev };
+            delete updated[oldHostname];
+            return updated;
+          });
+          getDevices();
+          getInterfacesData(newHostname);
+        }}
       />
       <ShowConfigModal
         hostname={showConfigModalConf.hostname}
