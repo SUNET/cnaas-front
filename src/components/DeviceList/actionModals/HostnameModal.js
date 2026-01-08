@@ -3,16 +3,25 @@ import { Button, Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import { putData } from "../../../utils/sendData";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 
 HostnameModal.propTypes = {
+  closeAction: PropTypes.func,
   deviceId: PropTypes.number,
   hostname: PropTypes.string,
   isOpen: PropTypes.bool,
-  closeAction: PropTypes.func,
+  onSuccess: PropTypes.func,
 };
 
-export function HostnameModal({ deviceId, hostname, isOpen, closeAction }) {
+export function HostnameModal({
+  closeAction,
+  deviceId,
+  hostname,
+  isOpen,
+  onSuccess,
+}) {
   const { token } = useAuthToken();
+  const history = useHistory();
   const [newHostname, setNewHostname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,11 +37,11 @@ export function HostnameModal({ deviceId, hostname, isOpen, closeAction }) {
     try {
       const data = await putData(url, token, dataToSend);
 
-      if (data.status !== "success") {
-        setSuccess(false);
+      if (data.status === "success") {
+        handleSuccess();
+      } else {
         setError(data.error);
       }
-      setSuccess(true);
     } catch (err) {
       setError(err.message);
       setSuccess(false);
@@ -40,13 +49,20 @@ export function HostnameModal({ deviceId, hostname, isOpen, closeAction }) {
     setIsLoading(false);
   };
 
+  const handleSuccess = () => {
+    setSuccess(true);
+    onSuccess(hostname, newHostname);
+  };
+
   const handleClose = () => {
     setNewHostname("");
     setIsLoading(false);
     setSuccess(false);
-    setError(false);
+    setError("");
     closeAction();
   };
+
+  const isNewHostnameValid = newHostname && newHostname !== hostname;
 
   return (
     <Modal onClose={handleClose} open={isOpen}>
@@ -81,20 +97,33 @@ export function HostnameModal({ deviceId, hostname, isOpen, closeAction }) {
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>
-        <Button key="cancel" color="black" onClick={closeAction}>
-          Cancel
-        </Button>
-        <Button
-          key="submit"
-          onClick={() => {
-            putHostname();
-          }}
-          icon
-          positive
-          labelPosition="right"
-        >
-          Change hostname
-        </Button>
+        {!success && (
+          <>
+            <Button key="cancel" color="black" onClick={closeAction}>
+              Cancel
+            </Button>
+            <Button
+              key={"hostname-${hostname}-submit-btn"}
+              disabled={!isNewHostnameValid || isLoading}
+              onClick={putHostname}
+              loading={isLoading}
+              icon
+              positive
+              labelPosition="right"
+            >
+              Change hostname
+            </Button>
+          </>
+        )}
+        {success && (
+          <Button
+            key={"hostname-${hostname}-sync-button"}
+            onClick={() => history.push(`/config-change?scrollTo=dry_run`)}
+            labelPosition="right"
+          >
+            Sync devices...
+          </Button>
+        )}
       </Modal.Actions>
     </Modal>
   );
