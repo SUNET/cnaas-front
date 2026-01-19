@@ -21,7 +21,22 @@ const dateRegEx = new RegExp(
   "^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?$",
 );
 
-function FirmwareStep3({
+FirmwareStep3.propTypes = {
+  firmwareUpgradeStart: PropTypes.func.isRequired,
+  firmwareUpgradeAbort: PropTypes.func.isRequired,
+  filename: PropTypes.string,
+  jobData: PropTypes.object,
+  jobStatus: PropTypes.string,
+  jobId: PropTypes.number,
+  jobFinishedDevices: PropTypes.array.isRequired,
+  jobResult: PropTypes.object,
+  activateStep3: PropTypes.bool.isRequired,
+  totalCount: PropTypes.number.isRequired,
+  logLines: PropTypes.array.isRequired,
+  commitTarget: PropTypes.object.isRequired,
+};
+
+export function FirmwareStep3({
   firmwareUpgradeStart,
   firmwareUpgradeAbort,
   filename,
@@ -126,16 +141,17 @@ function FirmwareStep3({
     }
   }, [filename]);
 
-  let error = "";
   let disableStartButton = true;
   let disableStaggeredButton = true;
-  let step3abortDisabled = true;
 
-  if (jobStatus === "EXCEPTION") {
-    error = [<FirmwareError key="exception" devices={jobResult.devices} />];
-  } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
-    step3abortDisabled = false;
-  }
+  const error =
+    jobStatus === "EXCEPTION"
+      ? [<FirmwareError devices={jobResult.devices} />]
+      : "";
+
+  const step3abortDisabled = !(
+    jobStatus === "RUNNING" || jobStatus === "SCHEDULED"
+  );
 
   if (jobStarted === true) {
     disableStartButton = true;
@@ -252,20 +268,3 @@ function FirmwareStep3({
     </div>
   );
 }
-
-FirmwareStep3.propTypes = {
-  firmwareUpgradeStart: PropTypes.func.isRequired,
-  firmwareUpgradeAbort: PropTypes.func.isRequired,
-  filename: PropTypes.string,
-  jobData: PropTypes.object,
-  jobStatus: PropTypes.string,
-  jobId: PropTypes.string,
-  jobFinishedDevices: PropTypes.array.isRequired,
-  jobResult: PropTypes.object,
-  activateStep3: PropTypes.bool.isRequired,
-  totalCount: PropTypes.number.isRequired,
-  logLines: PropTypes.array.isRequired,
-  commitTarget: PropTypes.object.isRequired,
-};
-
-export default FirmwareStep3;

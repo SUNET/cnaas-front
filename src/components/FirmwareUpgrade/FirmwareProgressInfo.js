@@ -9,8 +9,8 @@ FirmwareProgressInfo.propTypes = {
 };
 
 export function FirmwareProgressInfo({ jobStatus, jobId, jobData, logLines }) {
-  const checkJobId = (job_id) => {
-    return (logLine) => logLine.toLowerCase().includes(`job #${job_id}`);
+  const hasJobId = (id) => {
+    return (logLine) => logLine.toLowerCase().includes(`job #${id}`);
   };
   const jobStartTime = jobData?.start_time ?? "";
   const jobFinishTime = jobData?.finish_time ?? "";
@@ -25,7 +25,7 @@ export function FirmwareProgressInfo({ jobStatus, jobId, jobData, logLines }) {
       <p className="error">{exceptionMessage}</p>
       <p>start time: {jobStartTime}</p>
       <p>finish time: {jobFinishTime}</p>
-      <LogViewer logs={logLines.filter(checkJobId(jobId))} />
+      <LogViewer logs={logLines.filter(hasJobId(jobId))} />
     </div>
   );
 }

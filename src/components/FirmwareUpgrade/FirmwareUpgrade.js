@@ -4,7 +4,7 @@ import queryString from "query-string";
 import { Input } from "semantic-ui-react";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";
-import FirmwareStep3 from "./FirmwareStep3";
+import { FirmwareStep3 } from "./FirmwareStep3";
 import checkResponseStatus from "../../utils/checkResponseStatus";
 import { getData } from "../../utils/getData";
 
