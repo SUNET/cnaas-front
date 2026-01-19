@@ -1,7 +1,7 @@
 import React from "react";
 import { Form, Confirm, Select } from "semantic-ui-react";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
-import FirmwareProgressInfo from "./FirmwareProgressInfo";
+import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { getData } from "../../utils/getData";
 import { FirmwareError } from "./FirmwareError";
 

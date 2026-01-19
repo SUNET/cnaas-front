@@ -12,7 +12,7 @@ import {
   Button,
 } from "semantic-ui-react";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
-import FirmwareProgressInfo from "./FirmwareProgressInfo";
+import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { FirmwareError } from "./FirmwareError";
 import { postData } from "../../utils/sendData";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
