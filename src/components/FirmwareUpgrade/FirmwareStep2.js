@@ -12,10 +12,7 @@ FirmwareStep2.propTypes = {
   firmwareUpgradeStart: PropTypes.func,
   firmwareUpgradeAbort: PropTypes.func,
   jobData: PropTypes.object,
-  jobResult: PropTypes.object,
-  jobStatus: PropTypes.string,
   jobId: PropTypes.number,
-  jobFinishedDevices: PropTypes.array,
   totalCount: PropTypes.number,
   logLines: PropTypes.arrayOf(PropTypes.string),
 };
@@ -25,10 +22,7 @@ export function FirmwareStep2({
   firmwareUpgradeStart,
   firmwareUpgradeAbort,
   jobData,
-  jobResult,
-  jobStatus,
   jobId,
-  jobFinishedDevices,
   totalCount,
   logLines,
 }) {
@@ -39,6 +33,10 @@ export function FirmwareStep2({
   const [firmwareLocked, setFirmwareLocked] = useState(false);
   const [firmwareSelected, setFirmwareSelected] = useState(false);
   const [confirmDiagOpen, setConfirmDiagOpen] = useState(false);
+
+  const jobStatus = jobData?.status ?? null;
+  const jobResult = jobData?.result ?? null;
+  const jobFinishedDevices = jobData?.finished_devices ?? null;
 
   const okConfirm = () => {
     setConfirmDiagOpen(false);

@@ -26,10 +26,7 @@ FirmwareStep3.propTypes = {
   firmwareUpgradeAbort: PropTypes.func.isRequired,
   filename: PropTypes.string,
   jobData: PropTypes.object,
-  jobStatus: PropTypes.string,
   jobId: PropTypes.number,
-  jobFinishedDevices: PropTypes.array.isRequired,
-  jobResult: PropTypes.object,
   activateStep3: PropTypes.bool.isRequired,
   totalCount: PropTypes.number.isRequired,
   logLines: PropTypes.array.isRequired,
@@ -41,16 +38,17 @@ export function FirmwareStep3({
   firmwareUpgradeAbort,
   filename,
   jobData,
-  jobStatus,
   jobId,
-  jobFinishedDevices,
-  jobResult,
   activateStep3,
   totalCount,
   logLines,
   commitTarget,
 }) {
   const { token } = useAuthToken();
+
+  const jobStatus = jobData?.status ?? null;
+  const jobResult = jobData?.result ?? null;
+  const jobFinishedDevices = jobData?.finished_devices ?? null;
 
   const [jobStarted, setJobStarted] = React.useState(false);
   const [confirmDiagOpen, setConfirmDiagOpen] = React.useState(false);

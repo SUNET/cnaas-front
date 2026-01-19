@@ -4,7 +4,13 @@ import PropTypes from "prop-types";
 FirmwareProgressInfo.propTypes = {
   jobStatus: PropTypes.string,
   jobId: PropTypes.number,
-  jobData: PropTypes.shape,
+  jobData: PropTypes.shape({
+    start_time: PropTypes.string,
+    finish_time: PropTypes.string,
+    exception: PropTypes.shape({
+      message: PropTypes.string,
+    }),
+  }),
   logLines: PropTypes.arrayOf(PropTypes.string),
 };
 
