@@ -3,7 +3,7 @@ import { Form, Confirm, Select } from "semantic-ui-react";
 import FirmwareProgressBar from "./FirmwareProgressBar";
 import FirmwareProgressInfo from "./FirmwareProgressInfo";
 import { getData } from "../../utils/getData";
-import FirmwareError from "./FirmwareError";
+import { FirmwareError } from "./FirmwareError";
 
 class FirmwareStep2 extends React.Component {
   state = {
