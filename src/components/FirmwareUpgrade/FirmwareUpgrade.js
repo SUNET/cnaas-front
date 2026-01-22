@@ -165,17 +165,24 @@ export function FirmwareUpgrade({ location }) {
       }
 
       repeatingStep3intervalRef.current = setInterval(async () => {
-        const data = await getData(url, tokenRef.current);
-        const jobStep3Data = data.data.jobs[0];
-        setStep3jobData(jobStep3Data);
-        if (
-          jobStep3Data.status === "FINISHED" ||
-          jobStep3Data.status === "EXCEPTION" ||
-          jobStep3Data.status === "ABORTED"
-        ) {
+        try {
+          const data = await getData(url, tokenRef.current);
+          const jobStep3Data = data.data.jobs[0];
+          setStep3jobData(jobStep3Data);
+          if (
+            jobStep3Data.status === "FINISHED" ||
+            jobStep3Data.status === "EXCEPTION" ||
+            jobStep3Data.status === "ABORTED"
+          ) {
+            clearInterval(repeatingStep3intervalRef.current);
+            setBlockNavigation(false);
+            setDoPoll({ jobId: null, step: null });
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
           clearInterval(repeatingStep3intervalRef.current);
+          repeatingStep3intervalRef.current = null;
           setBlockNavigation(false);
-          setDoPoll({ jobId: null, step: null });
         }
       }, 5000);
     }
@@ -242,10 +249,8 @@ export function FirmwareUpgrade({ location }) {
     readHeaders(response, step);
     const data = await response.json();
     if (step === 2) {
-      setStep2data(data);
       setStep2jobId(data.job_id);
     } else if (step === 3) {
-      setStep3data(data);
       setStep3jobId(data.job_id);
     }
     setDoPoll({ jobId: data.job_id, step });

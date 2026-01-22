@@ -14,7 +14,7 @@ export function FirmwareProgressBar({
 }) {
   const finishedDevicesNum =
     jobStatus === "RUNNING" || jobStatus === "FINISHED"
-      ? jobFinishedDevices.length
+      ? (jobFinishedDevices?.length ?? 0)
       : 0;
 
   return (

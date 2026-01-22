@@ -137,7 +137,7 @@ export function FirmwareStep3({
         );
       }
     }
-  }, [filename]);
+  }, [token, commitTarget]);
 
   let disableStartButton = true;
   let disableStaggeredButton = true;
