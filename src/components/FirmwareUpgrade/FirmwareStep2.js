@@ -128,7 +128,7 @@ export function FirmwareStep2({
 
   const error =
     jobStatus === "EXCEPTION"
-      ? [<FirmwareError devices={jobResult.devices} />]
+      ? [<FirmwareError key="exception" devices={jobResult.devices} />]
       : "";
   const step2abortDisabled = !(
     jobStatus === "RUNNING" || jobStatus === "SCHEDULED"

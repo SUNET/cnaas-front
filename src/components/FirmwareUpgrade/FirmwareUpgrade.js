@@ -153,7 +153,7 @@ export function FirmwareUpgrade({ location }) {
       }, 5000);
     }
 
-    if (step == 3) {
+    if (step === 3) {
       try {
         const initialStep3Data = await getData(url, tokenRef.current);
         const initialJobStep3Data = initialStep3Data.data.jobs[0];
@@ -191,9 +191,9 @@ export function FirmwareUpgrade({ location }) {
   const readHeaders = (response, step) => {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
-      if (step == 2) {
+      if (step === 2) {
         setStep2totalCount(parseInt(totalCountHeader, 10));
-      } else if (step == 3) {
+      } else if (step === 3) {
         setStep3totalCount(parseInt(totalCountHeader, 10));
       }
     } else {

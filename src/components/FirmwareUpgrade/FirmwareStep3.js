@@ -67,11 +67,6 @@ export function FirmwareStep3({
     setConfirmDiagOpen(false);
   }, []);
 
-  const openStaggeredConfirm = React.useCallback(() => {
-    setConfirmStaggeredDiagOpen(true);
-    getStaggeredSteps();
-  }, []);
-
   const closeStaggeredConfirm = React.useCallback(() => {
     setConfirmStaggeredDiagOpen(false);
   }, []);
@@ -139,12 +134,17 @@ export function FirmwareStep3({
     }
   }, [token, commitTarget]);
 
+  const openStaggeredConfirm = React.useCallback(() => {
+    setConfirmStaggeredDiagOpen(true);
+    getStaggeredSteps();
+  }, [getStaggeredSteps]);
+
   let disableStartButton = true;
   let disableStaggeredButton = true;
 
   const error =
     jobStatus === "EXCEPTION"
-      ? [<FirmwareError devices={jobResult.devices} />]
+      ? [<FirmwareError key="exception" devices={jobResult.devices} />]
       : "";
 
   const step3abortDisabled = !(
