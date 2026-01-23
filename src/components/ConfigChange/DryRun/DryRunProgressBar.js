@@ -1,37 +1,39 @@
-import React from "react";
 import ProgressBar from "../../ProgressBar";
 
-class DryRunProgressBar extends React.Component {
-  render() {
-    const progressData = this.props.dryRunProgressData;
-    const jobStatus = this.props.dryRunJobStatus;
-    const { totalDevices } = this.props;
+import PropTypes from "prop-types";
 
-    let finishedDevicesData = [];
-    let finishedDevicesNum = 0;
+DryRunProgressBar.propTypes = {
+  dryRunProgressData: PropTypes.object,
+  dryRunJobStatus: PropTypes.string,
+  totalDevices: PropTypes.number,
+  keyNum: PropTypes.number,
+};
 
-    if (jobStatus === "RUNNING" || jobStatus === "FINISHED") {
-      if (Object.keys(progressData).length > 0) {
-        finishedDevicesData = progressData.finished_devices;
-        finishedDevicesNum = finishedDevicesData.length;
-      }
-    }
+DryRunProgressBar.defaultProps = {
+  hidden: false,
+  keyNum: 1,
+};
 
-    return (
-      <ProgressBar
-        hidden={this.props.hidden}
-        value={finishedDevicesNum}
-        total={totalDevices}
-        jobStatus={jobStatus}
-        key={200 + this.props.keyNum}
-      />
-    );
-  }
+export function DryRunProgressBar({
+  dryRunProgressData,
+  dryRunJobStatus,
+  hidden,
+  totalDevices,
+  keyNum,
+}) {
+  const isActiveJob =
+    dryRunJobStatus === "RUNNING" || dryRunJobStatus === "FINISHED";
+  const finishedDevicesNum = isActiveJob
+    ? (dryRunProgressData?.finished_devices?.length ?? 0)
+    : 0;
 
-  static defaultProps = {
-    hidden: false,
-    keyNum: 1,
-  };
+  return (
+    <ProgressBar
+      hidden={hidden}
+      value={finishedDevicesNum}
+      total={totalDevices}
+      jobStatus={dryRunJobStatus}
+      key={200 + keyNum}
+    />
+  );
 }
-
-export default DryRunProgressBar;

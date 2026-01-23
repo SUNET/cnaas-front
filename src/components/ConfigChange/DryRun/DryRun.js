@@ -2,7 +2,7 @@ import React from "react";
 import { Checkbox, Form, Icon, Popup } from "semantic-ui-react";
 import permissionsCheck from "../../../utils/permissions/permissionsCheck";
 import DryRunError from "./DryRunError";
-import DryRunProgressBar from "./DryRunProgressBar";
+import { DryRunProgressBar } from "./DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
 
 class DryRun extends React.Component {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
 
 import { getData } from "../../utils/getData";
-import DryRunProgressBar from "./DryRun/DryRunProgressBar";
+import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRun/DryRunProgressInfo";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 
