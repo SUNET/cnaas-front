@@ -15,7 +15,7 @@ import checkJsonResponse from "../utils/checkJsonResponse";
 import { formatISODate } from "../utils/formatters";
 import { getResponse } from "../utils/getData";
 import VerifyDiffResult from "./ConfigChange/VerifyDiff/VerifyDiffResult";
-import JobSearchForm from "./JobSearchForm";
+import { JobSearchForm } from "./JobSearchForm";
 import LogViewer from "./LogViewer";
 
 const io = require("socket.io-client");
