@@ -1,4 +1,4 @@
-import DryRunFailList from "./DryRunFailList";
+import { DryRunFailList } from "./DryRunFailList";
 import { Checkbox } from "semantic-ui-react";
 import PropTypes from "prop-types";
 
