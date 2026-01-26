@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 import { Button, Select, Input, Icon } from "semantic-ui-react";
 
@@ -17,8 +17,8 @@ const searchOptions = [
 ];
 
 export function JobSearchForm({ searchAction }) {
-  const [searchText, setSearchText] = React.useState("");
-  const [searchField, setSearchField] = React.useState("id");
+  const [searchText, setSearchText] = useState("");
+  const [searchField, setSearchField] = useState("id");
 
   const clearSearch = () => {
     setSearchText("");
