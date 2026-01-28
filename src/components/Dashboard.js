@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Container, Grid, Popup } from "semantic-ui-react";
 import { getResponse, getData } from "../utils/getData";
 import { useAuthToken } from "../contexts/AuthTokenContext";
+import DashboardLinkgrid from "./DashboardLinkgrid";
 
 function Dashboard() {
   const { token } = useAuthToken();
@@ -166,6 +167,7 @@ function Dashboard() {
             </p>
           </Grid.Column>
         </Grid>
+        <DashboardLinkgrid />
       </Container>
     </div>
   );

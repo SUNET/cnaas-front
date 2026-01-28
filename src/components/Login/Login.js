@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Icon } from "semantic-ui-react";
+import { Icon, Container } from "semantic-ui-react";
 
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";
 import LoginForm from "./LoginForm";
 import LoginOIDC from "./LoginOIDC";
+import DashboardLinkgrid from "../DashboardLinkgrid";
 
 function Login() {
   const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuthToken();
@@ -56,17 +57,27 @@ function Login() {
     );
   }
 
+  let loginForm = null;
   if (process.env.OIDC_ENABLED == "true") {
-    return <LoginOIDC login={oidcLogin} errorMessage={loginMessage} />;
+    loginForm = <LoginOIDC login={oidcLogin} errorMessage={loginMessage} />;
+  } else {
+    loginForm = (
+      <LoginForm
+        handleSubmit={login}
+        formValues={credentials}
+        setValue={setValue}
+        errorMessage={loginMessage}
+      />
+    );
   }
 
   return (
-    <LoginForm
-      handleSubmit={login}
-      formValues={credentials}
-      setValue={setValue}
-      errorMessage={loginMessage}
-    />
+    <div>
+      <Container>
+        {loginForm}
+        <DashboardLinkgrid />
+      </Container>
+    </div>
   );
 }
 
