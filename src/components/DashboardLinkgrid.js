@@ -75,21 +75,22 @@ function DashboardLinkgrid() {
     });
   }
 
-  links.push({
-    title: "API Browser",
-    description: "Explore the NMS API endpoints",
-    url: "/api/doc/",
-    icon: new URL("../assets/swaggerlogo.svg", import.meta.url),
-    backgroundColor: null,
-  });
-
-  links.push({
-    title: "NMS Documentation",
-    description: "Official NMS documentation",
-    url: "https://cnaas-nms.readthedocs.io/",
-    icon: new URL("../assets/readthedocslogo.svg", import.meta.url),
-    backgroundColor: null,
-  });
+  links.push(
+    {
+      title: "API Browser",
+      description: "Explore the NMS API endpoints",
+      url: "/api/doc/",
+      icon: new URL("../assets/swaggerlogo.svg", import.meta.url),
+      backgroundColor: null,
+    },
+    {
+      title: "NMS Documentation",
+      description: "Official NMS documentation",
+      url: "https://cnaas-nms.readthedocs.io/",
+      icon: new URL("../assets/readthedocslogo.svg", import.meta.url),
+      backgroundColor: null,
+    },
+  );
 
   return (
     <>
