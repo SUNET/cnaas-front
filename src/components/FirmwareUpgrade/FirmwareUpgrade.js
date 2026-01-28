@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Prompt } from "react-router";
 import queryString from "query-string";
+import PropTypes from "prop-types";
 import { Input } from "semantic-ui-react";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";
@@ -13,6 +14,12 @@ import { post, putData } from "../../utils/sendData";
 const io = require("socket.io-client");
 
 let socket = null;
+
+FirmwareUpgrade.propTypes = {
+  location: PropTypes.shape({
+    search: PropTypes.string,
+  }),
+};
 
 export function FirmwareUpgrade({ location }) {
   const { token } = useAuthToken();
@@ -192,9 +199,9 @@ export function FirmwareUpgrade({ location }) {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
       if (step === 2) {
-        setStep2totalCount(parseInt(totalCountHeader, 10));
+        setStep2totalCount(Number.parseInt(totalCountHeader, 10));
       } else if (step === 3) {
-        setStep3totalCount(parseInt(totalCountHeader, 10));
+        setStep3totalCount(Number.parseInt(totalCountHeader, 10));
       }
     } else {
       console.log(

@@ -1,3 +1,13 @@
+import PropTypes from "prop-types";
+
+FirmwareError.propTypes = {
+  devices: PropTypes.objectOf(
+    PropTypes.shape({
+      failed: PropTypes.bool,
+    }),
+  ),
+};
+
 export function FirmwareError({ devices }) {
   const deviceNames = Object.keys(devices);
   const deviceData = Object.values(devices);
