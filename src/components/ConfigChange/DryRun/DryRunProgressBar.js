@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 DryRunProgressBar.propTypes = {
   dryRunProgressData: PropTypes.object,
   dryRunJobStatus: PropTypes.string,
+  hidden: PropTypes.bool,
   totalDevices: PropTypes.number,
   keyNum: PropTypes.number,
 };
