@@ -4,6 +4,7 @@ import { Select, Input } from "semantic-ui-react";
 import { getData } from "../../utils/getData";
 import DeviceInitcheckModal from "./DeviceInitcheckModal";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { postData } from "../../utils/sendData";
 
 async function submitInitJob(
   device_id,
