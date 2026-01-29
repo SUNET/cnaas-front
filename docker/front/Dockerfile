@@ -1,4 +1,4 @@
-FROM node:22 AS build
+FROM node:22.22 AS build
 
 RUN mkdir -p /opt/cnaas-front
 
@@ -16,7 +16,7 @@ RUN find /opt/cnaas-front/src -type f -name '*.js' -exec \
 
 RUN npm run-script build
 
-FROM nginx:1.27.0-alpine
+FROM nginx:1.28.1-alpine
 
 LABEL org.opencontainers.image.vendor="SUNET"
 LABEL org.opencontainers.image.source="https://github.com/SUNET/cnaas-front"
