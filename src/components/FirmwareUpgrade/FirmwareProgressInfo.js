@@ -1,56 +1,37 @@
-import React from "react";
 import LogViewer from "../LogViewer";
 import PropTypes from "prop-types";
-
-class FirmwareProgressInfo extends React.Component {
-  state = {
-    jobId: null,
-  };
-
-  checkJobId(job_id) {
-    return function (logLine) {
-      return logLine.toLowerCase().includes(`job #${job_id}`);
-    };
-  }
-
-  render() {
-    const { jobStatus } = this.props;
-    const { jobId } = this.props;
-    const { jobData } = this.props;
-    let jobStartTime = "";
-    let jobFinishTime = "";
-    let exceptionMessage = "";
-    let logViewer = (
-      <LogViewer logs={this.props.logLines.filter(this.checkJobId(jobId))} />
-    );
-
-    if (jobData !== null) {
-      jobStartTime = jobData.start_time;
-      jobFinishTime = jobData.finish_time;
-      if (jobStatus === "EXCEPTION") {
-        exceptionMessage = jobData.exception.message;
-      }
-    }
-
-    return (
-      <div key="1">
-        <p>
-          status: {jobStatus} (job #{jobId})
-        </p>
-        <p className="error">{exceptionMessage}</p>
-        <p>start time: {jobStartTime}</p>
-        <p>finish time: {jobFinishTime}</p>
-        {logViewer}
-      </div>
-    );
-  }
-}
 
 FirmwareProgressInfo.propTypes = {
   jobStatus: PropTypes.string,
   jobId: PropTypes.number,
-  jobData: PropTypes.shape,
+  jobData: PropTypes.shape({
+    start_time: PropTypes.string,
+    finish_time: PropTypes.string,
+    exception: PropTypes.shape({
+      message: PropTypes.string,
+    }),
+  }),
   logLines: PropTypes.arrayOf(PropTypes.string),
 };
 
-export default FirmwareProgressInfo;
+export function FirmwareProgressInfo({ jobStatus, jobId, jobData, logLines }) {
+  const hasJobId = (id) => {
+    return (logLine) => logLine.toLowerCase().includes(`job #${id}`);
+  };
+  const jobStartTime = jobData?.start_time ?? "";
+  const jobFinishTime = jobData?.finish_time ?? "";
+  const exceptionMessage =
+    jobStatus === "EXCEPTION" ? jobData?.exception?.message : "";
+
+  return (
+    <div key={`fw_progess_info_${jobId}`}>
+      <p>
+        status: {jobStatus} (job #{jobId})
+      </p>
+      <p className="error">{exceptionMessage}</p>
+      <p>start time: {jobStartTime}</p>
+      <p>finish time: {jobFinishTime}</p>
+      <LogViewer logs={logLines.filter(hasJobId(jobId))} />
+    </div>
+  );
+}

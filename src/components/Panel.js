@@ -5,7 +5,7 @@ import Dashboard from "./Dashboard";
 import DeviceList from "./DeviceList/DeviceList";
 import ErrorBoundary from "./ErrorBoundary";
 import FirmwareCopy from "./FirmwareCopy";
-import FirmwareUpgrade from "./FirmwareUpgrade/FirmwareUpgrade";
+import { FirmwareUpgrade } from "./FirmwareUpgrade";
 import GroupList from "./GroupList";
 import { InterfaceConfig } from "./InterfaceConfig/InterfaceConfig";
 import JobList from "./JobList";

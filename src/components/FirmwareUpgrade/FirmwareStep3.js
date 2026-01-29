@@ -11,9 +11,9 @@ import {
   ModalActions,
   Button,
 } from "semantic-ui-react";
-import FirmwareProgressBar from "./FirmwareProgressBar";
-import FirmwareProgressInfo from "./FirmwareProgressInfo";
-import FirmwareError from "./FirmwareError";
+import { FirmwareProgressBar } from "./FirmwareProgressBar";
+import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
+import { FirmwareError } from "./FirmwareError";
 import { postData } from "../../utils/sendData";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 
@@ -21,21 +21,34 @@ const dateRegEx = new RegExp(
   "^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?$",
 );
 
-function FirmwareStep3({
+FirmwareStep3.propTypes = {
+  firmwareUpgradeStart: PropTypes.func.isRequired,
+  firmwareUpgradeAbort: PropTypes.func.isRequired,
+  filename: PropTypes.string,
+  jobData: PropTypes.object,
+  jobId: PropTypes.number,
+  activateStep3: PropTypes.bool.isRequired,
+  totalCount: PropTypes.number.isRequired,
+  logLines: PropTypes.array.isRequired,
+  commitTarget: PropTypes.object.isRequired,
+};
+
+export function FirmwareStep3({
   firmwareUpgradeStart,
   firmwareUpgradeAbort,
   filename,
   jobData,
-  jobStatus,
   jobId,
-  jobFinishedDevices,
-  jobResult,
   activateStep3,
   totalCount,
   logLines,
   commitTarget,
 }) {
   const { token } = useAuthToken();
+
+  const jobStatus = jobData?.status ?? null;
+  const jobResult = jobData?.result ?? null;
+  const jobFinishedDevices = jobData?.finished_devices ?? null;
 
   const [jobStarted, setJobStarted] = React.useState(false);
   const [confirmDiagOpen, setConfirmDiagOpen] = React.useState(false);
@@ -52,11 +65,6 @@ function FirmwareStep3({
 
   const closeConfirm = React.useCallback(() => {
     setConfirmDiagOpen(false);
-  }, []);
-
-  const openStaggeredConfirm = React.useCallback(() => {
-    setConfirmStaggeredDiagOpen(true);
-    getStaggeredSteps();
   }, []);
 
   const closeStaggeredConfirm = React.useCallback(() => {
@@ -124,18 +132,24 @@ function FirmwareStep3({
         );
       }
     }
-  }, [filename]);
+  }, [token, commitTarget]);
 
-  let error = "";
+  const openStaggeredConfirm = React.useCallback(() => {
+    setConfirmStaggeredDiagOpen(true);
+    getStaggeredSteps();
+  }, [getStaggeredSteps]);
+
   let disableStartButton = true;
   let disableStaggeredButton = true;
-  let step3abortDisabled = true;
 
-  if (jobStatus === "EXCEPTION") {
-    error = [<FirmwareError key="exception" devices={jobResult.devices} />];
-  } else if (jobStatus === "RUNNING" || jobStatus === "SCHEDULED") {
-    step3abortDisabled = false;
-  }
+  const error =
+    jobStatus === "EXCEPTION"
+      ? [<FirmwareError key="exception" devices={jobResult.devices} />]
+      : "";
+
+  const step3abortDisabled = !(
+    jobStatus === "RUNNING" || jobStatus === "SCHEDULED"
+  );
 
   if (jobStarted === true) {
     disableStartButton = true;
@@ -252,20 +266,3 @@ function FirmwareStep3({
     </div>
   );
 }
-
-FirmwareStep3.propTypes = {
-  firmwareUpgradeStart: PropTypes.func.isRequired,
-  firmwareUpgradeAbort: PropTypes.func.isRequired,
-  filename: PropTypes.string,
-  jobData: PropTypes.object,
-  jobStatus: PropTypes.string,
-  jobId: PropTypes.string,
-  jobFinishedDevices: PropTypes.array.isRequired,
-  jobResult: PropTypes.object,
-  activateStep3: PropTypes.bool.isRequired,
-  totalCount: PropTypes.number.isRequired,
-  logLines: PropTypes.array.isRequired,
-  commitTarget: PropTypes.object.isRequired,
-};
-
-export default FirmwareStep3;
