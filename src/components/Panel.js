@@ -8,7 +8,7 @@ import FirmwareCopy from "./FirmwareCopy";
 import { FirmwareUpgrade } from "./FirmwareUpgrade";
 import GroupList from "./GroupList";
 import { InterfaceConfig } from "./InterfaceConfig/InterfaceConfig";
-import JobList from "./JobList";
+import { JobList } from "./JobList";
 import Login from "./Login/Login";
 import Settings from "./Settings";
 
