@@ -270,13 +270,12 @@ function DeviceList() {
   const getDevices = async () => {
     const operatorMap = {
       id: "[equals]",
-      // eslint-disable-next-line camelcase
+
       device_type: "[ilike]",
       state: "[ilike]",
       synchronized: "",
     };
 
-    // eslint-disable-next-line camelcase
     const urlParams = { page: activePage, per_page: resultsPerPage };
 
     if (sortDirection && sortColumn) {

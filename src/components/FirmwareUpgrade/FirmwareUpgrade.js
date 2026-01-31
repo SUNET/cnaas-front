@@ -3,6 +3,7 @@ import { Prompt } from "react-router";
 import queryString from "query-string";
 import PropTypes from "prop-types";
 import { Input } from "semantic-ui-react";
+import io from "socket.io-client";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";
 import { FirmwareStep3 } from "./FirmwareStep3";
@@ -10,8 +11,6 @@ import { getData } from "../../utils/getData";
 import { useFreshRef } from "../../hooks/useFreshRef.js";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { post, putData } from "../../utils/sendData";
-
-const io = require("socket.io-client");
 
 let socket = null;
 

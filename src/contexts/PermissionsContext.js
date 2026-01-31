@@ -14,7 +14,6 @@ const PermissionsContext = createContext();
 
 // export for test
 export const findPermission = (userPermissions, targetPage, requiredRight) => {
-  // eslint-disable-next-line no-restricted-syntax
   for (const permission of userPermissions) {
     const { pages, rights } = permission;
     if (
