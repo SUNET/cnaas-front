@@ -9,7 +9,7 @@ import globals from "globals";
 import { defineConfig } from "eslint/config";
 
 const commonRules = {
-  camelcase: "warn",
+  camelcase: ["error", { properties: "never" }],
   eqeqeq: "warn",
   "jsx-a11y/label-has-associated-control": [
     "warn",

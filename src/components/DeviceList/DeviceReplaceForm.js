@@ -8,24 +8,24 @@ import { postData } from "../../utils/sendData";
 
 async function submitInitJob(
   token,
-  candidate_device_id,
-  device_id,
+  candidateDeviceId,
+  deviceId,
   hostname,
-  device_type,
+  deviceType,
   jobIdCallback,
 ) {
-  const url = `${process.env.API_URL}/api/v1.0/device_init/${candidate_device_id}`;
+  const url = `${process.env.API_URL}/api/v1.0/device_init/${candidateDeviceId}`;
   const dataToSend = {
     hostname,
-    device_type,
+    device_type: deviceType,
     replace_hostname: true,
   };
 
   try {
     const response = await postData(url, token, dataToSend);
     if (response.job_id !== undefined && typeof response.job_id === "number") {
-      jobIdCallback(device_id, response.job_id);
-      jobIdCallback(candidate_device_id, response.job_id);
+      jobIdCallback(deviceId, response.job_id);
+      jobIdCallback(candidateDeviceId, response.job_id);
     } else {
       console.log("error when submitting device_init job", response.job_id);
     }
@@ -155,10 +155,9 @@ function DeviceReplaceForm({
           submitInit={submitInit}
           deviceId={replacementCandidateId}
           hostname={hostname}
-          device_type={deviceType}
-          mlag_init={false}
-          mlag_peer_hostname={null}
-          mlag_peer_id={null}
+          deviceType={deviceType}
+          mlagPeerHostname={null}
+          mlagPeerId={null}
         />
       </div>
     );

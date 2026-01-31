@@ -403,18 +403,18 @@ function DeviceList() {
 
   const handleMgmtUpdateModalOpen = ({
     id,
-    device_a,
-    device_b,
-    ipv4_gw,
-    ipv6_gw,
+    device_a: deviceA,
+    device_b: deviceB,
+    ipv4_gw: ipv4GW,
+    ipv6_gw: ipv6GW,
     vlan,
   }) => {
     setMgmtUpdateModalInput({
       mgmtId: id,
-      deviceA: device_a,
-      deviceB: device_b,
-      ipv4Initial: ipv4_gw,
-      ipv6Initial: ipv6_gw,
+      deviceA,
+      deviceB,
+      ipv4Initial: ipv4GW,
+      ipv6Initial: ipv6GW,
       vlanInitial: vlan,
     });
     setMgmtUpdateModalOpen(true);
@@ -561,9 +561,9 @@ function DeviceList() {
     }
   };
 
-  const checkJobId = (job_id) => {
+  const hasJobId = (jobId) => {
     return function (logLine) {
-      return logLine.toLowerCase().includes(`job #${job_id}`);
+      return logLine.toLowerCase().includes(`job #${jobId}`);
     };
   };
 
@@ -658,7 +658,7 @@ function DeviceList() {
     history.push(`interface-config?hostname=${hostname}`);
   };
 
-  const updateFactsAction = async (hostname, device_id) => {
+  const updateFactsAction = async (hostname, deviceId) => {
     console.log(`Update facts for hostname: ${hostname}`);
 
     const dataToSend = {
@@ -671,7 +671,7 @@ function DeviceList() {
     );
 
     if (data.job_id !== undefined && typeof data.job_id === "number") {
-      addDeviceJob(device_id, data.job_id);
+      addDeviceJob(deviceId, data.job_id);
     } else {
       console.log("error when submitting device_update_facts job", data.job_id);
     }
@@ -691,17 +691,15 @@ function DeviceList() {
     });
   };
 
-  const changeStateLocally = (device_id, state) => {
+  const changeStateLocally = (deviceId, state) => {
     setDeviceData((prev) =>
       prev.map((device) =>
-        device.id === device_id ? { ...device, state: state } : device,
+        device.id === deviceId ? { ...device, state: state } : device,
       ),
     );
   };
 
   const changeStateAction = async (deviceId, state) => {
-    console.log(`Change state for device_id: ${deviceId}`);
-
     const url = `${process.env.API_URL}/api/v1.0/device/${deviceId}`;
     const dataToSend = {
       state,
@@ -722,34 +720,34 @@ function DeviceList() {
     setDeviceStateModalNewState(newState);
   };
 
-  const createMgmtIP = (mgmt_ip, key_prefix = "") => {
+  const createMgmtIP = (mgmtIp, keyPrefix = "") => {
     const mgmtip = [];
-    mgmtip.push(<i key={`${key_prefix}mgmt_ip`}>{mgmt_ip} </i>);
+    mgmtip.push(<i key={`${keyPrefix}mgmt_ip`}>{mgmtIp} </i>);
     mgmtip.push(
       <Button
-        key={`${key_prefix}copy`}
+        key={`${keyPrefix}copy`}
         basic
         compact
         size="mini"
         icon="copy"
-        title={mgmt_ip}
+        title={mgmtIp}
         onClick={() => {
-          navigator.clipboard.writeText(mgmt_ip);
+          navigator.clipboard.writeText(mgmtIp);
         }}
       />,
     );
-    const isIPv6 = mgmt_ip.includes(":");
-    const ssh_address = isIPv6 ? `ssh://[${mgmt_ip}]` : `ssh://${mgmt_ip}`;
+    const isIPv6 = mgmtIp.includes(":");
+    const sshAddress = isIPv6 ? `ssh://[${mgmtIp}]` : `ssh://${mgmtIp}`;
     mgmtip.push(
       <Button
-        key={`${key_prefix}ssh`}
+        key={`${keyPrefix}ssh`}
         basic
         compact
         size="mini"
         icon="terminal"
-        title={ssh_address}
+        title={sshAddress}
         onClick={() => {
-          window.location = ssh_address;
+          window.location = sshAddress;
         }}
       />,
     );
@@ -831,7 +829,7 @@ function DeviceList() {
       log[deviceId] = [];
 
       for (const jobId of deviceJobs[deviceId]) {
-        const filteredLines = logLines.filter(checkJobId(jobId));
+        const filteredLines = logLines.filter(hasJobId(jobId));
 
         for (const logLine of filteredLines) {
           log[deviceId].push(logLine);

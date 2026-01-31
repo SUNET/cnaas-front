@@ -7,29 +7,29 @@ import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { postData } from "../../utils/sendData";
 
 async function submitInitJob(
-  device_id,
+  deviceId,
   hostname,
-  device_type,
+  deviceType,
   jobIdCallback,
   token,
-  mlag_peer_hostname = null,
-  mlag_peer_id = null,
+  mlagPeerHostname = null,
+  mlagPeerId = null,
 ) {
   console.log("Starting device init");
-  const url = `${process.env.API_URL}/api/v1.0/device_init/${device_id}`;
+  const url = `${process.env.API_URL}/api/v1.0/device_init/${deviceId}`;
   const dataToSend = {
     hostname,
-    device_type,
+    device_type: deviceType,
   };
-  if (mlag_peer_hostname !== null && mlag_peer_id !== null) {
-    dataToSend.mlag_peer_hostname = mlag_peer_hostname;
-    dataToSend.mlag_peer_id = mlag_peer_id;
+  if (mlagPeerHostname !== null && mlagPeerId !== null) {
+    dataToSend.mlag_peer_hostname = mlagPeerHostname;
+    dataToSend.mlag_peer_id = mlagPeerId;
   }
 
   try {
     const response = await postData(url, token, dataToSend);
     if (response.job_id !== undefined && typeof response.job_id === "number") {
-      jobIdCallback(device_id, response.job_id);
+      jobIdCallback(deviceId, response.job_id);
     } else {
       console.log("error when submitting device_init job", response.job_id);
     }
@@ -159,9 +159,9 @@ function DeviceInitForm({ deviceId, jobIdCallback }) {
         submitInit={submitInit}
         deviceId={deviceId}
         hostname={hostname}
-        device_type={deviceType}
-        mlag_peer_hostname={mlagPeerHostname}
-        mlag_peer_id={mlagPeerId}
+        deviceType={deviceType}
+        mlagPeerHostname={mlagPeerHostname}
+        mlagPeerId={mlagPeerId}
       />
     </div>
   );
