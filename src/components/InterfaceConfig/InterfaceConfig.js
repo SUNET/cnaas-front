@@ -269,12 +269,12 @@ export function InterfaceConfig({ history, location }) {
       setDeviceSettings(dataSettings);
 
       const vlanOptions = Object.entries(dataSettings.vxlans).map(
-        ([, vxlan_data]) => {
+        ([, vxlanData]) => {
           return {
-            key: vxlan_data.vni,
-            value: vxlan_data.vlan_name,
-            text: vxlan_data.vlan_name,
-            description: vxlan_data.vlan_id,
+            key: vxlanData.vni,
+            value: vxlanData.vlan_name,
+            text: vxlanData.vlan_name,
+            description: vxlanData.vlan_id,
           };
         },
       );
@@ -294,11 +294,11 @@ export function InterfaceConfig({ history, location }) {
       const interfaceTagOptions = dataSettings.interface_tag_options;
       if (interfaceTagOptions) {
         const settingsTagOptions =
-          Object.entries(interfaceTagOptions).map(([tag_name, tag_data]) => {
+          Object.entries(interfaceTagOptions).map(([tagName, tagData]) => {
             return {
-              text: tag_name,
-              value: tag_name,
-              description: tag_data.description,
+              text: tagName,
+              value: tagName,
+              description: tagData.description,
             };
           }) ?? [];
         setTagOptions(settingsTagOptions);
@@ -438,12 +438,12 @@ export function InterfaceConfig({ history, location }) {
         fetchedAvailableVariables.port_template_options;
       const usedPortTemplates = Object.entries(
         availablePortTemplateOptions ?? {},
-      ).map(([template_name, template_data]) => {
+      ).map(([templateName, templateData]) => {
         return {
-          text: template_name,
-          value: template_name,
-          description: template_data.description,
-          vlan_config: template_data.vlan_config,
+          text: templateName,
+          value: templateName,
+          description: templateData.description,
+          vlan_config: templateData.vlan_config,
         };
       });
 

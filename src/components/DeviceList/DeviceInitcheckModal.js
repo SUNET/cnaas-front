@@ -12,9 +12,9 @@ function DeviceInitcheckModal({
   submitInit,
   deviceId,
   hostname,
-  device_type,
-  mlag_peer_hostname = null,
-  mlag_peer_id = null,
+  deviceType,
+  mlagPeerHostname = null,
+  mlagPeerId = null,
 }) {
   const [initcheckOutput, setInitcheckOutput] = useState(null);
   const [accordionActiveIndex, setAccordionActiveIndex] = useState(0);
@@ -40,11 +40,11 @@ function DeviceInitcheckModal({
     const url = `${process.env.API_URL}/api/v1.0/device_initcheck/${deviceId}`;
     const dataToSend = {
       hostname,
-      device_type,
+      device_type: deviceType,
     };
-    if (mlag_peer_hostname !== null && mlag_peer_id !== null) {
-      dataToSend.mlag_peer_hostname = mlag_peer_hostname;
-      dataToSend.mlag_peer_id = mlag_peer_id;
+    if (mlagPeerHostname !== null && mlagPeerId !== null) {
+      dataToSend.mlag_peer_hostname = mlagPeerHostname;
+      dataToSend.mlag_peer_id = mlagPeerId;
     }
 
     try {
@@ -60,10 +60,10 @@ function DeviceInitcheckModal({
   if (initcheckOutput !== null) {
     try {
       initcheckOk = initcheckOutput.compatible;
-      let compatible_linknets = 0;
+      let compatibleLinknets = 0;
       let linknets = "";
       try {
-        compatible_linknets = initcheckOutput.linknets.length;
+        compatibleLinknets = initcheckOutput.linknets.length;
         linknets = (
           <pre>{JSON.stringify(initcheckOutput.linknets, null, 2)}</pre>
         );
@@ -72,10 +72,10 @@ function DeviceInitcheckModal({
           linknets = initcheckOutput.linknets_error;
         }
       }
-      let compatible_neighbors = 0;
+      let compatibleNeighbors = 0;
       let neighbors = "";
       try {
-        compatible_neighbors = initcheckOutput.neighbors.length;
+        compatibleNeighbors = initcheckOutput.neighbors.length;
         neighbors = (
           <pre>{JSON.stringify(initcheckOutput.neighbors, null, 2)}</pre>
         );
@@ -93,7 +93,7 @@ function DeviceInitcheckModal({
             onClick={accordionClick}
           >
             <Icon name="dropdown" />
-            Linknets: {compatible_linknets}
+            Linknets: {compatibleLinknets}
             <Icon
               name={
                 initcheckOutput.linknets_compatible ? "checkmark" : "cancel"
@@ -109,7 +109,7 @@ function DeviceInitcheckModal({
             onClick={accordionClick}
           >
             <Icon name="dropdown" />
-            Compatible neighbors: {compatible_neighbors}
+            Compatible neighbors: {compatibleNeighbors}
             <Icon
               name={
                 initcheckOutput.neighbors_compatible ? "checkmark" : "cancel"
@@ -185,9 +185,9 @@ DeviceInitcheckModal.propTypes = {
   submitInit: PropTypes.func.isRequired,
   deviceId: PropTypes.number,
   hostname: PropTypes.string,
-  device_type: PropTypes.string,
-  mlag_peer_hostname: PropTypes.string,
-  mlag_peer_id: PropTypes.number,
+  deviceType: PropTypes.string,
+  mlagPeerHostname: PropTypes.string,
+  mlagPeerId: PropTypes.number,
 };
 
 export default DeviceInitcheckModal;

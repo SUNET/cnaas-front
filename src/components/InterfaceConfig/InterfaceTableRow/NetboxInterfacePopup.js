@@ -66,13 +66,17 @@ NeighborInfoList.propTypes = {
 
 export function NetboxInterfacePopup({ netboxInterface }) {
   const content = useMemo(() => {
-    const { type, cable, connected_endpoints } = netboxInterface;
+    const {
+      type,
+      cable,
+      connected_endpoints: connectedEndpoints,
+    } = netboxInterface;
 
     return (
       <>
         <InterfaceType type={type} />
         <CableInfo cable={cable} />
-        <NeighborInfoList neighbors={connected_endpoints} />
+        <NeighborInfoList neighbors={connectedEndpoints} />
       </>
     );
   }, [netboxInterface]);

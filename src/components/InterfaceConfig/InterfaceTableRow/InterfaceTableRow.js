@@ -173,8 +173,8 @@ export function InterfaceTableRow({
     if (ifDataUpdated?.tagged_vlan_list !== undefined) {
       fields.tagged_vlan_list = ifDataUpdated.tagged_vlan_list;
     } else if (ifData.tagged_vlan_list) {
-      fields.tagged_vlan_list = ifData.tagged_vlan_list.map((vlan_item) => {
-        return mapVlanToName(vlan_item, vlanOptions);
+      fields.tagged_vlan_list = ifData.tagged_vlan_list.map((vlanItem) => {
+        return mapVlanToName(vlanItem, vlanOptions);
       });
     }
   } else if (ifDataUpdated) {

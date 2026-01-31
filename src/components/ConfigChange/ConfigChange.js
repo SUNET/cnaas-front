@@ -399,10 +399,10 @@ function ConfigChange({ location }) {
     isRepoRefreshingRef.current = isRefreshing;
   };
 
-  const readHeaders = (response, dry_run) => {
+  const readHeaders = (response, dryRun) => {
     const totalCountHeader = Number(response.headers.get("X-Total-Count"));
     if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
-      if (dry_run) {
+      if (dryRun) {
         setDryRunTotalCount(totalCountHeader);
       } else {
         setLiveRunTotalCount(totalCountHeader);

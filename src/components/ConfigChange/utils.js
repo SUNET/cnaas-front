@@ -11,14 +11,14 @@ export const getDeviceList = async (token, target) => {
     return data.data.devices;
   }
   if (target.group) {
-    const url_devices = `${process.env.API_URL}/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000`;
-    const url_group = `${process.env.API_URL}/api/v1.0/groups/${target.group}`;
+    const urlDevices = `${process.env.API_URL}/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000`;
+    const urlGroup = `${process.env.API_URL}/api/v1.0/groups/${target.group}`;
 
-    const data_devices = await getData(url_devices, token);
-    const data_group = await getData(url_group, token);
+    const dataDevices = await getData(urlDevices, token);
+    const dataGroup = await getData(urlGroup, token);
 
-    return _.filter(data_devices.data.devices, (dev) =>
-      data_group.data.groups[target.group].includes(dev.hostname),
+    return _.filter(dataDevices.data.devices, (dev) =>
+      dataGroup.data.groups[target.group].includes(dev.hostname),
     );
   }
   const url = `${process.env.API_URL}/api/v1.0/devices?filter[synchronized]=false&filter[state]=MANAGED&per_page=1000`;
