@@ -320,7 +320,6 @@ export function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
               <GridColumn>
                 <ul id="error_list" style={{ color: "red" }}>
                   {errors.map((err, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
                     <li key={index}>{err.message}</li>
                   ))}
                 </ul>

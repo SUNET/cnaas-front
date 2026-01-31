@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import queryString from "query-string";
 import { Button, Checkbox, Icon, Modal, Popup, Table } from "semantic-ui-react";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
+import io from "socket.io-client";
 import { getData, getDataHeaders, getDataToken } from "../../utils/getData";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { putData, postData } from "../../utils/sendData";
@@ -12,8 +13,6 @@ import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
 import PropTypes from "prop-types";
-
-const io = require("socket.io-client");
 let socket = null;
 
 const STATUS_STOPPED = ["FINISHED", "EXCEPTION"]; // TODO: add "ABORTED"?

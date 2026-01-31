@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 import { useEffect, useRef, useState } from "react";
 import { Button, Icon } from "semantic-ui-react";
+import io from "socket.io-client";
 import checkResponseStatus from "../utils/checkResponseStatus";
-const io = require("socket.io-client");
 
 let socket = null;
 
