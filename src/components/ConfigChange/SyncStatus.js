@@ -56,9 +56,9 @@ function DeviceEntry({ hostname, eventList }) {
           </ul>
         }
         trigger={
-          <a>
+          <span className="popup-trigger">
             {hostname} ({eventList.length})
-          </a>
+          </span>
         }
       />
     </li>

@@ -168,9 +168,7 @@ export function FirmwareStep3({
     <div className="task-container">
       <div className="heading">
         <h2>Reboot devices (3/3)</h2>
-        <a href="#">
-          <button className="close">Close</button>
-        </a>
+        <button className="close">Close</button>
       </div>
       <div className="task-collapsable">
         <p>
