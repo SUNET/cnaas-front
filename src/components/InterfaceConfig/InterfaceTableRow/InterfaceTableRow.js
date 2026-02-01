@@ -461,6 +461,7 @@ export function InterfaceTableRow({
         key={`enabled|${item.name}`}
         name={`enabled|${item.name}`}
         toggle
+        // eslint-disable-next-line jsx-a11y/label-has-associated-control
         label={<label>Enable interface</label>}
         defaultChecked={currentEnabled}
         onChange={updateFieldData}
