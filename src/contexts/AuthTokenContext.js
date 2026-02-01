@@ -63,7 +63,7 @@ export function AuthTokenProvider({ children }) {
           dispatch({ type: actions.SET_USERNAME, payload: "unknown user" });
         });
     };
-    if (tokenState.username == null && tokenState.token != null) {
+    if (tokenState.username === null && tokenState.token !== null) {
       updateUsernameFromAPI();
     }
   }, [tokenState.token]);

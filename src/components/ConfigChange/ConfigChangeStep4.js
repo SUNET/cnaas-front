@@ -199,7 +199,7 @@ function ConfigChangeStep4({
         </button>{" "}
         {warnings}
         <Select
-          disabled={confirmModeDefault == -1}
+          disabled={confirmModeDefault === -1}
           placeholder="commit confirm mode (use server default)"
           options={confirmModeOptions}
           onChange={(_e, option) => updateConfirmMode(option.value)}
@@ -223,16 +223,16 @@ function ConfigChangeStep4({
           logLines={logLines}
           keyNum={1}
         />
-        <p hidden={confirmMode != 2}>Confirm progress: </p>
+        <p hidden={confirmMode !== 2}>Confirm progress: </p>
         <DryRunProgressBar
-          hidden={confirmMode != 2}
+          hidden={confirmMode !== 2}
           dryRunJobStatus={confirmRunJobStatus}
           dryRunProgressData={confirmRunProgressData}
           totalDevices={totalCount}
           keyNum={2}
         />
         <DryRunProgressInfo
-          hidden={confirmMode != 2}
+          hidden={confirmMode !== 2}
           dryRunJobStatus={confirmRunJobStatus}
           dryRunProgressData={confirmRunProgressData}
           jobId={confirmJobId}

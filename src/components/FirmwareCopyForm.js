@@ -26,8 +26,8 @@ function FirmwareCopyForm(props) {
     });
     socket.on("events", (data) => {
       if (
-        data?.job_id == copyJobIdRef.current &&
-        (data.status == "FINISHED" || data.status == "EXCEPTION")
+        data?.job_id === copyJobIdRef.current &&
+        (data.status === "FINISHED" || data.status === "EXCEPTION")
       ) {
         props.reloadFirmwareFiles();
         setCopyJobId(null);

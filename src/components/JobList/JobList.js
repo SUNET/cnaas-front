@@ -190,7 +190,7 @@ export function JobList() {
       "ticket_ref",
       "comment",
     ];
-    if (filterField != null && filterValue != null) {
+    if (filterField !== null && filterValue !== null) {
       if (stringFields.indexOf(filterField) !== -1) {
         filterFieldOperator = "[contains]";
       }

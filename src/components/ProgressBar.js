@@ -17,7 +17,7 @@ function ProgressBar({ jobStatus, value, total, hidden }) {
         active = true;
         break;
       case "FINISHED":
-        if (value == total) {
+        if (value === total) {
           success = true;
         } else {
           error = true;
