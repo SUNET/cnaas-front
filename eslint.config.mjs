@@ -6,11 +6,13 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 import reactPlugin from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
-import { defineConfig } from "eslint/config";
+// eslint-disable-next-line import/no-unresolved
+import { defineConfig, globalIgnores } from "eslint/config";
 
 const commonRules = {
   camelcase: ["error", { properties: "never" }],
   eqeqeq: "warn",
+  "jsx-a11y/anchor-is-valid": "error",
   "jsx-a11y/label-has-associated-control": [
     "warn",
     { some: ["htmlFor", "nested"] },
@@ -21,87 +23,88 @@ const commonRules = {
   "no-use-before-define": "off",
   "prettier/prettier": "error",
   "react-hooks/exhaustive-deps": "off",
-  "react-hooks/immutability": "off",
+  "react-hooks/immutability": "warn",
   "react/destructuring-assignment": "warn",
-  "react/jsx-filename-extension": "off", // allow .js suffix
+  "react/jsx-filename-extension": "off",
   "react/jsx-no-bind": "off",
-  "react/jsx-uses-vars": "error",
-  "react/prop-types": "off",
+  "react/prop-types": "warn",
   "react/sort-comp": "warn",
-  // TEMPORARY rules while refactor
-  "jsx-a11y/anchor-is-valid": "off", // allow popup triggers use <a> without href during refactor
-  "no-redeclare": "off", // allow shadowing during refactor
-  "no-undef": "off", // allow require() during refactor
-  "react-hooks/set-state-in-effect": "off", // allow during refactor
-};
-
-const commonLanguageOptions = {
-  parser: babelParser,
-  parserOptions: {
-    requireConfigFile: false,
-    ecmaFeatures: {
-      jsx: true,
-    },
-  },
-  globals: {
-    ...globals.browser,
-    ...globals.jest,
-  },
+  // --- Temporarily disabled (refactor in progress) ---
+  "react-hooks/set-state-in-effect": "off",
 };
 
 export default defineConfig([
-  js.configs.recommended,
-  importPlugin.flatConfigs.recommended,
-  jsxA11y.flatConfigs.recommended,
-  reactPlugin.configs.flat["jsx-runtime"],
-  reactHooks.configs.flat.recommended,
+  // Global ignores - files to skip entirely
+  globalIgnores([".cache/", "dist/", "node_modules/", "package-lock.json"]),
+
+  // Base config - applies to ALL files
   {
-    // Test + Node files
-    files: [
-      "**/*.config.js",
-      "**/*.config.mjs",
-      "**/*.test.js",
-      "**/*.spec.js",
-      "**/__mocks__/**",
+    name: "cnaas/base",
+    extends: [
+      js.configs.recommended,
+      importPlugin.flatConfigs.recommended,
+      jsxA11y.flatConfigs.recommended,
+      reactPlugin.configs.flat.recommended,
+      reactPlugin.configs.flat["jsx-runtime"],
+      reactHooks.configs.flat.recommended,
+      eslintPluginPrettierRecommended,
     ],
     languageOptions: {
-      ...commonLanguageOptions,
-    },
-    rules: {
-      ...commonRules,
-    },
-  },
-  {
-    // Frontend (React app)
-    files: ["**/*.{js,jsx,ts,tsx}"],
-    ignores: ["**/*.test.*", "**/*.spec.*", "**/__mocks__/**"],
-    languageOptions: {
-      ...commonLanguageOptions,
-      globals: {
-        ...commonLanguageOptions.globals,
-        process: "readonly",
+      parser: babelParser,
+      parserOptions: {
+        requireConfigFile: false,
+        ecmaFeatures: { jsx: true },
       },
     },
     settings: {
-      react: {
-        version: "detect",
+      react: { version: "detect" },
+    },
+    rules: commonRules,
+  },
+
+  // Test files - add Jest + Node globals, disable prop-types
+  {
+    name: "cnaas/tests",
+    files: [
+      "**/*.test.js",
+      "**/*.spec.js",
+      "**/__mocks__/**",
+      "**/setupTests.js",
+    ],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.jest,
+        global: "readonly",
+        globalThis: "readonly",
+        module: "readonly",
+        process: "readonly",
+        require: "readonly",
       },
     },
     rules: {
-      ...commonRules,
-      "no-lone-blocks": "off", // conflicts with setState
-      "react/prefer-stateless-function": "warn", // allow class components
+      "react/prop-types": "off",
     },
   },
-  // Prettier should always be last
-  eslintPluginPrettierRecommended,
+
+  // Frontend (non-test files) - add browser globals
   {
+    name: "cnaas/frontend",
+    files: ["**/*.{js,jsx}"],
     ignores: [
-      ".cache/",
-      "eslint.config.mjs",
-      "dist/",
-      "node_modules/",
-      "package-lock.json",
+      "**/*.test.js",
+      "**/*.spec.js",
+      "**/__mocks__/**",
+      "**/setupTests.js",
     ],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        globalThis: "readonly",
+        module: "readonly",
+        process: "readonly",
+        require: "readonly",
+      },
+    },
   },
 ]);
