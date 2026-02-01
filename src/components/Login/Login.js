@@ -58,7 +58,7 @@ function Login() {
   }
 
   let loginForm = null;
-  if (process.env.OIDC_ENABLED == "true") {
+  if (process.env.OIDC_ENABLED === "true") {
     loginForm = <LoginOIDC login={oidcLogin} errorMessage={loginMessage} />;
   } else {
     loginForm = (

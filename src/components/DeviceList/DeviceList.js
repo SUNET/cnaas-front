@@ -782,7 +782,7 @@ function DeviceList() {
 
   const mangleDeviceData = (device) => {
     const deviceStateExtra = [];
-    if (device.state == "DISCOVERED") {
+    if (device.state === "DISCOVERED") {
       deviceStateExtra.push(
         <DeviceInitForm
           key={`${device.id}_initform`}
@@ -790,13 +790,13 @@ function DeviceList() {
           jobIdCallback={addDeviceJob}
         />,
       );
-    } else if (device.state == "INIT") {
+    } else if (device.state === "INIT") {
       if (device.id in deviceJobs) {
         deviceStateExtra.push(
           <p key="initjobs">Init jobs: {deviceJobs[device.id].join(", ")}</p>,
         );
       }
-    } else if (device.state == "UNMANAGED (Replacing)") {
+    } else if (device.state === "UNMANAGED (Replacing)") {
       deviceStateExtra.push(
         <DeviceReplaceForm
           key={`${device.id}_replaceform`}
@@ -931,8 +931,8 @@ function DeviceList() {
     socket.on("events", (data) => {
       // device update event
       if (data.device_id !== undefined) {
-        if (data.action == "UPDATED") {
-          if (data.object.state == "DISCOVERED") {
+        if (data.action === "UPDATED") {
+          if (data.object.state === "DISCOVERED") {
             if (
               data.device_id !== undefined &&
               data.device_id !== null &&
@@ -985,7 +985,7 @@ function DeviceList() {
             }
             return prev;
           });
-        } else if (data.action == "CREATED") {
+        } else if (data.action === "CREATED") {
           if (data.device_id !== undefined && data.device_id !== null) {
             toast({
               type: "info",

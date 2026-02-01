@@ -27,7 +27,7 @@ export function DeleteModal({ addDeviceJob, closeAction, device, isOpen }) {
 
   const isConfirmValid = device.hostname === confirmName;
   const canFactoryDefault =
-    device.state == "MANAGED" && device.device_type == "ACCESS";
+    device.state === "MANAGED" && device.device_type === "ACCESS";
 
   const deleteDevice = async () => {
     setIsLoading(true);
