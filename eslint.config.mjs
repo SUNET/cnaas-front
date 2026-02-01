@@ -13,7 +13,7 @@ const commonRules = {
   camelcase: ["error", { properties: "never" }],
   eqeqeq: "error",
   "jsx-a11y/label-has-associated-control": [
-    "warn",
+    "error",
     { some: ["htmlFor", "nested"] },
   ],
   "jsx-a11y/label-has-for": "off",

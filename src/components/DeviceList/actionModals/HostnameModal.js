@@ -89,6 +89,7 @@ export function HostnameModal({
               {success && (
                 <>
                   <Icon name="check" color="green" />
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                   <label>Hostname changed</label>
                 </>
               )}
