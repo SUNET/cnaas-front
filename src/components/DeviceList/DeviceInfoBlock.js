@@ -57,7 +57,7 @@ export default function DeviceInfoBlock({
         content={<>{content}</>}
         wide="very"
         hoverable
-        trigger={<a>{device.model}</a>}
+        trigger={<span className="popup-trigger">{device.model}</span>}
       />
     );
   }

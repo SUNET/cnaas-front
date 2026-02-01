@@ -70,9 +70,7 @@ export function FirmwareStep1({ commitTarget }) {
     <div className="task-container">
       <div className="heading">
         <h2>Current OS version (1/3)</h2>
-        <a href="#">
-          <button className="close">Close</button>
-        </a>
+        <button className="close">Close</button>
       </div>
       <div className="task-collapsable">
         <p>

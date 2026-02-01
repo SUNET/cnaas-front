@@ -72,15 +72,13 @@ function ExceptionDetails({ job, showTraceback, setShowTraceback }) {
     <>
       <p>Exception message: {job.exception.message}</p>
       <p>
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            setShowTraceback(true);
-          }}
+        <button
+          type="button"
+          className="link-button"
+          onClick={() => setShowTraceback(true)}
         >
           Show exception traceback
-        </a>
+        </button>
       </p>
       {showTraceback && <pre>{job.exception.traceback}</pre>}
     </>

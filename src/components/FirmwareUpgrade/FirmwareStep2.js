@@ -139,9 +139,7 @@ export function FirmwareStep2({
     <div className="task-container">
       <div className="heading">
         <h2>Activate firmware (2/3)</h2>
-        <a href="#">
-          <button className="close">Close</button>
-        </a>
+        <button className="close">Close</button>
       </div>
       <div className="task-collapsable">
         <p>

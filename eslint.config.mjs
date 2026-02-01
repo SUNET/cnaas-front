@@ -12,7 +12,6 @@ import { defineConfig, globalIgnores } from "eslint/config";
 const commonRules = {
   camelcase: ["error", { properties: "never" }],
   eqeqeq: "warn",
-  "jsx-a11y/anchor-is-valid": "error",
   "jsx-a11y/label-has-associated-control": [
     "warn",
     { some: ["htmlFor", "nested"] },
