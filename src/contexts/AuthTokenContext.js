@@ -125,7 +125,7 @@ export function AuthTokenProvider({ children }) {
         putToken(newToken);
       })
       .catch((error) => {
-        console.error(error.message);
+        console.warn(error.message);
         dispatch({ type: actions.SET_TOKEN_WILL_EXPIRE, payload: true });
       });
   }, [tokenState.tokenExpiry]);

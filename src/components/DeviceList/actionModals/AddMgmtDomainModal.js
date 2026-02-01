@@ -55,7 +55,6 @@ export function AddMgmtDomainModal({
     )
       .then((resp) => {
         clearForm();
-        console.log(resp);
         onAdd(resp.data.added_mgmtdomain.id);
       })
       .catch(async (errResp) => {
