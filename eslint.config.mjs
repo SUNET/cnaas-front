@@ -18,7 +18,7 @@ const commonRules = {
     { some: ["htmlFor", "nested"] },
   ],
   "jsx-a11y/label-has-for": "off",
-  "no-console": "warn",
+  "no-console": "off", // allow console statements
   "no-unused-expressions": ["warn", { allowTernary: true }],
   "no-use-before-define": "off",
   "prettier/prettier": "error",
