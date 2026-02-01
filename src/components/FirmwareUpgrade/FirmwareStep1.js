@@ -74,9 +74,9 @@ export function FirmwareStep1({ commitTarget }) {
       </div>
       <div className="task-collapsable">
         <p>
-          Step 1 of 3: Check currently running OS versions. Use the "Update
-          facts" action on a device in the device list if the OS version listed
-          here does not reflect the actual running version.
+          Step 1 of 3: Check currently running OS versions. Use the &quot;Update
+          facts&quot; action on a device in the device list if the OS version
+          listed here does not reflect the actual running version.
         </p>
         <div className="info">{osVersionList}</div>
       </div>
