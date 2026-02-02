@@ -235,7 +235,7 @@ function DeviceList() {
     setFilterActive(Object.keys(filterData).length > 0);
     // Expand results when looking up device
     setExpandResult(true);
-    window.scrollTo(0, 0);
+    globalThis.scrollTo(0, 0);
   };
 
   // When devices change (after getDevices updates them), reset expandResult
@@ -746,7 +746,7 @@ function DeviceList() {
         icon="terminal"
         title={sshAddress}
         onClick={() => {
-          window.location = sshAddress;
+          globalThis.location = sshAddress;
         }}
       />,
     );
