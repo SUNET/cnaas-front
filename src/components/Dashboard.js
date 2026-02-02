@@ -14,20 +14,6 @@ function Dashboard() {
   const [settingsInfo, setSettingsInfo] = useState("Unknown");
   const [templatesInfo, setTemplatesInfo] = useState("Unknown");
 
-  useEffect(() => {
-    if (initialized || !token) return;
-
-    getRepoStatus("settings");
-    getRepoStatus("templates");
-    getDeviceCount("managed", "filter[state]=MANAGED");
-    getDeviceCount(
-      "unsynchronized",
-      "filter[state]=MANAGED&filter[synchronized]=false",
-    );
-    getSystemVersion();
-    setInitialized(true);
-  }, [token]);
-
   const getRepoStatus = async (repoName) => {
     try {
       const resp = await getData(
@@ -38,6 +24,11 @@ function Dashboard() {
     } catch {
       setCommitInfo({});
     }
+  };
+
+  const headerCount = (response) => {
+    const totalCountHeader = response.headers.get("X-Total-Count");
+    return totalCountHeader && !isNaN(totalCountHeader) ? totalCountHeader : -1;
   };
 
   const getDeviceCount = async (name, filter) => {
@@ -66,10 +57,19 @@ function Dashboard() {
     }
   };
 
-  const headerCount = (response) => {
-    const totalCountHeader = response.headers.get("X-Total-Count");
-    return totalCountHeader && !isNaN(totalCountHeader) ? totalCountHeader : -1;
-  };
+  useEffect(() => {
+    if (initialized || !token) return;
+
+    getRepoStatus("settings");
+    getRepoStatus("templates");
+    getDeviceCount("managed", "filter[state]=MANAGED");
+    getDeviceCount(
+      "unsynchronized",
+      "filter[state]=MANAGED&filter[synchronized]=false",
+    );
+    getSystemVersion();
+    setInitialized(true);
+  }, [token]);
 
   useEffect(() => {
     // Update settingsInfo

@@ -40,6 +40,67 @@ export function JobList() {
   // Ref to hold the latest getJobsData function for use in socket handlers
   const getJobsDataRef = useRef(null);
 
+  const hasJobLog = (logLine) => {
+    return logLine.toLowerCase().includes("job #");
+  };
+
+  const readHeaders = (response) => {
+    const totalCountHeader = response.headers.get("X-Total-Count");
+    if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
+      const totalPages = Math.ceil(totalCountHeader / 20);
+      setTotalPages(totalPages);
+    }
+
+    return response;
+  };
+
+  const fetchJobs = async (
+    sortField = "id",
+    filterField,
+    filterValue,
+    pageNum,
+  ) => {
+    setLoading(true);
+    setError(null);
+
+    // Build filter part of the URL to only return specific devices from the API
+    let filterParams = "";
+    let filterFieldOperator = "";
+    const stringFields = [
+      "function_name",
+      "scheduled_by",
+      "ticket_ref",
+      "comment",
+    ];
+    if (filterField !== null && filterValue !== null) {
+      if (stringFields.indexOf(filterField) !== -1) {
+        filterFieldOperator = "[contains]";
+      }
+      filterParams = `&filter[${filterField}]${filterFieldOperator}=${filterValue}`;
+    }
+    try {
+      const response = await getResponse(
+        `${process.env.API_URL}/api/v1.0/jobs?sort=${sortField}${filterParams}&page=${pageNum}&per_page=20`,
+        token,
+      );
+      readHeaders(response);
+      const data = await checkJsonResponse(response);
+      setJobsData(data.data.jobs);
+      setLoading(false);
+    } catch (error) {
+      if (typeof error.json === "function") {
+        const jsonError = await error.json();
+        setJobsData([]);
+        setLoading(false);
+        setError(jsonError.message);
+      } else {
+        setJobsData([]);
+        setLoading(false);
+        setError(error.message);
+      }
+    }
+  };
+
   const getJobsData = (options) => {
     options = options ?? {};
     const newSortField = options.sortField || sort.field;
@@ -162,63 +223,6 @@ export function JobList() {
     };
   }, []);
 
-  const readHeaders = (response) => {
-    const totalCountHeader = response.headers.get("X-Total-Count");
-    if (totalCountHeader !== null && !isNaN(totalCountHeader)) {
-      const totalPages = Math.ceil(totalCountHeader / 20);
-      setTotalPages(totalPages);
-    }
-
-    return response;
-  };
-
-  const fetchJobs = async (
-    sortField = "id",
-    filterField,
-    filterValue,
-    pageNum,
-  ) => {
-    setLoading(true);
-    setError(null);
-
-    // Build filter part of the URL to only return specific devices from the API
-    let filterParams = "";
-    let filterFieldOperator = "";
-    const stringFields = [
-      "function_name",
-      "scheduled_by",
-      "ticket_ref",
-      "comment",
-    ];
-    if (filterField !== null && filterValue !== null) {
-      if (stringFields.indexOf(filterField) !== -1) {
-        filterFieldOperator = "[contains]";
-      }
-      filterParams = `&filter[${filterField}]${filterFieldOperator}=${filterValue}`;
-    }
-    try {
-      const response = await getResponse(
-        `${process.env.API_URL}/api/v1.0/jobs?sort=${sortField}${filterParams}&page=${pageNum}&per_page=20`,
-        token,
-      );
-      readHeaders(response);
-      const data = await checkJsonResponse(response);
-      setJobsData(data.data.jobs);
-      setLoading(false);
-    } catch (error) {
-      if (typeof error.json === "function") {
-        const jsonError = await error.json();
-        setJobsData([]);
-        setLoading(false);
-        setError(jsonError.message);
-      } else {
-        setJobsData([]);
-        setLoading(false);
-        setError(error.message);
-      }
-    }
-  };
-
   // Helper to get sort indicator for a column
   const getSortIndicator = (column) => {
     if (sort.column !== column) return "";
@@ -253,10 +257,6 @@ export function JobList() {
       return <Icon name="sort down" />;
     }
     return <Icon name="sort" />;
-  };
-
-  const hasJobLog = (logLine) => {
-    return logLine.toLowerCase().includes("job #");
   };
 
   const renderTableBody = () => {

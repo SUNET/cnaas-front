@@ -245,28 +245,6 @@ function DeviceList() {
     }
   }, [deviceData]); // runs after re-render with new devices
 
-  useEffect(() => {
-    populateDiscoveredDevices();
-    getAllMgmtDomainsData();
-  }, []);
-
-  // Update deviceData on changes
-  useEffect(() => {
-    getDevices();
-  }, [sortColumn, sortDirection, searchParams, activePage, resultsPerPage]);
-
-  // Set localStorage on changes
-  useEffect(() => {
-    const storageData = {
-      activeColumns,
-      sortColumn,
-      sortDirection,
-      resultsPerPage,
-      activePage,
-    };
-    localStorage.setItem("deviceList", JSON.stringify(storageData));
-  }, [activeColumns, sortColumn, sortDirection, activePage, resultsPerPage]);
-
   const getDevices = async () => {
     const operatorMap = {
       id: "[equals]",
@@ -318,6 +296,28 @@ function DeviceList() {
     // Set loading to false, this should only happen on initial page load
     if (loading) setLoading(false);
   };
+
+  useEffect(() => {
+    populateDiscoveredDevices();
+    getAllMgmtDomainsData();
+  }, []);
+
+  // Update deviceData on changes
+  useEffect(() => {
+    getDevices();
+  }, [sortColumn, sortDirection, searchParams, activePage, resultsPerPage]);
+
+  // Set localStorage on changes
+  useEffect(() => {
+    const storageData = {
+      activeColumns,
+      sortColumn,
+      sortDirection,
+      resultsPerPage,
+      activePage,
+    };
+    localStorage.setItem("deviceList", JSON.stringify(storageData));
+  }, [activeColumns, sortColumn, sortDirection, activePage, resultsPerPage]);
 
   const sortClick = (column) => {
     if (column === sortColumn) {
