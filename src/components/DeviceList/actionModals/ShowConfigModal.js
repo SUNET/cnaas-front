@@ -319,8 +319,8 @@ export function ShowConfigModal({ hostname, state, isOpen, closeAction }) {
             <GridRow>
               <GridColumn>
                 <ul id="error_list" style={{ color: "red" }}>
-                  {errors.map((err, index) => (
-                    <li key={index}>{err.message}</li>
+                  {errors.map((err) => (
+                    <li key={err.message}>{err.message}</li>
                   ))}
                 </ul>
               </GridColumn>
