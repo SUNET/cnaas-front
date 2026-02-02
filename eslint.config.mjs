@@ -26,7 +26,7 @@ const commonRules = {
   "prettier/prettier": "error",
   "react-hooks/exhaustive-deps": "off",
   "react-hooks/immutability": "warn",
-  "react/destructuring-assignment": "warn",
+  "react/destructuring-assignment": "error",
   "react/jsx-filename-extension": "off",
   "react/jsx-no-bind": "off",
   "react/prop-types": "warn",
