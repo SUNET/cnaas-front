@@ -30,8 +30,7 @@ const commonRules = {
   "react/jsx-filename-extension": "off",
   "react/prop-types": "error",
   "react/sort-comp": "error",
-  // --- Temporarily disabled (refactor in progress) ---
-  "react-hooks/set-state-in-effect": "off",
+  "react-hooks/set-state-in-effect": "warn",
 };
 
 export default defineConfig([
