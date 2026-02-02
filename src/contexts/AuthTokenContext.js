@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/immutability */
+import PropTypes from "prop-types";
 import { jwtDecode } from "jwt-decode";
 import {
   createContext,
@@ -29,6 +30,10 @@ export const getSecondsUntilExpiry = (tokenExpiry) => {
 };
 
 export const AuthTokenContext = createContext({});
+
+AuthTokenProvider.propTypes = {
+  children: PropTypes.node,
+};
 
 export function AuthTokenProvider({ children }) {
   const init = () => {

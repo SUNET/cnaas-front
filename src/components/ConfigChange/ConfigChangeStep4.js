@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useCallback, useEffect, useState } from "react";
 import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
 
@@ -62,6 +63,21 @@ function createWarningPopups(
 
   return warnings;
 }
+
+ConfigChangeStep4.propTypes = {
+  confirmJobId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  confirmRunJobStatus: PropTypes.string,
+  confirmRunProgressData: PropTypes.object,
+  dryRunChangeScore: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  dryRunJobStatus: PropTypes.string,
+  jobId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  liveRunJobStatus: PropTypes.string,
+  liveRunProgressData: PropTypes.object,
+  liveRunSyncStart: PropTypes.func,
+  logLines: PropTypes.array,
+  synctoForce: PropTypes.bool,
+  totalCount: PropTypes.number,
+};
 
 function ConfigChangeStep4({
   confirmJobId,

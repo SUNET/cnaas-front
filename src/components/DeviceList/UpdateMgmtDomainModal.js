@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import {
   Button,
@@ -14,6 +15,19 @@ import {
   ModalHeader,
 } from "semantic-ui-react";
 import { deleteData, putData } from "../../utils/sendData";
+
+UpdateMgmtDomainModal.propTypes = {
+  mgmtId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  deviceA: PropTypes.string,
+  deviceB: PropTypes.string,
+  ipv4Initial: PropTypes.string,
+  ipv6Initial: PropTypes.string,
+  vlanInitial: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onDelete: PropTypes.func,
+  onUpdate: PropTypes.func,
+  isOpen: PropTypes.bool,
+  closeAction: PropTypes.func,
+};
 
 function UpdateMgmtDomainModal({
   mgmtId,

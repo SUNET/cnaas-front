@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useEffect, useRef, useState } from "react";
 import {
   Button,
@@ -9,6 +10,10 @@ import {
 } from "semantic-ui-react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { secondsToText } from "../../utils/formatters";
+
+ReloginModal.propTypes = {
+  isOpen: PropTypes.bool,
+};
 
 function ReloginModal({ isOpen }) {
   const { logout, oidcLogin, tokenExpiry } = useAuthToken();

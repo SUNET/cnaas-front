@@ -1,3 +1,12 @@
+import PropTypes from "prop-types";
+
+LoginForm.propTypes = {
+  handleSubmit: PropTypes.func,
+  setValue: PropTypes.func,
+  formValues: PropTypes.object,
+  errorMessage: PropTypes.string,
+};
+
 function LoginForm({ handleSubmit, setValue, formValues, errorMessage }) {
   const handleInput = (event) => {
     const { name, value } = event.target;

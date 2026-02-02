@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import queryString from "query-string";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Prompt } from "react-router";
@@ -128,6 +129,12 @@ const showAnotherSessionDidRefreshToast = (jobId) => {
     animation: "bounce",
     time: 0,
   });
+};
+
+ConfigChange.propTypes = {
+  location: PropTypes.shape({
+    search: PropTypes.string,
+  }),
 };
 
 function ConfigChange({ location }) {

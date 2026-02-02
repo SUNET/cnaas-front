@@ -1,7 +1,13 @@
+import PropTypes from "prop-types";
 import { useMemo, useState } from "react";
 import { Popup, Icon } from "semantic-ui-react";
 import VerifyDiffInfo from "./VerifyDiffInfo";
 import VerifyDiffResult from "./VerifyDiffResult";
+
+VerifyDiff.propTypes = {
+  devices: PropTypes.object,
+  dryRunChangeScore: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
 
 function VerifyDiff({ devices, dryRunChangeScore }) {
   const [expanded, setExpanded] = useState(true);
