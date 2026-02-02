@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Icon, Container } from "semantic-ui-react";
 
 import { useAuthToken } from "../../contexts/AuthTokenContext";
@@ -10,26 +10,18 @@ import DashboardLinkgrid from "../DashboardLinkgrid";
 function Login() {
   const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuthToken();
   const { permissions } = usePermissions();
-  const [permissionsLoading, setPermissionsLoading] = useState(true);
-  const [permissionsErrorMsg, setPermissionsErrorMsg] = useState("");
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
 
-  useEffect(() => {
-    if (loggedIn) {
-      const noPermissions =
-        process.env.PERMISSIONS_DISABLED !== "true" && !permissions?.length;
-
-      setPermissionsErrorMsg(
-        noPermissions
-          ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
-          : "",
-      );
-      setPermissionsLoading(!permissions?.length);
-    }
-  }, [loggedIn, permissions]);
+  const permissionsLoading = loggedIn && !permissions?.length;
+  const permissionsErrorMsg =
+    loggedIn &&
+    process.env.PERMISSIONS_DISABLED !== "true" &&
+    !permissions?.length
+      ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
+      : "";
 
   const setValue = (name, value) => {
     setCredentials({
