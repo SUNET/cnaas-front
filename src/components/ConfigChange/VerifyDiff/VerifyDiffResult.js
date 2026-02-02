@@ -1,5 +1,11 @@
+import PropTypes from "prop-types";
 import { useMemo } from "react";
 import SyntaxHighlight from "../../SyntaxHighlight";
+
+VerifyDiffResult.propTypes = {
+  deviceNames: PropTypes.array,
+  deviceData: PropTypes.array,
+};
 
 function VerifyDiffResult({ deviceNames, deviceData }) {
   // Extract diffs from device data

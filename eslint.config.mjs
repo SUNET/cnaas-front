@@ -28,8 +28,7 @@ const commonRules = {
   "react-hooks/immutability": "warn",
   "react/destructuring-assignment": "error",
   "react/jsx-filename-extension": "off",
-  "react/jsx-no-bind": "off",
-  "react/prop-types": "warn",
+  "react/prop-types": "error",
   "react/sort-comp": "error",
   // --- Temporarily disabled (refactor in progress) ---
   "react-hooks/set-state-in-effect": "off",

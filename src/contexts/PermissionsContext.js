@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import {
   createContext,
   useCallback,
@@ -11,6 +12,10 @@ import { storeValueIsUndefined } from "../utils/formatters";
 import { useAuthToken } from "./AuthTokenContext";
 
 const PermissionsContext = createContext();
+
+PermissionsProvider.propTypes = {
+  children: PropTypes.node,
+};
 
 // export for test
 export const findPermission = (userPermissions, targetPage, requiredRight) => {

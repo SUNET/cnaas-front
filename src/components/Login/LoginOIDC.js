@@ -1,3 +1,10 @@
+import PropTypes from "prop-types";
+
+LoginOIDC.propTypes = {
+  login: PropTypes.func,
+  errorMessage: PropTypes.string,
+};
+
 function LoginOIDC({ login, errorMessage }) {
   return (
     <form onSubmit={login}>

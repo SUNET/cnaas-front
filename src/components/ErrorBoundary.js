@@ -1,6 +1,11 @@
+import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { withRouter } from "react-router";
 import { useHistory } from "react-router-dom";
+
+ErrorBoundary.propTypes = {
+  children: PropTypes.node,
+};
 
 function ErrorBoundary({ children }) {
   const history = useHistory();

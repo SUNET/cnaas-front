@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useState } from "react";
 import {
   Button,
@@ -14,6 +15,14 @@ import {
   ModalHeader,
 } from "semantic-ui-react";
 import { postData } from "../../../utils/sendData";
+
+AddMgmtDomainModal.propTypes = {
+  deviceA: PropTypes.string,
+  deviceBCandidates: PropTypes.array,
+  isOpen: PropTypes.bool,
+  onAdd: PropTypes.func,
+  closeAction: PropTypes.func,
+};
 
 export function AddMgmtDomainModal({
   deviceA,

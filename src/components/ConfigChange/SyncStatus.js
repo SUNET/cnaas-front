@@ -12,6 +12,11 @@ function NoEventsContent() {
   );
 }
 
+EventsTable.propTypes = {
+  contents: PropTypes.array,
+  headers: PropTypes.array,
+};
+
 function EventsTable({ contents, headers }) {
   return (
     <div key="tablecontainer" className="tablecontainer">
@@ -39,6 +44,11 @@ function EventsTable({ contents, headers }) {
     </div>
   );
 }
+
+DeviceEntry.propTypes = {
+  hostname: PropTypes.string,
+  eventList: PropTypes.array,
+};
 
 function DeviceEntry({ hostname, eventList }) {
   return (
@@ -173,7 +183,9 @@ function SyncStatus({ devices, synchistory, target }) {
 }
 
 SyncStatus.propTypes = {
-  target: PropTypes.object.isRequired,
+  devices: PropTypes.array,
+  synchistory: PropTypes.object,
+  target: PropTypes.object,
 };
 
 export default SyncStatus;

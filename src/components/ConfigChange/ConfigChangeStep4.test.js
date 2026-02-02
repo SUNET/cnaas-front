@@ -25,7 +25,7 @@ function renderConfigChangeStep4Component({
     <ConfigChangeStep4
       confirmJobId="1"
       confirmRunJobStatus="RUNNING"
-      confirmRunProgressData={[]}
+      confirmRunProgressData={{}}
       dryRunChangeScore={0}
       dryRunJobStatus={dryRunJobStatus}
       jobId="1"
