@@ -18,7 +18,10 @@ const commonRules = {
   ],
   "jsx-a11y/label-has-for": "off",
   "no-console": "off", // allow console statements
-  "no-unused-expressions": ["warn", { allowTernary: true }],
+  "no-unused-expressions": [
+    "error",
+    { allowTernary: true, allowShortCircuit: true },
+  ],
   "no-use-before-define": "off",
   "prettier/prettier": "error",
   "react-hooks/exhaustive-deps": "off",
