@@ -100,10 +100,6 @@ function GroupTableBody() {
 
   const { token } = useAuthToken();
 
-  useEffect(() => {
-    getGroupsData();
-  }, []);
-
   const getGroupsData = async () => {
     setError(null);
     try {
@@ -121,6 +117,10 @@ function GroupTableBody() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    getGroupsData();
+  }, []);
 
   if (loading) {
     return <GroupLoading />;
