@@ -30,7 +30,7 @@ const commonRules = {
   "react/jsx-filename-extension": "off",
   "react/jsx-no-bind": "off",
   "react/prop-types": "warn",
-  "react/sort-comp": "warn",
+  "react/sort-comp": "error",
   // --- Temporarily disabled (refactor in progress) ---
   "react-hooks/set-state-in-effect": "off",
 };
