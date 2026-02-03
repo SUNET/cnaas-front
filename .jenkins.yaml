@@ -20,3 +20,15 @@ extra_jobs:
     docker_tags:
       - "v1.9.0"
       - "v1.9"
+  - name: cnaas-front-master
+    git:
+      branch: master
+    builders:
+      - docker
+    pre_build_script:
+      - cp docker/front/Dockerfile .
+    docker_name: cnaas/front
+    docker_context_dir: .
+    docker_tags:
+      - "v1.8.0"
+      - "v1.8"
