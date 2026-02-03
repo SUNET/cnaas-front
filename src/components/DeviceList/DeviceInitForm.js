@@ -1,0 +1,175 @@
+import { useState } from "react";
+import PropTypes from "prop-types";
+import { Select, Input } from "semantic-ui-react";
+import { getData } from "../../utils/getData";
+import DeviceInitcheckModal from "./DeviceInitcheckModal";
+import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { postData } from "../../utils/sendData";
+
+async function submitInitJob(
+  deviceId,
+  hostname,
+  deviceType,
+  jobIdCallback,
+  token,
+  mlagPeerHostname = null,
+  mlagPeerId = null,
+) {
+  console.log("Starting device init");
+  const url = `${process.env.API_URL}/api/v1.0/device_init/${deviceId}`;
+  const dataToSend = {
+    hostname,
+    device_type: deviceType,
+  };
+  if (mlagPeerHostname !== null && mlagPeerId !== null) {
+    dataToSend.mlag_peer_hostname = mlagPeerHostname;
+    dataToSend.mlag_peer_id = mlagPeerId;
+  }
+
+  try {
+    const response = await postData(url, token, dataToSend);
+    if (response.job_id !== undefined && typeof response.job_id === "number") {
+      jobIdCallback(deviceId, response.job_id);
+    } else {
+      console.log("error when submitting device_init job", response.job_id);
+    }
+  } catch (error) {
+    console.error("Error submitting device init job:", error);
+  }
+}
+
+function DeviceInitForm({ deviceId, jobIdCallback }) {
+  const [hostname, setHostname] = useState("");
+  const [submitDisabled, setSubmitDisabled] = useState(false);
+  const [submitIcon, setSubmitIcon] = useState("window restore outline");
+  const [submitText, setSubmitText] = useState("Initialize...");
+  const [deviceType, setDeviceType] = useState(null);
+  const [mlagInit, setMlagInit] = useState(false);
+  const [mlagPeerHostname, setMlagPeerHostname] = useState(null);
+  const [mlagPeerId, setMlagPeerId] = useState(null);
+  const [mlagPeerCandidates, setMlagPeerCandidates] = useState([]);
+  const { token } = useAuthToken();
+
+  const updateHostname = (e) => {
+    setHostname(e.target.value);
+  };
+
+  const updatePeerHostname = (e) => {
+    setMlagPeerHostname(e.target.value);
+  };
+
+  const getMlagPeerCandidates = async () => {
+    try {
+      const data = await getData(
+        `${process.env.API_URL}/api/v1.0/devices?filter[state]=DISCOVERED&per_page=100`,
+        token,
+      );
+      console.log("this should be mlag peer candidate data", data);
+      const candidates = data.data.devices
+        .filter((value) => value.id !== deviceId)
+        .map((value) => ({
+          key: value.id,
+          value: value.id,
+          text: `ID ${value.id} / MAC ${value.ztp_mac} / SN ${value.serial}`,
+        }));
+      setMlagPeerCandidates(candidates);
+      console.log("mlag peer candidates", candidates);
+    } catch (error) {
+      console.error("Error fetching MLAG peer candidates:", error);
+      setMlagPeerCandidates([]);
+    }
+  };
+
+  const onChangeDevicetype = (e, data) => {
+    if (data.value === "ACCESSMLAG") {
+      getMlagPeerCandidates();
+      setDeviceType("ACCESS");
+      setMlagInit(true);
+    } else {
+      setDeviceType(data.value);
+      setMlagInit(false);
+    }
+  };
+
+  const onChangePeerdevice = (e, data) => {
+    setMlagPeerId(data.value);
+  };
+
+  const submitInit = () => {
+    console.log(`init submitted: ${hostname} id: ${deviceId}`);
+    setSubmitDisabled(true);
+    setSubmitIcon("cog");
+    setSubmitText("Initializing...");
+
+    if (mlagInit) {
+      submitInitJob(
+        deviceId,
+        hostname,
+        deviceType,
+        jobIdCallback,
+        token,
+        mlagPeerHostname,
+        mlagPeerId,
+      );
+    } else {
+      submitInitJob(deviceId, hostname, deviceType, jobIdCallback, token);
+    }
+  };
+
+  let mlagInputs = null;
+  if (mlagInit) {
+    mlagInputs = [
+      <Select
+        key="mlag_peer_id"
+        placeholder="peer device"
+        onChange={onChangePeerdevice}
+        options={mlagPeerCandidates}
+      />,
+      <Input
+        key="mlag_peer_hostname"
+        placeholder="peer hostname"
+        onChange={updatePeerHostname}
+      />,
+    ];
+  }
+
+  return (
+    <div>
+      <Input key="hostname" placeholder="hostname" onChange={updateHostname} />
+      <Select
+        key="device_type"
+        placeholder="Device type"
+        onChange={onChangeDevicetype}
+        options={[
+          { key: "ACCESS", value: "ACCESS", text: "Access" },
+          {
+            key: "ACCESSMLAG",
+            value: "ACCESSMLAG",
+            text: "Access MLAG pair",
+          },
+          { key: "DIST", value: "DIST", text: "Distribution" },
+          { key: "CORE", value: "CORE", text: "Core" },
+        ]}
+      />
+      {mlagInputs}
+      <DeviceInitcheckModal
+        submitDisabled={submitDisabled}
+        submitText={submitText}
+        submitIcon={submitIcon}
+        submitInit={submitInit}
+        deviceId={deviceId}
+        hostname={hostname}
+        deviceType={deviceType}
+        mlagPeerHostname={mlagPeerHostname}
+        mlagPeerId={mlagPeerId}
+      />
+    </div>
+  );
+}
+
+DeviceInitForm.propTypes = {
+  deviceId: PropTypes.number,
+  jobIdCallback: PropTypes.func,
+};
+
+export default DeviceInitForm;

@@ -1,0 +1,58 @@
+const checkJsonResponse = require("./checkJsonResponse");
+const checkResponseStatus = require("./checkResponseStatus");
+
+const putData = (url, credentials, dataToSend) => {
+  return fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${credentials}`,
+    },
+    body: JSON.stringify(dataToSend),
+  }).then((response) => checkJsonResponse(response));
+};
+
+const post = async (url, token, dataToSend) => {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(dataToSend),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw response;
+  }
+  return response;
+};
+
+const postData = (url, credentials, dataToSend) => {
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${credentials}`,
+    },
+    body: JSON.stringify(dataToSend),
+    credentials: "include",
+  })
+    .then((response) => checkResponseStatus(response))
+    .then((response) => response.json());
+};
+
+const deleteData = (url, credentials, dataToSend) => {
+  return fetch(url, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${credentials}`,
+    },
+    body: JSON.stringify(dataToSend),
+  })
+    .then((response) => checkResponseStatus(response))
+    .then((response) => response.json());
+};
+
+module.exports = { putData, post, postData, deleteData };

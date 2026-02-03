@@ -1,0 +1,20 @@
+services:
+  cnaas_front:
+    build: ./front/
+    ports:
+      - 4443:4443
+    environment:
+      - GITREPO_ETC
+      - CNAAS_API_URL
+      - CNAAS_AUTH_URL
+      - CNAAS_FRONT_URL
+      - CNAAS_FIRMWARE_URL
+      - CNAAS_FIRMWARE_REPO_URL
+      - CNAAS_FIRMWARE_REPO_METADATA_URL
+    volumes:
+      - type: volume
+        source: cnaas-front-cert
+        target: /opt/cnaas/cert
+volumes:
+  cnaas-front-cert:
+    external: true

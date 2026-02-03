@@ -1,0 +1,440 @@
+@import "./variables.css";
+
+html,
+body,
+#root,
+.container {
+  height: 100%;
+}
+
+body {
+  background: var(--color-background);
+  font-family: "Karla", sans-serif;
+  font-size: var(--size-sm);
+  color: var(--color-primary);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-x: scroll;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  border-bottom: var(--color-secondary) solid 1px;
+  display: flex;
+}
+
+nav {
+  flex: 1;
+  margin: 1rem;
+  display: flex;
+}
+
+nav h1 {
+  margin: 0;
+  flex: 1;
+}
+
+nav ul {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+nav li {
+  margin-right: var(--size-xxs);
+  margin-left: var(--size-xxs);
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+nav a {
+  text-decoration: none;
+}
+
+nav a.active {
+  color: var(--color-secondary);
+  text-decoration: underline;
+}
+
+h1,
+h2 {
+  font-size: var(--size-lg);
+  margin: var(--size-xl) 0;
+  line-height: 1.2;
+}
+
+h2:first-child {
+  margin-top: var(--size-xl);
+}
+
+p {
+  font-size: var(--size-md);
+  margin: var(--size-md) 0;
+  line-height: 1.2;
+  font-weight: 400;
+}
+
+p.tokenexpired {
+  font-weight: bold;
+  color: var(--color-error);
+}
+
+/* p:first-child {
+  margin-top: 16px;
+} */
+
+button {
+  background: var(--color-secondary);
+  font-family: "Montserrat", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-background);
+  letter-spacing: 1px;
+
+  border: transparent solid 1px;
+  border-radius: var(--size-lg);
+
+  padding: var(--size-md) var(--size-xl);
+  margin: var(--size-md);
+}
+
+button:hover {
+  border: var(--color-secondary) solid 1px;
+  background: var(--color-surface);
+  color: var(--color-secondary);
+}
+
+button:disabled {
+  background: var(--color-disabled-bg);
+}
+
+section {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* long-term maybe panel can be removed */
+#panel {
+  padding: var(--size-md);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+footer {
+  border-top: var(--color-secondary) solid 1px;
+  display: flex;
+  padding: var(--size-md);
+}
+
+/* task styles */
+.task-container {
+  border: solid gray 1px;
+  margin: var(--size-md) 0;
+}
+
+.task-container h2,
+.task-container p,
+.task-container ul {
+  padding: 0 var(--size-md);
+}
+
+.task-container p,
+.task-container ul {
+  font-size: var(--size-lg);
+  font-weight: 400;
+}
+
+.task-container .heading {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--color-surface);
+}
+
+.task-container .heading h2 {
+  margin: var(--size-xl) 0 var(--size-xl) 0;
+}
+
+.task-container .close {
+  background: transparent;
+  border: none;
+  text-transform: capitalize;
+  color: var(--color-secondary);
+}
+
+.task-container .close:hover {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  text-decoration: underline;
+}
+
+.task-collapsable {
+  margin-top: var(--size-md);
+}
+
+.task-collapsable .tablecontainer {
+  margin: var(--size-md);
+}
+
+.task-collapsable .info {
+  display: flex;
+  align-items: baseline;
+}
+
+.ui.checkbox {
+  margin: var(--size-md);
+}
+
+.task-container .ui.input.job_comment,
+.task-container .ui.input.job_ticket_ref {
+  margin-left: var(--size-md);
+}
+
+.task-container .job_comment {
+  width: 50em;
+}
+
+table,
+thead,
+tbody {
+  display: flex;
+  flex-direction: column;
+}
+
+tr {
+  display: flex;
+  border-bottom: solid white 1px;
+}
+
+thead {
+  font-size: var(--size-md);
+  font-weight: bold;
+}
+
+tbody {
+  font-size: var(--size-md);
+  font-weight: normal;
+}
+
+th,
+td {
+  display: flex;
+  flex: 1;
+  padding: var(--size-md);
+}
+
+.table_options_button {
+  float: right;
+}
+
+/* progress bar styles */
+
+#progressbar {
+  margin: var(--size-md);
+}
+
+progress {
+  display: flex;
+  width: 100%;
+  border-radius: 10px;
+
+  /* Reset the default appearance */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Get rid of default border in Firefox. */
+  border: none;
+}
+
+progress::-webkit-progress-bar {
+  background-color: var(--color-surface);
+}
+progress::-webkit-progress-value {
+  background-color: var(--color-secondary);
+}
+progress::-moz-progress-bar {
+  background-color: var(--color-secondary);
+}
+
+/* DeviceList styles */
+
+#search {
+  padding: var(--size-md) 0;
+}
+
+#device_list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--size-md) 0;
+}
+
+/* make ID column small */
+#device_list .device_list tr td:last-child,
+#device_list .device_list tr th:last-child {
+  min-width: 5em;
+  max-width: 5em;
+}
+
+#device_list tr.device_details_row td:last-child,
+#device_list tr.device_details_row td:last-child {
+  min-width: 20em;
+  max-width: 100%;
+}
+
+#data {
+  margin: var(--size-md) 0;
+  background: lightgray;
+}
+
+#data .device_details_row {
+  background: white;
+}
+
+#data .device_details_row td {
+  display: flex;
+  flex-direction: column;
+}
+
+#data .device_details_row a {
+  width: fit-content;
+}
+
+#data .device_details_table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#data .device_details_table td {
+  padding: 4px;
+}
+
+#data .device_details_table tr td:first-child {
+  min-width: 20em;
+  max-width: 25em;
+}
+
+/* error styles */
+.error {
+  color: var(--color-secondary);
+}
+
+/* diff box styles */
+#diff-box {
+  background-color: var(--color-surface);
+  margin: 0 var(--size-md);
+}
+
+#diff-box li {
+  margin: var(--size-md) 0;
+}
+
+#diff-box li .device-name {
+  background-color: var(--color-surface);
+}
+
+#diff-box .device-name {
+  color: var(--color-primary);
+  padding: var(--size-md);
+  margin: 0;
+}
+
+#diff-box pre {
+  padding-left: var(--size-md);
+}
+
+.diff-box pre.exception {
+  white-space: pre-wrap;
+  color: var(--color-secondary);
+}
+
+.diff-box pre.traceback {
+  white-space: pre-wrap;
+  color: var(--color-black);
+  height: var(--size-md);
+  overflow-y: scroll;
+  font-size: var(--size-sm);
+}
+
+.fullconfig {
+  overflow-x: scroll;
+}
+
+.table-button-compact.button {
+  max-height: min-content;
+  padding: 0.35em var(--size-md) 0.35em;
+}
+
+/* log output styles */
+.log-viewer-modal-content {
+  padding: 0 !important;
+  background: #f5f2f0 !important;
+  max-height: calc(80vh - 10em);
+  min-height: calc(80vh - 10em);
+}
+
+.div-inline-log-viewer {
+  position: relative;
+  max-height: 10rem;
+  margin: var(--size-md);
+}
+
+.button-expand-log-viewer {
+  position: absolute;
+  bottom: var(--size-xxs);
+  right: var(--size-xxs);
+  margin: 0;
+}
+
+.language-log.expand-log-viewer {
+  line-height: normal;
+  height: 100%;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.language-log.text-wrap {
+  line-height: normal;
+  text-wrap: wrap;
+}
+
+.language-log.inline-log-viewer {
+  line-height: normal;
+  min-height: 4rem;
+  max-height: 10rem;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.language-log span.keyword {
+  display: inherit;
+}
+
+.job_ticket_ref {
+  width: 15em;
+}
+
+/* Workaround for an unfixed bug with Loaders not showing up properly in Modals
+ * https://github.com/Semantic-Org/Semantic-UI-React/issues/3133 
+ */
+.ui.dimmer .ui.modalloader.loader:before {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.ui.dimmer .ui.modalloader.loader:after {
+  border-color: var(--color-dimmer) transparent transparent;
+}
