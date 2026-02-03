@@ -4,7 +4,11 @@ import { getData } from "../../../utils/getData";
 import { formatISODate } from "../../../utils/formatters";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 
-export function GraphiteInterface({ hostname, interfaceName }) {
+export function GraphiteInterface({
+  hostname,
+  interfaceName,
+  showLastMeasurement,
+}) {
   const { token } = useAuthToken();
   const [graphiteData, setGraphiteData] = useState({
     ifInOctets: [],
@@ -84,11 +88,13 @@ export function GraphiteInterface({ hostname, interfaceName }) {
 
   return (
     <div>
-      <p>
-        Last measurement {formatISODate(lastMeasurement.toISOString())}:
-        <br />
-        In: {ifLatestIn} Mbit/s , Out: {ifLatestOut} Mbit/s
-      </p>
+      {showLastMeasurement && (
+        <p>
+          Last measurement {formatISODate(lastMeasurement.toISOString())}:
+          <br />
+          In: {ifLatestIn} Mbit/s , Out: {ifLatestOut} Mbit/s
+        </p>
+      )}
       {imageBlob && (
         <a
           href={`${process.env.MONITORING_WEB_URL}/ipdevinfo/${hostname}/#!ports`}
@@ -103,4 +109,9 @@ export function GraphiteInterface({ hostname, interfaceName }) {
 GraphiteInterface.propTypes = {
   hostname: PropTypes.string.isRequired,
   interfaceName: PropTypes.string.isRequired,
+  showLastMeasurement: PropTypes.bool,
+};
+
+GraphiteInterface.defaultProps = {
+  showLastMeasurement: true,
 };
