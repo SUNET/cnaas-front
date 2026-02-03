@@ -70,12 +70,6 @@ function DashboardInterfaceStatus() {
   };
 
   useEffect(() => {
-    if (netboxDeviceObjects) {
-      //getInterfaceStatusData();
-    }
-  }, [netboxDeviceObjects]);
-
-  useEffect(() => {
     getNetboxObjects();
   }, []);
 
@@ -90,10 +84,7 @@ function DashboardInterfaceStatus() {
       if (intf.speed) {
         speed = `${intf.speed} Kbit/s`;
       }
-      if (
-        interfaceStatusData[intf.device.name] &&
-        interfaceStatusData[intf.device.name][intf.name]
-      ) {
+      if (interfaceStatusData[intf.device.name]?.[intf.name]) {
         const isUp = interfaceStatusData[intf.device.name][intf.name].is_up;
         if (isUp === true) {
           operStatus = "Up";
