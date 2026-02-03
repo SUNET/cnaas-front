@@ -110,7 +110,7 @@ function DashboardInterfaceStatus() {
 
       const graphiteHtml = (
         <GraphiteInterface
-          key={"graphite"+intf.id}
+          key={"graphite" + intf.id}
           hostname={intf.device.name}
           interfaceName={intf.name}
           showLastMeasurement={false}
