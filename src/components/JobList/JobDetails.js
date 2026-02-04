@@ -1,4 +1,3 @@
-import { useState } from "react";
 import PropTypes from "prop-types";
 import VerifyDiffResult from "../ConfigChange/VerifyDiff/VerifyDiffResult";
 
@@ -20,16 +19,8 @@ JobDetails.propTypes = {
  * Used in the expanded row of the JobList table.
  */
 export function JobDetails({ job }) {
-  const [showTraceback, setShowTraceback] = useState(false);
-
   if (job.status === "EXCEPTION") {
-    return (
-      <ExceptionDetails
-        job={job}
-        showTraceback={showTraceback}
-        setShowTraceback={setShowTraceback}
-      />
-    );
+    return <ExceptionDetails job={job} />;
   }
 
   if (job.status === "FINISHED") {
@@ -59,11 +50,9 @@ ExceptionDetails.propTypes = {
       traceback: PropTypes.string,
     }),
   }).isRequired,
-  showTraceback: PropTypes.bool.isRequired,
-  setShowTraceback: PropTypes.func.isRequired,
 };
 
-function ExceptionDetails({ job, showTraceback, setShowTraceback }) {
+function ExceptionDetails({ job }) {
   if (job.exception === undefined || job.exception === null) {
     return <p>Empty exception</p>;
   }
@@ -71,16 +60,10 @@ function ExceptionDetails({ job, showTraceback, setShowTraceback }) {
   return (
     <>
       <p>Exception message: {job.exception.message}</p>
-      <p>
-        <button
-          type="button"
-          className="link-button"
-          onClick={() => setShowTraceback(true)}
-        >
-          Show exception traceback
-        </button>
-      </p>
-      {showTraceback && <pre>{job.exception.traceback}</pre>}
+      <details>
+        <summary>Show exception traceback</summary>
+        <pre>{job.exception.traceback}</pre>
+      </details>
     </>
   );
 }
