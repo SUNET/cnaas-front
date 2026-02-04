@@ -364,9 +364,9 @@ progress::-moz-progress-bar {
 .diff-box pre.traceback {
   white-space: pre-wrap;
   color: var(--color-black);
-  height: var(--size-md);
-  overflow-y: scroll;
   font-size: var(--size-sm);
+  max-height: 15rem;
+  overflow-y: auto;
 }
 
 .fullconfig {
