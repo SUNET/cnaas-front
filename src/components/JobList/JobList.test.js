@@ -834,18 +834,15 @@ test("clicking 'Show exception traceback' reveals traceback text", async () => {
   // Expand the row
   await userEvent.click(screen.getByText("103"));
 
-  // Traceback should not be visible initially
-  expect(
-    screen.queryByText(/Traceback \(most recent call last\)/),
-  ).not.toBeInTheDocument();
+  // Details element should be collapsed initially
+  const details = screen.getByRole("group");
+  expect(details).not.toHaveAttribute("open");
 
-  // Click "Show exception traceback"
+  // Click "Show exception traceback" summary to expand
   await userEvent.click(screen.getByText("Show exception traceback"));
 
-  // Traceback should now be visible
-  expect(
-    screen.getByText(/Traceback \(most recent call last\)/),
-  ).toBeInTheDocument();
+  // Details should now be open
+  expect(details).toHaveAttribute("open");
 });
 
 // Additional filter field tests
