@@ -3,9 +3,22 @@ import { useMemo } from "react";
 import SyntaxHighlight from "../../SyntaxHighlight";
 
 VerifyDiffResult.propTypes = {
-  deviceNames: PropTypes.array,
-  deviceData: PropTypes.array,
+  deviceNames: PropTypes.arrayOf(PropTypes.string),
+  deviceData: PropTypes.arrayOf(
+    PropTypes.shape({
+      job_tasks: PropTypes.arrayOf(
+        PropTypes.shape({
+          task_name: PropTypes.string,
+          result: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+          failed: PropTypes.bool,
+          diff: PropTypes.string,
+        }),
+      ),
+    }),
+  ),
 };
+
+const ignoreTaskNames = new Set(["push_sync_device"]);
 
 function VerifyDiffResult({ deviceNames, deviceData }) {
   // Extract diffs from device data
@@ -27,26 +40,32 @@ function VerifyDiffResult({ deviceNames, deviceData }) {
     return deviceData
       .map((jobsObj, i) => {
         const failedTasks = jobsObj.job_tasks.filter(
-          (task) => task.failed === true,
+          (task) =>
+            task.failed === true && !ignoreTaskNames.has(task.task_name),
         );
 
         if (failedTasks.length === 0) return null;
 
         return {
           name: deviceNames[i],
-          result: failedTasks[0]?.result, // Take first failed task
+          tasks: failedTasks.map((task) => ({
+            task_name: task.task_name,
+            result: task.result,
+          })),
         };
       })
       .filter(Boolean); // Remove null entries
   }, [deviceData, deviceNames]);
 
   const hasEmptyDiffs = deviceData?.length > 0 && deviceDiffs.length === 0;
+  const hasFailures = deviceExceptions.length > 0;
+  const showEmptyDiffsMessage = hasEmptyDiffs && !hasFailures;
 
   return (
     <div>
       <section className="diff-box">
         <ul>
-          {hasEmptyDiffs ? (
+          {showEmptyDiffsMessage ? (
             <li>
               <p>All devices returned empty diffs</p>
             </li>
@@ -67,13 +86,20 @@ function VerifyDiffResult({ deviceNames, deviceData }) {
 
       <section className="diff-box">
         <ul>
-          {deviceExceptions.map((device, i) => (
-            <li key={`${device.name}-exception-${i}`}>
+          {deviceExceptions.map((device) => (
+            <li key={device.name}>
               <p className="device-name">{device.name} failed result</p>
-              <pre className="traceback">{device.result}</pre>
-              <pre className="exception">
-                {device.result.split("\n").slice(-2).join("\n")}
-              </pre>
+              {device.tasks.map((task) => (
+                <div key={task.task_name}>
+                  <pre className="exception">
+                    {task.result?.split("\n").slice(-2).join("\n")}
+                  </pre>
+                  <details>
+                    <summary>Show full traceback</summary>
+                    <pre className="traceback">{task.result}</pre>
+                  </details>
+                </div>
+              ))}
             </li>
           ))}
         </ul>
