@@ -7,7 +7,7 @@ import { GraphiteInterface } from "./InterfaceConfig/InterfaceTableRow/GraphiteI
 function DashboardInterfaceStatus() {
   const { token } = useAuthToken();
 
-  const [netboxDeviceObjects, setNetboxDeviceObjects] = useState(null);
+  const [netboxDeviceObjects, setNetboxDeviceObjects] = useState([]);
   const [netboxInterfaceData, setNetboxInterfaceData] = useState(null);
   const [interfaceStatusData, setInterfaceStatusData] = useState({});
 
@@ -26,46 +26,48 @@ function DashboardInterfaceStatus() {
       url = `${process.env.API_URL}/netbox`;
     }
 
-    if (netboxDeviceObjects === null) {
-      setNetboxDeviceObjects([]); // Initialize as empty array to avoid repeated calls
-      try {
-        const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?tenant_id=${process.env.NETBOX_TENANT_ID}&kind=physical&tag=cnaas_dashboard&limit=100`;
-        const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
-        if (interfaceData) {
-          setNetboxInterfaceData(interfaceData.results);
-        }
+    if (netboxDeviceObjects?.length) {
+      return;
+    }
 
-        for (const interfaceObj of interfaceData.results) {
-          const deviceName = interfaceObj.device.name;
-          setNetboxDeviceObjects((prev) => {
-            if (prev.find((d) => d.name === deviceName)) {
-              return prev; // Device already in the list
-            }
-            // query interface status for each device, don't await to parallelize
-            (async () => {
-              try {
-                const statusUrl = `${process.env.API_URL}/api/v1.0/device/${deviceName}/interface_status`;
-                const statusData = await getData(statusUrl, token);
-                console.log(statusData);
-                setInterfaceStatusData((prevStatus) => ({
-                  ...prevStatus,
-                  [deviceName]: statusData.data.interface_status,
-                }));
-              } catch (error) {
-                console.log(error);
-              }
-            })();
-
-            return [
-              ...(prev || []),
-              { name: deviceName, id: interfaceObj.device.id },
-            ];
-          });
-        }
-      } catch (e) {
-        // Some netbox error occurred
-        console.log(e);
+    setNetboxDeviceObjects([]); // Initialize as empty array to avoid repeated calls
+    try {
+      const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?tenant_id=${process.env.NETBOX_TENANT_ID}&kind=physical&tag=cnaas_dashboard&limit=20`;
+      const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
+      if (interfaceData) {
+        setNetboxInterfaceData(interfaceData.results);
       }
+
+      for (const interfaceObj of interfaceData.results) {
+        const deviceName = interfaceObj.device.name;
+        setNetboxDeviceObjects((prev) => {
+          if (prev.find((d) => d.name === deviceName)) {
+            return prev; // Device already in the list
+          }
+          // query interface status for each device, don't await to parallelize
+          (async () => {
+            try {
+              const statusUrl = `${process.env.API_URL}/api/v1.0/device/${deviceName}/interface_status`;
+              const statusData = await getData(statusUrl, token);
+              console.log(statusData);
+              setInterfaceStatusData((prevStatus) => ({
+                ...prevStatus,
+                [deviceName]: statusData.data.interface_status,
+              }));
+            } catch (error) {
+              console.log(error);
+            }
+          })();
+
+          return [
+            ...(prev || []),
+            { name: deviceName, id: interfaceObj.device.id },
+          ];
+        });
+      }
+    } catch (e) {
+      // Some netbox error occurred
+      console.log(e);
     }
   };
 
@@ -144,7 +146,9 @@ function DashboardInterfaceStatus() {
 
   return (
     <>
-      <Divider horizontal>Interfaces</Divider>
+      {netboxDeviceObjects.length >= 1 && (
+        <Divider horizontal>Interfaces</Divider>
+      )}
       <Grid columns={3} stackable>
         {interfaceList}
       </Grid>
