@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { GraphiteInterface } from "./InterfaceConfig/InterfaceTableRow/GraphiteInterface";
 
-function DashboardInterfaceStatus() {
+export function DashboardInterfaceStatus() {
   const { token } = useAuthToken();
 
   const [netboxDeviceObjects, setNetboxDeviceObjects] = useState([]);
@@ -49,7 +49,6 @@ function DashboardInterfaceStatus() {
             try {
               const statusUrl = `${process.env.API_URL}/api/v1.0/device/${deviceName}/interface_status`;
               const statusData = await getData(statusUrl, token);
-              console.log(statusData);
               setInterfaceStatusData((prevStatus) => ({
                 ...prevStatus,
                 [deviceName]: statusData.data.interface_status,
@@ -80,7 +79,7 @@ function DashboardInterfaceStatus() {
     for (const intf of netboxInterfaceData.filter(
       (filterIntf) => filterIntf.device.id === device.id,
     ) || []) {
-      let operStatus = "Uknown";
+      let operStatus = "Unknown";
       let description = intf.description || "No description";
       let speed = "Unknown speed";
       if (intf.speed) {
@@ -155,5 +154,3 @@ function DashboardInterfaceStatus() {
     </>
   );
 }
-
-export default DashboardInterfaceStatus;
