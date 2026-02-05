@@ -4,6 +4,7 @@ import { getResponse, getData } from "../utils/getData";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import DashboardLinkgrid from "./DashboardLinkgrid";
 import { DashboardInterfaceStatus } from "./DashboardInterfacestatus";
+import DashboardNetboxTenant from "./DashboardNetboxTenant";
 
 function Dashboard() {
   const { token } = useAuthToken();
@@ -168,7 +169,12 @@ function Dashboard() {
             </p>
           </Grid.Column>
         </Grid>
-        <DashboardInterfaceStatus />
+        {process.env.NETBOX_API_URL && process.env.NETBOX_TENANT_ID && (
+          <DashboardInterfaceStatus />
+        )}
+        {process.env.NETBOX_API_URL && process.env.NETBOX_TENANT_ID && (
+          <DashboardNetboxTenant />
+        )}
         <DashboardLinkgrid />
       </Container>
     </div>
