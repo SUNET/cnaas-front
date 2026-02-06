@@ -3,6 +3,7 @@ import { Container, Grid, Popup } from "semantic-ui-react";
 import { getResponse, getData } from "../utils/getData";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import DashboardLinkgrid from "./DashboardLinkgrid";
+import { DashboardInterfaceStatus } from "./DashboardInterfacestatus";
 
 function Dashboard() {
   const { token } = useAuthToken();
@@ -167,6 +168,7 @@ function Dashboard() {
             </p>
           </Grid.Column>
         </Grid>
+        <DashboardInterfaceStatus />
         <DashboardLinkgrid />
       </Container>
     </div>
