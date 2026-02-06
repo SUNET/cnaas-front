@@ -10,6 +10,7 @@ export function DashboardInterfaceStatus() {
   const [netboxDeviceObjects, setNetboxDeviceObjects] = useState([]);
   const [netboxInterfaceData, setNetboxInterfaceData] = useState(null);
   const [interfaceStatusData, setInterfaceStatusData] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const getNetboxObjects = async () => {
     if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
@@ -29,6 +30,7 @@ export function DashboardInterfaceStatus() {
     if (netboxDeviceObjects?.length) {
       return;
     }
+    setIsLoading(true);
 
     try {
       const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?tenant_id=${process.env.NETBOX_TENANT_ID}&kind=physical&tag=cnaas_dashboard&limit=20`;
@@ -43,11 +45,16 @@ export function DashboardInterfaceStatus() {
         const deviceId = interfaceObj.device.id;
         deviceList.push({ name: deviceName, id: deviceId });
       }
+      if (deviceList.length === 0) {
+        setIsLoading(false);
+        return;
+      }
 
       setNetboxDeviceObjects(deviceList);
     } catch (e) {
       // Some netbox error occurred
       console.log(e);
+      setIsLoading(false);
     }
   };
 
@@ -62,9 +69,11 @@ export function DashboardInterfaceStatus() {
             ...prevStatus,
             [device.name]: statusData.data.interface_status,
           }));
+          setIsLoading(false);
         })
         .catch((error) => {
           console.log(error);
+          setIsLoading(false);
         });
     }
   }, [netboxDeviceObjects]);
@@ -147,6 +156,7 @@ export function DashboardInterfaceStatus() {
       {netboxDeviceObjects.length >= 1 && (
         <Divider horizontal>Interfaces</Divider>
       )}
+      {isLoading && <p>Loading interface status...</p>}
       <Grid columns={3} stackable>
         {interfaceList}
       </Grid>
