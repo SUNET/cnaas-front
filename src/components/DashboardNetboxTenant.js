@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { postData } from "../utils/sendData";
 
-function DashboardNetboxTenant() {
+export function DashboardNetboxTenant() {
   const { token } = useAuthToken();
 
   const [netboxTenant, setNetboxTenant] = useState(null);
@@ -46,7 +46,6 @@ function DashboardNetboxTenant() {
         if (contactsData.data?.contact_assignment_list) {
           setNetboxContacts(contactsData.data.contact_assignment_list);
         }
-        console.log("contactsData", contactsData);
       } catch (error) {
         console.warn("Failed to load NetBox tenant data:", error);
       }
@@ -95,6 +94,7 @@ function DashboardNetboxTenant() {
                   href={`${process.env.NETBOX_API_URL}/dcim/sites/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View sites in NetBox"
                   target="_blank"
+                  rel="noreferrer"
                 >
                   {netboxTenant.site_count}
                 </a>
@@ -104,6 +104,7 @@ function DashboardNetboxTenant() {
                   href={`${process.env.NETBOX_API_URL}/dcim/devices/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View devices in NetBox"
                   target="_blank"
+                  rel="noreferrer"
                 >
                   {netboxTenant.device_count}
                 </a>
@@ -113,6 +114,7 @@ function DashboardNetboxTenant() {
                   href={`${process.env.NETBOX_API_URL}/ipam/vrfs/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View VRFs in NetBox"
                   target="_blank"
+                  rel="noreferrer"
                 >
                   {netboxTenant.vrf_count}
                 </a>
@@ -122,6 +124,7 @@ function DashboardNetboxTenant() {
                   href={`${process.env.NETBOX_API_URL}/ipam/prefixes/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View prefixes in NetBox"
                   target="_blank"
+                  rel="noreferrer"
                 >
                   {netboxTenant.prefix_count}
                 </a>
@@ -131,6 +134,7 @@ function DashboardNetboxTenant() {
                   href={`${process.env.NETBOX_API_URL}/ipam/vlans/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View VLANs in NetBox"
                   target="_blank"
+                  rel="noreferrer"
                 >
                   {netboxTenant.vlan_count}
                 </a>
@@ -187,5 +191,3 @@ function DashboardNetboxTenant() {
     </>
   );
 }
-
-export default DashboardNetboxTenant;

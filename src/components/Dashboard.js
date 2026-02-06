@@ -4,7 +4,7 @@ import { getResponse, getData } from "../utils/getData";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import DashboardLinkgrid from "./DashboardLinkgrid";
 import { DashboardInterfaceStatus } from "./DashboardInterfacestatus";
-import DashboardNetboxTenant from "./DashboardNetboxTenant";
+import { DashboardNetboxTenant } from "./DashboardNetboxTenant";
 
 function Dashboard() {
   const { token } = useAuthToken();
