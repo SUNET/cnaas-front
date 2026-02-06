@@ -29,6 +29,7 @@ extra_jobs:
       - cp docker/front/Dockerfile .
     docker_name: cnaas/front
     docker_context_dir: .
+    docker_skip_tag_as_latest: false
     docker_tags:
       - "v1.8.1"
       - "v1.8"
