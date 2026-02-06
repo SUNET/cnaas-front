@@ -30,7 +30,6 @@ export function DashboardInterfaceStatus() {
       return;
     }
 
-    setNetboxDeviceObjects([]); // Initialize as empty array to avoid repeated calls
     try {
       const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?tenant_id=${process.env.NETBOX_TENANT_ID}&kind=physical&tag=cnaas_dashboard&limit=20`;
       const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
@@ -38,37 +37,37 @@ export function DashboardInterfaceStatus() {
         setNetboxInterfaceData(interfaceData.results);
       }
 
+      const deviceList = [];
       for (const interfaceObj of interfaceData.results) {
         const deviceName = interfaceObj.device.name;
-        setNetboxDeviceObjects((prev) => {
-          if (prev.find((d) => d.name === deviceName)) {
-            return prev; // Device already in the list
-          }
-          // query interface status for each device, don't await to parallelize
-          (async () => {
-            try {
-              const statusUrl = `${process.env.API_URL}/api/v1.0/device/${deviceName}/interface_status`;
-              const statusData = await getData(statusUrl, token);
-              setInterfaceStatusData((prevStatus) => ({
-                ...prevStatus,
-                [deviceName]: statusData.data.interface_status,
-              }));
-            } catch (error) {
-              console.log(error);
-            }
-          })();
-
-          return [
-            ...(prev || []),
-            { name: deviceName, id: interfaceObj.device.id },
-          ];
-        });
+        const deviceId = interfaceObj.device.id;
+        deviceList.push({ name: deviceName, id: deviceId });
       }
+
+      setNetboxDeviceObjects(deviceList);
     } catch (e) {
       // Some netbox error occurred
       console.log(e);
     }
   };
+
+  useEffect(() => {
+    const deviceList = netboxDeviceObjects;
+
+    for (const device of deviceList) {
+      const statusUrl = `${process.env.API_URL}/api/v1.0/device/${device.name}/interface_status`;
+      getData(statusUrl, token)
+        .then((statusData) => {
+          setInterfaceStatusData((prevStatus) => ({
+            ...prevStatus,
+            [device.name]: statusData.data.interface_status,
+          }));
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  }, [netboxDeviceObjects]);
 
   useEffect(() => {
     getNetboxObjects();
