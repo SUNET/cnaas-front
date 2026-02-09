@@ -25,30 +25,31 @@ export function DashboardNetboxTenant() {
       url = `${process.env.API_URL}/netbox`;
     }
 
-    if (netboxTenant === null) {
-      setNetboxTenant(false); // Initialize as empty array to avoid repeated calls
-      try {
-        const tenantUrl = `${url}/api/tenancy/tenants/?id=${process.env.NETBOX_TENANT_ID}`;
-        const tenantData = await getFunc(tenantUrl, credentials);
-        if (tenantData.results?.length === 1) {
-          setNetboxTenant(tenantData.results[0]);
-        }
+    if (netboxTenant) {
+      return;
+    }
 
-        const contactsUrl = `${url}/graphql/`;
-        const contactsQuery = {
-          query: `query {contact_assignment_list(filters:{object_id: ${process.env.NETBOX_TENANT_ID}, object_type: { id: { exact: 110 }}}) {contact {name email phone} role {name} priority}}`,
-        };
-        const contactsData = await postData(
-          contactsUrl,
-          credentials,
-          contactsQuery,
-        );
-        if (contactsData.data?.contact_assignment_list) {
-          setNetboxContacts(contactsData.data.contact_assignment_list);
-        }
-      } catch (error) {
-        console.warn("Failed to load NetBox tenant data:", error);
+    try {
+      const tenantUrl = `${url}/api/tenancy/tenants/?id=${process.env.NETBOX_TENANT_ID}`;
+      const tenantData = await getFunc(tenantUrl, credentials);
+      if (tenantData.results?.length === 1) {
+        setNetboxTenant(tenantData.results[0]);
       }
+
+      const contactsUrl = `${url}/graphql/`;
+      const contactsQuery = {
+        query: `query {contact_assignment_list(filters:{object_id: ${process.env.NETBOX_TENANT_ID}, object_type: { id: { exact: 110 }}}) {contact {name email phone} role {name} priority}}`,
+      };
+      const contactsData = await postData(
+        contactsUrl,
+        credentials,
+        contactsQuery,
+      );
+      if (contactsData.data?.contact_assignment_list) {
+        setNetboxContacts(contactsData.data.contact_assignment_list);
+      }
+    } catch (error) {
+      console.warn("Failed to load NetBox tenant data:", error);
     }
   };
 
