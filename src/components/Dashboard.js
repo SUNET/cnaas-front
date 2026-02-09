@@ -144,7 +144,7 @@ function Dashboard() {
             </p>
             <p>
               Unsynchronized devices:{" "}
-              <a href="/devices?filter[synchronized]=false">
+              <a href="/devices?filter[synchronized]=false&filter[state]=MANAGED">
                 {deviceCount.unsynchronized}
               </a>
             </p>
