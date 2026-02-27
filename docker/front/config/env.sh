@@ -13,6 +13,7 @@ TEMPLATES_WEB_URL \
 SETTINGS_WEB_URL \
 MONITORING_WEB_URL \
 GRAPHITE_URL \
+GNMI_PROXY_URL \
 OIDC_ENABLED \
 PERMISSIONS_DISABLED \
 ARISTA_DETECT_ARCH \
@@ -58,6 +59,11 @@ if [ -z "$GRAPHITE_URL" ]; then
     sed -i "/location.*graphite/,/}/d" /etc/nginx/conf.d/default.conf
 fi
 
+if [ -z "$GNMI_PROXY_URL" ]; then
+    echo "Disabling cnaas-gnmi-proxy integration in nginx.conf"
+    sed -i "/location.*gnmi/,/}/d" /etc/nginx/conf.d/default.conf
+fi
+
 # Update nginx with dynamic variables
 for key in $VARS; do
     value=$(printenv "$key")
@@ -94,6 +100,7 @@ var FIRMWARE_REPO_URL = "${CNAAS_FIRMWARE_REPO_URL:-}";
 var OIDC_ENABLED = "${OIDC_ENABLED:-}";
 var ARISTA_DETECT_ARCH = "${ARISTA_DETECT_ARCH:-}";
 var GRAPHITE_URL = "${GRAPHITE_URL:-}";
+var GNMI_PROXY_URL = "${GNMI_PROXY_URL:-}";
 var GRAYLOG_WEB_URL = "${GRAYLOG_WEB_URL:-}";
 var WIKI_WEB_URL = "${WIKI_WEB_URL:-}";
 var CLOUDVISION_WEB_URL = "${CLOUDVISION_WEB_URL:-}";
