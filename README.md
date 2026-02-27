@@ -142,6 +142,7 @@ Check [docker/docker-compose.yaml](docker/docker-compose.yaml)
 - CNAAS_FIRMWARE_URL
 - CNAAS_FRONT_URL
 - GRAPHITE_URL
+- GNMI_PROXY_URL
 - MONITORING_WEB_URL
 - NETBOX_API_TOKEN
 - NETBOX_API_URL
