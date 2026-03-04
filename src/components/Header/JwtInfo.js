@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { Button, Icon, Popup } from "semantic-ui-react";
 import {
   getSecondsUntilExpiry,
@@ -7,7 +7,7 @@ import {
 } from "../../contexts/AuthTokenContext";
 import { secondsToText } from "../../utils/formatters";
 
-function JwtInfo() {
+export function JwtInfo() {
   const { doTokenRefresh, logout, username, token, tokenExpiry } =
     useAuthToken();
   const [secondsUntilExpiry, setSecondsUntilExpiry] = useState();
@@ -79,8 +79,8 @@ function JwtInfo() {
             content="Make changes to user settings for this browser session"
             trigger={
               <NavLink
-                exact
-                activeClassName="active"
+                end
+                className={({ isActive }) => (isActive ? "active" : undefined)}
                 to="/settings"
                 key="settings"
               >
@@ -108,5 +108,3 @@ function JwtInfo() {
     />
   );
 }
-
-export default JwtInfo;

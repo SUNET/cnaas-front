@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { InterfaceConfig } from "./InterfaceConfig";
 import { getData } from "../../utils/getData";
 import { putData, postData } from "../../utils/sendData";
@@ -152,12 +153,11 @@ const mockLldpData = () => ({
 });
 
 function renderComponent(locationSearch = "?hostname=test-switch") {
-  const mockLocation = { search: locationSearch };
-  const mockHistory = { push: jest.fn() };
-
-  return render(
-    <InterfaceConfig location={mockLocation} history={mockHistory} />,
+  const router = createMemoryRouter(
+    [{ path: "/interface-config", element: <InterfaceConfig /> }],
+    { initialEntries: [`/interface-config${locationSearch}`] },
   );
+  return render(<RouterProvider router={router} />);
 }
 
 describe("InterfaceConfig - Basic Rendering", () => {

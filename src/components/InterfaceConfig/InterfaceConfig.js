@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import queryString from "query-string";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { Button, Checkbox, Icon, Modal, Popup, Table } from "semantic-ui-react";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import io from "socket.io-client";
@@ -12,7 +11,6 @@ import { NewInterface } from "./NewInterface";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
-import PropTypes from "prop-types";
 let socket = null;
 
 const STATUS_STOPPED = ["FINISHED", "EXCEPTION"]; // TODO: add "ABORTED"?
@@ -70,13 +68,10 @@ const showOutOfSyncToast = (handleClick) => {
   });
 };
 
-InterfaceConfig.propTypes = {
-  history: PropTypes.object,
-  location: PropTypes.object,
-};
-
-export function InterfaceConfig({ history, location }) {
+export function InterfaceConfig() {
   const { token } = useAuthToken();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // state
   const [accordionActiveIndex, setAccordionActiveIndex] = useState(0);
@@ -107,7 +102,7 @@ export function InterfaceConfig({ history, location }) {
   const [vlanOptions, setVlanOptions] = useState([]);
 
   const awaitingDeviceSynchronizationRef = useRef(false);
-  const hostname = useRef(queryString.parse(location.search)?.hostname ?? null);
+  const hostname = useRef(searchParams.get("hostname") ?? null);
 
   const deviceType = deviceData?.device_type ?? null;
 
@@ -671,7 +666,7 @@ export function InterfaceConfig({ history, location }) {
     setIsWorking(true);
     const saveStatus = await sendInterfaceData();
     if (saveStatus) {
-      history.push(
+      navigate(
         `/config-change?hostname=${hostname.current}&scrollTo=dry_run&autoDryRun=true`,
       );
     } else {
@@ -680,7 +675,7 @@ export function InterfaceConfig({ history, location }) {
   };
 
   const gotoConfigChange = () => {
-    history.push(
+    navigate(
       `/config-change?hostname=${hostname.current}&scrollTo=refreshrepo`,
     );
   };
@@ -1202,7 +1197,6 @@ export function InterfaceConfig({ history, location }) {
             onClose={() => setImportModalOpen(false)}
             hostname={hostname.current}
             getInterfaceData={getInterfaceData}
-            history={history}
           />
         </div>
       </div>

@@ -1,5 +1,11 @@
 require("dotenv").config({ path: ".env.test" });
 
+// jsdom does not expose Node's TextEncoder/TextDecoder globals.
+// React Router v7 requires them, so we polyfill here.
+const { TextEncoder, TextDecoder } = require("util");
+globalThis.TextEncoder = TextEncoder;
+globalThis.TextDecoder = TextDecoder;
+
 // From: https://stackoverflow.com/a/41434763
 class LocalStorageMock {
   constructor() {
@@ -25,17 +31,17 @@ class LocalStorageMock {
 
 globalThis.localStorage = new LocalStorageMock();
 
-// Global mock for react-router-dom useHistory
-const mockHistoryPush = jest.fn();
-jest.mock("react-router-dom/cjs/react-router-dom.min", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useHistory: () => ({ push: mockHistoryPush }),
+// Global mock for react-router useNavigate
+const mockNavigate = jest.fn();
+jest.mock("react-router", () => ({
+  ...jest.requireActual("react-router"),
+  useNavigate: () => mockNavigate,
 }));
 
-// Export mockHistoryPush for tests to access and assert
-globalThis.mockHistoryPush = mockHistoryPush;
+// Export mockNavigate for tests to access and assert
+globalThis.mockNavigate = mockNavigate;
 
 // Clear mocks between tests
 beforeEach(() => {
-  mockHistoryPush.mockClear();
+  mockNavigate.mockClear();
 });

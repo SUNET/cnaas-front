@@ -1,19 +1,27 @@
 import PropTypes from "prop-types";
 import { Modal, Button } from "semantic-ui-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { putData } from "../../utils/sendData";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
+
+ImportInterfaceModal.propTypes = {
+  hostname: PropTypes.string.isRequired,
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  getInterfaceData: PropTypes.func,
+};
 
 export function ImportInterfaceModal({
   hostname,
   open,
   onClose,
   getInterfaceData,
-  history,
 }) {
   const [fileContent, setFileContent] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const { token } = useAuthToken();
+  const navigate = useNavigate();
 
   async function handleUpload() {
     const fileInput = document.getElementById("import-file");
@@ -110,7 +118,7 @@ export function ImportInterfaceModal({
           onClick={async () => {
             const success = await sendInterfaceData();
             if (success) {
-              history.push(
+              navigate(
                 `/config-change?hostname=${hostname}&scrollTo=refreshrepo`,
               );
             }
@@ -123,11 +131,3 @@ export function ImportInterfaceModal({
     </Modal>
   );
 }
-
-ImportInterfaceModal.propTypes = {
-  hostname: PropTypes.string.isRequired,
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  getInterfaceData: PropTypes.func,
-  history: PropTypes.object,
-};

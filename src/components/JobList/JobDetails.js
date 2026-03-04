@@ -6,7 +6,7 @@ JobDetails.propTypes = {
     id: PropTypes.number.isRequired,
     status: PropTypes.string.isRequired,
     function_name: PropTypes.string,
-    result: PropTypes.object,
+    result: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     exception: PropTypes.shape({
       message: PropTypes.string,
       traceback: PropTypes.string,

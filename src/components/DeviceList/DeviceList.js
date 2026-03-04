@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom/cjs/react-router-dom";
-import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import {
   Button,
@@ -46,13 +45,7 @@ export const COLUMN_MAP = {
   platform: "Platform",
 };
 
-// Replace with useSearchParams in react-router v6
-const useQuery = () => {
-  const { search } = useLocation();
-  return useMemo(() => new URLSearchParams(search), [search]);
-};
-
-function DeviceList() {
+export function DeviceList() {
   const getInitialSettings = () => {
     const defaultSettings = {
       activePage: 1,
@@ -112,9 +105,7 @@ function DeviceList() {
 
   const { token } = useAuthToken();
 
-  // Change to useSearchParams after updating react-router to v6
-  // https://reactrouter.com/api/hooks/useSearchParams
-  const searchParams = useQuery();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activePage, setActivePage] = useState(initialSettings.activePage);
   const [activeColumns, setActiveColumns] = useState(
@@ -172,7 +163,7 @@ function DeviceList() {
   });
 
   const [discoveredDeviceIds, setDiscoveredDeviceIds] = useState(new Set());
-  const history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Set filterData on searchParam change
@@ -345,15 +336,17 @@ function DeviceList() {
         .map(([key, value]) => [`filter[${key}]`, value]),
     );
 
-    const queryString = new URLSearchParams(filterParams).toString();
-    const newSearch = queryString ? `?${queryString}` : "";
+    const newSearchParams = new URLSearchParams(filterParams);
+    const newSearch = newSearchParams.toString()
+      ? `?${newSearchParams.toString()}`
+      : "";
 
     // Only push if it have changed
     // Do not push nothing
     if (newSearch && newSearch !== location.search) {
-      history.push(newSearch);
+      setSearchParams(newSearchParams);
     } else if (!newSearch && location.search) {
-      history.push("/devices");
+      setSearchParams({});
     }
   };
 
@@ -646,15 +639,15 @@ function DeviceList() {
   };
 
   const syncDeviceAction = (hostname) => {
-    history.push(`config-change?hostname=${hostname}`);
+    navigate(`/config-change?hostname=${hostname}`);
   };
 
   const upgradeDeviceAction = (hostname) => {
-    history.push(`firmware-upgrade?hostname=${hostname}`);
+    navigate(`/firmware-upgrade?hostname=${hostname}`);
   };
 
   const configurePortsAction = (hostname) => {
-    history.push(`interface-config?hostname=${hostname}`);
+    navigate(`/interface-config?hostname=${hostname}`);
   };
 
   const updateFactsAction = async (hostname, deviceId) => {
@@ -1192,5 +1185,3 @@ function DeviceList() {
     </section>
   );
 }
-
-export default DeviceList;

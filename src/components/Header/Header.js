@@ -1,17 +1,22 @@
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";
-import JwtInfo from "./JwtInfo";
+import { JwtInfo } from "./JwtInfo";
 import ReloginModal from "./ReloginModal";
 
-function Header() {
+export function Header() {
   const { loggedIn, tokenWillExpire } = useAuthToken();
   const { permissionsCheck } = usePermissions();
 
   const renderLinks = () => {
     if (!loggedIn) {
       return [
-        <NavLink exact activeClassName="active" to="/" key="navlogin">
+        <NavLink
+          end
+          className={({ isActive }) => (isActive ? "active" : undefined)}
+          to="/"
+          key="navlogin"
+        >
           <li key="nav1">Login</li>
         </NavLink>,
       ];
@@ -19,8 +24,8 @@ function Header() {
 
     return [
       <NavLink
-        exact
-        activeClassName="active"
+        end
+        className={({ isActive }) => (isActive ? "active" : undefined)}
         hidden={!permissionsCheck("Dashboard", "read")}
         to="/dashboard"
         key="nav1"
@@ -28,8 +33,8 @@ function Header() {
         <li>Dashboard</li>
       </NavLink>,
       <NavLink
-        exact
-        activeClassName="active"
+        end
+        className={({ isActive }) => (isActive ? "active" : undefined)}
         hidden={!permissionsCheck("Devices", "read")}
         onClick={(e) => {
           if (location.pathname === "/devices") e.preventDefault();
@@ -40,8 +45,8 @@ function Header() {
         <li>Devices</li>
       </NavLink>,
       <NavLink
-        exact
-        activeClassName="active"
+        end
+        className={({ isActive }) => (isActive ? "active" : undefined)}
         hidden={!permissionsCheck("Groups", "read")}
         to="/groups"
         key="nav3"
@@ -49,8 +54,8 @@ function Header() {
         <li>Groups</li>
       </NavLink>,
       <NavLink
-        exact
-        activeClassName="active"
+        end
+        className={({ isActive }) => (isActive ? "active" : undefined)}
         hidden={!permissionsCheck("Jobs", "read")}
         to="/jobs"
         key="nav4"
@@ -58,8 +63,8 @@ function Header() {
         <li>Jobs</li>
       </NavLink>,
       <NavLink
-        exact
-        activeClassName="active"
+        end
+        className={({ isActive }) => (isActive ? "active" : undefined)}
         hidden={!permissionsCheck("Firmware", "read")}
         to="/firmware-copy"
         key="nav5"
@@ -67,8 +72,8 @@ function Header() {
         <li>Firmware</li>
       </NavLink>,
       <NavLink
-        exact
-        activeClassName="active"
+        end
+        className={({ isActive }) => (isActive ? "active" : undefined)}
         hidden={!permissionsCheck("Config change", "read")}
         to="/config-change"
         key="nav6"
@@ -89,5 +94,3 @@ function Header() {
     </header>
   );
 }
-
-export default Header;

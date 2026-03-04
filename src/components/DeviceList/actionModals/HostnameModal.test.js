@@ -66,7 +66,7 @@ test("successfully changes hostname and navigates to config-change", async () =>
   ).not.toBeInTheDocument();
 
   await userEvent.click(syncButton);
-  expect(globalThis.mockHistoryPush).toHaveBeenCalledWith(
+  expect(globalThis.mockNavigate).toHaveBeenCalledWith(
     "/config-change?scrollTo=dry_run",
   );
 });
