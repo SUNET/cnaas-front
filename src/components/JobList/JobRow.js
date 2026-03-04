@@ -25,7 +25,7 @@ JobRow.propTypes = {
     next_job_id: PropTypes.number,
     change_score: PropTypes.number,
     finished_devices: PropTypes.arrayOf(PropTypes.string),
-    result: PropTypes.object,
+    result: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     exception: PropTypes.object,
   }).isRequired,
   isExpanded: PropTypes.bool.isRequired,

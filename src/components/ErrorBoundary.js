@@ -1,28 +1,20 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { withRouter } from "react-router";
-import { useHistory } from "react-router-dom";
+import { Outlet, useLocation } from "react-router";
 
 ErrorBoundary.propTypes = {
   children: PropTypes.node,
 };
 
-function ErrorBoundary({ children }) {
-  const history = useHistory();
+export function ErrorBoundary({ children }) {
+  const location = useLocation();
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const unlisten = history.listen(() => {
-      if (hasError) {
-        setHasError(false);
-      }
-    });
+    if (hasError) {
+      setHasError(false);
+    }
+  }, [location, hasError]);
 
-    // cleanup un unmount
-    return () => unlisten();
-  }, [history, hasError]);
-
-  return hasError ? <h1>Error</h1> : children;
+  return hasError ? <h1>Error</h1> : (children ?? <Outlet />);
 }
-
-export default withRouter(ErrorBoundary);

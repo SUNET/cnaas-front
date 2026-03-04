@@ -3,7 +3,7 @@ import { Button, Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import { putData } from "../../../utils/sendData";
-import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { useNavigate } from "react-router";
 
 HostnameModal.propTypes = {
   closeAction: PropTypes.func,
@@ -21,7 +21,7 @@ export function HostnameModal({
   onSuccess,
 }) {
   const { token } = useAuthToken();
-  const history = useHistory();
+  const navigate = useNavigate();
   const [newHostname, setNewHostname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -119,7 +119,7 @@ export function HostnameModal({
         {success && (
           <Button
             key={"hostname-${hostname}-sync-button"}
-            onClick={() => history.push(`/config-change?scrollTo=dry_run`)}
+            onClick={() => navigate(`/config-change?scrollTo=dry_run`)}
             labelPosition="right"
           >
             Sync devices...

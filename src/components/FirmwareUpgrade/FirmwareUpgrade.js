@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Prompt } from "react-router";
-import queryString from "query-string";
-import PropTypes from "prop-types";
+import { useSearchParams } from "react-router";
 import { Input } from "semantic-ui-react";
 import io from "socket.io-client";
+import { NavigationBlocker } from "../NavigationBlocker";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";
 import { FirmwareStep3 } from "./FirmwareStep3";
@@ -14,15 +13,15 @@ import { post, putData } from "../../utils/sendData";
 
 let socket = null;
 
-FirmwareUpgrade.propTypes = {
-  location: PropTypes.shape({
-    search: PropTypes.string,
-  }),
-};
-
-export function FirmwareUpgrade({ location }) {
+export function FirmwareUpgrade() {
   const { token } = useAuthToken();
   const tokenRef = useFreshRef(token);
+  const [searchParams] = useSearchParams();
+
+  const [blockNavigation, setBlockNavigation] = useState(false);
+
+  const navigationBlockerMessage =
+    "A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave.";
 
   const [step2totalCount, setStep2totalCount] = useState(0);
   const [step2jobId, setStep2jobId] = useState(null);
@@ -39,7 +38,6 @@ export function FirmwareUpgrade({ location }) {
   const [jobComment, setJobComment] = useState("");
   const [jobTicketRef, setJobTicketRef] = useState("");
   const [logLines, setLogLines] = useState([]);
-  const [blockNavigation, setBlockNavigation] = useState(false);
 
   const updateComment = (e) => {
     const val = e.target.value;
@@ -56,12 +54,13 @@ export function FirmwareUpgrade({ location }) {
   };
 
   const getCommitTarget = () => {
-    const queryParams = queryString.parse(location.search);
-    if (queryParams.hostname) {
-      return { hostname: queryParams.hostname };
+    const hostname = searchParams.get("hostname");
+    if (hostname) {
+      return { hostname };
     }
-    if (queryParams.group) {
-      return { group: queryParams.group };
+    const group = searchParams.get("group");
+    if (group) {
+      return { group };
     }
 
     return null;
@@ -318,9 +317,9 @@ export function FirmwareUpgrade({ location }) {
   const commitTargetName = getCommitTargetName(commitTarget);
   return (
     <>
-      <Prompt
+      <NavigationBlocker
         when={blockNavigation}
-        message="A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave."
+        message={navigationBlockerMessage}
       />
       <section>
         <h1>Firmware upgrade</h1>

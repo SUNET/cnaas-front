@@ -1,8 +1,8 @@
-import { BrowserRouter } from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-import DeviceList from "./DeviceList";
+import { DeviceList } from "./DeviceList";
 
 import {
   getData as mockGetData,
@@ -20,15 +20,12 @@ mockGetData.mockResolvedValue({ data: { devices: [], inferfaces: [] } });
 mockGetResponse.mockResolvedValue({ data: "mock_get_response_value" });
 mockDeleteData.mockResolvedValue({ data: "mock_delete_data_value" });
 
-function MockDeviceList({ deviceListProps }) {
-  return (
-    <BrowserRouter>
-      <DeviceList
-        location={deviceListProps.location}
-        history={deviceListProps.history}
-      />
-    </BrowserRouter>
+function MockDeviceList() {
+  const router = createMemoryRouter(
+    [{ path: "/devices", element: <DeviceList /> }],
+    { initialEntries: ["/devices"] },
   );
+  return <RouterProvider router={router} />;
 }
 
 beforeEach(() => {
@@ -45,16 +42,7 @@ afterAll(() => {
 });
 
 test("loads and displays", async () => {
-  const mockProps = {
-    location: {
-      search: "",
-    },
-    history: {
-      push: jest.fn(),
-      replace: jest.fn(),
-    },
-  };
-  render(<MockDeviceList deviceListProps={mockProps} />);
+  render(<MockDeviceList />);
   const buttons = await screen.findAllByRole("button");
 
   buttons.forEach((button) => expect(button).toBeEnabled());

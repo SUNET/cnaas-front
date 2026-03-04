@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
-import { MemoryRouter } from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router";
 
 import { FirmwareUpgrade } from "./FirmwareUpgrade";
 import { getData as mockGetData } from "../../utils/getData";
@@ -32,11 +32,11 @@ beforeEach(() => {
 });
 
 function renderComponent(search = "?hostname=test-switch") {
-  return render(
-    <MemoryRouter>
-      <FirmwareUpgrade location={{ search }} />
-    </MemoryRouter>,
+  const router = createMemoryRouter(
+    [{ path: "/firmware-upgrade", element: <FirmwareUpgrade /> }],
+    { initialEntries: [`/firmware-upgrade${search}`] },
   );
+  return render(<RouterProvider router={router} />);
 }
 
 test("renders firmware upgrade page with target hostname", async () => {

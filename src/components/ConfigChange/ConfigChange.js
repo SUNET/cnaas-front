@@ -1,9 +1,7 @@
-import PropTypes from "prop-types";
-import queryString from "query-string";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Prompt } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { Button } from "semantic-ui-react";
-import { Link } from "react-router-dom";
+import { NavigationBlocker } from "../NavigationBlocker";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import { getData } from "../../utils/getData";
 import ConfigChangeStep1 from "./ConfigChangeStep1";
@@ -131,17 +129,15 @@ const showAnotherSessionDidRefreshToast = (jobId) => {
   });
 };
 
-ConfigChange.propTypes = {
-  location: PropTypes.shape({
-    search: PropTypes.string,
-  }),
-};
-
-function ConfigChange({ location }) {
+export function ConfigChange() {
   const { token } = useAuthToken();
   const tokenRef = useFreshRef(token);
+  const [searchParams] = useSearchParams();
 
   const [blockNavigation, setBlockNavigation] = useState(false);
+
+  const navigationBlockerMessage =
+    "A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave.";
   const [confirmRunProgressData, setConfirmRunProgressData] = useState({});
   const [devices, setDevices] = useState([]);
   const [dryRunDisable, setDryRunDisable] = useState(false);
@@ -340,17 +336,15 @@ function ConfigChange({ location }) {
   }, []);
 
   useEffect(() => {
-    const queryParams = queryString.parse(location.search);
-    if (queryParams.scrollTo !== undefined) {
-      const element = document.getElementById(
-        `${queryParams.scrollTo}_section`,
-      );
+    const scrollTo = searchParams.get("scrollTo");
+    if (scrollTo !== null) {
+      const element = document.getElementById(`${scrollTo}_section`);
       if (element) {
         element.scrollIntoView({ alignToTop: true, behavior: "smooth" });
       }
     }
 
-    if (queryParams.autoDryRun) {
+    if (searchParams.get("autoDryRun")) {
       handleDryRunReady();
     }
 
@@ -373,12 +367,13 @@ function ConfigChange({ location }) {
   };
 
   const getCommitTarget = () => {
-    const queryParams = queryString.parse(location.search);
-    if (queryParams.hostname) {
-      return { hostname: queryParams.hostname };
+    const hostname = searchParams.get("hostname");
+    if (hostname) {
+      return { hostname };
     }
-    if (queryParams.group) {
-      return { group: queryParams.group };
+    const group = searchParams.get("group");
+    if (group) {
+      return { group };
     }
     return { all: true };
   };
@@ -505,9 +500,9 @@ function ConfigChange({ location }) {
 
   return (
     <>
-      <Prompt
+      <NavigationBlocker
         when={blockNavigation}
-        message="A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave."
+        message={navigationBlockerMessage}
       />
       <SemanticToastContainer position="top-right" maxToasts={3} />
       <section>
@@ -560,5 +555,3 @@ function ConfigChange({ location }) {
     </>
   );
 }
-
-export default ConfigChange;
