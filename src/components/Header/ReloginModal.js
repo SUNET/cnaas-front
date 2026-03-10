@@ -30,6 +30,12 @@ function ReloginModal({ isOpen }) {
 
   // Sets an interval
   useEffect(() => {
+    if (tokenExpiry === null || tokenExpiry === undefined) {
+      // Token has no expiry — no countdown needed
+      setSecondsUntilExpiry(null);
+      return;
+    }
+
     const now = Math.floor(Date.now() / 1000);
     const tokenSecsRemaining = Math.max(tokenExpiry - now, 0);
     setSecondsUntilExpiry(tokenSecsRemaining);
@@ -48,7 +54,7 @@ function ReloginModal({ isOpen }) {
   }, [tokenExpiry]);
 
   useEffect(() => {
-    if (secondsUntilExpiry <= 0) {
+    if (secondsUntilExpiry !== null && secondsUntilExpiry <= 0) {
       clearInterval(timerId.current);
     }
   }, [secondsUntilExpiry]);
@@ -71,9 +77,11 @@ function ReloginModal({ isOpen }) {
       </SemanticHeader>
       <ModalContent>
         <p>
-          {secondsUntilExpiry <= 0
-            ? `Your session has expired.`
-            : `Your session will time out in ${secondsToText(secondsUntilExpiry)}, after this you will be logged out.`}
+          {secondsUntilExpiry === null
+            ? `Your session does not expire.`
+            : secondsUntilExpiry <= 0
+              ? `Your session has expired.`
+              : `Your session will time out in ${secondsToText(secondsUntilExpiry)}, after this you will be logged out.`}
         </p>
       </ModalContent>
       <ModalActions>
