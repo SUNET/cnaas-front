@@ -62,11 +62,13 @@ export function JwtInfo() {
                 : ""
             }
           >
-            {secondsUntilExpiry === null
-              ? "Token does not expire."
-              : secondsUntilExpiry <= 0
-                ? "Token has expired!"
-                : `Token expires in ${secondsToText(secondsUntilExpiry)}.`}
+            {secondsUntilExpiry === null && "Token does not expire."}
+            {secondsUntilExpiry !== null &&
+              secondsUntilExpiry <= 0 &&
+              "Token has expired!"}
+            {secondsUntilExpiry !== null &&
+              secondsUntilExpiry > 0 &&
+              `Token expires in ${secondsToText(secondsUntilExpiry)}.`}
           </p>
           <Popup
             content="Copy JWT (to use from curl etc), take note of valid time listed above"

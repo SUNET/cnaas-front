@@ -1,6 +1,6 @@
 // @ts-check
 const { defineConfig, devices } = require("@playwright/test");
-const path = require("path");
+const path = require("node:path");
 
 /**
  * Load .env.e2e so that environment variables are available in this config.

@@ -77,11 +77,13 @@ function ReloginModal({ isOpen }) {
       </SemanticHeader>
       <ModalContent>
         <p>
-          {secondsUntilExpiry === null
-            ? `Your session does not expire.`
-            : secondsUntilExpiry <= 0
-              ? `Your session has expired.`
-              : `Your session will time out in ${secondsToText(secondsUntilExpiry)}, after this you will be logged out.`}
+          {secondsUntilExpiry === null && `Your session does not expire.`}
+          {secondsUntilExpiry !== null &&
+            secondsUntilExpiry <= 0 &&
+            `Your session has expired.`}
+          {secondsUntilExpiry !== null &&
+            secondsUntilExpiry > 0 &&
+            `Your session will time out in ${secondsToText(secondsUntilExpiry)}, after this you will be logged out.`}
         </p>
       </ModalContent>
       <ModalActions>
