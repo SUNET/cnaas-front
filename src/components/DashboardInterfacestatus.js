@@ -134,7 +134,7 @@ export function DashboardInterfaceStatus() {
             trigger={
               <div>
                 <a
-                  href={`${process.env.NETBOX_WEB_URL}/dcim/interfaces/${intf.id}/`}
+                  href={`${process.env.NETBOX_API_URL}dcim/interfaces/${intf.id}/`}
                   target="_blank"
                   rel="noreferrer"
                 >

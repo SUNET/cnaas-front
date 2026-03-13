@@ -92,7 +92,7 @@ export function DashboardNetboxTenant() {
                 <br />
                 <b>Sites:</b>{" "}
                 <a
-                  href={`${process.env.NETBOX_API_URL}/dcim/sites/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                  href={`${process.env.NETBOX_API_URL}dcim/sites/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View sites in NetBox"
                   target="_blank"
                   rel="noreferrer"
@@ -102,7 +102,7 @@ export function DashboardNetboxTenant() {
                 <br />
                 <b>Devices:</b>{" "}
                 <a
-                  href={`${process.env.NETBOX_API_URL}/dcim/devices/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                  href={`${process.env.NETBOX_API_URL}dcim/devices/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View devices in NetBox"
                   target="_blank"
                   rel="noreferrer"
@@ -112,7 +112,7 @@ export function DashboardNetboxTenant() {
                 <br />
                 <b>VRFs:</b>{" "}
                 <a
-                  href={`${process.env.NETBOX_API_URL}/ipam/vrfs/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                  href={`${process.env.NETBOX_API_URL}ipam/vrfs/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View VRFs in NetBox"
                   target="_blank"
                   rel="noreferrer"
@@ -122,7 +122,7 @@ export function DashboardNetboxTenant() {
                 <br />
                 <b>Prefixes:</b>{" "}
                 <a
-                  href={`${process.env.NETBOX_API_URL}/ipam/prefixes/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                  href={`${process.env.NETBOX_API_URL}ipam/prefixes/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View prefixes in NetBox"
                   target="_blank"
                   rel="noreferrer"
@@ -132,7 +132,7 @@ export function DashboardNetboxTenant() {
                 <br />
                 <b>VLANs:</b>{" "}
                 <a
-                  href={`${process.env.NETBOX_API_URL}/ipam/vlans/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                  href={`${process.env.NETBOX_API_URL}ipam/vlans/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
                   title="View VLANs in NetBox"
                   target="_blank"
                   rel="noreferrer"
