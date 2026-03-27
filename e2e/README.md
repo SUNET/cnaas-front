@@ -94,15 +94,15 @@ curl -ks https://localhost/api/v1.0/system/version
 From repo root, run
 
 ```bash
-npx playwright test --project=chromium
+npx playwright test --project=chromium --headed
 ```
 
-You can run tests for other browsers by changing the `--project` flag (e.g.
-`--project=firefox` or `--project=webkit`), but note that the ZTP
-initialization test (`ztp-init.spec.js`) can only run once per environment
-since it initializes the access switch. To run it again you need to
-redeploy containerlab with a clean `eosaccess` and restart the backend
-(to clear the database volume).
+The `chromium` project runs the full test suite including ZTP device
+initialization. The `firefox` and `webkit` projects are also configured
+but skip the ZTP test (`ztp-init.spec.js`) since it can only run once per
+environment — it initializes the access switch, which cannot be undone
+without redeploying containerlab (`--reconfigure`) and restarting the
+backend (to clear the database volume).
 
 What happens automatically:
 

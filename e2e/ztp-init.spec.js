@@ -41,6 +41,8 @@ async function waitForDevice(page, timeoutMs = 600_000) {
         // Already past DISCOVERED (INIT, MANAGED, etc.)
         return { device: nonDist, alreadyInitialized: true };
       }
+    } else {
+      console.log("No non-DIST device found yet — waiting for ZTP...");
     }
 
     await page.waitForTimeout(5000);
@@ -55,9 +57,14 @@ test.describe("Device initialization", () => {
   // This test can take a long time — ZTP boot + discovery + init + config push.
   test.setTimeout(600_000); // 10 minutes
 
-  test("initialize eosaccess through the UI", async ({ page }) => {
+  test("initialize eosaccess through the UI", async ({ page }, testInfo) => {
+    // Show the devices page while waiting, so --headed mode isn't stuck on about:blank
+    await page.goto("/devices");
+
     // ── Step 1: Wait for a non-DIST device to appear ───────────────
-    const { device, alreadyInitialized } = await waitForDevice(page);
+    const { device, alreadyInitialized } =
+      await test.step("Wait for ZTP device to reach DISCOVERED", () =>
+        waitForDevice(page));
     const deviceId = device.id;
     console.log(`Device ${deviceId} reached ${device.state}`);
 
@@ -75,6 +82,11 @@ test.describe("Device initialization", () => {
       const row = page.locator("tr", { hasText: device.hostname });
       const expandButton = row.locator("td").first();
       await expandButton.click();
+
+      await testInfo.attach("device-discovered", {
+        body: await page.screenshot(),
+        contentType: "image/png",
+      });
 
       // ── Step 4: Fill in the init form ──────────────────────────────
       const hostnameInput = page.getByPlaceholder("hostname");
@@ -104,7 +116,18 @@ test.describe("Device initialization", () => {
 
       await expect(modal.getByText("Linknets:")).toBeVisible();
       await expect(modal.getByText("Compatible neighbors:")).toBeVisible();
-      console.log("Initcheck passed — starting initialization...");
+      console.log("Initcheck passed — expanding detailed output...");
+
+      // Expand the "Detailed output" accordion so it appears in the screenshot
+      await modal.getByText("Detailed output").click();
+      await expect(modal.locator(".content.active pre")).toBeVisible({
+        timeout: 5000,
+      });
+
+      await testInfo.attach("initcheck-passed", {
+        body: await page.screenshot(),
+        contentType: "image/png",
+      });
 
       // ── Step 7: Start initialization ───────────────────────────────
       await startButton.click();
@@ -113,6 +136,11 @@ test.describe("Device initialization", () => {
         page.getByRole("button", { name: "Initializing..." }),
       ).toBeVisible({ timeout: 5000 });
       console.log("Initialization started");
+
+      await testInfo.attach("initialization-started", {
+        body: await page.screenshot(),
+        contentType: "image/png",
+      });
     } else {
       // Device already moved past DISCOVERED (e.g. from a previous run).
       console.log(
@@ -120,27 +148,47 @@ test.describe("Device initialization", () => {
       );
     }
 
-    // ── Step 8: Wait for device to reach MANAGED via the UI ────────
-    // The /devices page subscribes to socket.io "device UPDATED" events and
-    // should live-update without a reload (see DeviceList.js). However, the
-    // INIT → MANAGED transition can happen before the page loads and the
-    // socket subscribes, so the event is missed. We fall back to polling
-    // with page reloads to avoid this race condition.
-    console.log("Waiting for device to reach MANAGED state...");
+    // ── Step 8: Wait for device to reach MANAGED ──────────────────
+    // Poll the API until the device reaches MANAGED, then reload the
+    // page once and verify the UI shows the correct state.
+    await test.step("Wait for device to reach MANAGED (API polling)", async () => {
+      console.log(
+        "Waiting for device to reach MANAGED (polling API, will reload page when state changes)...",
+      );
+      const managedDeadline = Date.now() + 300_000; // 5 minutes
+      while (Date.now() < managedDeadline) {
+        const resp = await page.request.get(`${API_BASE}/devices`, {
+          headers: { Authorization: `Bearer ${JWT_TOKEN}` },
+          ignoreHTTPSErrors: true,
+        });
+        const json = await resp.json();
+        const eosaccess = json?.data?.devices?.find(
+          (d) => d.hostname === "eosaccess",
+        );
+        if (eosaccess?.state === "MANAGED") {
+          console.log("Device reached MANAGED via API — reloading page...");
+          return;
+        }
+        console.log(
+          `Device state: ${eosaccess?.state ?? "not found"} — waiting...`,
+        );
+        await page.waitForTimeout(10_000);
+      }
+      throw new Error("Device did not reach MANAGED within 5 minutes");
+    });
+
     await page.goto("/devices");
+    await page.waitForLoadState("networkidle");
 
     const managedRow = page.locator("tr", { hasText: "eosaccess" });
     const managedCell = managedRow.getByRole("cell", { name: "MANAGED" });
-
-    const deadline = Date.now() + 300_000; // 5 minutes
-    while (Date.now() < deadline) {
-      if (await managedCell.isVisible().catch(() => false)) break;
-      await page.waitForTimeout(10_000);
-      console.log("Device not yet MANAGED — reloading...");
-      await page.reload();
-    }
     await expect(managedCell).toBeVisible({ timeout: 10_000 });
     console.log("Device is MANAGED!");
+
+    await testInfo.attach("device-managed", {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
 
     await expect(
       managedRow.getByRole("cell", { name: "ACCESS", exact: true }),
