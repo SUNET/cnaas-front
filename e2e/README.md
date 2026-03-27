@@ -22,12 +22,12 @@ and containerlab-simulated Arista switches.
 │ │  eosdist2  (cEOS)   — 10.100.2.12 / 10.100.2.102    │ │
 │ │  eosaccess (vEOS)   — 10.100.2.13 (ZTP, no config)  │ │
 │ └─────────────────────────────────────────────────────┘ │
-│ Host routes connect the two networks (see Step 3 below).│
 └─────────────────────────────────────────────────────────┘
 ```
 
 The backend containers and containerlab switches are on separate Docker
-networks. The host machine routes traffic between them.
+networks. Host routes between them should be configured by
+containerlab (via a `host` node with `exec` commands in the topology).
 
 ## Prerequisites
 
@@ -60,12 +60,8 @@ From your local cnaas-nms checkout:
 
 ```bash
 cd <your-cnaas-nms-repo>/docker
-docker compose -f docker-compose.yaml build --build-arg BUILDBRANCH=develop
+docker compose -f docker-compose.yaml build
 ```
-
-> **Note:** The `BUILDBRANCH=develop` arg is needed because the Dockerfiles
-> download and build the cnaas-nms repo from GitHub. Without it, they default
-> to `master`.
 
 This builds `cnaas-api`, `cnaas-redis`, and `docker_cnaas_dhcpd`.
 
@@ -93,31 +89,9 @@ Verify:
 curl -ks https://localhost/api/v1.0/system/version
 ```
 
-### Step 3 — Add host routes
+### Step 3 — Run the tests
 
-The backend containers and containerlab switches are on separate Docker
-networks. These host routes are needed so that the backend can reach the
-switch loopbacks and overlay networks:
-
-```bash
-sudo ip route add 10.100.3.101/32 via 10.100.2.101   # eosdist1 loopback
-sudo ip route add 10.100.3.102/32 via 10.100.2.102   # eosdist2 loopback
-sudo ip route add 10.0.6.0/24 via 10.100.2.101       # mgmt domain (VLAN 600)
-sudo ip route add 192.168.0.0/24 via 10.100.2.101    # ZTP DHCP subnet
-```
-
-Verify connectivity from the API container:
-
-```bash
-docker exec e2e-cnaas_api-1 ping -c 1 10.100.3.101
-docker exec e2e-cnaas_api-1 ping -c 1 10.100.3.102
-```
-
-> **Note:** These routes are lost on reboot or if the `cnaas_mgmt` bridge
-> is recreated (e.g. after `containerlab destroy` + `deploy`). Re-add them
-> if things stop working.
-
-### Step 4 — Run the tests
+From repo root, run
 
 ```bash
 npx playwright test --project=chromium
@@ -153,7 +127,7 @@ What happens automatically:
      - Waits for the device to reach MANAGED state
      - Verifies the UI shows "eosaccess" as MANAGED ACCESS
 
-### Step 5 — Tear down
+### Step 4 — Tear down
 
 ```bash
 # Stop the backend containers:
@@ -161,12 +135,6 @@ What happens automatically:
 
 # Destroy containerlab (from your topology repo):
 sudo containerlab destroy
-
-# Clean up routes (optional, they'll fail harmlessly if bridges are gone):
-sudo ip route del 10.100.3.101/32 2>/dev/null
-sudo ip route del 10.100.3.102/32 2>/dev/null
-sudo ip route del 10.0.6.0/24 2>/dev/null
-sudo ip route del 192.168.0.0/24 2>/dev/null
 ```
 
 ## Running manually (interactive)
@@ -174,7 +142,7 @@ sudo ip route del 192.168.0.0/24 2>/dev/null
 If you want to explore the flow in a browser instead of running automated
 tests:
 
-1. Complete Steps 1-3 above.
+1. Complete Steps 1-2 above.
 
 2. Seed the backend (this is what setup.spec.js does):
 
@@ -229,17 +197,14 @@ tests:
 7. The device will go through INIT → MANAGED. Refresh the page to see
    the final state.
 
-## File overview
+## Notable Files
 
 ```
-e2e/
-├── README.md              ← You are here
-├── compose.yaml           ← Backend Docker Compose stack
-├── start-backend.sh       ← Start backend + wait for readiness
-├── stop-backend.sh        ← Stop backend
-├── public.pem             ← JWT public key for backend auth
-├── setup.spec.js          ← Setup project (seeds DIST devices)
-├── sanity-check.spec.js   ← Smoke test
-├── devices.spec.js        ← Device list test
-└── ztp-init.spec.js       ← Full ZTP → MANAGED lifecycle test
+├── .env.e2e               ← Environment variables for e2e frontend
+├── playwright.config.js   ← Playwright configuration (loads .env.e2e)
+└── e2e/
+    ├── compose.yaml       ← Backend Docker Compose stack
+    ├── public.pem         ← JWT public key for backend auth
+    ├── setup.spec.js      ← Setup project (seeds DIST devices)
+    └── ...
 ```
