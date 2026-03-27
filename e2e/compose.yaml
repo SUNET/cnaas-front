@@ -1,0 +1,136 @@
+# Backend stack for e2e tests.
+#
+# Prerequisites:
+#   Build images once from the cnaas-nms repo:
+#     cd <your-cnaas-nms>/docker && docker compose build
+#
+# Usage:
+#   docker compose -f e2e/compose.yaml up -d
+#   docker compose -f e2e/compose.yaml down --volumes
+#
+# The API listens on https://localhost:443 with a self-signed certificate.
+# OIDC Auth is disabled (OIDC_ENABLED=0, PERMISSIONS_DISABLED=1).
+
+services:
+  cnaas_init:
+    image: cnaas-api
+    user: root
+    entrypoint: ["bash", "-c"]
+    volumes:
+      - cnaas-jwtcert:/opt/cnaas/jwtcert
+      - cnaas-cacert:/opt/cnaas/cacert
+      - cnaas-templates:/opt/cnaas/templates
+      - cnaas-settings:/opt/cnaas/settings
+      - ./public.pem:/tmp/public.pem:ro
+    command:
+      - |
+        cp /tmp/public.pem /opt/cnaas/jwtcert/public.pem &&
+        chown -R www-data:www-data /opt/cnaas/jwtcert/ &&
+        if [ ! -f /opt/cnaas/cacert/rootCA.crt ]; then
+          /opt/cnaas/createca.sh
+        fi &&
+        if [ ! -d /opt/cnaas/templates/.git ]; then
+          echo "Cloning templates..." &&
+          git clone https://github.com/SUNET/cnaas-integrationtest-templates.git /opt/cnaas/templates &&
+          chown -R www-data:www-data /opt/cnaas/templates
+        fi &&
+        if [ ! -d /opt/cnaas/settings/.git ]; then
+          echo "Cloning settings..." &&
+          git clone https://github.com/SUNET/cnaas-integrationtest-settings.git /opt/cnaas/settings &&
+          chown -R www-data:www-data /opt/cnaas/settings
+        fi &&
+        echo "Init complete."
+    networks:
+      - cnaas
+
+  cnaas_api:
+    image: cnaas-api
+    ports:
+      - 443:1443
+    networks:
+      - cnaas
+    environment:
+      - GITREPO_TEMPLATES=https://github.com/SUNET/cnaas-integrationtest-templates.git
+      - GITREPO_SETTINGS=https://github.com/SUNET/cnaas-integrationtest-settings.git
+      - USERNAME_DHCP_BOOT=admin
+      - PASSWORD_DHCP_BOOT=abc123abc123
+      - USERNAME_DISCOVERED=admin
+      - PASSWORD_DISCOVERED=abc123abc123
+      - USERNAME_INIT=admin
+      - PASSWORD_INIT=abc123abc123
+      - USERNAME_MANAGED=admin
+      - PASSWORD_MANAGED=abc123abc123
+      - JWT_SECRET_KEY=integrationtestkey
+      - OIDC_ENABLED=0
+      - PERMISSIONS_DISABLED=1
+    depends_on:
+      cnaas_init:
+        condition: service_completed_successfully
+      cnaas_postgres:
+        condition: service_started
+      cnaas_redis:
+        condition: service_started
+      cnaas_httpd:
+        condition: service_started
+    volumes:
+      - cnaas-templates:/opt/cnaas/templates
+      - cnaas-settings:/opt/cnaas/settings
+      - cnaas-jwtcert:/opt/cnaas/jwtcert
+      - cnaas-cacert:/opt/cnaas/cacert
+
+  cnaas_httpd:
+    image: docker.sunet.se/cnaas/httpd
+    ports:
+      - 80:1180
+    networks:
+      - cnaas
+    environment:
+      - GITREPO_TEMPLATES=https://github.com/SUNET/cnaas-integrationtest-templates.git
+
+  cnaas_dhcpd:
+    image: docker-cnaas_dhcpd
+    ports:
+      - 67:67/udp
+    networks:
+      - cnaas
+    environment:
+      - GITREPO_ETC=https://github.com/indy-independence/cnaas-nms-lab-etc.git
+      - DB_PASSWORD=cnaas
+      - DB_HOSTNAME=cnaas_postgres
+      - JWT_AUTH_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE1NzEwNTk2MTgsIm5iZiI6MTU3MTA1OTYxOCwianRpIjoiNTQ2MDk2YTUtZTNmOS00NzFlLWE2NTctZWFlYTZkNzA4NmVhIiwic3ViIjoiYWRtaW4iLCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.Sfffg9oZg_Kmoq7Oe8IoTcbuagpP6nuUXOQzqJpgDfqDq_GM_4zGzt7XxByD4G0q8g4gZGHQnV14TpDer2hJXw
+    depends_on:
+      - cnaas_httpd
+      - cnaas_api
+
+  cnaas_postgres:
+    image: postgres:11
+    volumes:
+      - cnaas-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=cnaas
+      - POSTGRES_PASSWORD=cnaas
+      - POSTGRES_DB=cnaas
+    networks:
+      - cnaas
+
+  cnaas_redis:
+    image: cnaas-redis
+    networks:
+      - cnaas
+
+networks:
+  cnaas:
+    driver: bridge
+    name: cnaas
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-cnaas
+
+volumes:
+  cnaas-templates:
+  cnaas-settings:
+  cnaas-postgres-data:
+  cnaas-jwtcert:
+  cnaas-cacert:

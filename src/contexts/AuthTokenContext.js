@@ -21,6 +21,9 @@ import {
 } from "./authTokenReducer";
 
 export const getSecondsUntilExpiry = (tokenExpiry) => {
+  if (tokenExpiry === null || tokenExpiry === undefined) {
+    return null;
+  }
   try {
     const now = Math.round(Date.now() / 1000);
     return Math.max(tokenExpiry - now, 0);
@@ -76,7 +79,7 @@ export function AuthTokenProvider({ children }) {
   // Set refresh token timer
   const tokenRefreshTimer = useRef();
   useEffect(() => {
-    if (tokenState.token) {
+    if (tokenState.token && tokenState.tokenExpiry !== null) {
       const debounce = Math.floor(Math.random() * 30); // debounce 0 - 30 seconds
       tokenRefreshTimer.current = setTimeout(
         () => {

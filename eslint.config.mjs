@@ -96,6 +96,8 @@ export default defineConfig([
       "**/*.spec.js",
       "**/__mocks__/**",
       "**/setupTests.js",
+      "**/*.config.js",
+      "**/*.config.mjs",
     ],
     languageOptions: {
       globals: {
@@ -105,6 +107,20 @@ export default defineConfig([
         process: "readonly",
         require: "readonly",
       },
+    },
+  },
+
+  // Config files (playwright.config.js, etc.) - Node globals
+  {
+    name: "cnaas/config-files",
+    files: ["**/*.config.js", "**/*.config.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "import/no-unresolved": "off",
     },
   },
 ]);
