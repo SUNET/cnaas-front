@@ -48,7 +48,7 @@ module.exports = defineConfig({
     {
       name: "chromium",
       dependencies: ["setup"],
-      testIgnore: /setup\.spec/,
+      testIgnore: [/setup\.spec/, /ztp-init/],
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/user.json",
@@ -61,7 +61,7 @@ module.exports = defineConfig({
     {
       name: "firefox",
       dependencies: ["setup"],
-      testIgnore: [/setup\.spec/, /ztp-init/],
+      testIgnore: /setup\.spec/,
       use: {
         ...devices["Desktop Firefox"],
         storageState: "playwright/.auth/user.json",

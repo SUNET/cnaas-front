@@ -36,7 +36,7 @@ containerlab (via a `host` node with `exec` commands in the topology).
 - [containerlab](https://containerlab.dev/) (`sudo containerlab`)
 - Docker + Docker Compose
 - Node.js 18+ and npm
-- Playwright (`npx playwright install chromium`)
+- Playwright (`npx playwright install firefox`)
 
 **Containerlab topology** — the tests expect the following switches on the
 `cnaas_mgmt` network (10.100.2.0/24):
@@ -94,11 +94,11 @@ curl -ks https://localhost/api/v1.0/system/version
 From repo root, run
 
 ```bash
-npx playwright test --project=chromium --headed
+npx playwright test --project=firefox --headed
 ```
 
-The `chromium` project runs the full test suite including ZTP device
-initialization. The `firefox` and `webkit` projects are also configured
+The `firefox` project runs the full test suite including ZTP device
+initialization. The `chromium` and `webkit` projects are also configured
 but skip the ZTP test (`ztp-init.spec.js`) since it can only run once per
 environment — it initializes the access switch, which cannot be undone
 without redeploying containerlab (`--reconfigure`) and restarting the
