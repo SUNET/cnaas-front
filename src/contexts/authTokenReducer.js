@@ -91,12 +91,19 @@ export function authTokenReducer(state, action) {
 const decodeToken = (time, token) => {
   try {
     const decodedToken = jwtDecode(token);
-    const secondsUntilExpiry = getSecondsUntilExpiry(decodedToken.exp, time);
+    const hasExpiry =
+      decodedToken.exp !== null && decodedToken.exp !== undefined;
+    const secondsUntilExpiry = hasExpiry
+      ? getSecondsUntilExpiry(decodedToken.exp, time)
+      : Infinity;
     return {
-      username: decodedToken.preferred_username ?? decodedToken.email,
-      tokenExpiry: decodedToken.exp,
-      loggedIn: !!secondsUntilExpiry,
-      tokenWillExpire: secondsUntilExpiry < 120,
+      username:
+        decodedToken.preferred_username ??
+        decodedToken.email ??
+        decodedToken.sub,
+      tokenExpiry: decodedToken.exp ?? null,
+      loggedIn: secondsUntilExpiry > 0,
+      tokenWillExpire: hasExpiry && secondsUntilExpiry < 120,
     };
   } catch {
     return {};

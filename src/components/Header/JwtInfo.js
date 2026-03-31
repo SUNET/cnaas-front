@@ -16,6 +16,11 @@ export function JwtInfo() {
 
   // Sets an interval
   useEffect(() => {
+    if (tokenExpiry === null || tokenExpiry === undefined) {
+      setSecondsUntilExpiry(null);
+      return;
+    }
+
     const tokenSecsRemaining = getSecondsUntilExpiry(tokenExpiry);
     setSecondsUntilExpiry(tokenSecsRemaining);
 
@@ -33,7 +38,7 @@ export function JwtInfo() {
   }, [tokenExpiry]);
 
   useEffect(() => {
-    if (secondsUntilExpiry <= 0) {
+    if (secondsUntilExpiry !== null && secondsUntilExpiry <= 0) {
       clearInterval(timerId.current);
     }
   }, [secondsUntilExpiry]);
@@ -51,11 +56,19 @@ export function JwtInfo() {
           </p>
           <p
             key="exp"
-            className={secondsUntilExpiry <= 0 ? "tokenexpired" : ""}
+            className={
+              secondsUntilExpiry !== null && secondsUntilExpiry <= 0
+                ? "tokenexpired"
+                : ""
+            }
           >
-            {secondsUntilExpiry <= 0
-              ? "Token has expired!"
-              : `Token expires in ${secondsToText(secondsUntilExpiry)}.`}
+            {secondsUntilExpiry === null && "Token does not expire."}
+            {secondsUntilExpiry !== null &&
+              secondsUntilExpiry <= 0 &&
+              "Token has expired!"}
+            {secondsUntilExpiry !== null &&
+              secondsUntilExpiry > 0 &&
+              `Token expires in ${secondsToText(secondsUntilExpiry)}.`}
           </p>
           <Popup
             content="Copy JWT (to use from curl etc), take note of valid time listed above"
