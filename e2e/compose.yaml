@@ -4,6 +4,12 @@
 #   Build images once from the cnaas-nms repo:
 #     cd <your-cnaas-nms>/docker && docker compose build
 #
+# The following image names must match what cnaas-nms produces:
+#   - cnaas-api
+#   - cnaas-redis
+#   - docker-cnaas_dhcpd
+# If the cnaas-nms build changes these names, update the image: fields below.
+#
 # Usage:
 #   docker compose -f e2e/compose.yaml up -d
 #   docker compose -f e2e/compose.yaml down --volumes
@@ -14,6 +20,7 @@
 services:
   cnaas_init:
     image: cnaas-api
+    container_name: cnaas-e2e-init
     user: root
     entrypoint: ["bash", "-c"]
     volumes:
@@ -45,6 +52,7 @@ services:
 
   cnaas_api:
     image: cnaas-api
+    container_name: cnaas-e2e-api
     ports:
       - 443:1443
     networks:
@@ -80,6 +88,7 @@ services:
 
   cnaas_httpd:
     image: docker.sunet.se/cnaas/httpd
+    container_name: cnaas-e2e-httpd
     ports:
       - 80:1180
     networks:
@@ -89,6 +98,7 @@ services:
 
   cnaas_dhcpd:
     image: docker-cnaas_dhcpd
+    container_name: cnaas-e2e-dhcpd
     ports:
       - 67:67/udp
     networks:
@@ -104,6 +114,7 @@ services:
 
   cnaas_postgres:
     image: postgres:11
+    container_name: cnaas-e2e-postgres
     volumes:
       - cnaas-postgres-data:/var/lib/postgresql/data
     environment:
@@ -115,6 +126,7 @@ services:
 
   cnaas_redis:
     image: cnaas-redis
+    container_name: cnaas-e2e-redis
     networks:
       - cnaas
 

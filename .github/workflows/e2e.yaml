@@ -1,0 +1,67 @@
+name: E2E Tests
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    name: "Run Playwright e2e tests"
+    runs-on: norpan-kvm
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Clone cnaas-nms
+        run: git clone --depth 1 --branch develop https://github.com/SUNET/cnaas-nms.git /tmp/cnaas-nms
+
+      - name: Build backend Docker images
+        working-directory: /tmp/cnaas-nms/docker
+        run: docker compose build
+
+      - name: Start VMs
+        run: ~/start-vms.sh
+
+      - name: Start backend
+        run: ./e2e/start-backend.sh
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright firefox
+        run: npx playwright install firefox --with-deps
+
+      - name: Run Playwright e2e tests
+        run: npx playwright test --project=firefox
+        env:
+          CI: "true"
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      - name: Check running containers
+        run: docker ps -a
+        if: failure()
+
+      - name: Stop backend
+        run: ./e2e/stop-backend.sh
+        if: always()
+
+      - name: Stop VMs
+        run: ~/stop-vms.sh
+        if: always()
+
+      - name: Clean up cnaas-nms clone
+        run: rm -rf /tmp/cnaas-nms
+        if: always()
