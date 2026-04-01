@@ -64,6 +64,9 @@ docker compose -f docker-compose.yaml build
 ```
 
 This builds `cnaas-api`, `cnaas-redis`, and `docker_cnaas_dhcpd`.
+The `e2e/compose.yaml` file references these images by name — if the
+cnaas-nms build ever changes the image names, the compose file must be
+updated to match.
 
 ### Step 1 — Deploy containerlab switches
 
