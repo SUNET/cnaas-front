@@ -10,7 +10,7 @@ concurrency:
 jobs:
   e2e:
     name: "Run Playwright e2e tests"
-    runs-on: norpan-kvm
+    runs-on: norpan-kvm2
 
     steps:
       - uses: actions/checkout@v6
@@ -19,8 +19,14 @@ jobs:
         with:
           node-version: "20.x"
 
-      - name: Clone cnaas-nms
-        run: git clone --depth 1 --branch develop https://github.com/SUNET/cnaas-nms.git /tmp/cnaas-nms
+      - name: Clone or update cnaas-nms
+        run: |
+          if [ -d /tmp/cnaas-nms ]; then
+            git -C /tmp/cnaas-nms switch develop
+            git -C /tmp/cnaas-nms pull
+          else
+            git clone --depth 1 --branch develop https://github.com/SUNET/cnaas-nms.git /tmp/cnaas-nms
+          fi
 
       - name: Build backend Docker images
         working-directory: /tmp/cnaas-nms/docker
