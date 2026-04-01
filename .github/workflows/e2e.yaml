@@ -30,7 +30,7 @@ jobs:
 
       - name: Build backend Docker images
         working-directory: /tmp/cnaas-nms/docker
-        run: docker compose build
+        run: docker compose -f docker-compose.yaml build
 
       - name: Start VMs
         run: ~/start-vms.sh
@@ -66,8 +66,4 @@ jobs:
 
       - name: Stop VMs
         run: ~/stop-vms.sh
-        if: always()
-
-      - name: Clean up cnaas-nms clone
-        run: rm -rf /tmp/cnaas-nms
         if: always()
