@@ -100,7 +100,7 @@ services:
     image: docker-cnaas_dhcpd
     container_name: cnaas-e2e-dhcpd
     ports:
-      - 67:67/udp
+      - 10.100.2.2:67:67/udp
     networks:
       - cnaas
     environment:

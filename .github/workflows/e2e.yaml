@@ -1,6 +1,9 @@
 name: E2E Tests
 
 on:
+  push:
+    branches:
+      - develop
   workflow_dispatch:
 
 concurrency:
@@ -58,6 +61,22 @@ jobs:
 
       - name: Check running containers
         run: docker ps -a
+        if: failure()
+
+      - name: Show init logs
+        run: docker logs cnaas-e2e-init 2>&1 || true
+        if: failure()
+
+      - name: Show API logs
+        run: docker logs cnaas-e2e-api --tail 100 2>&1 || true
+        if: failure()
+
+      - name: Show DHCP logs
+        run: docker logs cnaas-e2e-dhcpd --tail 50 2>&1 || true
+        if: failure()
+
+      - name: Show postgres logs
+        run: docker logs cnaas-e2e-postgres --tail 50 2>&1 || true
         if: failure()
 
       - name: Stop backend
