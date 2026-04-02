@@ -15,7 +15,7 @@ docker compose -f "$SCRIPT_DIR/compose.yaml" up -d
 
 echo "Waiting for API to be ready..."
 curl --connect-timeout 2 --max-time 5 --retry 15 --retry-delay 3 \
-  --retry-max-time 60 -ks "https://localhost/api/v1.0/system/version"
+  --retry-all-errors --retry-max-time 60 -ks "https://localhost/api/v1.0/system/version"
 
 echo ""
 echo "Backend is ready at https://localhost"
