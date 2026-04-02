@@ -1,6 +1,9 @@
 name: E2E Tests
 
 on:
+  push:
+    branches:
+      - develop
   workflow_dispatch:
 
 concurrency:
@@ -42,7 +45,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright firefox
-        run: npx playwright install firefox
+        run: npx playwright install firefox --with-deps
 
       - name: Run Playwright e2e tests
         run: npx playwright test --project=firefox
