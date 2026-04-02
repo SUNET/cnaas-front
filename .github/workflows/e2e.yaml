@@ -42,7 +42,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright firefox
-        run: npx playwright install firefox --with-deps
+        run: npx playwright install firefox
 
       - name: Run Playwright e2e tests
         run: npx playwright test --project=firefox
