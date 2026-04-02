@@ -125,7 +125,7 @@ services:
       - cnaas
 
   cnaas_redis:
-    image: cnaas-redis
+    image: redis:7-alpine
     container_name: cnaas-e2e-redis
     networks:
       - cnaas
