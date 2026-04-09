@@ -1,3 +1,39 @@
-.dockerignore
+# Build artifacts
 dist
 node_modules
+.parcel-cache
+
+# Test files
+**/*.test.js
+**/*.test.ts
+**/*.spec.js
+**/*.spec.ts
+__mocks__
+e2e
+test-results
+playwright-report
+playwright
+
+# Config/CI files not needed in build
+.env*
+.git
+.github
+.gitignore
+.git-blame-ignore-revs
+.jenkins.yaml
+.opencode
+.prettierignore
+.pytest_cache
+.vscode
+eslint.config.mjs
+jest.config.js
+playwright.config.js
+LICENSE.md
+README.md
+example.env
+
+# Ignore Docker-related files
+.dockerignore
+docker/docker-compose.yaml
+docker/front/Dockerfile
+docker/front-dev
