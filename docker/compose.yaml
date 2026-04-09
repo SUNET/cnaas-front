@@ -1,0 +1,28 @@
+name: cnaas-front
+
+services:
+  app:
+    image: cnaas-front
+    build:
+      context: ../
+      dockerfile: docker/front/Dockerfile
+    ports:
+      - "4443:4443"
+    environment:
+      - CNAAS_API_URL
+      - CNAAS_AUTH_URL
+      - CNAAS_FIRMWARE_REPO_METADATA_URL
+      - CNAAS_FIRMWARE_REPO_URL
+      - CNAAS_FIRMWARE_URL
+      - CNAAS_FRONT_URL
+      - GITREPO_ETC
+      - SETTINGS_WEB_URL
+      - TEMPLATES_WEB_URL
+    volumes:
+      - type: volume
+        source: cnaas-front-cert
+        target: /opt/cnaas/cert
+
+volumes:
+  cnaas-front-cert:
+    external: true
