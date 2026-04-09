@@ -2,11 +2,10 @@
 #
 # Prerequisites:
 #   Build images once from the cnaas-nms repo:
-#     cd <your-cnaas-nms>/docker && docker compose build
+#     cd /path/to/cnaas-nms/docker && docker compose build
 #
 # The following image names must match what cnaas-nms produces:
 #   - cnaas-api
-#   - cnaas-redis
 #   - docker-cnaas_dhcpd
 # If the cnaas-nms build changes these names, update the image: fields below.
 #
@@ -113,7 +112,7 @@ services:
       - cnaas_api
 
   cnaas_postgres:
-    image: postgres:11
+    image: postgres:16
     container_name: cnaas-e2e-postgres
     volumes:
       - cnaas-postgres-data:/var/lib/postgresql/data
