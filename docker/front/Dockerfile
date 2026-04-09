@@ -1,12 +1,15 @@
-FROM node:22.22 AS build
+# Inspired by https://docs.docker.com/guides/reactjs/containerize/
 
-RUN mkdir -p /opt/cnaas-front
+# Stage 1: builder
+FROM node:22.22 AS builder
 
+# Set the working directory inside the container
 WORKDIR /opt/cnaas-front
 
+# Copy package-related files first to leverage Docker's caching mechanism
 COPY package*.json ./
 
-RUN npm install --ignore-scripts
+RUN npm ci --ignore-scripts
 
 COPY src src
 
@@ -14,8 +17,9 @@ COPY src src
 RUN find /opt/cnaas-front/src -type f -name '*.js' -exec \
     sed -i "s|process\.env\.|window\.|g" '{}' +
 
-RUN npm run-script build
+RUN npm run build
 
+# Stage 2: app
 FROM nginx:1.28.1-alpine
 
 LABEL org.opencontainers.image.vendor="SUNET"
@@ -24,15 +28,16 @@ LABEL org.opencontainers.image.description="CNaaS Front"
 
 RUN mkdir -p /opt/cnaas/static/styles /opt/cnaas/cert
 
-COPY --from=build /opt/cnaas-front/dist/* /opt/cnaas/static/
+# Copy app and styles
+COPY --from=builder /opt/cnaas-front/dist/* /opt/cnaas/static/
 COPY src/styles/*.css /opt/cnaas/static/styles/
 
-# Copy over nginx config
+# Copy nginx config
 COPY docker/front/config/nginx_app.conf /etc/nginx/conf.d/default.conf
 COPY docker/front/config/nginx.conf /etc/nginx/
 COPY docker/front/cert/* /etc/nginx/conf.d/
 
-# Copy over pre-start script
+# Copy pre-start script
 COPY docker/front/config/env.sh /docker-entrypoint.d/env.sh
 RUN chmod +x /docker-entrypoint.d/env.sh && \
     chown -R nginx:nginx \
