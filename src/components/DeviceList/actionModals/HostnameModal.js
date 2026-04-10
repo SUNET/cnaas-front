@@ -6,7 +6,7 @@ import { putData } from "../../../utils/sendData";
 import { useNavigate } from "react-router";
 
 HostnameModal.propTypes = {
-  closeAction: PropTypes.func,
+  closeAction: PropTypes.func.isRequired,
   deviceId: PropTypes.number,
   hostname: PropTypes.string,
   isOpen: PropTypes.bool,

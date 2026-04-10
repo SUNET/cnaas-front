@@ -6,7 +6,7 @@ import { deleteData } from "../../../utils/sendData";
 
 DeleteModal.propTypes = {
   addDeviceJob: PropTypes.func,
-  closeAction: PropTypes.func,
+  closeAction: PropTypes.func.isRequired,
   device: PropTypes.object,
   isOpen: PropTypes.bool,
 };

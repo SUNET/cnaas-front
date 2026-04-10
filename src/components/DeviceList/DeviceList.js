@@ -1113,7 +1113,14 @@ export function DeviceList() {
         deviceId={deviceStateModalConf.deviceId}
         hostname={deviceStateModalConf.hostname}
         newState={deviceStateModalConf.newState}
-        closeAction={() => setDeviceStateModalConf({ isOpen: false })}
+        closeAction={() =>
+          setDeviceStateModalConf({
+            isOpen: false,
+            hostname: null,
+            deviceId: null,
+            newState: null,
+          })
+        }
         onStateChange={getDevices}
       />
 
