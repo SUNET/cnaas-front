@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "baseUrl": "."
+  },
+  "include": ["src/**/*", "e2e/**/*", "__mocks__/**/*", "*.js", "*.mjs"],
+  "exclude": ["node_modules", "dist", ".parcel-cache"]
+}
