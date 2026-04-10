@@ -136,7 +136,8 @@ export function DeviceList() {
   const [logLines, setLogLines] = useState([]);
   const [addMgmtDomainModalConf, setAddMgmtDomainModalConf] = useState({
     isOpen: false,
-    input: {},
+    deviceA: null,
+    deviceBCandidates: [],
   });
   const [deleteModalConf, setDeleteModalConf] = useState({
     device: null,
@@ -151,7 +152,12 @@ export function DeviceList() {
 
   const [updateMgmtDomainModalConf, setUpdateMgmtDomainModalConf] = useState({
     isOpen: false,
-    input: {},
+    mgmtId: null,
+    deviceA: null,
+    deviceB: null,
+    ipv4Initial: null,
+    ipv6Initial: null,
+    vlanInitial: null,
   });
 
   const [showConfigModalConf, setShowConfigModalConf] = useState({
@@ -394,20 +400,18 @@ export function DeviceList() {
   };
 
   const handleMgmtAddModalOpen = (deviceA, deviceBCandidates) => {
-    setAddMgmtDomainModalConf((prev) => ({
-      ...prev,
-      input: {
-        deviceA,
-        deviceBCandidates,
-      },
+    setAddMgmtDomainModalConf({
+      deviceA,
+      deviceBCandidates,
       isOpen: true,
-    }));
+    });
   };
 
   const handleMgmtAddDomainModalClose = () => {
     setAddMgmtDomainModalConf({
-      input: {},
       isOpen: false,
+      deviceA: null,
+      deviceBCandidates: [],
     });
   };
 
@@ -420,22 +424,25 @@ export function DeviceList() {
     vlan,
   }) => {
     setUpdateMgmtDomainModalConf({
-      input: {
-        mgmtId: id,
-        deviceA,
-        deviceB,
-        ipv4Initial: ipv4GW,
-        ipv6Initial: ipv6GW,
-        vlanInitial: vlan,
-      },
+      mgmtId: id,
+      deviceA,
+      deviceB,
+      ipv4Initial: ipv4GW,
+      ipv6Initial: ipv6GW,
+      vlanInitial: vlan,
       isOpen: true,
     });
   };
 
   const mgmtUpdateModalClose = () => {
     setUpdateMgmtDomainModalConf({
-      input: {},
       isOpen: false,
+      mgmtId: null,
+      deviceA: null,
+      deviceB: null,
+      ipv4Initial: null,
+      ipv6Initial: null,
+      vlanInitial: null,
     });
   };
 
@@ -1119,14 +1126,20 @@ export function DeviceList() {
       />
 
       <AddMgmtDomainModal
-        {...addMgmtDomainModalConf.input}
+        deviceA={addMgmtDomainModalConf.deviceA}
+        deviceBCandidates={addMgmtDomainModalConf.deviceBCandidates}
         isOpen={addMgmtDomainModalConf.isOpen}
         closeAction={handleMgmtAddDomainModalClose}
         onAdd={(v) => handleAddMgmtDomains(v)}
       />
 
       <UpdateMgmtDomainModal
-        {...updateMgmtDomainModalConf.input}
+        mgmtId={updateMgmtDomainModalConf.mgmtId}
+        deviceA={updateMgmtDomainModalConf.deviceA}
+        deviceB={updateMgmtDomainModalConf.deviceB}
+        ipv4Initial={updateMgmtDomainModalConf.ipv4Initial}
+        ipv6Initial={updateMgmtDomainModalConf.ipv6Initial}
+        vlanInitial={updateMgmtDomainModalConf.vlanInitial}
         isOpen={updateMgmtDomainModalConf.isOpen}
         closeAction={mgmtUpdateModalClose}
         onDelete={(v) => handleDeleteMgmtDomain(v)}
