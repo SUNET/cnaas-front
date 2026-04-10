@@ -17,7 +17,7 @@ import { getData, getDataToken, getResponse } from "../../utils/getData";
 import { postData, putData } from "../../utils/sendData";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
-import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
+import { UpdateMgmtDomainModal } from "./actionModals/UpdateMgmtDomainModal";
 import DeviceReplaceForm from "./DeviceReplaceForm";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";

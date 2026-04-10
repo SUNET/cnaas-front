@@ -14,7 +14,7 @@ import {
   ModalDescription,
   ModalHeader,
 } from "semantic-ui-react";
-import { deleteData, putData } from "../../utils/sendData";
+import { deleteData, putData } from "../../../utils/sendData";
 
 UpdateMgmtDomainModal.propTypes = {
   mgmtId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -29,7 +29,7 @@ UpdateMgmtDomainModal.propTypes = {
   closeAction: PropTypes.func,
 };
 
-function UpdateMgmtDomainModal({
+export function UpdateMgmtDomainModal({
   mgmtId,
   deviceA,
   deviceB,
@@ -212,5 +212,3 @@ function UpdateMgmtDomainModal({
     </Modal>
   );
 }
-
-export default UpdateMgmtDomainModal;

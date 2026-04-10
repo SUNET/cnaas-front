@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Select, Loader } from "semantic-ui-react";
 import { getData } from "../../utils/getData";
-import DeviceInitcheckModal from "./DeviceInitcheckModal";
+import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { postData } from "../../utils/sendData";
 
@@ -148,7 +148,7 @@ function DeviceReplaceForm({
           onChange={onChangeCandidate}
           options={replacementCandidates}
         />
-        <DeviceInitcheckModal
+        <DeviceInitCheckModal
           submitDisabled={submitDisabled}
           submitText={submitText}
           submitIcon={submitIcon}
