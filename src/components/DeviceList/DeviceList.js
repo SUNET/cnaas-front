@@ -149,8 +149,10 @@ export function DeviceList() {
     useState(null);
   const [deviceStateModalNewState, setDeviceStateModalNewState] =
     useState(null);
-  const [mgmtUpdateModalOpen, setMgmtUpdateModalOpen] = useState(false);
-  const [mgmtUpdateModalInput, setMgmtUpdateModalInput] = useState({});
+  const [updateMgmtDomainModalConf, setUpdateMgmtDomainModalConf] = useState({
+    isOpen: false,
+    input: {},
+  });
 
   const [showConfigModalConf, setShowConfigModalConf] = useState({
     isOpen: false,
@@ -372,7 +374,10 @@ export function DeviceList() {
       time: 5000,
     });
     getAllMgmtDomainsData();
-    setMgmtUpdateModalOpen(false);
+    setUpdateMgmtDomainModalConf((prev) => ({
+      ...prev,
+      isOpen: false,
+    }));
   };
 
   const handleUpdateMgmtDomains = (id) => {
@@ -382,7 +387,10 @@ export function DeviceList() {
       time: 5000,
     });
     getAllMgmtDomainsData();
-    setMgmtUpdateModalOpen(false);
+    setUpdateMgmtDomainModalConf((prev) => ({
+      ...prev,
+      isOpen: false,
+    }));
   };
 
   const handleMgmtAddModalOpen = (deviceA, deviceBCandidates) => {
@@ -411,20 +419,24 @@ export function DeviceList() {
     ipv6_gw: ipv6GW,
     vlan,
   }) => {
-    setMgmtUpdateModalInput({
-      mgmtId: id,
-      deviceA,
-      deviceB,
-      ipv4Initial: ipv4GW,
-      ipv6Initial: ipv6GW,
-      vlanInitial: vlan,
+    setUpdateMgmtDomainModalConf({
+      input: {
+        mgmtId: id,
+        deviceA,
+        deviceB,
+        ipv4Initial: ipv4GW,
+        ipv6Initial: ipv6GW,
+        vlanInitial: vlan,
+      },
+      isOpen: true,
     });
-    setMgmtUpdateModalOpen(true);
   };
 
   const mgmtUpdateModalClose = () => {
-    setMgmtUpdateModalInput({});
-    setMgmtUpdateModalOpen(false);
+    setUpdateMgmtDomainModalConf({
+      input: {},
+      isOpen: false,
+    });
   };
 
   const handleShowConfigModalOpen = (hostname, state) => {
@@ -1138,9 +1150,9 @@ export function DeviceList() {
         onAdd={(v) => handleAddMgmtDomains(v)}
       />
       <UpdateMgmtDomainModal
-        {...mgmtUpdateModalInput}
-        isOpen={mgmtUpdateModalOpen}
-        closeAction={() => mgmtUpdateModalClose()}
+        {...updateMgmtDomainModalConf.input}
+        isOpen={updateMgmtDomainModalConf.isOpen}
+        closeAction={mgmtUpdateModalClose}
         onDelete={(v) => handleDeleteMgmtDomain(v)}
         onUpdate={(v) => handleUpdateMgmtDomains(v)}
       />
