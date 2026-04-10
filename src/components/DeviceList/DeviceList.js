@@ -7,7 +7,6 @@ import {
   Grid,
   GridColumn,
   GridRow,
-  Modal,
   Pagination,
   Table,
 } from "semantic-ui-react";
@@ -27,6 +26,7 @@ import { AddMgmtDomainModal } from "./actionModals/AddMgmtDomainModal";
 import { DeleteModal } from "./actionModals/DeleteModal";
 import { HostnameModal } from "./actionModals/HostnameModal";
 import { ShowConfigModal } from "./actionModals/ShowConfigModal";
+import { DeviceStateModal } from "./actionModals/DeviceStateModal";
 
 let socket = null;
 
@@ -142,13 +142,13 @@ export function DeviceList() {
     device: null,
     isOpen: false,
   });
-  const [deviceStateModalIsOpen, setDeviceStateModalIsOpen] = useState(false);
-  const [deviceStateModalHostname, setDeviceStateModalHostname] =
-    useState(null);
-  const [deviceStateModalDeviceId, setDeviceStateModalDeviceId] =
-    useState(null);
-  const [deviceStateModalNewState, setDeviceStateModalNewState] =
-    useState(null);
+  const [deviceStateModalConf, setDeviceStateModalConf] = useState({
+    isOpen: false,
+    hostname: null,
+    deviceId: null,
+    newState: null,
+  });
+
   const [updateMgmtDomainModalConf, setUpdateMgmtDomainModalConf] = useState({
     isOpen: false,
     input: {},
@@ -728,10 +728,12 @@ export function DeviceList() {
   };
 
   const handleDeviceStateModalOpen = (hostname, deviceId, newState) => {
-    setDeviceStateModalIsOpen(true);
-    setDeviceStateModalHostname(hostname);
-    setDeviceStateModalDeviceId(deviceId);
-    setDeviceStateModalNewState(newState);
+    setDeviceStateModalConf({
+      isOpen: true,
+      hostname,
+      deviceId,
+      newState,
+    });
   };
 
   const createMgmtIP = (mgmtIp, keyPrefix = "") => {
@@ -1096,46 +1098,18 @@ export function DeviceList() {
           </GridColumn>
         </GridRow>
       </Grid>
+
       <SemanticToastContainer position="top-right" maxToasts={3} />
-      <Modal
-        onClose={() => setDeviceStateModalIsOpen(false)}
-        open={deviceStateModalIsOpen}
-      >
-        <Modal.Header>Device state need to change</Modal.Header>
-        <Modal.Content>
-          <Modal.Description>
-            <p key="confirm">
-              To perform this action the device state need to be changed first.
-              Are you sure you want to change the state of device{" "}
-              {deviceStateModalHostname} to {deviceStateModalNewState}?
-            </p>
-          </Modal.Description>
-        </Modal.Content>
-        <Modal.Actions>
-          <Button
-            key="cancel"
-            color="black"
-            onClick={() => setDeviceStateModalIsOpen(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            key="submit"
-            onClick={() => {
-              changeStateAction(
-                deviceStateModalDeviceId,
-                deviceStateModalNewState,
-              );
-              setDeviceStateModalIsOpen(false);
-            }}
-            icon
-            positive
-            labelPosition="right"
-          >
-            Change state
-          </Button>
-        </Modal.Actions>
-      </Modal>
+
+      <DeviceStateModal
+        isOpen={deviceStateModalConf.isOpen}
+        deviceId={deviceStateModalConf.deviceId}
+        hostname={deviceStateModalConf.hostname}
+        newState={deviceStateModalConf.newState}
+        closeAction={() => setDeviceStateModalConf({ isOpen: false })}
+        onStateChange={getDevices}
+      />
+
       <DeleteModal
         key={deleteModalConf.device?.id || "deletemodal"}
         device={deleteModalConf.device}
@@ -1143,12 +1117,14 @@ export function DeviceList() {
         addDeviceJob={addDeviceJob}
         closeAction={deleteModalClose}
       />
+
       <AddMgmtDomainModal
         {...addMgmtDomainModalConf.input}
         isOpen={addMgmtDomainModalConf.isOpen}
         closeAction={handleMgmtAddDomainModalClose}
         onAdd={(v) => handleAddMgmtDomains(v)}
       />
+
       <UpdateMgmtDomainModal
         {...updateMgmtDomainModalConf.input}
         isOpen={updateMgmtDomainModalConf.isOpen}
