@@ -2,7 +2,7 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import { Select, Input } from "semantic-ui-react";
 import { getData } from "../../utils/getData";
-import DeviceInitcheckModal from "./DeviceInitcheckModal";
+import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { postData } from "../../utils/sendData";
 
@@ -152,7 +152,7 @@ function DeviceInitForm({ deviceId, jobIdCallback }) {
         ]}
       />
       {mlagInputs}
-      <DeviceInitcheckModal
+      <DeviceInitCheckModal
         submitDisabled={submitDisabled}
         submitText={submitText}
         submitIcon={submitIcon}

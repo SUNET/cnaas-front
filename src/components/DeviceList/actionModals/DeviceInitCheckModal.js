@@ -2,10 +2,22 @@ import { Button, Icon, Modal, Accordion } from "semantic-ui-react";
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-import { postData } from "../../utils/sendData";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { postData } from "../../../utils/sendData";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
 
-function DeviceInitcheckModal({
+DeviceInitCheckModal.propTypes = {
+  submitDisabled: PropTypes.bool,
+  submitText: PropTypes.string,
+  submitIcon: PropTypes.string,
+  submitInit: PropTypes.func.isRequired,
+  deviceId: PropTypes.number,
+  hostname: PropTypes.string,
+  deviceType: PropTypes.string,
+  mlagPeerHostname: PropTypes.string,
+  mlagPeerId: PropTypes.number,
+};
+
+export function DeviceInitCheckModal({
   submitDisabled,
   submitText,
   submitIcon,
@@ -177,17 +189,3 @@ function DeviceInitcheckModal({
     </Modal>
   );
 }
-
-DeviceInitcheckModal.propTypes = {
-  submitDisabled: PropTypes.bool,
-  submitText: PropTypes.string,
-  submitIcon: PropTypes.string,
-  submitInit: PropTypes.func.isRequired,
-  deviceId: PropTypes.number,
-  hostname: PropTypes.string,
-  deviceType: PropTypes.string,
-  mlagPeerHostname: PropTypes.string,
-  mlagPeerId: PropTypes.number,
-};
-
-export default DeviceInitcheckModal;

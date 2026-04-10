@@ -2,14 +2,14 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
-import UpdateMgmtDomainModal from "./UpdateMgmtDomainModal";
+import { UpdateMgmtDomainModal } from "./UpdateMgmtDomainModal";
 
 import {
   deleteData as mockDeleteData,
   putData as mockPutData,
-} from "../../utils/sendData";
+} from "../../../utils/sendData";
 
-jest.mock("../../utils/sendData");
+jest.mock("../../../utils/sendData");
 mockDeleteData.mockResolvedValue({
   success: "ok",
   json: () => Promise.resolve([{ data: { deleted_mgmtdomain: { id: 42 } } }]),
