@@ -34,7 +34,7 @@ function renderComponent(props = {}) {
 test("renders confirmation message with hostname and new state", () => {
   renderComponent();
 
-  expect(screen.getByText(/device state need to change/i)).toBeInTheDocument();
+  expect(screen.getByText(/device state needs to change/i)).toBeInTheDocument();
   expect(
     screen.getByText(/change the state of device test-switch to unmanaged/i),
   ).toBeInTheDocument();

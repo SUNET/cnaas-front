@@ -26,7 +26,7 @@ UpdateMgmtDomainModal.propTypes = {
   onDelete: PropTypes.func,
   onUpdate: PropTypes.func,
   isOpen: PropTypes.bool,
-  closeAction: PropTypes.func,
+  closeAction: PropTypes.func.isRequired,
 };
 
 export function UpdateMgmtDomainModal({

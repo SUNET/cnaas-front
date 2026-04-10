@@ -5,7 +5,7 @@ import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import { putData } from "../../../utils/sendData";
 
 DeviceStateModal.propTypes = {
-  closeAction: PropTypes.func,
+  closeAction: PropTypes.func.isRequired,
   deviceId: PropTypes.number,
   hostname: PropTypes.string,
   newState: PropTypes.string,
@@ -43,7 +43,8 @@ export function DeviceStateModal({
     try {
       const data = await putData(url, token, dataToSend);
       if (data.status !== "success") {
-        setError("error when updating state:" + data.error);
+        const backendError = data.error || "Unknown error.";
+        setError(`Error when updating state: ${backendError}`);
         return;
       }
       handleClose();
@@ -57,11 +58,11 @@ export function DeviceStateModal({
 
   return (
     <Modal onClose={handleClose} open={isOpen}>
-      <Modal.Header>Device state need to change</Modal.Header>
+      <Modal.Header>Device state needs to change</Modal.Header>
       <Modal.Content>
         <Modal.Description>
           <p key="confirm">
-            To perform this action the device state need to be changed first.
+            To perform this action, the device state needs to be changed first.
             Are you sure you want to change the state of device {hostname} to{" "}
             {newState}?
           </p>

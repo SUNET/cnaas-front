@@ -21,7 +21,7 @@ AddMgmtDomainModal.propTypes = {
   deviceBCandidates: PropTypes.array,
   isOpen: PropTypes.bool,
   onAdd: PropTypes.func,
-  closeAction: PropTypes.func,
+  closeAction: PropTypes.func.isRequired,
 };
 
 export function AddMgmtDomainModal({
