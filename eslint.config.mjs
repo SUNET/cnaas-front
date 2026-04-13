@@ -6,7 +6,6 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 import reactPlugin from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
-// eslint-disable-next-line import/no-unresolved
 import { defineConfig, globalIgnores } from "eslint/config";
 
 const commonRules = {
