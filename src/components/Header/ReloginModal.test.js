@@ -5,7 +5,13 @@ import "@testing-library/jest-dom";
 import ReloginModal from "./ReloginModal";
 import { useAuthToken as mockUseAuthToken } from "../../contexts/AuthTokenContext";
 
-jest.mock("../../contexts/AuthTokenContext");
+jest.mock("../../contexts/AuthTokenContext", () => {
+  const actual = jest.requireActual("../../contexts/AuthTokenContext");
+  return {
+    ...actual,
+    useAuthToken: jest.fn(),
+  };
+});
 
 const mockLogout = jest.fn();
 const mockOidcLogin = jest.fn();

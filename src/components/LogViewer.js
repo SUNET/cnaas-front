@@ -1,6 +1,6 @@
 import Prism from "prismjs";
 import "prismjs/components/prism-log.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Button,
@@ -24,27 +24,17 @@ const highlightLogs = (logs) => {
 };
 
 function ExpanedLogViewer({ logs, open, setOpen }) {
-  const [localLogs, setLocalLogs] = useState([]);
   const [filter, setFilter] = useState("");
   const [activeFilter, setActiveFilter] = useState("");
-  const [filteredHtml, setFilteredHtml] = useState(null);
 
   const codeRef = useRef(null);
   const debounceTimeout = useRef(null);
 
-  useEffect(() => {
-    if (!logs || !Array.isArray(logs)) return;
-    setLocalLogs(logs);
-  }, [logs]);
-
-  useEffect(() => {
-    const filteredLogs = localLogs.filter((value) =>
-      value.includes(activeFilter),
-    );
-    const filteredHtml = highlightLogs(filteredLogs);
-
-    setFilteredHtml(filteredHtml);
-  }, [localLogs, activeFilter]);
+  const safeLogs = Array.isArray(logs) ? logs : [];
+  const filteredHtml = useMemo(() => {
+    const filtered = safeLogs.filter((value) => value.includes(activeFilter));
+    return highlightLogs(filtered);
+  }, [safeLogs, activeFilter]);
 
   useEffect(() => {
     if (codeRef.current) {
@@ -108,15 +98,11 @@ ExpanedLogViewer.propTypes = {
 
 function LogViewer({ logs }) {
   const [open, setOpen] = useState(false);
-  const [localLogs, setLocalLogs] = useState([]);
-  const [html, setHtml] = useState(null);
 
   const codeRef = useRef(null);
 
-  useEffect(() => {
-    const html = highlightLogs(localLogs);
-    setHtml(html);
-  }, [localLogs]);
+  const safeLogs = Array.isArray(logs) ? logs : [];
+  const html = useMemo(() => highlightLogs(safeLogs), [safeLogs]);
 
   useEffect(() => {
     if (codeRef.current) {
@@ -124,12 +110,7 @@ function LogViewer({ logs }) {
     }
   }, [html]);
 
-  useEffect(() => {
-    if (!logs || !Array.isArray(logs)) return;
-    setLocalLogs(logs);
-  }, [logs]);
-
-  if (localLogs.length === 0) {
+  if (safeLogs.length === 0) {
     return;
   }
 

@@ -8,7 +8,10 @@ import {
   ModalContent,
   Header as SemanticHeader,
 } from "semantic-ui-react";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import {
+  getSecondsUntilExpiry,
+  useAuthToken,
+} from "../../contexts/AuthTokenContext";
 import { secondsToText } from "../../utils/formatters";
 
 ReloginModal.propTypes = {
@@ -19,32 +22,42 @@ function ReloginModal({ isOpen }) {
   const { logout, oidcLogin, tokenExpiry } = useAuthToken();
 
   const [closedByUser, setClosedByUser] = useState(!isOpen);
-  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState();
+  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState(() =>
+    getSecondsUntilExpiry(tokenExpiry),
+  );
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevTokenExpiry, setPrevTokenExpiry] = useState(tokenExpiry);
+  const timerId = useRef();
+
+  // Reset closedByUser when isOpen changes
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    setClosedByUser(!isOpen);
+  }
+
+  // Reset countdown when tokenExpiry changes (e.g. token refresh)
+  if (tokenExpiry !== prevTokenExpiry) {
+    setPrevTokenExpiry(tokenExpiry);
+    setSecondsUntilExpiry(getSecondsUntilExpiry(tokenExpiry));
+  }
 
   const relogin = () => {
     logout();
     oidcLogin();
   };
 
-  const timerId = useRef();
-
-  // Sets an interval
   useEffect(() => {
     if (tokenExpiry === null || tokenExpiry === undefined) {
-      // Token has no expiry — no countdown needed
-      setSecondsUntilExpiry(null);
       return;
     }
 
-    const now = Math.floor(Date.now() / 1000);
-    const tokenSecsRemaining = Math.max(tokenExpiry - now, 0);
-    setSecondsUntilExpiry(tokenSecsRemaining);
-
-    if (tokenSecsRemaining) {
+    if (getSecondsUntilExpiry(tokenExpiry) > 0) {
       timerId.current = setInterval(() => {
-        setSecondsUntilExpiry(
-          Math.max(tokenExpiry - Math.round(Date.now() / 1000), 0),
-        );
+        const remaining = getSecondsUntilExpiry(tokenExpiry);
+        setSecondsUntilExpiry(remaining);
+        if (remaining <= 0) {
+          clearInterval(timerId.current);
+        }
       }, 5000);
     }
 
@@ -52,16 +65,6 @@ function ReloginModal({ isOpen }) {
       clearInterval(timerId.current);
     };
   }, [tokenExpiry]);
-
-  useEffect(() => {
-    if (secondsUntilExpiry !== null && secondsUntilExpiry <= 0) {
-      clearInterval(timerId.current);
-    }
-  }, [secondsUntilExpiry]);
-
-  useEffect(() => {
-    setClosedByUser(!isOpen);
-  }, [isOpen]);
 
   return (
     <Modal

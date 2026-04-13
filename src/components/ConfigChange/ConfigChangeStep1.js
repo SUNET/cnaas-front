@@ -21,17 +21,13 @@ function ConfigChangeStep1({
   });
   const [triggerDryRun, setTriggerDryRun] = useState(false);
   const [expanded, setExpanded] = useState(true);
-  const [buttonsDisabled, setButtonsDisabled] = useState(false);
   const { permissionsCheck } = usePermissions();
   const { token } = useAuthToken();
 
-  useEffect(() => {
-    setButtonsDisabled(
-      dryRunJobStatus ||
-        commitUpdateInfo.settings === "updating..." ||
-        commitUpdateInfo.templates === "updating...",
-    );
-  }, [commitUpdateInfo, dryRunJobStatus]);
+  const buttonsDisabled =
+    dryRunJobStatus ||
+    commitUpdateInfo.settings === "updating..." ||
+    commitUpdateInfo.templates === "updating...";
 
   useEffect(() => {
     async function getRepoStatus(repoName) {

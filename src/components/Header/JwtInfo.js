@@ -10,25 +10,30 @@ import { secondsToText } from "../../utils/formatters";
 export function JwtInfo() {
   const { doTokenRefresh, logout, username, token, tokenExpiry } =
     useAuthToken();
-  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState();
-
+  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState(() =>
+    getSecondsUntilExpiry(tokenExpiry),
+  );
+  const [prevTokenExpiry, setPrevTokenExpiry] = useState(tokenExpiry);
   const timerId = useRef();
 
-  // Sets an interval
+  // Reset countdown when tokenExpiry changes (e.g. token refresh)
+  if (tokenExpiry !== prevTokenExpiry) {
+    setPrevTokenExpiry(tokenExpiry);
+    setSecondsUntilExpiry(getSecondsUntilExpiry(tokenExpiry));
+  }
+
   useEffect(() => {
     if (tokenExpiry === null || tokenExpiry === undefined) {
-      setSecondsUntilExpiry(null);
       return;
     }
 
-    const tokenSecsRemaining = getSecondsUntilExpiry(tokenExpiry);
-    setSecondsUntilExpiry(tokenSecsRemaining);
-
-    if (tokenSecsRemaining) {
+    if (getSecondsUntilExpiry(tokenExpiry) > 0) {
       timerId.current = setInterval(() => {
-        setSecondsUntilExpiry(
-          Math.max(tokenExpiry - Math.round(Date.now() / 1000), 0),
-        );
+        const remaining = getSecondsUntilExpiry(tokenExpiry);
+        setSecondsUntilExpiry(remaining);
+        if (remaining <= 0) {
+          clearInterval(timerId.current);
+        }
       }, 5000);
     }
 
@@ -36,12 +41,6 @@ export function JwtInfo() {
       clearInterval(timerId.current);
     };
   }, [tokenExpiry]);
-
-  useEffect(() => {
-    if (secondsUntilExpiry !== null && secondsUntilExpiry <= 0) {
-      clearInterval(timerId.current);
-    }
-  }, [secondsUntilExpiry]);
 
   return (
     <Popup
