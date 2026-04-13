@@ -3,7 +3,7 @@ import { flushSync } from "react-dom";
 import AuthContextProvider from "./contexts/AuthContext";
 import { Footer } from "./components/Footer";
 import { Panel } from "./components/Panel";
-import Callback from "./components/Callback";
+import { Callback } from "./components/Callback";
 import { ConfigChange } from "./components/ConfigChange/ConfigChange";
 import Dashboard from "./components/Dashboard";
 import { DeviceList } from "./components/DeviceList/DeviceList";
