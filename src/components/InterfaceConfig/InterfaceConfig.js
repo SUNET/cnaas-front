@@ -3,14 +3,19 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { Button, Checkbox, Icon, Modal, Popup, Table } from "semantic-ui-react";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import io from "socket.io-client";
-import { getData, getDataHeaders, getDataToken } from "../../utils/getData";
-import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { putData, postData } from "../../utils/sendData";
+import {
+  fetchNetboxDevice,
+  fetchNetboxInterfaces,
+} from "../../services/netbox";
+import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { NetboxDevice } from "./NetboxDevice";
 import { NewInterface } from "./NewInterface";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
+import { useDevice } from "../../hooks/useDevice";
+import { useDeviceInterfaceConfig } from "../../hooks/useDeviceInterfaceConfig";
 let socket = null;
 
 const STATUS_STOPPED = ["FINISHED", "EXCEPTION"]; // TODO: add "ABORTED"?
@@ -72,70 +77,103 @@ export function InterfaceConfig() {
   const { token } = useAuthToken();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const hostname = searchParams.get("hostname") ?? null;
 
-  // state
+  // --- Data from hooks ---
+  const { device, reload: reloadDevice } = useDevice(hostname);
+  const {
+    settings,
+    interfaces,
+    fieldOptions,
+    mlagPeerHostname,
+    thirdPartyUpdate,
+    refreshInterfaceStatus,
+    reloadDeviceData: reloadInterfaceData,
+    getInterfaceData,
+    getDeviceSettings,
+    addTagOption,
+    addPortTemplateOption,
+    addNewInterface,
+    markThirdPartyUpdate,
+    clearThirdPartyUpdate,
+  } = useDeviceInterfaceConfig(hostname, device?.device_type);
+
+  // Local synchronized override — updated optimistically by socket events
+  const [synchronized_, setSynchronized] = useState(null);
+  const deviceSynchronized = synchronized_ ?? device?.synchronized ?? null;
+
+  useEffect(() => {
+    if (device?.synchronized != null) {
+      setSynchronized(device.synchronized);
+    }
+  }, [device?.synchronized]);
+
+  // --- Netbox (separate external system) ---
+  const [netbox, setNetbox] = useState({ device: null, interfaces: [] });
+
+  useEffect(() => {
+    if (!device?.device_type) return;
+    const fetchNetboxData = async () => {
+      const netboxDevice = await fetchNetboxDevice(hostname);
+      if (netboxDevice) {
+        const netboxInterfaces = await fetchNetboxInterfaces(netboxDevice.id);
+        setNetbox({ device: netboxDevice, interfaces: netboxInterfaces });
+      }
+    };
+    fetchNetboxData();
+  }, [hostname, device?.device_type]);
+
+  // --- Local UI & edit state ---
   const [accordionActiveIndex, setAccordionActiveIndex] = useState(0);
   const [autoPushJobs, setAutoPushJobs] = useState([]);
-  const [deviceData, setDeviceData] = useState({});
-  const [deviceSettings, setDeviceSettings] = useState(null);
   const [displayColumns, setDisplayColumns] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [interfaceBounceRunning, setInterfaceBounceRunning] = useState({});
-  const [interfaceData, setInterfaceData] = useState([]);
   const [interfaceDataUpdated, setInterfaceDataUpdated] = useState({});
-  const [interfaceStatusData, setInterfaceStatusData] = useState({});
   const [interfaceToggleUntagged, setInterfaceToggleUntagged] = useState({});
-  const [isDeviceSynchronized, setIsDeviceSynchronized] = useState(
-    deviceData.synchronized,
-  );
   const [isWorking, setIsWorking] = useState(false);
-  const [lldpNeighborData, setLldpNeighborData] = useState({});
-  const [mlagPeerHostname, setMlagPeerHostname] = useState(null);
-  const [netboxDeviceData, setNetboxDeviceData] = useState({});
-  const [netboxInterfaceData, setNetboxInterfaceData] = useState([]);
-  const [portTemplateOptions, setPortTemplateOptions] = useState([]);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [tagOptions, setTagOptions] = useState([]);
-  const [thirdPartyUpdate, setThirdPartyUpdate] = useState(false);
-  const [untaggedVlanOptions, setUntaggedVlanOptions] = useState([]);
-  const [vlanOptions, setVlanOptions] = useState([]);
 
   const awaitingDeviceSynchronizationRef = useRef(false);
-  const hostname = useRef(searchParams.get("hostname") ?? null);
 
-  const deviceType = deviceData?.device_type ?? null;
+  // Wrap the hook's reload to also reload device, clear local edit state and dismiss toasts
+  const reloadDeviceData = useCallback(() => {
+    document
+      .querySelectorAll(".ui.floating.message")
+      .forEach((el) => el.remove());
+    setInterfaceDataUpdated({});
+    reloadDevice();
+    reloadInterfaceData();
+  }, [reloadDevice, reloadInterfaceData]);
 
-  /**
-   * On mount
-   */
+  // --- Column preferences ---
+
+  const setDisplayColumnsFn = useCallback(() => {
+    const interfaceConfig =
+      JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
+    let newDisplayColumns;
+    if (device?.device_type === "ACCESS") {
+      newDisplayColumns = interfaceConfig?.accessDisplayColumns;
+    } else if (device?.device_type === "DIST") {
+      newDisplayColumns = interfaceConfig?.distDisplayColumns;
+    }
+
+    setDisplayColumns(
+      (newDisplayColumns ?? ["vlans"]).filter((column) =>
+        VALID_COLUMNS.has(column),
+      ),
+    );
+  }, [device?.device_type]);
+
   useEffect(() => {
-    if (!hostname.current) return;
-
-    const fetchData = async () => {
-      await getDeviceSettings();
-      await getDeviceData();
-    };
-
-    fetchData();
-  }, [hostname.current]);
-
-  /**
-   * On mount after device data
-   */
-  useEffect(() => {
-    if (deviceType) {
-      getInterfaceData();
-      getInterfaceStatusData();
-      getLldpNeighborData();
-      getNetboxDeviceData(hostname.current);
+    if (device?.device_type) {
       setDisplayColumnsFn();
     }
-  }, [deviceType]);
+  }, [device?.device_type, setDisplayColumnsFn]);
 
-  /**
-   * Setup socket io.
-   */
+  // --- Socket IO ---
+
   useEffect(() => {
     socket = io(process.env.API_URL, { query: { jwt: token } });
     socket.on("connect", function () {
@@ -163,14 +201,13 @@ export function InterfaceConfig() {
     };
   }, []);
 
-  // handleSocketEventRef is used and updated every render to avoid stale closure
   const handleSocketEventRef = useRef();
 
   useEffect(() => {
     handleSocketEventRef.current = (data) => {
       if (
         data.device_id &&
-        data?.device_id === deviceData.id &&
+        data?.device_id === device?.id &&
         data.action === "UPDATED"
       ) {
         onDeviceUpdateEvent(data);
@@ -180,9 +217,6 @@ export function InterfaceConfig() {
     };
   });
 
-  /**
-   *  update event with this device's id
-   */
   const onDeviceUpdateEvent = (data) => {
     console.debug("Device update event", data);
 
@@ -192,23 +226,15 @@ export function InterfaceConfig() {
       awaitingDeviceSynchronizationRef.current &&
       updatedDeviceData.synchronized
     ) {
-      // Synchronize done
       awaitingDeviceSynchronizationRef.current = false;
-      getInterfaceData();
-      getDeviceSettings();
-      getDeviceData();
-      refreshInterfaceStatus();
-      setThirdPartyUpdate(false);
+      reloadDeviceData();
     } else {
-      setIsDeviceSynchronized(updatedDeviceData.synchronized);
-      if (
-        !isWorking &&
-        isDeviceSynchronized !== updatedDeviceData.synchronized
-      ) {
+      setSynchronized(updatedDeviceData.synchronized);
+      if (!isWorking && deviceSynchronized !== updatedDeviceData.synchronized) {
         showSynchronizedChangedToast(updatedDeviceData.synchronized);
       }
-      if (!isWorking && updatedDeviceData.confhash !== deviceData.confhash) {
-        setThirdPartyUpdate(true);
+      if (!isWorking && updatedDeviceData.confhash !== device?.confhash) {
+        markThirdPartyUpdate();
         showOutOfSyncToast(reloadDeviceData);
       }
     }
@@ -218,7 +244,6 @@ export function InterfaceConfig() {
     console.debug("Job update event", data);
 
     if (autoPushJobs.length === 1 && autoPushJobs[0].job_id === data.job_id) {
-      // if finished && next_job id, push next_job_id to array
       if (typeof data?.next_job_id === "number") {
         setAutoPushJobs([
           data,
@@ -232,7 +257,7 @@ export function InterfaceConfig() {
             job log
           </Link>,
           " or do a ",
-          <Link key="dryrun" to={`/config-change?hostname=${hostname.current}`}>
+          <Link key="dryrun" to={`/config-change?hostname=${hostname}`}>
             dry run
           </Link>,
         ]);
@@ -249,294 +274,14 @@ export function InterfaceConfig() {
         console.log("Jobs finished");
         setIsWorking(false);
         setInterfaceDataUpdated({});
-        // After Dry Run is done, listen for sync events
         awaitingDeviceSynchronizationRef.current = true;
       }
     }
   };
 
-  // --- External Data ---
-  const getDeviceSettings = useCallback(async () => {
-    const settingsUrl = `${process.env.API_URL}/api/v1.0/settings?hostname=${hostname.current}`;
-    try {
-      const dataSettings = (await getData(settingsUrl, token)).data.settings;
-      setDeviceSettings(dataSettings);
-
-      const vlanOptions = Object.entries(dataSettings.vxlans).map(
-        ([, vxlanData]) => {
-          return {
-            key: vxlanData.vni,
-            value: vxlanData.vlan_name,
-            text: vxlanData.vlan_name,
-            description: vxlanData.vlan_id,
-          };
-        },
-      );
-      setVlanOptions(vlanOptions);
-
-      const untaggedVlanOptions = [
-        ...vlanOptions,
-        {
-          value: null,
-          text: "None",
-          description: "NA",
-        },
-      ];
-      setUntaggedVlanOptions(untaggedVlanOptions);
-
-      // look for tag options
-      const interfaceTagOptions = dataSettings.interface_tag_options;
-      if (interfaceTagOptions) {
-        const settingsTagOptions =
-          Object.entries(interfaceTagOptions).map(([tagName, tagData]) => {
-            return {
-              text: tagName,
-              value: tagName,
-              description: tagData.description,
-            };
-          }) ?? [];
-        setTagOptions(settingsTagOptions);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }, [token]);
-
-  const getDeviceData = useCallback(async () => {
-    try {
-      const deviceUrl = `${process.env.API_URL}/api/v1.0/device/${hostname.current}`;
-      const fetchedDevice = (await getData(deviceUrl, token)).data.devices[0];
-      setDeviceData(fetchedDevice);
-      setIsDeviceSynchronized(fetchedDevice.synchronized);
-      setThirdPartyUpdate(false);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [token]);
-
-  const getNetboxDeviceData = useCallback(async (hostname) => {
-    if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
-      return null;
-    }
-
-    let credentials = localStorage.getItem("netboxToken");
-    let getFunc = getDataToken;
-    let url = process.env.NETBOX_API_URL;
-    // fallback
-    if (!credentials) {
-      credentials = localStorage.getItem("token");
-      getFunc = getData;
-      url = `${process.env.API_URL}/netbox`;
-    }
-
-    try {
-      const netboxDevicesUrl = `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`;
-      const data = await getFunc(netboxDevicesUrl, credentials);
-      if (data.count === 1) {
-        const deviceData = data.results.pop();
-        setNetboxDeviceData(deviceData);
-
-        const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?device_id=${deviceData.id}&limit=100`;
-        const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
-        if (interfaceData) {
-          setNetboxInterfaceData(interfaceData.results);
-        }
-      } else {
-        console.log("No data found device", hostname);
-      }
-    } catch (e) {
-      // Some netbox error occurred
-      console.log(e);
-    }
-  }, []);
-
-  const getInterfaceStatusData = useCallback(async () => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/interface_status`;
-      const data = await getData(url, token);
-      const interfaceStatus = data.data.interface_status;
-      setInterfaceStatusData(interfaceStatus);
-    } catch (error) {
-      console.log(error);
-      setInterfaceStatusData({});
-    }
-  }, [token]);
-
-  const getLldpNeighborData = useCallback(async () => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/lldp_neighbors_detail`;
-      const data = await getData(url, token);
-      const fetchedLldpNeighsDetail = data.data.lldp_neighbors_detail;
-      const lldpNeighbors = {};
-      // save interface status data keys as lowercase, in case yaml interface name is not correct case
-      Object.keys(fetchedLldpNeighsDetail ?? []).forEach((key) => {
-        lldpNeighbors[key.toLowerCase()] = fetchedLldpNeighsDetail[key];
-      });
-      setLldpNeighborData(lldpNeighbors);
-    } catch (error) {
-      console.log(error);
-      setLldpNeighborData({});
-    }
-  }, [token]);
-
-  const getInterfaceDataAccess = useCallback(async () => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/interfaces`;
-      const fetchedInterfaces = (await getData(url, token)).data.interfaces;
-      setInterfaceData(fetchedInterfaces);
-
-      setTagOptions((prev) => {
-        const usedTags = prev.slice();
-        fetchedInterfaces.forEach((item) => {
-          const ifData = item.data;
-          if (ifData !== null && "tags" in ifData) {
-            ifData.tags.forEach((tag) => {
-              if (usedTags.some((e) => e.text === tag)) {
-                return; // don't add duplicate tags
-              }
-              usedTags.push({ text: tag, value: tag });
-            });
-          }
-        });
-
-        return usedTags;
-      });
-
-      for (const item of fetchedInterfaces) {
-        const ifData = item.data;
-        if (ifData !== null && "neighbor_id" in ifData && !mlagPeerHostname) {
-          try {
-            const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
-            const mlagData = await getData(mlagDevURL, token);
-            setMlagPeerHostname(mlagData.data.devices[0].hostname);
-            break;
-          } catch (error) {
-            console.log(`MLAG peer not found: ${error}`);
-          }
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }, [token, mlagPeerHostname]);
-
-  const getInterfaceDataDist = useCallback(async () => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/generate_config`;
-      const data = await getDataHeaders(url, token, {
-        "X-Fields": "available_variables{interfaces,port_template_options}",
-      });
-      const fetchedAvailableVariables = data.data.config.available_variables;
-
-      const availablePortTemplateOptions =
-        fetchedAvailableVariables.port_template_options;
-      const usedPortTemplates = Object.entries(
-        availablePortTemplateOptions ?? {},
-      ).map(([templateName, templateData]) => {
-        return {
-          text: templateName,
-          value: templateName,
-          description: templateData.description,
-          vlan_config: templateData.vlan_config,
-        };
-      });
-
-      const availableInterfaces = fetchedAvailableVariables.interfaces;
-      setInterfaceData(availableInterfaces);
-
-      const allPortTemplates = [...usedPortTemplates];
-      availableInterfaces.forEach((item) => {
-        if (item.ifclass.startsWith("port_template")) {
-          const templateName = item.ifclass.substring("port_template_".length);
-          if (!allPortTemplates.some((e) => e.text === templateName)) {
-            allPortTemplates.push({
-              text: templateName,
-              value: templateName,
-            });
-          }
-        }
-      });
-      setPortTemplateOptions(allPortTemplates);
-
-      setTagOptions((prev) => {
-        const usedTags = prev.slice();
-
-        availableInterfaces.forEach((item) => {
-          if (usedTags.length === 0 && item.tags) {
-            item.tags.forEach((tag) => {
-              if (!usedTags.some((e) => e.text === tag)) {
-                usedTags.push({ text: tag, value: tag });
-              }
-            });
-          }
-        });
-
-        return usedTags;
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }, [token]);
-
-  const getInterfaceData = useCallback(async () => {
-    if (deviceType === "ACCESS") {
-      await getInterfaceDataAccess();
-    } else if (deviceType === "DIST") {
-      await getInterfaceDataDist();
-    }
-
-    if (deviceType && deviceType !== "ACCESS" && deviceType !== "DIST") {
-      console.error(`Unsupported device type: ${deviceType}`);
-    }
-  }, [deviceType, getInterfaceDataAccess, getInterfaceDataDist]);
-
-  // --- end external data ---
-
-  const setDisplayColumnsFn = () => {
-    const interfaceConfig =
-      JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
-    let newDisplayColumns;
-    if (deviceType === "ACCESS") {
-      newDisplayColumns = interfaceConfig?.accessDisplayColumns;
-    } else if (deviceType === "DIST") {
-      newDisplayColumns = interfaceConfig?.distDisplayColumns;
-    }
-
-    // Make sure only valid columns are going to be visible
-    setDisplayColumns(
-      (newDisplayColumns ?? ["vlans"]).filter((column) =>
-        VALID_COLUMNS.has(column),
-      ),
-    );
-  };
-
-  const refreshInterfaceStatus = useCallback(() => {
-    getInterfaceStatusData();
-    getLldpNeighborData();
-  }, [getInterfaceStatusData, getLldpNeighborData]);
-
-  const reloadDeviceData = useCallback(() => {
-    document
-      .querySelectorAll(".ui.floating.message")
-      .forEach((el) => el.remove());
-
-    setInterfaceDataUpdated({});
-    setThirdPartyUpdate(false);
-    getDeviceSettings();
-    getDeviceData();
-    getInterfaceData();
-    getInterfaceStatusData();
-    getLldpNeighborData();
-  }, [
-    getDeviceSettings,
-    getDeviceData,
-    getInterfaceData,
-    getInterfaceStatusData,
-    getLldpNeighborData,
-  ]);
+  // --- Save & commit logic ---
 
   const prepareSendJson = () => {
-    // build object in the format API expects interfaces{} -> name{} -> configtype,data{}
     const sendData = { interfaces: {} };
 
     Object.entries(interfaceDataUpdated).forEach(
@@ -570,8 +315,7 @@ export function InterfaceConfig() {
       ([interfaceName, formData]) => {
         const ifData = { name: interfaceName };
 
-        // Copy previous values from state
-        const prevIntf = interfaceData.find(
+        const prevIntf = interfaces.data.find(
           (intf) => intf.name === interfaceName,
         );
 
@@ -593,7 +337,6 @@ export function InterfaceConfig() {
 
         let skipIfClass = false;
         Object.entries(formData).forEach(([formKey, formValue]) => {
-          // port_template is not a separate value in the result yaml, but a suffix on ifclass
           if (formKey === "port_template") {
             if (
               formData.ifclass === "port_template" ||
@@ -618,7 +361,7 @@ export function InterfaceConfig() {
 
   const sendInterfaceData = async () => {
     try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/interfaces`;
+      const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces`;
       const sendData = prepareSendJson();
       const data = await putData(url, token, sendData);
 
@@ -642,7 +385,7 @@ export function InterfaceConfig() {
       const sendData = {
         dry_run: true,
         comment: "interface update via WebUI",
-        hostname: hostname.current,
+        hostname: hostname,
         auto_push: true,
       };
       const data = await postData(url, token, sendData);
@@ -667,7 +410,7 @@ export function InterfaceConfig() {
     const saveStatus = await sendInterfaceData();
     if (saveStatus) {
       navigate(
-        `/config-change?hostname=${hostname.current}&scrollTo=dry_run&autoDryRun=true`,
+        `/config-change?hostname=${hostname}&scrollTo=dry_run&autoDryRun=true`,
       );
     } else {
       setAccordionActiveIndex(2);
@@ -675,29 +418,10 @@ export function InterfaceConfig() {
   };
 
   const gotoConfigChange = () => {
-    navigate(
-      `/config-change?hostname=${hostname.current}&scrollTo=refreshrepo`,
-    );
+    navigate(`/config-change?hostname=${hostname}&scrollTo=refreshrepo`);
   };
 
-  const addNewInterface = (interfaceName) => {
-    setInterfaceData((prev) => [
-      ...prev,
-      { name: interfaceName, ifclass: "custom", tags: null },
-    ]);
-  };
-
-  const addTagOption = (_e, data) => {
-    const { value } = data;
-
-    setTagOptions((prev) => [...prev, { text: value, value }]);
-  };
-
-  const addPortTemplateOption = (_e, data) => {
-    const { value } = data;
-
-    setPortTemplateOptions((prev) => [...prev, { text: value, value }]);
-  };
+  // --- Field editing ---
 
   const updateFieldData = (_e, data) => {
     const nameSplit = data.name.split("|", 2);
@@ -708,10 +432,9 @@ export function InterfaceConfig() {
     let val = "defaultChecked" in data ? data.checked : data.value;
 
     if (
-      deviceType === "DIST" &&
+      device?.device_type === "DIST" &&
       ["untagged_vlan", "tagged_vlan_list"].includes(jsonKey)
     ) {
-      // Get VLAN ID instead of name by looking in the description field of the options
       if (Array.isArray(data.value)) {
         val = data.value.map((opt) => {
           const found = data.options.find((e) => e.value === opt);
@@ -760,7 +483,7 @@ export function InterfaceConfig() {
     }));
 
     try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname.current}/interface_status`;
+      const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interface_status`;
       const sendData = { bounce_interfaces: [intf] };
       const data = await putData(url, token, sendData);
       const success = data.status === "success";
@@ -798,11 +521,13 @@ export function InterfaceConfig() {
     setAccordionActiveIndex((prev) => (prev === index ? -1 : index));
   };
 
+  // --- Column selector ---
+
   const columnSelectorChange = (_e, data) => {
     let columnOrder;
-    if (deviceType === "ACCESS") {
+    if (device?.device_type === "ACCESS") {
       columnOrder = Object.keys(ALLOWED_COLUMNS_ACCESS);
-    } else if (deviceType === "DIST") {
+    } else if (device?.device_type === "DIST") {
       columnOrder = Object.keys(ALLOWED_COLUMNS_DIST);
     }
 
@@ -817,7 +542,6 @@ export function InterfaceConfig() {
       }
     }
 
-    // Sort columns by their position in the predefined order
     newDisplayColumns.sort(
       (a, b) => columnOrder.indexOf(a) - columnOrder.indexOf(b),
     );
@@ -827,19 +551,21 @@ export function InterfaceConfig() {
     const interfaceConfig =
       JSON.parse(localStorage.getItem("interfaceConfig")) ?? {};
 
-    if (deviceType === "ACCESS") {
+    if (device?.device_type === "ACCESS") {
       interfaceConfig.accessDisplayColumns = newDisplayColumns;
-    } else if (deviceType === "DIST") {
+    } else if (device?.device_type === "DIST") {
       interfaceConfig.distDisplayColumns = newDisplayColumns;
     }
 
     localStorage.setItem("interfaceConfig", JSON.stringify(interfaceConfig));
   };
 
-  const exportInterfaceConfig = async (hostname) => {
+  // --- Export ---
+
+  const exportInterfaceConfig = async (exportHostname) => {
     try {
       const response = await fetch(
-        `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces_export`,
+        `${process.env.API_URL}/api/v1.0/device/${exportHostname}/interfaces_export`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -850,7 +576,7 @@ export function InterfaceConfig() {
       const url = globalThis.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${hostname}_interfaces.json`;
+      link.download = `${exportHostname}_interfaces.json`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -860,24 +586,26 @@ export function InterfaceConfig() {
     }
   };
 
-  const interfaceTable = interfaceData.map((item, index) => (
+  // --- Render helpers ---
+
+  const interfaceTable = interfaces.data.map((item, index) => (
     <InterfaceTableRow
       key={item.name}
       item={item}
       index={index}
-      deviceType={deviceType}
+      deviceType={device?.device_type}
       interfaceDataUpdated={interfaceDataUpdated}
-      vlanOptions={vlanOptions}
-      untaggedVlanOptions={untaggedVlanOptions}
+      vlanOptions={fieldOptions.vlans}
+      untaggedVlanOptions={fieldOptions.untaggedVlans}
       displayColumns={displayColumns}
-      deviceSettings={deviceSettings}
-      tagOptions={tagOptions}
-      portTemplateOptions={portTemplateOptions}
-      interfaceStatusData={interfaceStatusData}
+      deviceSettings={settings}
+      tagOptions={fieldOptions.tags}
+      portTemplateOptions={fieldOptions.portTemplates}
+      interfaceStatusData={interfaces.status}
       interfaceBounceRunning={interfaceBounceRunning}
-      netboxInterfaceData={netboxInterfaceData}
-      lldpNeighborData={lldpNeighborData}
-      hostname={hostname.current}
+      netboxInterfaceData={netbox.interfaces}
+      lldpNeighborData={interfaces.lldpNeighbors}
+      hostname={hostname}
       updateFieldData={updateFieldData}
       addTagOption={addTagOption}
       addPortTemplateOption={addPortTemplateOption}
@@ -888,9 +616,9 @@ export function InterfaceConfig() {
   ));
 
   const commitAutopushDisabled =
-    isWorking || thirdPartyUpdate || !isDeviceSynchronized;
+    isWorking || thirdPartyUpdate || !deviceSynchronized;
 
-  const allowedColumns = ALLOWED_COLUMNS_MAP[deviceType] || {};
+  const allowedColumns = ALLOWED_COLUMNS_MAP[device?.device_type] || {};
 
   const columnWidths = {
     vlans: 4,
@@ -910,8 +638,6 @@ export function InterfaceConfig() {
     (columnName, columnIndex) => {
       const checked = displayColumns.includes(columnName);
 
-      // if value has been changed for an optional column, don't allow
-      // hiding that column since the defaultValue will be wrong if re-adding it later
       const disabled = Object.values(interfaceDataUpdated).some((ifData) =>
         Object.keys(ifData).includes(columnName),
       );
@@ -960,12 +686,12 @@ export function InterfaceConfig() {
     </p>
   );
 
-  const netboxInfo = netboxDeviceData && (
-    <NetboxDevice netboxDevice={netboxDeviceData} />
+  const netboxInfo = netbox.device && (
+    <NetboxDevice netboxDevice={netbox.device} />
   );
 
   let commitModal = null;
-  if (deviceType === "ACCESS") {
+  if (device?.device_type === "ACCESS") {
     commitModal = (
       <CommitModalAccess
         accordionActiveIndex={accordionActiveIndex}
@@ -975,10 +701,10 @@ export function InterfaceConfig() {
         interfaceDataUpdatedJSON={prepareSendJson()}
       />
     );
-  } else if (deviceType === "DIST") {
+  } else if (device?.device_type === "DIST") {
     commitModal = (
       <CommitModalDist
-        hostname={hostname.current}
+        hostname={hostname}
         interfaceDataUpdated={interfaceDataUpdated}
         ifDataYaml={prepareYaml()}
       />
@@ -986,17 +712,17 @@ export function InterfaceConfig() {
   }
 
   // find unused interfaces
-  const unusedInterfaces = interfaceStatusData
-    ? Object.keys(interfaceStatusData).filter(
+  const unusedInterfaces = interfaces.status
+    ? Object.keys(interfaces.status).filter(
         (ifName) =>
-          !interfaceData.find(
+          !interfaces.data.find(
             (obj) => obj.name.toLowerCase() === ifName.toLowerCase(),
           ),
       )
     : [];
 
   let tableLevelButtons = [];
-  if (deviceType === "ACCESS") {
+  if (device?.device_type === "ACCESS") {
     tableLevelButtons = [
       <Popup
         on="hover"
@@ -1010,7 +736,7 @@ export function InterfaceConfig() {
             size="small"
             title="Export interface configuration"
             onClick={() => {
-              exportInterfaceConfig(hostname.current);
+              exportInterfaceConfig(hostname);
             }}
           >
             <Icon name="share square" />
@@ -1050,18 +776,16 @@ export function InterfaceConfig() {
         <h2>Interface configuration</h2>
         <p>
           Hostname:{" "}
-          <a href={`/devices?search_hostname=${hostname.current}`}>
-            {hostname.current}
-          </a>
-          , sync state:{" "}
-          {isDeviceSynchronized ? (
+          <a href={`/devices?search_hostname=${hostname}`}>{hostname}</a>, sync
+          state:{" "}
+          {deviceSynchronized ? (
             <Icon name="check" color="green" />
           ) : (
             <Icon name="delete" color="red" />
           )}
         </p>
         {mlagPeerInfo}
-        {!isDeviceSynchronized && (
+        {!deviceSynchronized && (
           <p>
             <Icon name="warning sign" color="orange" size="large" />
             Device is not synchronized, use dry_run and verify diff to apply
@@ -1109,7 +833,9 @@ export function InterfaceConfig() {
                 <Table.HeaderCell width={3}>Name</Table.HeaderCell>
                 <Table.HeaderCell width={6}>Description</Table.HeaderCell>
                 <Table.HeaderCell width={3}>
-                  {deviceType === "DIST" ? "Interface class" : "Configtype"}
+                  {device?.device_type === "DIST"
+                    ? "Interface class"
+                    : "Configtype"}
                 </Table.HeaderCell>
                 {columnHeaders}
               </Table.Row>
@@ -1144,7 +870,7 @@ export function InterfaceConfig() {
                       >
                         Close
                       </Button>
-                      {deviceType === "ACCESS" && [
+                      {device?.device_type === "ACCESS" && [
                         <Button
                           key="access_button_saveandcommit"
                           onClick={saveAndCommitChanges}
@@ -1162,7 +888,7 @@ export function InterfaceConfig() {
                           Save and dry run...
                         </Button>,
                       ]}
-                      {deviceType === "DIST" && (
+                      {device?.device_type === "DIST" && (
                         <Button
                           key="dist_button_dryrun"
                           onClick={gotoConfigChange}
@@ -1181,7 +907,7 @@ export function InterfaceConfig() {
                     Refresh interface status
                     <Icon name="refresh" />
                   </Button>
-                  {deviceType === "DIST" && [
+                  {device?.device_type === "DIST" && [
                     <NewInterface
                       suggestedInterfaces={unusedInterfaces}
                       addNewInterface={addNewInterface}
@@ -1195,7 +921,7 @@ export function InterfaceConfig() {
           <ImportInterfaceModal
             open={importModalOpen}
             onClose={() => setImportModalOpen(false)}
-            hostname={hostname.current}
+            hostname={hostname}
             getInterfaceData={getInterfaceData}
           />
         </div>
