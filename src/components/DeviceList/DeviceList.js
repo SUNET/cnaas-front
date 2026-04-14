@@ -12,8 +12,9 @@ import {
 } from "semantic-ui-react";
 import { io } from "socket.io-client";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { getData, getDataToken, getResponse } from "../../utils/getData";
+import { getData, getResponse } from "../../utils/getData";
 import { postData, putData } from "../../utils/sendData";
+import { fetchNetboxDevice, fetchNetboxModel } from "../../services/netbox";
 import DeviceInfoBlock from "./DeviceInfoBlock";
 import DeviceInitForm from "./DeviceInitForm";
 import { UpdateMgmtDomainModal } from "./actionModals/UpdateMgmtDomainModal";
@@ -484,73 +485,20 @@ export function DeviceList() {
 
   const getNetboxModelData = async (hostname) => {
     const model = getModel(hostname);
-    if (!process.env.NETBOX_API_URL) {
-      return null;
-    }
-    let credentials = localStorage.getItem("netboxToken");
-    let getFunc = getDataToken;
-    let url = process.env.NETBOX_API_URL;
-    if (!credentials) {
-      credentials = localStorage.getItem("token");
-      getFunc = getData;
-      url = `${process.env.API_URL}/netbox`;
-    }
+    if (!model || netboxModelData[model]) return;
 
-    // if this.state.netboxModelData map does not have an object for model, fetch data from netbox
-    const mod = netboxModelData[model];
-    if (mod) return mod;
-
-    try {
-      const data = await getFunc(
-        `${url}/api/dcim/device-types/?part_number__ie=${model}`,
-        credentials,
-      );
-      if (data.count === 1) {
-        setNetboxModelData((prev) => ({
-          ...prev,
-          [model]: data.results.pop(),
-        }));
-      } else {
-        console.log("no data found for model", model);
-      }
-    } catch (error) {
-      console.log(error);
-      // Do nothing
+    const data = await fetchNetboxModel(model);
+    if (data) {
+      setNetboxModelData((prev) => ({ ...prev, [model]: data }));
     }
   };
 
   const getNetboxDeviceData = async (hostname) => {
-    if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
-      return null;
-    }
-    let credentials = localStorage.getItem("netboxToken");
-    let getFunc = getDataToken;
-    let url = process.env.NETBOX_API_URL;
-    if (!credentials) {
-      credentials = localStorage.getItem("token");
-      getFunc = getData;
-      url = `${process.env.API_URL}/netbox`;
-    }
+    if (netboxDeviceData[hostname]) return;
 
-    const host = netboxDeviceData[hostname];
-    if (host) return host;
-
-    try {
-      const data = await getFunc(
-        `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
-        credentials,
-      );
-
-      if (data.count === 1) {
-        setNetboxDeviceData((prev) => ({
-          ...prev,
-          [hostname]: data.results.pop(),
-        }));
-      } else {
-        console.log("no data found device", hostname);
-      }
-    } catch (error) {
-      console.log(error);
+    const data = await fetchNetboxDevice(hostname);
+    if (data) {
+      setNetboxDeviceData((prev) => ({ ...prev, [hostname]: data }));
     }
   };
 

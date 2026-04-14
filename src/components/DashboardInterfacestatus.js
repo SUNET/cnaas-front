@@ -1,8 +1,9 @@
 import { Grid, Popup, Divider } from "semantic-ui-react";
-import { getData, getDataToken } from "../utils/getData";
+import { getData } from "../utils/getData";
 import { useEffect, useState } from "react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { GraphiteInterface } from "./InterfaceConfig/InterfaceTableRow/GraphiteInterface";
+import { fetchNetboxDashboardInterfaces } from "../services/netbox";
 
 export function DashboardInterfaceStatus() {
   const { token } = useAuthToken();
@@ -13,43 +14,24 @@ export function DashboardInterfaceStatus() {
   const [isLoading, setIsLoading] = useState(false);
 
   const getNetboxObjects = async () => {
-    if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
-      return null;
-    }
-
-    let credentials = localStorage.getItem("netboxToken");
-    let getFunc = getDataToken;
-    let url = process.env.NETBOX_API_URL;
-    // fallback
-    if (!credentials) {
-      credentials = token;
-      getFunc = getData;
-      url = `${process.env.API_URL}/netbox`;
-    }
-
     if (netboxDeviceObjects?.length) {
       return;
     }
     setIsLoading(true);
 
     try {
-      const netboxInterfacesUrl = `${url}/api/dcim/interfaces/?tenant_id=${process.env.NETBOX_TENANT_ID}&kind=physical&tag=cnaas_dashboard&limit=20`;
-      const interfaceData = await getFunc(netboxInterfacesUrl, credentials);
-      if (interfaceData) {
-        setNetboxInterfaceData(interfaceData.results);
-      }
-
-      const deviceList = [];
-      for (const interfaceObj of interfaceData.results) {
-        const deviceName = interfaceObj.device.name;
-        const deviceId = interfaceObj.device.id;
-        deviceList.push({ name: deviceName, id: deviceId });
-      }
-      if (deviceList.length === 0) {
+      const interfaces = await fetchNetboxDashboardInterfaces();
+      if (interfaces.length === 0) {
         setIsLoading(false);
         return;
       }
 
+      setNetboxInterfaceData(interfaces);
+
+      const deviceList = interfaces.map((intf) => ({
+        name: intf.device.name,
+        id: intf.device.id,
+      }));
       setNetboxDeviceObjects(deviceList);
     } catch (e) {
       // Some netbox error occurred

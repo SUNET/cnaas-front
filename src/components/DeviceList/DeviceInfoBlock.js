@@ -14,6 +14,17 @@ import { usePermissions } from "../../contexts/PermissionsContext";
 import { formatISODate } from "../../utils/formatters";
 import LogViewer from "../LogViewer";
 
+DeviceInfoBlock.propTypes = {
+  device: PropTypes.object,
+  menuActions: PropTypes.any,
+  mgmtip: PropTypes.any,
+  deviceStateExtra: PropTypes.any,
+  deviceInterfaceData: PropTypes.any,
+  log: PropTypes.any,
+  model: PropTypes.any,
+  netboxDevice: PropTypes.any,
+};
+
 export default function DeviceInfoBlock({
   device,
   menuActions,
@@ -222,15 +233,3 @@ export default function DeviceInfoBlock({
     </Grid>
   );
 }
-
-// TODO update these to more specific PropTypes
-DeviceInfoBlock.propTypes = {
-  device: PropTypes.object,
-  menuActions: PropTypes.any,
-  mgmtip: PropTypes.any,
-  deviceStateExtra: PropTypes.any,
-  deviceInterfaceData: PropTypes.any,
-  log: PropTypes.any,
-  model: PropTypes.any,
-  netboxDevice: PropTypes.any,
-};
