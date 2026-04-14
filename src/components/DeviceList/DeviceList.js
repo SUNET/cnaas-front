@@ -691,41 +691,6 @@ export function DeviceList() {
     });
   };
 
-  const createMgmtIP = (mgmtIp, keyPrefix = "") => {
-    const mgmtip = [];
-    mgmtip.push(<i key={`${keyPrefix}mgmt_ip`}>{mgmtIp} </i>);
-    mgmtip.push(
-      <Button
-        key={`${keyPrefix}copy`}
-        basic
-        compact
-        size="mini"
-        icon="copy"
-        title={mgmtIp}
-        onClick={() => {
-          navigator.clipboard.writeText(mgmtIp);
-        }}
-      />,
-    );
-    const isIPv6 = mgmtIp.includes(":");
-    const sshAddress = isIPv6 ? `ssh://[${mgmtIp}]` : `ssh://${mgmtIp}`;
-    mgmtip.push(
-      <Button
-        key={`${keyPrefix}ssh`}
-        basic
-        compact
-        size="mini"
-        icon="terminal"
-        title={sshAddress}
-        onClick={() => {
-          globalThis.location = sshAddress;
-        }}
-      />,
-    );
-
-    return mgmtip;
-  };
-
   const createDeviceButtonsExtraForDevice = (device) => {
     const deviceButtons = [];
 
@@ -808,36 +773,19 @@ export function DeviceList() {
       }
     }
 
-    const mgmtip = [];
-    if (device.management_ip) {
-      mgmtip.push(...createMgmtIP(device.management_ip));
-    }
-    if (device.secondary_management_ip) {
-      mgmtip.push(
-        ...createMgmtIP(device.secondary_management_ip, "secondary_"),
-      );
-    }
-    if (device.dhcp_ip !== null) {
-      mgmtip.push(<i key="dhcp_ip">(DHCP IP: {device.dhcp_ip})</i>);
-    }
-    let model = null;
+    const model = Object.hasOwn(netboxModelData, device.model)
+      ? netboxModelData[device.model]
+      : null;
 
-    if (Object.hasOwn(netboxModelData, device.model)) {
-      model = netboxModelData[device.model];
-    }
-
-    let netboxDevice = null;
-
-    if (Object.hasOwn(netboxDeviceData, device.hostname)) {
-      netboxDevice = netboxDeviceData[device.hostname];
-    }
+    const netboxDevice = Object.hasOwn(netboxDeviceData, device.hostname)
+      ? netboxDeviceData[device.hostname]
+      : null;
 
     return (
       <DeviceInfoBlock
         key={`${device.id}_device_info`}
         device={device}
         menuActions={createMenuActionsForDevice(device)}
-        mgmtip={mgmtip}
         deviceStateExtra={deviceStateExtra}
         log={log}
         model={model}

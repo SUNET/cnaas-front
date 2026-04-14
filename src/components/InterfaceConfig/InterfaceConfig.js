@@ -7,9 +7,10 @@ import { putData, postData } from "../../utils/sendData";
 import {
   fetchNetboxDevice,
   fetchNetboxInterfaces,
+  fetchNetboxModel,
 } from "../../services/netbox";
+import { DeviceInfoTable } from "../DeviceInfoTable";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
-import { NetboxDevice } from "./NetboxDevice";
 import { NewInterface } from "./NewInterface";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
@@ -109,19 +110,30 @@ export function InterfaceConfig() {
   }, [device?.synchronized]);
 
   // --- Netbox (separate external system) ---
-  const [netbox, setNetbox] = useState({ device: null, interfaces: [] });
+  const [netbox, setNetbox] = useState({
+    device: null,
+    interfaces: [],
+    model: null,
+  });
 
   useEffect(() => {
     if (!device?.device_type) return;
     const fetchNetboxData = async () => {
-      const netboxDevice = await fetchNetboxDevice(hostname);
-      if (netboxDevice) {
-        const netboxInterfaces = await fetchNetboxInterfaces(netboxDevice.id);
-        setNetbox({ device: netboxDevice, interfaces: netboxInterfaces });
-      }
+      const [netboxDevice, netboxModel] = await Promise.all([
+        fetchNetboxDevice(hostname),
+        device.model ? fetchNetboxModel(device.model) : null,
+      ]);
+      const netboxInterfaces = netboxDevice
+        ? await fetchNetboxInterfaces(netboxDevice.id)
+        : [];
+      setNetbox({
+        device: netboxDevice,
+        interfaces: netboxInterfaces,
+        model: netboxModel,
+      });
     };
     fetchNetboxData();
-  }, [hostname, device?.device_type]);
+  }, [hostname, device?.device_type, device?.model]);
 
   // --- Local UI & edit state ---
   const [accordionActiveIndex, setAccordionActiveIndex] = useState(0);
@@ -686,10 +698,6 @@ export function InterfaceConfig() {
     </p>
   );
 
-  const netboxInfo = netbox.device && (
-    <NetboxDevice netboxDevice={netbox.device} />
-  );
-
   let commitModal = null;
   if (device?.device_type === "ACCESS") {
     commitModal = (
@@ -774,17 +782,22 @@ export function InterfaceConfig() {
       <SemanticToastContainer position="top-right" maxToasts={1} />
       <div id="device_list">
         <h2>Interface configuration</h2>
+        {device && (
+          <DeviceInfoTable
+            device={device}
+            model={netbox.model}
+            netboxDevice={netbox.device}
+          />
+        )}
+        {mlagPeerInfo}
         <p>
-          Hostname:{" "}
-          <a href={`/devices?search_hostname=${hostname}`}>{hostname}</a>, sync
-          state:{" "}
+          Sync state:{" "}
           {deviceSynchronized ? (
             <Icon name="check" color="green" />
           ) : (
             <Icon name="delete" color="red" />
           )}
         </p>
-        {mlagPeerInfo}
         {!deviceSynchronized && (
           <p>
             <Icon name="warning sign" color="orange" size="large" />
@@ -802,7 +815,6 @@ export function InterfaceConfig() {
             </Button>
           </p>
         )}
-        {netboxInfo}
         <div className="table_options">
           <Popup
             on="click"
