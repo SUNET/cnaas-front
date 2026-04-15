@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { Link } from "react-router";
 import { Icon } from "semantic-ui-react";
 
 DeviceTableBodyRowCellContent.propTypes = {
@@ -40,12 +41,12 @@ export function DeviceTableBodyRowCellContent({ device, column, open }) {
     return (
       <>
         {value}
-        <a
+        <Link
           key="interfaceconfig"
-          href={`/interface-config?hostname=${device.hostname}`}
+          to={`/interface-config?hostname=${device.hostname}`}
         >
           <Icon name="plug" link />
-        </a>
+        </Link>
       </>
     );
   }
