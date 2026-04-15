@@ -43,21 +43,19 @@ export async function fetchNetboxDevice(hostname) {
   if (!resolved) return null;
 
   const { credentials, getFunc, url } = resolved;
+  const requestUrl = `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`;
 
   try {
-    const data = await getFunc(
-      `${url}/api/dcim/devices/?name__ie=${hostname}&tenant_id=${process.env.NETBOX_TENANT_ID}`,
-      credentials,
-    );
+    const data = await getFunc(requestUrl, credentials);
 
     if (data.count === 1) {
       return data.results[0];
     }
 
-    console.log("No Netbox data found for device", hostname);
+    console.debug("No Netbox data found for device", hostname);
     return null;
   } catch (error) {
-    console.log(error);
+    console.debug(`Netbox request failed: ${requestUrl}`, error);
     return null;
   }
 }
@@ -71,15 +69,13 @@ export async function fetchNetboxInterfaces(deviceId) {
   if (!resolved) return [];
 
   const { credentials, getFunc, url } = resolved;
+  const requestUrl = `${url}/api/dcim/interfaces/?device_id=${deviceId}&limit=100`;
 
   try {
-    const data = await getFunc(
-      `${url}/api/dcim/interfaces/?device_id=${deviceId}&limit=100`,
-      credentials,
-    );
+    const data = await getFunc(requestUrl, credentials);
     return data?.results ?? [];
   } catch (error) {
-    console.log(error);
+    console.debug(`Netbox request failed: ${requestUrl}`, error);
     return [];
   }
 }
@@ -94,21 +90,19 @@ export async function fetchNetboxModel(model) {
   if (!resolved) return null;
 
   const { credentials, getFunc, url } = resolved;
+  const requestUrl = `${url}/api/dcim/device-types/?part_number__ie=${model}`;
 
   try {
-    const data = await getFunc(
-      `${url}/api/dcim/device-types/?part_number__ie=${model}`,
-      credentials,
-    );
+    const data = await getFunc(requestUrl, credentials);
 
     if (data.count === 1) {
       return data.results[0];
     }
 
-    console.log("No Netbox data found for model", model);
+    console.debug("No Netbox data found for model", model);
     return null;
   } catch (error) {
-    console.log(error);
+    console.debug(`Netbox request failed: ${requestUrl}`, error);
     return null;
   }
 }

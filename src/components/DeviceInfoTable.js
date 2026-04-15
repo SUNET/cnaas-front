@@ -17,7 +17,7 @@ function ManagementIP({ ip, keyPrefix = "" }) {
 
   return (
     <>
-      <i key={`${keyPrefix}mgmt_ip`}>{ip} </i>
+      <span key={`${keyPrefix}mgmt_ip`}>{ip} </span>
       <Button
         key={`${keyPrefix}copy`}
         basic
@@ -102,7 +102,7 @@ function NetboxRows({ netboxDevice }) {
     process.env.MONITORING_WEB_URL
   ) {
     monitoringLink = [
-      <i key="monitoring_link_pre"> (</i>,
+      <span key="monitoring_link_pre"> (</span>,
       <a
         key="monitoring_link"
         href={`${process.env.MONITORING_WEB_URL}/ipdevinfo/${netboxDevice.name}/`}
@@ -110,7 +110,7 @@ function NetboxRows({ netboxDevice }) {
       >
         Monitoring
       </a>,
-      <i key="monitoring_link_post">)</i>,
+      <span key="monitoring_link_post">)</span>,
     ];
   }
   rows.push(
@@ -158,7 +158,7 @@ function NetboxRows({ netboxDevice }) {
       <TableRow key="netbox_location">
         <TableCell key="name">Netbox Location</TableCell>
         <TableCell key="value">
-          <div>{locationParts}</div>
+          <span>{locationParts}</span>
         </TableCell>
       </TableRow>,
     );
@@ -186,23 +186,19 @@ export function DeviceInfoTable({ device, model, netboxDevice }) {
       <TableBody>
         <TableRow key="detail_hostname">
           <TableCell key="name">Hostname</TableCell>
-          <TableCell key="value">
-            <div>{device.hostname}</div>
-          </TableCell>
+          <TableCell key="value">{device.hostname}</TableCell>
         </TableRow>
         <TableRow key="detail_mgmtip">
           <TableCell key="name">Management IP</TableCell>
           <TableCell key="value">
-            <div>
-              <ManagementIP ip={device.management_ip} />
-              <ManagementIP
-                ip={device.secondary_management_ip}
-                keyPrefix="secondary_"
-              />
-              {device.dhcp_ip != null && (
-                <i key="dhcp_ip">(DHCP IP: {device.dhcp_ip})</i>
-              )}
-            </div>
+            <ManagementIP ip={device.management_ip} />
+            <ManagementIP
+              ip={device.secondary_management_ip}
+              keyPrefix="secondary_"
+            />
+            {device.dhcp_ip != null && (
+              <span key="dhcp_ip">(DHCP IP: {device.dhcp_ip})</span>
+            )}
           </TableCell>
         </TableRow>
         <TableRow key="detail_infraip">

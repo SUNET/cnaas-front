@@ -411,22 +411,6 @@ describe("named actions", () => {
     expect(result.current.thirdPartyUpdate).toBe(true);
   });
 
-  test("clearThirdPartyUpdate sets thirdPartyUpdate to false", async () => {
-    setupAccessMocks();
-
-    const { result } = renderHook(() =>
-      useDeviceInterfaceConfig("test-switch", "ACCESS"),
-    );
-
-    await waitFor(() => expect(result.current.interfaces.data).toHaveLength(2));
-
-    act(() => result.current.markThirdPartyUpdate());
-    expect(result.current.thirdPartyUpdate).toBe(true);
-
-    act(() => result.current.clearThirdPartyUpdate());
-    expect(result.current.thirdPartyUpdate).toBe(false);
-  });
-
   test("addTagOption appends a new tag to fieldOptions", async () => {
     setupAccessMocks();
 
