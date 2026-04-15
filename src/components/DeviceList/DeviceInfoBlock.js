@@ -29,11 +29,11 @@ export default function DeviceInfoBlock({
     <Grid columns={2}>
       <GridRow>
         <GridColumn>
-          <div hidden={!permissionsCheck("Devices", "write")}>
+          {permissionsCheck("Devices", "write") && (
             <Dropdown text="Actions" button>
               <Dropdown.Menu>{menuActions}</Dropdown.Menu>
             </Dropdown>
-          </div>
+          )}
           <DeviceInfoTable
             device={device}
             model={model}

@@ -91,12 +91,10 @@ export function InterfaceConfig() {
     refreshInterfaceStatus,
     reloadDeviceData: reloadInterfaceData,
     getInterfaceData,
-    getDeviceSettings,
     addTagOption,
     addPortTemplateOption,
     addNewInterface,
     markThirdPartyUpdate,
-    clearThirdPartyUpdate,
   } = useDeviceInterfaceConfig(hostname, device?.device_type);
 
   // Local synchronized override — updated optimistically by socket events
@@ -117,7 +115,7 @@ export function InterfaceConfig() {
   });
 
   useEffect(() => {
-    if (!device?.device_type) return;
+    if (!hostname || !device?.device_type) return;
     const fetchNetboxData = async () => {
       const [netboxDevice, netboxModel] = await Promise.all([
         fetchNetboxDevice(hostname),

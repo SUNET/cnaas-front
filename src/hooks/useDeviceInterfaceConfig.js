@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import { getData, getDataHeaders } from "../utils/getData";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { useFreshRef } from "./useFreshRef";
+import {
+  fetchDeviceSettings,
+  fetchInterfaceStatus,
+  fetchLldpNeighbors,
+  fetchAccessInterfaces,
+  fetchDistInterfaces,
+} from "../services/deviceApi";
 
 /**
  * Hook that manages interface config data fetching.
@@ -40,188 +46,63 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
     portTemplates: [],
   });
 
-  // --- Fetch functions ---
+  const mlagPeerFoundRef = useRef(false);
+
+  // --- Fetch-and-set wrappers ---
 
   const getDeviceSettings = useCallback(async () => {
-    const settingsUrl = `${process.env.API_URL}/api/v1.0/settings?hostname=${hostname}`;
-    try {
-      const dataSettings = (await getData(settingsUrl, tokenRef.current)).data
-        .settings;
-
-      const vlans = Object.entries(dataSettings.vxlans).map(
-        ([, vxlanData]) => ({
-          key: vxlanData.vni,
-          value: vxlanData.vlan_name,
-          text: vxlanData.vlan_name,
-          description: vxlanData.vlan_id,
-        }),
-      );
-
-      const untaggedVlans = [
-        ...vlans,
-        { value: null, text: "None", description: "NA" },
-      ];
-
-      const interfaceTagOptions = dataSettings.interface_tag_options;
-      let tags = [];
-      if (interfaceTagOptions) {
-        tags =
-          Object.entries(interfaceTagOptions).map(([tagName]) => ({
-            text: tagName,
-            value: tagName,
-          })) ?? [];
-      }
-
-      setDeviceState((prev) => ({ ...prev, settings: dataSettings }));
-      setFieldOptionsState((prev) => ({ ...prev, vlans, untaggedVlans, tags }));
-    } catch (error) {
-      console.log(error);
-    }
+    const result = await fetchDeviceSettings(hostname, tokenRef.current);
+    if (!result) return;
+    const { settings, vlans, untaggedVlans, tags } = result;
+    setDeviceState((prev) => ({ ...prev, settings }));
+    setFieldOptionsState((prev) => ({ ...prev, vlans, untaggedVlans, tags }));
   }, [hostname, tokenRef]);
 
   const getInterfaceStatusData = useCallback(async () => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interface_status`;
-      const data = await getData(url, tokenRef.current);
-      setInterfacesState((prev) => ({
-        ...prev,
-        status: data.data.interface_status,
-      }));
-    } catch (error) {
-      console.log(error);
-      setInterfacesState((prev) => ({ ...prev, status: {} }));
-    }
+    const status = await fetchInterfaceStatus(hostname, tokenRef.current);
+    setInterfacesState((prev) => ({ ...prev, status }));
   }, [hostname, tokenRef]);
 
   const getLldpNeighborData = useCallback(async () => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/lldp_neighbors_detail`;
-      const data = await getData(url, tokenRef.current);
-      const fetchedLldpNeighsDetail = data.data.lldp_neighbors_detail;
-      const lldpNeighbors = {};
-      // save keys as lowercase, in case yaml interface name is not correct case
-      Object.keys(fetchedLldpNeighsDetail ?? []).forEach((key) => {
-        lldpNeighbors[key.toLowerCase()] = fetchedLldpNeighsDetail[key];
-      });
-      setInterfacesState((prev) => ({ ...prev, lldpNeighbors }));
-    } catch (error) {
-      console.log(error);
-      setInterfacesState((prev) => ({ ...prev, lldpNeighbors: {} }));
-    }
-  }, [hostname, tokenRef]);
-
-  const getInterfaceDataAccess = useCallback(async () => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces`;
-      const fetchedInterfaces =
-        (await getData(url, tokenRef.current)).data.interfaces ?? [];
-      setInterfacesState((prev) => ({ ...prev, data: fetchedInterfaces }));
-
-      setFieldOptionsState((prev) => {
-        const usedTags = prev.tags.slice();
-        fetchedInterfaces.forEach((item) => {
-          const ifData = item.data;
-          if (ifData !== null && "tags" in ifData) {
-            ifData.tags.forEach((tag) => {
-              if (usedTags.some((e) => e.text === tag)) {
-                return; // don't add duplicate tags
-              }
-              usedTags.push({ text: tag, value: tag });
-            });
-          }
-        });
-        return { ...prev, tags: usedTags };
-      });
-
-      for (const item of fetchedInterfaces) {
-        const ifData = item.data;
-        if (
-          ifData !== null &&
-          "neighbor_id" in ifData &&
-          !deviceState.mlagPeerHostname
-        ) {
-          try {
-            const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
-            const mlagData = await getData(mlagDevURL, tokenRef.current);
-            setDeviceState((prev) => ({
-              ...prev,
-              mlagPeerHostname: mlagData.data.devices[0].hostname,
-            }));
-            break;
-          } catch (error) {
-            console.log(`MLAG peer not found: ${error}`);
-          }
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }, [hostname, tokenRef, deviceState.mlagPeerHostname]);
-
-  const getInterfaceDataDist = useCallback(async () => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/generate_config`;
-      const data = await getDataHeaders(url, tokenRef.current, {
-        "X-Fields": "available_variables{interfaces,port_template_options}",
-      });
-      const fetchedAvailableVariables = data.data.config.available_variables;
-
-      const availablePortTemplateOptions =
-        fetchedAvailableVariables.port_template_options;
-      const usedPortTemplates = Object.entries(
-        availablePortTemplateOptions ?? {},
-      ).map(([templateName, templateData]) => ({
-        text: templateName,
-        value: templateName,
-        description: templateData.description,
-        vlan_config: templateData.vlan_config,
-      }));
-
-      const availableInterfaces = fetchedAvailableVariables.interfaces;
-      setInterfacesState((prev) => ({ ...prev, data: availableInterfaces }));
-
-      const allPortTemplates = [...usedPortTemplates];
-      availableInterfaces.forEach((item) => {
-        if (item.ifclass.startsWith("port_template")) {
-          const templateName = item.ifclass.substring("port_template_".length);
-          if (!allPortTemplates.some((e) => e.text === templateName)) {
-            allPortTemplates.push({
-              text: templateName,
-              value: templateName,
-            });
-          }
-        }
-      });
-
-      setFieldOptionsState((prev) => {
-        const usedTags = prev.tags.slice();
-        availableInterfaces.forEach((item) => {
-          if (usedTags.length === 0 && item.tags) {
-            item.tags.forEach((tag) => {
-              if (!usedTags.some((e) => e.text === tag)) {
-                usedTags.push({ text: tag, value: tag });
-              }
-            });
-          }
-        });
-        return { ...prev, tags: usedTags, portTemplates: allPortTemplates };
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    const lldpNeighbors = await fetchLldpNeighbors(hostname, tokenRef.current);
+    setInterfacesState((prev) => ({ ...prev, lldpNeighbors }));
   }, [hostname, tokenRef]);
 
   const getInterfaceData = useCallback(async () => {
-    if (deviceType === "ACCESS") {
-      await getInterfaceDataAccess();
-    } else if (deviceType === "DIST") {
-      await getInterfaceDataDist();
-    }
+    switch (deviceType) {
+      case "ACCESS": {
+        const result = await fetchAccessInterfaces(hostname, tokenRef.current);
+        if (!result) return;
+        const { interfaces, tags, mlagPeerHostname } = result;
+        setInterfacesState((prev) => ({ ...prev, data: interfaces }));
+        setFieldOptionsState((prev) => ({
+          ...prev,
+          tags: mergeTags(prev.tags, tags),
+        }));
+        if (mlagPeerHostname && !mlagPeerFoundRef.current) {
+          mlagPeerFoundRef.current = true;
+          setDeviceState((prev) => ({ ...prev, mlagPeerHostname }));
+        }
+        break;
+      }
+      case "DIST": {
+        const result = await fetchDistInterfaces(hostname, tokenRef.current);
+        if (!result) return;
+        const { interfaces, tags, portTemplates } = result;
+        setInterfacesState((prev) => ({ ...prev, data: interfaces }));
+        setFieldOptionsState((prev) => ({
+          ...prev,
+          tags: mergeTags(prev.tags, tags),
+          portTemplates,
+        }));
+        break;
+      }
 
-    if (deviceType && deviceType !== "ACCESS" && deviceType !== "DIST") {
-      console.error(`Unsupported device type: ${deviceType}`);
+      default:
+        console.error(`Unsupported device type: ${deviceType}`);
+        break;
     }
-  }, [deviceType, getInterfaceDataAccess, getInterfaceDataDist]);
+  }, [hostname, deviceType, tokenRef]);
 
   // --- Convenience actions ---
 
@@ -273,15 +154,12 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
     setDeviceState((prev) => ({ ...prev, thirdPartyUpdate: true }));
   }, []);
 
-  const clearThirdPartyUpdate = useCallback(() => {
-    setDeviceState((prev) => ({ ...prev, thirdPartyUpdate: false }));
-  }, []);
-
   // --- Effects ---
 
   /** On mount: fetch settings */
   useEffect(() => {
     if (!hostname) return;
+    mlagPeerFoundRef.current = false;
     getDeviceSettings();
   }, [hostname, getDeviceSettings]);
 
@@ -312,11 +190,21 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
     refreshInterfaceStatus,
     reloadDeviceData,
     getInterfaceData,
-    getDeviceSettings,
     addTagOption,
     addPortTemplateOption,
     addNewInterface,
     markThirdPartyUpdate,
-    clearThirdPartyUpdate,
   };
+}
+
+// --- Helpers ---
+
+function mergeTags(existing, incoming) {
+  const merged = existing.slice();
+  incoming.forEach((tag) => {
+    if (!merged.some((e) => e.text === tag.text)) {
+      merged.push(tag);
+    }
+  });
+  return merged;
 }
