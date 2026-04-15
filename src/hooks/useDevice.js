@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getData } from "../utils/getData";
 import { useAuthToken } from "../contexts/AuthTokenContext";
+import { useFreshRef } from "./useFreshRef";
 
 /**
  * Hook that fetches a single device by hostname from the API.
@@ -11,6 +12,7 @@ import { useAuthToken } from "../contexts/AuthTokenContext";
  */
 export function useDevice(hostname) {
   const { token } = useAuthToken();
+  const tokenRef = useFreshRef(token);
   const [device, setDevice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -21,7 +23,7 @@ export function useDevice(hostname) {
     setError(null);
     try {
       const url = `${process.env.API_URL}/api/v1.0/device/${hostname}`;
-      const fetched = (await getData(url, token)).data.devices[0];
+      const fetched = (await getData(url, tokenRef.current)).data.devices[0];
       setDevice(fetched ?? null);
     } catch (err) {
       console.error(`Failed to fetch device ${hostname}:`, err);
@@ -30,7 +32,7 @@ export function useDevice(hostname) {
     } finally {
       setLoading(false);
     }
-  }, [hostname, token]);
+  }, [hostname, tokenRef]);
 
   useEffect(() => {
     fetchDevice();
