@@ -11,7 +11,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import FirmwareCopy from "./components/FirmwareCopy";
 import { FirmwareUpgrade } from "./components/FirmwareUpgrade";
 import GroupList from "./components/GroupList";
-import { InterfaceConfig } from "./components/InterfaceConfig/InterfaceConfig";
+import { InterfaceConfigPage } from "./components/InterfaceConfig/InterfaceConfigPage";
 import { JobList } from "./components/JobList";
 import Login from "./components/Login/Login";
 import Settings from "./components/Settings";
@@ -32,7 +32,7 @@ const router = createBrowserRouter([
           { path: "/config-change", element: <ConfigChange /> },
           { path: "/firmware-upgrade", element: <FirmwareUpgrade /> },
           { path: "/firmware-copy", element: <FirmwareCopy /> },
-          { path: "/interface-config", element: <InterfaceConfig /> },
+          { path: "/interface-config", element: <InterfaceConfigPage /> },
           { path: "/settings", element: <Settings /> },
         ],
       },

@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { type SyntheticEvent, type ReactNode } from "react";
 import {
   Input,
   Dropdown,
@@ -20,7 +21,8 @@ import { InterfaceStatusDown } from "./InterfaceStatusDown";
 import { BounceInterfaceButton } from "./BounceInterfaceButton";
 import { PortTypeCellAccess } from "./PortTypeCellAccess";
 import { PortTypeCellDist } from "./PortTypeCellDist";
-import PropTypes from "prop-types";
+import { useInterfaceConfig } from "../InterfaceConfigContext";
+import type { InterfaceItem, DropdownOption } from "../interfaceConfigReducer";
 
 const CONFIG_TYPES_ENABLED = [
   "ACCESS_AUTO",
@@ -31,7 +33,7 @@ const CONFIG_TYPES_ENABLED = [
 
 const IF_CLASSES_ENABLED = ["custom", "downlink"];
 
-function mapVlanToName(vlan, vlanOptions) {
+function mapVlanToName(vlan: unknown, vlanOptions: DropdownOption[]): unknown {
   if (typeof vlan === "number") {
     const mapped = vlanOptions.find((opt) => opt.description === vlan);
     return mapped ? mapped.value : vlan;
@@ -39,53 +41,62 @@ function mapVlanToName(vlan, vlanOptions) {
   return vlan;
 }
 
-InterfaceTableRow.propTypes = {
-  addPortTemplateOption: PropTypes.func,
-  addTagOption: PropTypes.func,
-  deviceSettings: PropTypes.object,
-  deviceType: PropTypes.string,
-  displayColumns: PropTypes.array,
-  hostname: PropTypes.string,
-  index: PropTypes.number,
-  interfaceBounceRunning: PropTypes.object,
-  interfaceDataUpdated: PropTypes.object,
-  interfaceStatusData: PropTypes.object,
-  interfaceToggleUntagged: PropTypes.object,
-  item: PropTypes.object,
-  lldpNeighborData: PropTypes.object,
-  netboxInterfaceData: PropTypes.array,
-  portTemplateOptions: PropTypes.array,
-  submitBounce: PropTypes.func,
-  tagOptions: PropTypes.array,
-  untaggedClick: PropTypes.func,
-  untaggedVlanOptions: PropTypes.array,
-  updateFieldData: PropTypes.func,
-  vlanOptions: PropTypes.array,
-};
+// --- Props ---
 
+interface InterfaceTableRowProps {
+  item: InterfaceItem;
+  index: number;
+  updateFieldData: (e: SyntheticEvent, data: Record<string, unknown>) => void;
+  addTagOption: (e: SyntheticEvent, data: Record<string, unknown>) => void;
+  addPortTemplateOption: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
+  submitBounce: () => void;
+  untaggedClick: (e: SyntheticEvent, data: Record<string, unknown>) => void;
+}
+
+/**
+ * A single row in the interface config table.
+ *
+ * Reads ambient data (settings, field options, status, etc.) from context.
+ * Only receives row-specific data as props: `item` and `index`.
+ *
+ * Also receives callback props that are pre-bound or adapter-shaped
+ * from the parent: `updateFieldData`, `addTagOption`, `addPortTemplateOption`,
+ * `submitBounce`, `untaggedClick`. These adapt the Semantic UI callback
+ * signatures to the context's named actions.
+ */
 export function InterfaceTableRow({
-  addPortTemplateOption,
-  addTagOption,
-  deviceSettings,
-  deviceType,
-  displayColumns,
-  hostname,
-  index,
-  interfaceBounceRunning,
-  interfaceDataUpdated,
-  interfaceStatusData,
-  interfaceToggleUntagged,
   item,
-  lldpNeighborData,
-  netboxInterfaceData,
-  portTemplateOptions,
-  submitBounce,
-  tagOptions,
-  untaggedClick,
-  untaggedVlanOptions,
+  index,
   updateFieldData,
-  vlanOptions,
-}) {
+  addTagOption,
+  addPortTemplateOption,
+  submitBounce,
+  untaggedClick,
+}: InterfaceTableRowProps) {
+  const { state } = useInterfaceConfig();
+
+  const {
+    device,
+    settings: deviceSettings,
+    displayColumns,
+    interfaceBounceRunning,
+    interfaceDataUpdated,
+    interfaceStatus: interfaceStatusData,
+    interfaceToggleUntagged,
+    lldpNeighbors: lldpNeighborData,
+    netboxInterfaces: netboxInterfaceData,
+    portTemplates: portTemplateOptions,
+    tags: tagOptions,
+    vlans: vlanOptions,
+    untaggedVlans: untaggedVlanOptions,
+  } = state;
+
+  const hostname = device?.hostname ?? null;
+  const deviceType = device?.device_type;
+
   const ifDataUpdated =
     item.name in interfaceDataUpdated ? interfaceDataUpdated[item.name] : null;
   const updated = item.name in interfaceDataUpdated;
@@ -93,17 +104,17 @@ export function InterfaceTableRow({
   // Determine if editing is disabled
   let editDisabled = true;
   if (deviceType === "ACCESS") {
-    editDisabled = !CONFIG_TYPES_ENABLED.includes(item.configtype);
+    editDisabled = !CONFIG_TYPES_ENABLED.includes(item.configtype ?? "");
   } else if (deviceType === "DIST") {
     if (item.ifclass?.startsWith("port_template")) {
       editDisabled = false;
     } else {
-      editDisabled = !IF_CLASSES_ENABLED.includes(item.ifclass);
+      editDisabled = !IF_CLASSES_ENABLED.includes(item.ifclass ?? "");
     }
   }
 
   // Initialize fields based on device type
-  const initFields = () => {
+  const initFields = (): Record<string, unknown> => {
     if (deviceType === "ACCESS") {
       return {
         description: "",
@@ -131,11 +142,11 @@ export function InterfaceTableRow({
   const fields = initFields();
 
   // Populate ifData
-  let ifData = item.data;
+  let ifData = item.data as Record<string, unknown> | undefined;
   if (deviceType === "DIST") {
     ifData = {};
     Object.entries(fields).forEach(([key, value]) => {
-      ifData[key] = item[key] ?? value;
+      ifData![key] = (item as Record<string, unknown>)[key] ?? value;
     });
     if (item.peer_hostname) {
       ifData.description = item.peer_hostname;
@@ -159,8 +170,8 @@ export function InterfaceTableRow({
       "redundant_link",
       "tags",
     ].forEach((fieldName) => {
-      if (fieldName in ifData) {
-        fields[fieldName] = ifData[fieldName];
+      if (fieldName in (ifData as Record<string, unknown>)) {
+        fields[fieldName] = (ifData as Record<string, unknown>)[fieldName];
       }
     });
 
@@ -173,9 +184,11 @@ export function InterfaceTableRow({
     if (ifDataUpdated?.tagged_vlan_list !== undefined) {
       fields.tagged_vlan_list = ifDataUpdated.tagged_vlan_list;
     } else if (ifData.tagged_vlan_list) {
-      fields.tagged_vlan_list = ifData.tagged_vlan_list.map((vlanItem) => {
-        return mapVlanToName(vlanItem, vlanOptions);
-      });
+      fields.tagged_vlan_list = (ifData.tagged_vlan_list as unknown[]).map(
+        (vlanItem) => {
+          return mapVlanToName(vlanItem, vlanOptions);
+        },
+      );
     }
   } else if (ifDataUpdated) {
     [
@@ -194,22 +207,26 @@ export function InterfaceTableRow({
   }
 
   // Determine current config type and display settings
-  let currentConfigtype = null;
-  let currentIfClass = null;
+  let currentConfigtype: string | null = null;
+  let currentIfClass: string | null = null;
   let displayVlan = false;
   let displayVlanTagged = false;
   let displayTaggedToggle = false;
-  let portTemplate = null;
+  let portTemplate: string | null = null;
   let currentEnabled = fields.enabled;
 
   if (deviceType === "ACCESS") {
-    currentConfigtype = ifDataUpdated?.configtype ?? item.configtype;
+    currentConfigtype =
+      (ifDataUpdated?.configtype as string) ?? item.configtype ?? null;
 
     if (currentConfigtype === "ACCESS_TAGGED") {
       displayVlanTagged = true;
       displayTaggedToggle = true;
     }
-    if (["ACCESS_TAGGED", "ACCESS_UNTAGGED"].includes(currentConfigtype)) {
+    if (
+      currentConfigtype &&
+      ["ACCESS_TAGGED", "ACCESS_UNTAGGED"].includes(currentConfigtype)
+    ) {
       displayVlan = true;
     }
     if (item.name in interfaceToggleUntagged) {
@@ -221,16 +238,17 @@ export function InterfaceTableRow({
   } else if (deviceType === "DIST") {
     currentIfClass = item.ifclass?.startsWith("port_template")
       ? "port_template"
-      : item.ifclass;
+      : (item.ifclass ?? null);
 
     if (ifDataUpdated?.ifclass) {
-      currentIfClass = ifDataUpdated.ifclass;
+      currentIfClass = ifDataUpdated.ifclass as string;
     }
 
     if (currentIfClass?.startsWith("port_template")) {
       portTemplate =
-        ifDataUpdated?.port_template ??
-        item.ifclass?.substring("port_template_".length);
+        (ifDataUpdated?.port_template as string) ??
+        item.ifclass?.substring("port_template_".length) ??
+        null;
 
       const dropDownEntry = portTemplateOptions.find(
         (obj) => obj.text === portTemplate,
@@ -262,7 +280,7 @@ export function InterfaceTableRow({
 
   // Render optional columns
   const optionalColumns = displayColumns.map((columnName) => {
-    let colData = [];
+    let colData: ReactNode[] = [];
 
     if (columnName === "vlans") {
       if (!deviceSettings) {
@@ -278,16 +296,26 @@ export function InterfaceTableRow({
               fluid
               multiple
               selection
-              search={(filteredOptions, searchQuery) => {
-                const re = new RegExp(_.escapeRegExp(searchQuery), "i");
-                return _.filter(
-                  filteredOptions,
-                  (opt) =>
-                    re.test(opt.text) || re.test(opt.description?.toString()),
-                );
-              }}
-              options={vlanOptions}
-              defaultValue={fields.tagged_vlan_list}
+              search={
+                ((
+                  filteredOptions: Array<{
+                    text: string;
+                    description?: unknown;
+                  }>,
+                  searchQuery: string,
+                ) => {
+                  const re = new RegExp(_.escapeRegExp(searchQuery), "i");
+                  return _.filter(
+                    filteredOptions,
+                    (opt) =>
+                      re.test(opt.text) ||
+                      re.test(opt.description?.toString() ?? ""),
+                  );
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                }) as any
+              }
+              options={vlanOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+              defaultValue={fields.tagged_vlan_list as any} // eslint-disable-line @typescript-eslint/no-explicit-any
               onChange={updateFieldData}
             />,
           ];
@@ -298,16 +326,26 @@ export function InterfaceTableRow({
               name={`untagged_vlan|${item.name}`}
               fluid
               selection
-              search={(filteredOptions, searchQuery) => {
-                const re = new RegExp(_.escapeRegExp(searchQuery), "i");
-                return _.filter(
-                  filteredOptions,
-                  (opt) =>
-                    re.test(opt.text) || re.test(opt.description?.toString()),
-                );
-              }}
-              options={untaggedVlanOptions}
-              defaultValue={fields.untagged_vlan}
+              search={
+                ((
+                  filteredOptions: Array<{
+                    text: string;
+                    description?: unknown;
+                  }>,
+                  searchQuery: string,
+                ) => {
+                  const re = new RegExp(_.escapeRegExp(searchQuery), "i");
+                  return _.filter(
+                    filteredOptions,
+                    (opt) =>
+                      re.test(opt.text) ||
+                      re.test(opt.description?.toString() ?? ""),
+                  );
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                }) as any
+              }
+              options={untaggedVlanOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+              defaultValue={fields.untagged_vlan as any} // eslint-disable-line @typescript-eslint/no-explicit-any
               onChange={updateFieldData}
             />,
           ];
@@ -362,8 +400,8 @@ export function InterfaceTableRow({
           selection
           search
           allowAdditions
-          options={tagOptions}
-          defaultValue={fields.tags}
+          options={tagOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+          defaultValue={fields.tags as string[]}
           onAddItem={addTagOption}
           onChange={updateFieldData}
           disabled={editDisabled}
@@ -404,7 +442,7 @@ export function InterfaceTableRow({
             <Checkbox
               key={`bpdu_filter|${item.name}`}
               name={`bpdu_filter|${item.name}`}
-              defaultChecked={fields.bpdu_filter}
+              defaultChecked={fields.bpdu_filter as boolean}
               onChange={updateFieldData}
               disabled={editDisabled}
             />
@@ -447,14 +485,15 @@ export function InterfaceTableRow({
   });
 
   // Render status icon
-  let statusIcon = <Icon loading color="grey" name="spinner" />;
+  let statusIcon: ReactNode = <Icon loading color="grey" name="spinner" />;
   const interfaceStatusDataLower = Object.fromEntries(
     Object.entries(interfaceStatusData).map(([k, v]) => [k.toLowerCase(), v]),
   );
 
   if (item.name.toLowerCase() in interfaceStatusDataLower) {
-    const itemInterfaceStatusData =
-      interfaceStatusDataLower[item.name.toLowerCase()];
+    const itemInterfaceStatusData = interfaceStatusDataLower[
+      item.name.toLowerCase()
+    ] as Record<string, unknown>;
 
     const toggleEnabled = (
       <Checkbox
@@ -463,14 +502,14 @@ export function InterfaceTableRow({
         toggle
         // eslint-disable-next-line jsx-a11y/label-has-associated-control
         label={<label>Enable interface</label>}
-        defaultChecked={currentEnabled}
+        defaultChecked={currentEnabled as boolean}
         onChange={updateFieldData}
         disabled={editDisabled}
       />
     );
 
     let bounceDisabled = false;
-    let statusMessage = null;
+    let statusMessage: ReactNode = null;
     if (item.name in interfaceBounceRunning) {
       if (interfaceBounceRunning[item.name] === "running") {
         bounceDisabled = true;
@@ -524,23 +563,35 @@ export function InterfaceTableRow({
   }
 
   // Netbox and LLDP popups
-  let netboxInterfacePopup = null;
+  let netboxInterfacePopup: ReactNode = null;
   if (Array.isArray(netboxInterfaceData) && netboxInterfaceData.length > 0) {
     const currentNetboxInterfaceData = netboxInterfaceData.find(
-      (netboxInterface) => netboxInterface.name === item.name,
+      (netboxInterface) =>
+        (netboxInterface as Record<string, unknown>).name === item.name,
     );
     if (currentNetboxInterfaceData) {
       netboxInterfacePopup = (
-        <NetboxInterfacePopup netboxInterface={currentNetboxInterfaceData} />
+        <NetboxInterfacePopup
+          netboxInterface={
+            currentNetboxInterfaceData as Record<string, unknown>
+          }
+        />
       );
     }
   }
 
-  let lldpNeighborPopup = null;
-  if (Object.hasOwn(lldpNeighborData, item.name.toLowerCase())) {
+  let lldpNeighborPopup: ReactNode = null;
+  if (
+    Object.hasOwn(
+      lldpNeighborData as Record<string, unknown>,
+      item.name.toLowerCase(),
+    )
+  ) {
     lldpNeighborPopup = (
       <LldpNeighborPopup
-        lldpNeighborData={lldpNeighborData[item.name.toLowerCase()]}
+        lldpNeighborData={
+          (lldpNeighborData as Record<string, unknown>)[item.name.toLowerCase()]
+        }
       />
     );
   }
@@ -571,7 +622,7 @@ export function InterfaceTableRow({
       </Table.Cell>
       {deviceType === "ACCESS" && (
         <PortTypeCellAccess
-          item={item}
+          item={item as Record<string, unknown>}
           currentConfigtype={currentConfigtype}
           fields={fields}
           editDisabled={editDisabled}
@@ -580,11 +631,11 @@ export function InterfaceTableRow({
       )}
       {deviceType === "DIST" && (
         <PortTypeCellDist
-          item={item}
+          item={item as Record<string, unknown>}
           currentIfClass={currentIfClass}
           portTemplate={portTemplate}
           editDisabled={editDisabled}
-          portTemplateOptions={portTemplateOptions}
+          portTemplateOptions={portTemplateOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
           updateFieldData={updateFieldData}
           addPortTemplateOption={addPortTemplateOption}
         />
