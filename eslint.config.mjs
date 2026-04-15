@@ -5,6 +5,7 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import reactPlugin from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
+import tseslint from "typescript-eslint";
 import globals from "globals";
 import { defineConfig, globalIgnores } from "eslint/config";
 
@@ -26,7 +27,10 @@ const commonRules = {
   "react-hooks/exhaustive-deps": "off",
   "react-hooks/immutability": "warn",
   "react/destructuring-assignment": "error",
-  "react/jsx-filename-extension": "off",
+  "react/jsx-filename-extension": [
+    "off",
+    { extensions: [".js", ".jsx", ".tsx"] },
+  ],
   "react/prop-types": "error",
   "react/sort-comp": "error",
   "react-hooks/set-state-in-effect": "warn",
@@ -57,6 +61,11 @@ export default defineConfig([
     },
     settings: {
       react: { version: "detect" },
+      "import/resolver": {
+        node: {
+          extensions: [".js", ".jsx", ".ts", ".tsx"],
+        },
+      },
     },
     rules: commonRules,
   },
@@ -119,6 +128,49 @@ export default defineConfig([
       },
     },
     rules: {
+      "import/no-unresolved": "off",
+    },
+  },
+
+  // TypeScript files - use typescript-eslint parser, disable prop-types
+  {
+    name: "cnaas/typescript",
+    files: ["**/*.{ts,tsx}"],
+    ignores: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+    extends: [tseslint.configs.recommended],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        globalThis: "readonly",
+        module: "readonly",
+        process: "readonly",
+        require: "readonly",
+      },
+    },
+    rules: {
+      "react/prop-types": "off",
+      "import/no-unresolved": "off",
+    },
+  },
+
+  // TypeScript test files
+  {
+    name: "cnaas/typescript-tests",
+    files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+    extends: [tseslint.configs.recommended],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.jest,
+        global: "readonly",
+        globalThis: "readonly",
+        module: "readonly",
+        process: "readonly",
+        require: "readonly",
+      },
+    },
+    rules: {
+      "react/prop-types": "off",
       "import/no-unresolved": "off",
     },
   },
