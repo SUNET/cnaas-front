@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getData, getDataHeaders } from "../utils/getData";
 import { useAuthToken } from "../contexts/AuthTokenContext";
+import { useFreshRef } from "./useFreshRef";
 
 /**
  * Hook that manages interface config data fetching.
@@ -18,6 +19,7 @@ import { useAuthToken } from "../contexts/AuthTokenContext";
  */
 export function useDeviceInterfaceConfig(hostname, deviceType) {
   const { token } = useAuthToken();
+  const tokenRef = useFreshRef(token);
 
   const [deviceState, setDeviceState] = useState({
     settings: null,
@@ -43,7 +45,8 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
   const getDeviceSettings = useCallback(async () => {
     const settingsUrl = `${process.env.API_URL}/api/v1.0/settings?hostname=${hostname}`;
     try {
-      const dataSettings = (await getData(settingsUrl, token)).data.settings;
+      const dataSettings = (await getData(settingsUrl, tokenRef.current)).data
+        .settings;
 
       const vlans = Object.entries(dataSettings.vxlans).map(
         ([, vxlanData]) => ({
@@ -74,12 +77,12 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
     } catch (error) {
       console.log(error);
     }
-  }, [hostname, token]);
+  }, [hostname, tokenRef]);
 
   const getInterfaceStatusData = useCallback(async () => {
     try {
       const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interface_status`;
-      const data = await getData(url, token);
+      const data = await getData(url, tokenRef.current);
       setInterfacesState((prev) => ({
         ...prev,
         status: data.data.interface_status,
@@ -88,12 +91,12 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
       console.log(error);
       setInterfacesState((prev) => ({ ...prev, status: {} }));
     }
-  }, [hostname, token]);
+  }, [hostname, tokenRef]);
 
   const getLldpNeighborData = useCallback(async () => {
     try {
       const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/lldp_neighbors_detail`;
-      const data = await getData(url, token);
+      const data = await getData(url, tokenRef.current);
       const fetchedLldpNeighsDetail = data.data.lldp_neighbors_detail;
       const lldpNeighbors = {};
       // save keys as lowercase, in case yaml interface name is not correct case
@@ -105,13 +108,13 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
       console.log(error);
       setInterfacesState((prev) => ({ ...prev, lldpNeighbors: {} }));
     }
-  }, [hostname, token]);
+  }, [hostname, tokenRef]);
 
   const getInterfaceDataAccess = useCallback(async () => {
     try {
       const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces`;
       const fetchedInterfaces =
-        (await getData(url, token)).data.interfaces ?? [];
+        (await getData(url, tokenRef.current)).data.interfaces ?? [];
       setInterfacesState((prev) => ({ ...prev, data: fetchedInterfaces }));
 
       setFieldOptionsState((prev) => {
@@ -139,7 +142,7 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
         ) {
           try {
             const mlagDevURL = `${process.env.API_URL}/api/v1.0/device/${ifData.neighbor_id}`;
-            const mlagData = await getData(mlagDevURL, token);
+            const mlagData = await getData(mlagDevURL, tokenRef.current);
             setDeviceState((prev) => ({
               ...prev,
               mlagPeerHostname: mlagData.data.devices[0].hostname,
@@ -153,12 +156,12 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
     } catch (error) {
       console.log(error);
     }
-  }, [hostname, token, deviceState.mlagPeerHostname]);
+  }, [hostname, tokenRef, deviceState.mlagPeerHostname]);
 
   const getInterfaceDataDist = useCallback(async () => {
     try {
       const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/generate_config`;
-      const data = await getDataHeaders(url, token, {
+      const data = await getDataHeaders(url, tokenRef.current, {
         "X-Fields": "available_variables{interfaces,port_template_options}",
       });
       const fetchedAvailableVariables = data.data.config.available_variables;
@@ -206,7 +209,7 @@ export function useDeviceInterfaceConfig(hostname, deviceType) {
     } catch (error) {
       console.log(error);
     }
-  }, [hostname, token]);
+  }, [hostname, tokenRef]);
 
   const getInterfaceData = useCallback(async () => {
     if (deviceType === "ACCESS") {
