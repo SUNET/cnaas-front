@@ -70,7 +70,7 @@ export function DeviceList() {
     const params = new URLSearchParams(globalThis.location.search);
     const locationFilterData = {};
     for (const [key, value] of params.entries()) {
-      const match = key.match(/^filter\[(.+)\]$/);
+      const match = /^filter\[(.+)\]$/.exec(key);
       if (match) locationFilterData[match[1]] = value;
     }
     const hasLocationFilterData = Object.keys(locationFilterData).length > 0;
@@ -180,7 +180,7 @@ export function DeviceList() {
     // Set filterData on searchParam change
     const locationFilterData = {};
     for (const [key, value] of searchParams.entries()) {
-      const match = key.match(/^filter\[(.+)\]$/);
+      const match = /^filter\[(.+)\]$/.exec(key);
       if (match) locationFilterData[match[1]] = value;
     }
 
@@ -265,7 +265,7 @@ export function DeviceList() {
 
     for (const [key, value] of searchParams.entries()) {
       if (!value) continue; // skip empty values
-      const match = key.match(/^filter\[(.+)\]$/);
+      const match = /^filter\[(.+)\]$/.exec(key);
       if (!match) continue;
       const matchedKey = match[1];
       const operator = operatorMap[matchedKey] ?? "[contains]";

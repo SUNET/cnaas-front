@@ -50,7 +50,7 @@ const COLUMN_WIDTHS: Record<string, number> = {
 // --- Props ---
 
 interface InterfaceConfigProps {
-  hostname: string | null;
+  readonly hostname: string | null;
 }
 
 // --- Component ---
@@ -173,8 +173,8 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
       }
 
       if (field === "aggregate_id") {
-        val = parseInt(val as string, 10);
-        if (isNaN(val as number)) val = null;
+        val = Number.parseInt(val as string, 10);
+        if (Number.isNaN(val as number)) val = null;
       }
 
       updateField(interfaceName, field, val, defaultValue);
@@ -347,7 +347,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
 
     const label = index === 0 ? "Dry run" : "Live run";
     return (
-      <li key={index}>
+      <li key={job.job_id}>
         {label} (job ID {job.job_id}) status: {job.status} {jobIcon}
       </li>
     );
@@ -356,7 +356,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   const unusedInterfaces = state.interfaceStatus
     ? Object.keys(state.interfaceStatus).filter(
         (ifName) =>
-          !state.interfaces.find(
+          !state.interfaces.some(
             (obj) => obj.name.toLowerCase() === ifName.toLowerCase(),
           ),
       )

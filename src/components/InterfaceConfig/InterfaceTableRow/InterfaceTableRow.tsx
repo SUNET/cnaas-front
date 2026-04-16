@@ -27,14 +27,14 @@ import type {
   DropdownOption,
 } from "../../../store/interfaceConfig/interfaceConfigReducer";
 
-const CONFIG_TYPES_ENABLED = [
+const CONFIG_TYPES_ENABLED = new Set([
   "ACCESS_AUTO",
   "ACCESS_UNTAGGED",
   "ACCESS_TAGGED",
   "ACCESS_DOWNLINK",
-];
+]);
 
-const IF_CLASSES_ENABLED = ["custom", "downlink"];
+const IF_CLASSES_ENABLED = new Set(["custom", "downlink"]);
 
 function mapVlanToName(vlan: unknown, vlanOptions: DropdownOption[]): unknown {
   if (typeof vlan === "number") {
@@ -107,12 +107,12 @@ export function InterfaceTableRow({
   // Determine if editing is disabled
   let editDisabled = true;
   if (deviceType === "ACCESS") {
-    editDisabled = !CONFIG_TYPES_ENABLED.includes(item.configtype ?? "");
+    editDisabled = !CONFIG_TYPES_ENABLED.has(item.configtype ?? "");
   } else if (deviceType === "DIST") {
     if (item.ifclass?.startsWith("port_template")) {
       editDisabled = false;
     } else {
-      editDisabled = !IF_CLASSES_ENABLED.includes(item.ifclass ?? "");
+      editDisabled = !IF_CLASSES_ENABLED.has(item.ifclass ?? "");
     }
   }
 
@@ -145,7 +145,7 @@ export function InterfaceTableRow({
   const fields = initFields();
 
   // Populate ifData
-  let ifData = item.data as Record<string, unknown> | undefined;
+  let ifData = item.data;
   if (deviceType === "DIST") {
     ifData = {};
     Object.entries(fields).forEach(([key, value]) => {
@@ -173,8 +173,8 @@ export function InterfaceTableRow({
       "redundant_link",
       "tags",
     ].forEach((fieldName) => {
-      if (fieldName in (ifData as Record<string, unknown>)) {
-        fields[fieldName] = (ifData as Record<string, unknown>)[fieldName];
+      if (fieldName in ifData) {
+        fields[fieldName] = ifData[fieldName];
       }
     });
 
@@ -489,14 +489,16 @@ export function InterfaceTableRow({
 
   // Render status icon
   let statusIcon: ReactNode = <Icon loading color="grey" name="spinner" />;
-  const interfaceStatusDataLower = Object.fromEntries(
+  const interfaceStatusDataLower: Record<
+    string,
+    Record<string, unknown>
+  > = Object.fromEntries(
     Object.entries(interfaceStatusData).map(([k, v]) => [k.toLowerCase(), v]),
   );
 
   if (item.name.toLowerCase() in interfaceStatusDataLower) {
-    const itemInterfaceStatusData = interfaceStatusDataLower[
-      item.name.toLowerCase()
-    ] as Record<string, unknown>;
+    const itemInterfaceStatusData =
+      interfaceStatusDataLower[item.name.toLowerCase()];
 
     const toggleEnabled = (
       <Checkbox
@@ -569,32 +571,20 @@ export function InterfaceTableRow({
   let netboxInterfacePopup: ReactNode = null;
   if (Array.isArray(netboxInterfaceData) && netboxInterfaceData.length > 0) {
     const currentNetboxInterfaceData = netboxInterfaceData.find(
-      (netboxInterface) =>
-        (netboxInterface as Record<string, unknown>).name === item.name,
+      (netboxInterface) => netboxInterface.name === item.name,
     );
     if (currentNetboxInterfaceData) {
       netboxInterfacePopup = (
-        <NetboxInterfacePopup
-          netboxInterface={
-            currentNetboxInterfaceData as Record<string, unknown>
-          }
-        />
+        <NetboxInterfacePopup netboxInterface={currentNetboxInterfaceData} />
       );
     }
   }
 
   let lldpNeighborPopup: ReactNode = null;
-  if (
-    Object.hasOwn(
-      lldpNeighborData as Record<string, unknown>,
-      item.name.toLowerCase(),
-    )
-  ) {
+  if (Object.hasOwn(lldpNeighborData, item.name.toLowerCase())) {
     lldpNeighborPopup = (
       <LldpNeighborPopup
-        lldpNeighborData={
-          (lldpNeighborData as Record<string, unknown>)[item.name.toLowerCase()]
-        }
+        lldpNeighborData={lldpNeighborData[item.name.toLowerCase()]}
       />
     );
   }
