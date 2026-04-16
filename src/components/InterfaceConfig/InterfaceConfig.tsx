@@ -14,8 +14,8 @@ import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { NewInterface } from "./NewInterface";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
-import { useInterfaceConfig } from "./InterfaceConfigContext";
-import { useInterfaceConfigSocket } from "./useInterfaceConfigSocket";
+import { useInterfaceConfig } from "../../store/interfaceConfig/InterfaceConfigContext";
+import { useInterfaceConfigSocket } from "../../store/interfaceConfig/useInterfaceConfigSocket";
 
 // --- Constants ---
 
@@ -99,12 +99,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         type: "warning",
         icon: "paper plane",
         title: "Synchronized state was changed!",
-        description: (
-          <p>
-            Device state was changed to {String(state.synchronized)} by a third
-            party.
-          </p>
-        ),
+        description: `Device state was changed to ${String(state.synchronized)} by a third party.`,
         animation: "bounce",
         time: 0,
       });
@@ -120,18 +115,13 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         type: "warning",
         icon: "paper plane",
         title: "Device was updated elsewhere!",
-        description: (
-          <p>
-            Device has been updated by a third party, this page is out of sync.
-            <br />
-            <Button onClick={reloadAllData}>Refresh</Button>
-          </p>
-        ),
+        description:
+          "Device has been updated by a third party, this page is out of sync.",
         animation: "bounce",
         time: 0,
       });
     }
-  }, [state.thirdPartyUpdate, reloadAllData]);
+  }, [state.thirdPartyUpdate]);
 
   // --- Local UI state (not shared) ---
 
