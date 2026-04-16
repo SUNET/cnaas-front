@@ -1,9 +1,13 @@
 /**
  * Type declarations for third-party modules that lack bundled types.
+ *
+ * Note: react-semantic-toasts-2 ships its own types in build/index.d.ts,
+ * but this ambient declaration takes precedence. Keep it in sync with the
+ * bundled types.
  */
 
 declare module "react-semantic-toasts-2" {
-  import { Component, type ReactNode } from "react";
+  import { Component } from "react";
 
   interface SemanticToastContainerProps {
     position?: string;
@@ -17,12 +21,18 @@ declare module "react-semantic-toasts-2" {
   interface ToastOptions {
     type?: "success" | "error" | "warning" | "info";
     title?: string;
-    description?: string | ReactNode;
+    description?: string;
     time?: number;
     icon?: string;
     animation?: string;
     size?: string;
+    color?: string;
   }
 
-  export function toast(options: ToastOptions): void;
+  export function toast(
+    options: ToastOptions,
+    onClose?: () => void,
+    onClick?: () => void,
+    onDismiss?: () => void,
+  ): void;
 }

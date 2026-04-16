@@ -21,8 +21,11 @@ import { InterfaceStatusDown } from "./InterfaceStatusDown";
 import { BounceInterfaceButton } from "./BounceInterfaceButton";
 import { PortTypeCellAccess } from "./PortTypeCellAccess";
 import { PortTypeCellDist } from "./PortTypeCellDist";
-import { useInterfaceConfig } from "../InterfaceConfigContext";
-import type { InterfaceItem, DropdownOption } from "../interfaceConfigReducer";
+import { useInterfaceConfig } from "../../../store/interfaceConfig/InterfaceConfigContext";
+import type {
+  InterfaceItem,
+  DropdownOption,
+} from "../../../store/interfaceConfig/interfaceConfigReducer";
 
 const CONFIG_TYPES_ENABLED = [
   "ACCESS_AUTO",
