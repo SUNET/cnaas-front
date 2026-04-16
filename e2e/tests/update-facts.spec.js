@@ -16,12 +16,14 @@ test("update facts on a MANAGED device", async ({ page }, testInfo) => {
   await expandButton.click();
 
   // Open the "Actions" dropdown and click "Update facts"
-  const actionsDropdown = page.getByRole("button", { name: "Actions" });
+  const actionsDropdown = page.locator(".ui.button.dropdown", {
+    hasText: "Actions",
+  });
   await expect(actionsDropdown).toBeVisible({ timeout: 5000 });
   await actionsDropdown.click();
 
-  const updateFactsOption = page.getByRole("option", {
-    name: "Update facts",
+  const updateFactsOption = page.locator(".menu .item", {
+    hasText: "Update facts",
   });
   await expect(updateFactsOption).toBeVisible();
   await updateFactsOption.click();
