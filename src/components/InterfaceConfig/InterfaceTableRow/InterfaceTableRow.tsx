@@ -1,18 +1,13 @@
-import _ from "lodash";
 import { type SyntheticEvent, type ReactNode } from "react";
+import { ButtonGroup, Checkbox, Icon, Input, Table } from "semantic-ui-react";
+import { VlanColumn } from "./VlanColumn";
 import {
-  Input,
-  Dropdown,
-  Icon,
-  Table,
-  Loader,
-  Button,
-  ButtonGroup,
-  Popup,
-  Checkbox,
-  TextArea,
-} from "semantic-ui-react";
-import { InterfaceCurrentConfig } from "./InterfaceCurrentConfig";
+  TagsColumn,
+  JsonColumn,
+  AggregateIdColumn,
+  BpduFilterColumn,
+} from "./columns";
+import { ConfigColumn } from "./ConfigColumn";
 import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
 import { LldpNeighborPopup } from "./LldpNeighborPopup";
 import { InterfaceStatusUp } from "./InterfaceStatusUp";
@@ -42,6 +37,112 @@ function mapVlanToName(vlan: unknown, vlanOptions: DropdownOption[]): unknown {
     return mapped ? mapped.value : vlan;
   }
   return vlan;
+}
+
+// --- OptionalColumn dispatcher ---
+
+interface OptionalColumnProps {
+  readonly columnName: string;
+  readonly interfaceName: string;
+  readonly fields: Record<string, unknown>;
+  readonly editDisabled: boolean;
+  readonly displayVlan: boolean;
+  readonly displayVlanTagged: boolean;
+  readonly displayTaggedToggle: boolean;
+  readonly hostname: string | null;
+  readonly config: string | undefined;
+  readonly data: Record<string, unknown> | undefined;
+  readonly currentIfClass: string | null;
+  readonly updateFieldData: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
+  readonly addTagOption: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
+  readonly untaggedClick: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
+}
+
+function OptionalColumn({
+  columnName,
+  interfaceName,
+  fields,
+  editDisabled,
+  displayVlan,
+  displayVlanTagged,
+  displayTaggedToggle,
+  hostname,
+  config,
+  data,
+  currentIfClass,
+  updateFieldData,
+  addTagOption,
+  untaggedClick,
+}: OptionalColumnProps) {
+  const { state } = useInterfaceConfig();
+
+  switch (columnName) {
+    case "vlans":
+      return (
+        <VlanColumn
+          interfaceName={interfaceName}
+          displayVlan={displayVlan}
+          displayVlanTagged={displayVlanTagged}
+          displayTaggedToggle={displayTaggedToggle}
+          taggedVlanList={fields.tagged_vlan_list}
+          untaggedVlan={fields.untagged_vlan}
+          updateFieldData={updateFieldData}
+          untaggedClick={untaggedClick}
+        />
+      );
+    case "tags":
+      return (
+        <TagsColumn
+          interfaceName={interfaceName}
+          tags={fields.tags as string[]}
+          editDisabled={editDisabled}
+          tagOptions={state.tags}
+          updateFieldData={updateFieldData}
+          addTagOption={addTagOption}
+        />
+      );
+    case "json":
+      return <JsonColumn data={data} />;
+    case "aggregate_id":
+      return (
+        <AggregateIdColumn
+          interfaceName={interfaceName}
+          aggregateId={fields.aggregate_id}
+          editDisabled={editDisabled}
+          updateFieldData={updateFieldData}
+        />
+      );
+    case "bpdu_filter":
+      return (
+        <BpduFilterColumn
+          interfaceName={interfaceName}
+          bpduFilter={fields.bpdu_filter as boolean}
+          editDisabled={editDisabled}
+          updateFieldData={updateFieldData}
+        />
+      );
+    case "config":
+      return (
+        <ConfigColumn
+          interfaceName={interfaceName}
+          hostname={hostname}
+          config={config}
+          currentIfClass={currentIfClass}
+          updateFieldData={updateFieldData}
+        />
+      );
+    default:
+      return null;
+  }
 }
 
 // --- Props ---
@@ -92,7 +193,6 @@ export function InterfaceTableRow({
 
   const {
     device,
-    settings: deviceSettings,
     displayColumns,
     interfaceBounceRunning,
     interfaceDataUpdated,
@@ -101,9 +201,7 @@ export function InterfaceTableRow({
     lldpNeighbors: lldpNeighborData,
     netboxInterfaces: netboxInterfaceData,
     portTemplates: portTemplateOptions,
-    tags: tagOptions,
     vlans: vlanOptions,
-    untaggedVlans: untaggedVlanOptions,
   } = state;
 
   const hostname = device?.hostname ?? null;
@@ -170,7 +268,7 @@ export function InterfaceTableRow({
     if (ifData.description) {
       fields.description = ifData.description;
     } else if (ifData.neighbor) {
-      fields.description = `Uplink to ${ifData.neighbor}`;
+      fields.description = `Uplink to ${String(ifData.neighbor)}`;
     } else if (ifData.neighbor_id) {
       fields.description = "MLAG peer link";
     }
@@ -291,210 +389,26 @@ export function InterfaceTableRow({
   }
 
   // Render optional columns
-  const optionalColumns = displayColumns.map((columnName) => {
-    let colData: ReactNode[] = [];
-
-    if (columnName === "vlans") {
-      if (!deviceSettings) {
-        colData = [<Loader key="loading" inline active />];
-      } else if (vlanOptions.length === 0) {
-        colData = [<p key="no-vlans">No VLANs available</p>];
-      } else if (displayVlan) {
-        if (displayVlanTagged) {
-          colData = [
-            <Dropdown
-              key={`tagged_vlan_list|${item.name}`}
-              name={`tagged_vlan_list|${item.name}`}
-              fluid
-              multiple
-              selection
-              search={
-                ((
-                  filteredOptions: Array<{
-                    text: string;
-                    description?: unknown;
-                  }>,
-                  searchQuery: string,
-                ) => {
-                  const re = new RegExp(_.escapeRegExp(searchQuery), "i");
-                  return _.filter(
-                    filteredOptions,
-                    (opt) =>
-                      re.test(opt.text) ||
-                      re.test(opt.description?.toString() ?? ""),
-                  );
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                }) as any
-              }
-              options={vlanOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-              defaultValue={fields.tagged_vlan_list as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-              onChange={updateFieldData}
-            />,
-          ];
-        } else {
-          colData = [
-            <Dropdown
-              key={`untagged_vlan|${item.name}`}
-              name={`untagged_vlan|${item.name}`}
-              fluid
-              selection
-              search={
-                ((
-                  filteredOptions: Array<{
-                    text: string;
-                    description?: unknown;
-                  }>,
-                  searchQuery: string,
-                ) => {
-                  const re = new RegExp(_.escapeRegExp(searchQuery), "i");
-                  return _.filter(
-                    filteredOptions,
-                    (opt) =>
-                      re.test(opt.text) ||
-                      re.test(opt.description?.toString() ?? ""),
-                  );
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                }) as any
-              }
-              options={untaggedVlanOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-              defaultValue={fields.untagged_vlan as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-              onChange={updateFieldData}
-            />,
-          ];
-        }
-
-        if (displayTaggedToggle) {
-          colData.push(
-            <ButtonGroup key="toggle_tagged" size="mini" vertical>
-              <Popup
-                key="untagged_popup"
-                content="Change untagged VLAN"
-                position="top right"
-                trigger={
-                  <Button
-                    id={item.name}
-                    name="untagged"
-                    onClick={untaggedClick}
-                    active={item.name in interfaceToggleUntagged}
-                    className="table-button-compact"
-                  >
-                    U
-                  </Button>
-                }
-              />
-              <Popup
-                key="tagged_popup"
-                content="Change list of tagged VLANs"
-                position="bottom right"
-                trigger={
-                  <Button
-                    id={item.name}
-                    name="tagged"
-                    onClick={untaggedClick}
-                    active={!(item.name in interfaceToggleUntagged)}
-                    className="table-button-compact"
-                  >
-                    T
-                  </Button>
-                }
-              />
-            </ButtonGroup>,
-          );
-        }
-      }
-    } else if (columnName === "tags") {
-      colData = [
-        <Dropdown
-          key={`tags|${item.name}`}
-          name={`tags|${item.name}`}
-          fluid
-          multiple
-          selection
-          search
-          allowAdditions
-          options={tagOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-          defaultValue={fields.tags as string[]}
-          onAddItem={addTagOption}
-          onChange={updateFieldData}
-          disabled={editDisabled}
-        />,
-      ];
-    } else if (columnName === "json") {
-      if (item.data) {
-        colData = [
-          <Popup
-            key="rawjson"
-            header="Raw JSON data"
-            content={JSON.stringify(item.data)}
-            position="top right"
-            wide
-            hoverable
-            trigger={<Icon color="grey" name="ellipsis horizontal" />}
-          />,
-        ];
-      }
-    } else if (columnName === "aggregate_id") {
-      colData = [
-        <Input
-          key={`aggregate_id|${item.name}`}
-          name={`aggregate_id|${item.name}`}
-          defaultValue={fields.aggregate_id}
-          disabled={editDisabled}
-          onChange={updateFieldData}
-        />,
-      ];
-    } else if (columnName === "bpdu_filter") {
-      colData = [
-        <Popup
-          key="bpdu_filter"
-          header="Enable spanning-tree BPDU filter on this interface"
-          wide
-          hoverable
-          trigger={
-            <Checkbox
-              key={`bpdu_filter|${item.name}`}
-              name={`bpdu_filter|${item.name}`}
-              defaultChecked={fields.bpdu_filter as boolean}
-              onChange={updateFieldData}
-              disabled={editDisabled}
-            />
-          }
-        />,
-      ];
-    } else if (columnName === "config") {
-      colData = [
-        <TextArea
-          key={`config|${item.name}`}
-          name={`config|${item.name}`}
-          defaultValue={item.config}
-          rows={3}
-          cols={50}
-          hidden={currentIfClass !== "custom"}
-          onChange={updateFieldData}
-        />,
-        <Popup
-          key="config_popup"
-          on="click"
-          pinned
-          position="top right"
-          trigger={
-            <Button compact size="small">
-              <Icon name="arrow alternate circle down outline" />
-            </Button>
-          }
-        >
-          <p key="title">Current running config:</p>
-          <InterfaceCurrentConfig hostname={hostname} interface={item.name} />
-        </Popup>,
-      ];
-    }
-
-    return (
-      <Table.Cell collapsing key={columnName}>
-        {colData}
-      </Table.Cell>
-    );
-  });
+  const optionalColumns = displayColumns.map((columnName) => (
+    <Table.Cell collapsing key={columnName}>
+      <OptionalColumn
+        columnName={columnName}
+        interfaceName={item.name}
+        fields={fields}
+        editDisabled={editDisabled}
+        displayVlan={displayVlan}
+        displayVlanTagged={displayVlanTagged}
+        displayTaggedToggle={displayTaggedToggle}
+        hostname={hostname}
+        config={item.config}
+        data={item.data}
+        currentIfClass={currentIfClass}
+        updateFieldData={updateFieldData}
+        addTagOption={addTagOption}
+        untaggedClick={untaggedClick}
+      />
+    </Table.Cell>
+  ));
 
   // Render status icon
   let statusIcon: ReactNode = <Icon loading color="grey" name="spinner" />;
