@@ -51,6 +51,7 @@ See the containerlab topology repo for build and deploy instructions.
 **Other repos:**
 
 - [cnaas-nms](https://github.com/SUNET/cnaas-nms) — the backend
+- [cnaas-nms-clab-ztp](https://github.com/SUNET/cnaas-nms-clab-ztp) — containerlab topology and ZTP setup
 
 ## Step-by-step: Running the full e2e suite
 
@@ -97,7 +98,7 @@ curl -ks https://localhost/api/v1.0/system/version
 From repo root, run
 
 ```bash
-npx playwright test --project=firefox --headed
+npm run test:e2e -- --project=firefox --headed
 ```
 
 The `firefox` project runs the full test suite including ZTP device
@@ -106,6 +107,11 @@ but skip the ZTP test (`ztp-init.spec.js`) since it can only run once per
 environment — it initializes the access switch, which cannot be undone
 without redeploying containerlab (`--reconfigure`) and restarting the
 backend (to clear the database volume).
+
+**Important:** The ZTP test (`@ztp` tag) must complete successfully before
+running the interface-config tests, since those tests require a MANAGED
+ACCESS device (`eosaccess`) that is created during the ZTP initialization
+flow.
 
 What happens automatically:
 
