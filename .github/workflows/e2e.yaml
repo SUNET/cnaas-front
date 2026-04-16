@@ -47,8 +47,13 @@ jobs:
       - name: Install Playwright firefox
         run: npx playwright install firefox --with-deps
 
+      - name: Run Playwright e2e tests (ZTP)
+        run: npm run test:e2e:ztp
+        env:
+          CI: "true"
+
       - name: Run Playwright e2e tests
-        run: npx playwright test --project=firefox --grep-invert @ztp
+        run: npm run test:e2e
         env:
           CI: "true"
 
