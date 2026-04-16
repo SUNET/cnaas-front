@@ -12,7 +12,7 @@ process.loadEnvFile(path.resolve(__dirname, ".env.e2e"));
  * @see https://playwright.dev/docs/test-configuration
  */
 module.exports = defineConfig({
-  testDir: "./e2e",
+  testDir: "./e2e/tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

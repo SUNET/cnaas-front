@@ -10,7 +10,7 @@
  * and test_01_init_dist, but via plain HTTP from Playwright.
  */
 import { test as setup } from "@playwright/test";
-import { JWT_TOKEN, API_BASE } from "./constants.js";
+import { JWT_TOKEN, API_BASE } from "../constants.js";
 
 /** @param {string} path */
 function url(path) {

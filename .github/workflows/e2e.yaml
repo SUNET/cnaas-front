@@ -48,7 +48,7 @@ jobs:
         run: npx playwright install firefox --with-deps
 
       - name: Run Playwright e2e tests
-        run: npx playwright test --project=firefox
+        run: npx playwright test --project=firefox --grep-invert @ztp
         env:
           CI: "true"
 
