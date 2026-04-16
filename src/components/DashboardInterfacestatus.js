@@ -20,7 +20,7 @@ export function DashboardInterfaceStatus() {
     setIsLoading(true);
 
     try {
-      const interfaces = await fetchNetboxDashboardInterfaces();
+      const interfaces = await fetchNetboxDashboardInterfaces(token);
       if (interfaces.length === 0) {
         setIsLoading(false);
         return;
