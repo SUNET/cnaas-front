@@ -487,7 +487,7 @@ export function DeviceList() {
     const model = getModel(hostname);
     if (!model || netboxModelData[model]) return;
 
-    const data = await fetchNetboxModel(model);
+    const data = await fetchNetboxModel(model, token);
     if (data) {
       setNetboxModelData((prev) => ({ ...prev, [model]: data }));
     }
@@ -496,7 +496,7 @@ export function DeviceList() {
   const getNetboxDeviceData = async (hostname) => {
     if (netboxDeviceData[hostname]) return;
 
-    const data = await fetchNetboxDevice(hostname);
+    const data = await fetchNetboxDevice(hostname, token);
     if (data) {
       setNetboxDeviceData((prev) => ({ ...prev, [hostname]: data }));
     }

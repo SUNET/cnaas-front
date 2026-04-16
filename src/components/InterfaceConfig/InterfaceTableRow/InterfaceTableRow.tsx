@@ -47,16 +47,25 @@ function mapVlanToName(vlan: unknown, vlanOptions: DropdownOption[]): unknown {
 // --- Props ---
 
 interface InterfaceTableRowProps {
-  item: InterfaceItem;
-  index: number;
-  updateFieldData: (e: SyntheticEvent, data: Record<string, unknown>) => void;
-  addTagOption: (e: SyntheticEvent, data: Record<string, unknown>) => void;
-  addPortTemplateOption: (
+  readonly item: InterfaceItem;
+  readonly index: number;
+  readonly updateFieldData: (
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-  submitBounce: () => void;
-  untaggedClick: (e: SyntheticEvent, data: Record<string, unknown>) => void;
+  readonly addTagOption: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
+  readonly addPortTemplateOption: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
+  readonly submitBounce: () => void;
+  readonly untaggedClick: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
 }
 
 /**

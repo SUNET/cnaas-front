@@ -85,8 +85,8 @@ export function useInterfaceConfig(): InterfaceConfigContextValue {
 // --- Provider ---
 
 interface InterfaceConfigProviderProps {
-  hostname: string | null;
-  children: ReactNode;
+  readonly hostname: string | null;
+  readonly children: ReactNode;
 }
 
 export function InterfaceConfigProvider({
@@ -169,14 +169,16 @@ export function InterfaceConfigProvider({
 
   const loadNetbox = useCallback(async () => {
     if (!hostname || !deviceType) return;
+    const token = tokenRef.current;
+    if (!token) return;
 
     const [netboxDevice, netboxModel] = await Promise.all([
-      fetchNetboxDevice(hostname),
-      deviceModel ? fetchNetboxModel(deviceModel as string) : null,
+      fetchNetboxDevice(hostname, token),
+      deviceModel ? fetchNetboxModel(deviceModel as string, token) : null,
     ]);
 
     const netboxInterfaces = netboxDevice
-      ? await fetchNetboxInterfaces(netboxDevice.id)
+      ? await fetchNetboxInterfaces(netboxDevice.id, token)
       : [];
 
     dispatch({
@@ -185,7 +187,7 @@ export function InterfaceConfigProvider({
       netboxInterfaces,
       netboxModel,
     });
-  }, [hostname, deviceType, deviceModel]);
+  }, [hostname, deviceType, deviceModel, tokenRef, dispatch]);
 
   // --- Effects: initial data loading ---
 

@@ -1,31 +1,27 @@
 import { Grid, Popup, Divider, Button } from "semantic-ui-react";
 import { useEffect, useState } from "react";
+import { useAuthToken } from "../contexts/AuthTokenContext";
 import {
   fetchNetboxTenant,
   fetchNetboxTenantContacts,
 } from "../services/netbox";
 
 export function DashboardNetboxTenant() {
+  const { token } = useAuthToken();
   const [netboxTenant, setNetboxTenant] = useState(null);
   const [netboxContacts, setNetboxContacts] = useState(null);
-  const [error, setError] = useState(null);
 
   const getNetboxObjects = async () => {
     if (netboxTenant) return;
 
-    try {
-      const tenant = await fetchNetboxTenant();
-      if (tenant) {
-        setNetboxTenant(tenant);
-      }
+    const tenant = await fetchNetboxTenant(token);
+    if (tenant) {
+      setNetboxTenant(tenant);
+    }
 
-      const contacts = await fetchNetboxTenantContacts();
-      if (contacts.length > 0) {
-        setNetboxContacts(contacts);
-      }
-    } catch (err) {
-      console.warn("Failed to load NetBox tenant data:", err);
-      setError(err);
+    const contacts = await fetchNetboxTenantContacts(token);
+    if (contacts.length > 0) {
+      setNetboxContacts(contacts);
     }
   };
 
@@ -35,15 +31,6 @@ export function DashboardNetboxTenant() {
 
   if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
     return null;
-  }
-
-  if (error) {
-    return (
-      <>
-        <Divider horizontal>NetBox Tenant</Divider>
-        <p>Failed to load NetBox tenant data.</p>
-      </>
-    );
   }
 
   return (

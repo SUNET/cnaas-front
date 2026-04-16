@@ -8,7 +8,7 @@ import { postData } from "../utils/sendData";
  *
  * Returns null if NETBOX_API_URL is not configured.
  */
-function resolveNetboxCredentials() {
+function resolveNetboxCredentials(token) {
   if (!process.env.NETBOX_API_URL) {
     return null;
   }
@@ -22,7 +22,6 @@ function resolveNetboxCredentials() {
     };
   }
 
-  const token = localStorage.getItem("token");
   return {
     credentials: token,
     getFunc: getData,
@@ -34,12 +33,12 @@ function resolveNetboxCredentials() {
  * Fetch a device from Netbox by hostname.
  * Returns the device object, or null if not found or Netbox is not configured.
  */
-export async function fetchNetboxDevice(hostname) {
+export async function fetchNetboxDevice(hostname, token) {
   if (!process.env.NETBOX_TENANT_ID) {
     return null;
   }
 
-  const resolved = resolveNetboxCredentials();
+  const resolved = resolveNetboxCredentials(token);
   if (!resolved) return null;
 
   const { credentials, getFunc, url } = resolved;
@@ -64,8 +63,8 @@ export async function fetchNetboxDevice(hostname) {
  * Fetch interfaces for a Netbox device by device ID.
  * Returns an array of interface objects, or an empty array on failure.
  */
-export async function fetchNetboxInterfaces(deviceId) {
-  const resolved = resolveNetboxCredentials();
+export async function fetchNetboxInterfaces(deviceId, token) {
+  const resolved = resolveNetboxCredentials(token);
   if (!resolved) return [];
 
   const { credentials, getFunc, url } = resolved;
@@ -85,8 +84,8 @@ export async function fetchNetboxInterfaces(deviceId) {
  * Returns the model object, or null if not found.
  * Used by DeviceList for model info in expanded rows.
  */
-export async function fetchNetboxModel(model) {
-  const resolved = resolveNetboxCredentials();
+export async function fetchNetboxModel(model, token) {
+  const resolved = resolveNetboxCredentials(token);
   if (!resolved) return null;
 
   const { credentials, getFunc, url } = resolved;
@@ -111,50 +110,66 @@ export async function fetchNetboxModel(model) {
  * Fetch tenant data from Netbox by NETBOX_TENANT_ID.
  * Returns the tenant object, or null if not found or not configured.
  */
-export async function fetchNetboxTenant() {
+export async function fetchNetboxTenant(token) {
   if (!process.env.NETBOX_TENANT_ID) return null;
 
-  const resolved = resolveNetboxCredentials();
+  const resolved = resolveNetboxCredentials(token);
   if (!resolved) return null;
 
   const { credentials, getFunc, url } = resolved;
-  const data = await getFunc(
-    `${url}/api/tenancy/tenants/?id=${process.env.NETBOX_TENANT_ID}`,
-    credentials,
-  );
+  const requestUrl = `${url}/api/tenancy/tenants/?id=${process.env.NETBOX_TENANT_ID}`;
 
-  if (data.results?.length === 1) {
-    return data.results[0];
+  try {
+    const data = await getFunc(requestUrl, credentials);
+
+    if (data.results?.length === 1) {
+      return data.results[0];
+    }
+
+    console.debug(
+      "No Netbox tenant found for ID",
+      process.env.NETBOX_TENANT_ID,
+    );
+    return null;
+  } catch (error) {
+    console.debug(`Netbox request failed: ${requestUrl}`, error);
+    return null;
   }
-  return null;
 }
 
 /**
  * Fetch contact assignments for the configured tenant via Netbox GraphQL.
  * Returns an array of contact assignments, or an empty array on failure.
  */
-export async function fetchNetboxTenantContacts() {
+export async function fetchNetboxTenantContacts(token) {
   if (!process.env.NETBOX_TENANT_ID) return [];
 
-  const resolved = resolveNetboxCredentials();
+  const resolved = resolveNetboxCredentials(token);
   if (!resolved) return [];
 
   const { credentials, url } = resolved;
+  const requestUrl = `${url}/graphql/`;
   const query = {
     query: `query {contact_assignment_list(filters:{object_id: ${process.env.NETBOX_TENANT_ID}, object_type: { id: { exact: 110 }}}) {contact {name email phone} role {name} priority}}`,
   };
-  const data = await postData(`${url}/graphql/`, credentials, query);
-  return data.data?.contact_assignment_list ?? [];
+
+  try {
+    const data = await postData(requestUrl, credentials, query);
+    return data.data?.contact_assignment_list ?? [];
+  } catch (error) {
+    console.debug(`Netbox request failed: ${requestUrl}`, error);
+    return [];
+  }
 }
 
 /**
  * Fetch physical interfaces tagged for the dashboard from Netbox.
  * Returns an array of interface objects, or an empty array on failure.
  */
-export async function fetchNetboxDashboardInterfaces() {
+export async function fetchNetboxDashboardInterfaces(token) {
   if (!process.env.NETBOX_TENANT_ID) return [];
 
-  const resolved = resolveNetboxCredentials();
+  const resolved = resolveNetboxCredentials(token);
   if (!resolved) return [];
 
   const { credentials, getFunc, url } = resolved;
