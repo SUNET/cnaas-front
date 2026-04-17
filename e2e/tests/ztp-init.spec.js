@@ -53,7 +53,7 @@ async function waitForDevice(page, timeoutMs = 600_000) {
   );
 }
 
-test.describe("Device initialization", { tag: ["@ztp", "@e2e"] }, () => {
+test.describe("Device initialization", { tag: "@ztp" }, () => {
   // This test can take a long time — ZTP boot + discovery + init + config push.
   test.setTimeout(600_000); // 10 minutes
 

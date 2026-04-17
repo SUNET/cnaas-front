@@ -1,7 +1,7 @@
 // @ts-check
 import { test, expect } from "@playwright/test";
 
-test.describe("Interface config page", { tag: "@e2e" }, () => {
+test.describe("Interface config page", () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to devices page and click the plug icon for eosaccess
     await page.goto("/devices");

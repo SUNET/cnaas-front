@@ -11,18 +11,20 @@ test("update facts on a MANAGED device", async ({ page }, testInfo) => {
   });
 
   // Expand the eosdist1 row
-  const row = page.locator("tr", { hasText: "eosdist1" });
-  const expandButton = row.locator("td").first();
-  await expandButton.click();
+  const row = page.locator("tr", { hasText: "eosdist1" }).first();
+  await row.locator("td").first().click();
+
+  // The expanded content is in the next sibling row
+  const expandedRow = page.locator("tr", { hasText: "eosdist1" }).nth(1);
 
   // Open the "Actions" dropdown and click "Update facts"
-  const actionsDropdown = page.locator(".ui.button.dropdown", {
+  const actionsDropdown = expandedRow.locator(".ui.button.dropdown", {
     hasText: "Actions",
   });
   await expect(actionsDropdown).toBeVisible({ timeout: 5000 });
   await actionsDropdown.click();
 
-  const updateFactsOption = page.locator(".menu .item", {
+  const updateFactsOption = expandedRow.locator(".menu .item", {
     hasText: "Update facts",
   });
   await expect(updateFactsOption).toBeVisible();
