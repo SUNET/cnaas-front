@@ -49,11 +49,8 @@ export function Callback() {
       const newToken = searchParams.get("token");
       putToken(newToken);
       getPermissions(newToken);
-      return;
-    }
-
-    // No URL params — if already logged in, redirect home
-    if (token) {
+    } else if (token) {
+      // No URL params — if already logged in, redirect home
       window.location.replace("/");
     }
   }, []); // mount-only: runs once on OIDC redirect landing
