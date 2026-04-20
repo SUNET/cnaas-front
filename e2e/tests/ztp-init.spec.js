@@ -201,7 +201,7 @@ test.describe("Device initialization", { tag: "@ztp" }, () => {
     // The ZTP flow creates a discover_device job when the switch is found.
     const discoverJobRow = page.locator("tr", {
       hasText: "discover_device",
-    });
+    }).first();
     await expect(
       discoverJobRow.getByRole("cell", { name: "discover_device" }),
     ).toBeVisible({ timeout: 15000 });
@@ -212,7 +212,7 @@ test.describe("Device initialization", { tag: "@ztp" }, () => {
     // The device init creates a job with function_name "init_access_device_step1".
     const initJobRow = page.locator("tr", {
       hasText: "init_access_device_step1",
-    });
+    }).first();
     await expect(
       initJobRow.getByRole("cell", { name: "init_access_device_step1" }),
     ).toBeVisible();
