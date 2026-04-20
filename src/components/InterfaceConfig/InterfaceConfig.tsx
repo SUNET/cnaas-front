@@ -115,8 +115,9 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         type: "warning",
         icon: "paper plane",
         title: "Device was updated elsewhere!",
-        description:
-          "Device has been updated by a third party, this page is out of sync.",
+        description: state.updatedBy
+          ? `Device has been updated by ${state.updatedBy}, this page is out of sync.`
+          : "Device has been updated by a third party, this page is out of sync.",
         animation: "bounce",
         time: 0,
       });
@@ -453,8 +454,9 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         {state.thirdPartyUpdate && (
           <p>
             <Icon name="warning sign" color="orange" size="large" />
-            Device has been updated by a third party. Reload page to get the
-            latest changes (local changes will be lost).{" "}
+            Device has been updated
+            {state.updatedBy ? ` by ${state.updatedBy}` : " by a third party"}.
+            Reload page to get the latest changes (local changes will be lost).{" "}
             <Button size="mini" onClick={reloadAllData}>
               Refresh Data
             </Button>
