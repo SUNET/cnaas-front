@@ -1,1 +1,4 @@
-export function useAuthToken(): { token: string | null };
+export function useAuthToken(): {
+  token: string | null;
+  username: string;
+};

@@ -69,6 +69,7 @@ export interface InterfaceConfigState {
 
   synchronized: boolean | null;
   thirdPartyUpdate: boolean;
+  updatedBy: string | null;
   ownUpdateInProgress: boolean;
 
   autoPushJobs: JobEntry[];
@@ -161,7 +162,7 @@ export type Action =
   | { type: typeof actions.ADD_NEW_INTERFACE; interfaceName: string }
   | { type: typeof actions.SET_DISPLAY_COLUMNS; columns: string[] }
   | { type: typeof actions.DEVICE_UPDATED; synchronized: boolean }
-  | { type: typeof actions.MARK_THIRD_PARTY_UPDATE }
+  | { type: typeof actions.MARK_THIRD_PARTY_UPDATE; updatedBy?: string }
   | { type: typeof actions.CLEAR_THIRD_PARTY_UPDATE }
   | { type: typeof actions.JOB_STARTED; jobId: number }
   | { type: typeof actions.JOB_UPDATED; jobData: JobEntry }
@@ -207,6 +208,7 @@ export const initialState: InterfaceConfigState = {
   // Sync / socket
   synchronized: null,
   thirdPartyUpdate: false,
+  updatedBy: null,
   ownUpdateInProgress: false,
 
   // Job tracking
@@ -340,10 +342,14 @@ export function interfaceConfigReducer(
       };
 
     case actions.MARK_THIRD_PARTY_UPDATE:
-      return { ...state, thirdPartyUpdate: true };
+      return {
+        ...state,
+        thirdPartyUpdate: true,
+        updatedBy: action.updatedBy ?? null,
+      };
 
     case actions.CLEAR_THIRD_PARTY_UPDATE:
-      return { ...state, thirdPartyUpdate: false };
+      return { ...state, thirdPartyUpdate: false, updatedBy: null };
 
     // --- Job tracking ---
 
@@ -439,6 +445,7 @@ export function interfaceConfigReducer(
       return {
         ...state,
         thirdPartyUpdate: false,
+        updatedBy: null,
         ownUpdateInProgress: false,
         interfaceDataUpdated: {},
       };

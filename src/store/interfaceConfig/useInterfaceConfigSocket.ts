@@ -35,6 +35,7 @@ interface DeviceUpdateData {
 
 interface JobUpdateData {
   job_id: number;
+  scheduled_by?: string;
   status: string;
   next_job_id?: number;
 }
@@ -47,7 +48,7 @@ export function useInterfaceConfigSocket({
   awaitingSync,
   reloadAllData,
 }: UseInterfaceConfigSocketParams): void {
-  const { token } = useAuthToken();
+  const { token, username } = useAuthToken();
 
   // Keep state accessible to event handlers without stale closures
   const stateRef = useRef(state);
@@ -111,6 +112,14 @@ export function useInterfaceConfigSocket({
     }
 
     function handleJobUpdate(data: JobUpdateData, s: InterfaceConfigState) {
+      // If this job was scheduled by a different user, mark as third-party
+      if (data.scheduled_by && username && data.scheduled_by !== username) {
+        dispatch({
+          type: actions.MARK_THIRD_PARTY_UPDATE,
+          updatedBy: data.scheduled_by,
+        });
+      }
+
       dispatch({ type: actions.JOB_UPDATED, jobData: data });
 
       // When second job finishes, start awaiting device sync
@@ -130,5 +139,5 @@ export function useInterfaceConfigSocket({
       socket.off("connect", onConnect);
       socket.off("events", onEvents);
     };
-  }, [dispatch, awaitingSync, reloadAllData]);
+  }, [dispatch, awaitingSync, reloadAllData, username]);
 }
