@@ -14,7 +14,7 @@ RUN npm ci --ignore-scripts
 COPY src src
 
 # Update js files to reference window instead of process.env
-RUN find /opt/cnaas-front/src -type f -name '*.js' -exec \
+RUN find /opt/cnaas-front/src -type f \( -name '*.js' -o -name '*.ts' -o -name '*.tsx' \) -exec \
     sed -i "s|process\.env\.|window\.|g" '{}' +
 
 RUN npm run build
