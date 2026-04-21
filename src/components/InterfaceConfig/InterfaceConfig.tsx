@@ -418,11 +418,14 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         <h2>Interface configuration</h2>
 
         {device && (
-          <DeviceInfoTable
-            device={device}
-            model={state.netboxModel}
-            netboxDevice={state.netboxDevice}
-          />
+          <details>
+            <summary>Device details</summary>
+            <DeviceInfoTable
+              device={device}
+              model={state.netboxModel}
+              netboxDevice={state.netboxDevice}
+            />
+          </details>
         )}
 
         {state.mlagPeerHostname && (
