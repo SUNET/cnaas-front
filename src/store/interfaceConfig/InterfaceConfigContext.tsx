@@ -36,7 +36,6 @@ import {
   type Action,
   type InterfaceItem,
   type DropdownOption,
-  type LinknetMismatch,
 } from "./interfaceConfigReducer";
 import { computeLinknetMismatches, type Linknet } from "./linknetVerification";
 

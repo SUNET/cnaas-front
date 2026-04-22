@@ -23,20 +23,6 @@ function makeLinknet(overrides: Partial<Linknet> = {}): Linknet {
   };
 }
 
-function makeLldp(
-  systemName: string,
-  port: string,
-): Record<string, LldpNeighbor[]> {
-  return {
-    [systemName]: [
-      {
-        remote_system_name: systemName,
-        remote_port: port,
-      },
-    ],
-  };
-}
-
 function lldpEntry(
   localPort: string,
   remoteName: string,
