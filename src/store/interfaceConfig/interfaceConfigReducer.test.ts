@@ -564,6 +564,49 @@ describe("interfaceConfigReducer", () => {
 
   // --- Reload ---
 
+  describe("LINKNET_MISMATCHES_LOADED", () => {
+    test("sets linknetMismatches from payload", () => {
+      const mismatches = {
+        "Ethernet49/1": {
+          expectedHostname: "sw2",
+          expectedPort: "Ethernet1/1",
+          actualHostname: "wrong",
+          actualPort: "Ethernet1/1",
+          linknetId: 1,
+          ipv4Network: "10.0.0.0/31",
+        },
+      };
+      const result = reducer(initialState, {
+        type: actions.LINKNET_MISMATCHES_LOADED,
+        mismatches,
+      });
+
+      expect(result.linknetMismatches).toBe(mismatches);
+    });
+
+    test("clears previous mismatches when dispatched with empty object", () => {
+      const state = {
+        ...initialState,
+        linknetMismatches: {
+          "Ethernet49/1": {
+            expectedHostname: "sw2",
+            expectedPort: "Ethernet1/1",
+            actualHostname: null,
+            actualPort: null,
+            linknetId: 1,
+            ipv4Network: "10.0.0.0/31",
+          },
+        },
+      };
+      const result = reducer(state, {
+        type: actions.LINKNET_MISMATCHES_LOADED,
+        mismatches: {},
+      });
+
+      expect(result.linknetMismatches).toEqual({});
+    });
+  });
+
   describe("RELOAD_ALL", () => {
     test("clears thirdPartyUpdate and edit state", () => {
       const state = {

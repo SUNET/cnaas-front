@@ -31,3 +31,14 @@ export function fetchDistInterfaces(
   token: string | null,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any>;
+
+export function fetchDeviceById(
+  deviceId: number,
+  token: string | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any>;
+
+export function fetchLinknets(
+  token: string | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any[]>;

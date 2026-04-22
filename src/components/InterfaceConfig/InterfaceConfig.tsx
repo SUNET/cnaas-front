@@ -74,6 +74,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
     startAutoPush,
     bounceInterface,
     exportInterfaces,
+    verifyLinknets,
   } = useInterfaceConfig();
 
   // Connect socket
@@ -626,6 +627,10 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                   >
                     Refresh interface status
                     <Icon name="refresh" />
+                  </Button>
+                  <Button icon labelPosition="right" onClick={verifyLinknets}>
+                    Verify linknets
+                    <Icon name="linkify" />
                   </Button>
                   {deviceType === "DIST" && (
                     <NewInterface

@@ -14,11 +14,13 @@ import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { useFreshRef } from "../../hooks/useFreshRef";
 import {
   fetchDevice,
+  fetchDeviceById,
   fetchDeviceSettings,
   fetchInterfaceStatus,
   fetchLldpNeighbors,
   fetchAccessInterfaces,
   fetchDistInterfaces,
+  fetchLinknets,
 } from "../../services/deviceApi";
 import {
   fetchNetboxDevice,
@@ -34,7 +36,9 @@ import {
   type Action,
   type InterfaceItem,
   type DropdownOption,
+  type LinknetMismatch,
 } from "./interfaceConfigReducer";
+import { computeLinknetMismatches, type Linknet } from "./linknetVerification";
 
 // --- Context shape ---
 
@@ -65,6 +69,7 @@ export interface InterfaceConfigContextValue {
   startAutoPush: () => Promise<void>;
   bounceInterface: (interfaceName: string) => Promise<void>;
   exportInterfaces: (hostname: string) => Promise<void>;
+  verifyLinknets: () => Promise<void>;
 }
 
 // --- Context ---
@@ -396,6 +401,54 @@ export function InterfaceConfigProvider({
     [tokenRef],
   );
 
+  const verifyLinknets = useCallback(async () => {
+    if (!device) return;
+    const token = tokenRef.current;
+    if (!token) return;
+
+    const allLinknets = await fetchLinknets(token);
+
+    // Filter to linknets involving this device
+    const relevantLinknets = (allLinknets as Linknet[]).filter(
+      (ln) => ln.device_a_id === device.id || ln.device_b_id === device.id,
+    );
+
+    // Collect all device IDs we need to resolve to hostnames
+    const otherDeviceIds = new Set<number>();
+    for (const ln of relevantLinknets) {
+      otherDeviceIds.add(
+        ln.device_a_id === device.id ? ln.device_b_id : ln.device_a_id,
+      );
+    }
+    for (const iface of state.interfaces) {
+      const neighborId = iface.data?.neighbor_id as number | undefined;
+      if (neighborId != null) {
+        otherDeviceIds.add(neighborId);
+      }
+    }
+
+    // Fetch hostnames for all referenced device IDs
+    const deviceMap = new Map<number, string>();
+    await Promise.all(
+      [...otherDeviceIds].map(async (id) => {
+        const dev = await fetchDeviceById(id, token);
+        if (dev?.hostname) {
+          deviceMap.set(id, dev.hostname);
+        }
+      }),
+    );
+
+    const mismatches = computeLinknetMismatches(
+      device.id,
+      state.interfaces,
+      state.lldpNeighbors,
+      relevantLinknets,
+      deviceMap,
+    );
+
+    dispatch({ type: actions.LINKNET_MISMATCHES_LOADED, mismatches });
+  }, [device, state.interfaces, state.lldpNeighbors, tokenRef, dispatch]);
+
   // --- Context value ---
 
   const value = useMemo(
@@ -422,6 +475,7 @@ export function InterfaceConfigProvider({
       startAutoPush,
       bounceInterface,
       exportInterfaces,
+      verifyLinknets,
     }),
     [
       state,
@@ -438,6 +492,7 @@ export function InterfaceConfigProvider({
       startAutoPush,
       bounceInterface,
       exportInterfaces,
+      verifyLinknets,
     ],
   );
 

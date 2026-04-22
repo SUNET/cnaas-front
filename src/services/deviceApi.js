@@ -133,6 +133,36 @@ export async function fetchAccessInterfaces(hostname, token) {
 }
 
 /**
+ * Fetch a single device by its numeric ID.
+ * Returns the device object, or null on failure.
+ */
+export async function fetchDeviceById(deviceId, token) {
+  try {
+    const url = `${process.env.API_URL}/api/v1.0/device/${deviceId}`;
+    const device = (await getData(url, token)).data.devices[0];
+    return device ?? null;
+  } catch (error) {
+    console.error(`Failed to fetch device ${deviceId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetch all linknets.
+ * Returns the linknets array, or empty array on failure.
+ */
+export async function fetchLinknets(token) {
+  try {
+    const url = `${process.env.API_URL}/api/v1.0/linknets`;
+    const data = await getData(url, token);
+    return data.data.linknets ?? [];
+  } catch (error) {
+    console.error("Failed to fetch linknets:", error);
+    return [];
+  }
+}
+
+/**
  * Fetch interfaces for a DIST device via generate_config.
  * Returns { interfaces, tags, portTemplates }, or null on failure.
  */
