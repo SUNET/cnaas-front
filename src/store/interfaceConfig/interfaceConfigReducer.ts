@@ -38,6 +38,15 @@ export interface Device {
   [key: string]: unknown;
 }
 
+export interface LinknetMismatch {
+  expectedHostname: string;
+  expectedPort: string;
+  actualHostname: string | null;
+  actualPort: string | null;
+  linknetId: number;
+  ipv4Network: string;
+}
+
 export interface JobEntry {
   job_id: number;
   status: string;
@@ -77,6 +86,8 @@ export interface InterfaceConfigState {
 
   displayColumns: string[];
   interfaceBounceRunning: Record<string, string>;
+  linknetMismatches: Record<string, LinknetMismatch>;
+  linknetCheckedPorts: string[];
 }
 
 // --- Action types ---
@@ -109,6 +120,8 @@ export const actions = {
 
   BOUNCE_STARTED: "BOUNCE_STARTED",
   BOUNCE_FINISHED: "BOUNCE_FINISHED",
+
+  LINKNET_MISMATCHES_LOADED: "LINKNET_MISMATCHES_LOADED",
 
   RELOAD_ALL: "RELOAD_ALL",
 } as const;
@@ -175,6 +188,11 @@ export type Action =
       interfaceName: string;
       result: string;
     }
+  | {
+      type: typeof actions.LINKNET_MISMATCHES_LOADED;
+      mismatches: Record<string, LinknetMismatch>;
+      checkedPorts: string[];
+    }
   | { type: typeof actions.RELOAD_ALL };
 
 // --- Initial state ---
@@ -218,6 +236,8 @@ export const initialState: InterfaceConfigState = {
   // UI
   displayColumns: [],
   interfaceBounceRunning: {},
+  linknetMismatches: {},
+  linknetCheckedPorts: [],
 };
 
 // --- Reducer ---
@@ -234,6 +254,8 @@ export function interfaceConfigReducer(
         ...state,
         device: action.device,
         synchronized: action.device?.synchronized ?? null,
+        linknetMismatches: {},
+        linknetCheckedPorts: [],
       };
 
     case actions.SETTINGS_LOADED:
@@ -437,6 +459,15 @@ export function interfaceConfigReducer(
           ...state.interfaceBounceRunning,
           [action.interfaceName]: action.result,
         },
+      };
+
+    // --- Linknet verification ---
+
+    case actions.LINKNET_MISMATCHES_LOADED:
+      return {
+        ...state,
+        linknetMismatches: action.mismatches,
+        linknetCheckedPorts: action.checkedPorts,
       };
 
     // --- Reload ---
