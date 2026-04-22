@@ -87,6 +87,7 @@ export interface InterfaceConfigState {
   displayColumns: string[];
   interfaceBounceRunning: Record<string, string>;
   linknetMismatches: Record<string, LinknetMismatch>;
+  linknetCheckedPorts: string[];
 }
 
 // --- Action types ---
@@ -190,6 +191,7 @@ export type Action =
   | {
       type: typeof actions.LINKNET_MISMATCHES_LOADED;
       mismatches: Record<string, LinknetMismatch>;
+      checkedPorts: string[];
     }
   | { type: typeof actions.RELOAD_ALL };
 
@@ -235,6 +237,7 @@ export const initialState: InterfaceConfigState = {
   displayColumns: [],
   interfaceBounceRunning: {},
   linknetMismatches: {},
+  linknetCheckedPorts: [],
 };
 
 // --- Reducer ---
@@ -251,6 +254,8 @@ export function interfaceConfigReducer(
         ...state,
         device: action.device,
         synchronized: action.device?.synchronized ?? null,
+        linknetMismatches: {},
+        linknetCheckedPorts: [],
       };
 
     case actions.SETTINGS_LOADED:
@@ -459,7 +464,11 @@ export function interfaceConfigReducer(
     // --- Linknet verification ---
 
     case actions.LINKNET_MISMATCHES_LOADED:
-      return { ...state, linknetMismatches: action.mismatches };
+      return {
+        ...state,
+        linknetMismatches: action.mismatches,
+        linknetCheckedPorts: action.checkedPorts,
+      };
 
     // --- Reload ---
 

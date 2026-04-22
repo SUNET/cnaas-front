@@ -11,6 +11,7 @@ import { ConfigColumn } from "./ConfigColumn";
 import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
 import { LldpNeighborPopup } from "./LldpNeighborPopup";
 import { LinknetWarningPopup } from "./LinknetWarningPopup";
+import { LinknetOkButton } from "./LinknetOkButton";
 import { InterfaceStatusUp } from "./InterfaceStatusUp";
 import { InterfaceStatusAdminDisabled } from "./InterfaceStatusAdminDisabled";
 import { InterfaceStatusDown } from "./InterfaceStatusDown";
@@ -201,6 +202,7 @@ export function InterfaceTableRow({
     interfaceToggleUntagged,
     lldpNeighbors: lldpNeighborData,
     linknetMismatches,
+    linknetCheckedPorts,
     netboxInterfaces: netboxInterfaceData,
     portTemplates: portTemplateOptions,
     vlans: vlanOptions,
@@ -519,6 +521,8 @@ export function InterfaceTableRow({
     linknetWarningPopup = (
       <LinknetWarningPopup mismatch={linknetMismatches[item.name]} />
     );
+  } else if (linknetCheckedPorts.includes(item.name)) {
+    linknetWarningPopup = <LinknetOkButton />;
   }
 
   const descriptionDetails = (

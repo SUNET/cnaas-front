@@ -40,14 +40,34 @@ export interface LldpNeighbor {
  *
  * An interface already flagged by a higher-priority check is not re-checked.
  */
+
+export interface LinknetVerificationResult {
+  mismatches: Record<string, LinknetMismatch>;
+  checkedPorts: string[];
+}
+
+/**
+ * Compute linknet and neighbor mismatches for a device.
+ *
+ * Checks three sources in priority order:
+ * 1. Linknets — verifies hostname + port against LLDP
+ * 2. ifData.neighbor_id — resolves via deviceMap, verifies hostname against LLDP
+ * 3. ifData.neighbor — verifies hostname directly against LLDP
+ *
+ * An interface already flagged by a higher-priority check is not re-checked.
+ *
+ * Returns both the mismatches and the list of all ports that were checked,
+ * so callers can distinguish "checked and OK" from "not checked".
+ */
 export function computeLinknetMismatches(
   deviceId: number,
   interfaces: InterfaceItem[],
   lldpNeighbors: Record<string, unknown>,
   linknets: Linknet[],
   deviceMap: Map<number, string>,
-): Record<string, LinknetMismatch> {
+): LinknetVerificationResult {
   const mismatches: Record<string, LinknetMismatch> = {};
+  const checkedPorts: string[] = [];
 
   // --- 1. Linknet checks (hostname + port) ---
 
@@ -82,6 +102,8 @@ export function computeLinknetMismatches(
       }
     }
 
+    checkedPorts.push(localPort);
+
     if (mismatch) {
       mismatches[localPort] = {
         expectedHostname,
@@ -100,6 +122,8 @@ export function computeLinknetMismatches(
     const neighborId = iface.data?.neighbor_id as number | undefined;
     if (neighborId == null) continue;
     if (mismatches[iface.name]) continue;
+
+    checkedPorts.push(iface.name);
 
     const expectedHostname = deviceMap.get(neighborId) ?? `ID:${neighborId}`;
 
@@ -142,6 +166,8 @@ export function computeLinknetMismatches(
     if (iface.data?.neighbor_id != null) continue;
     if (mismatches[iface.name]) continue;
 
+    checkedPorts.push(iface.name);
+
     const lldpData = lldpNeighbors[iface.name.toLowerCase()] as
       | LldpNeighbor[]
       | undefined;
@@ -173,5 +199,5 @@ export function computeLinknetMismatches(
     }
   }
 
-  return mismatches;
+  return { mismatches, checkedPorts };
 }

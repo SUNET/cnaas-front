@@ -437,7 +437,7 @@ export function InterfaceConfigProvider({
       }),
     );
 
-    const mismatches = computeLinknetMismatches(
+    const { mismatches, checkedPorts } = computeLinknetMismatches(
       device.id,
       state.interfaces,
       state.lldpNeighbors,
@@ -445,7 +445,11 @@ export function InterfaceConfigProvider({
       deviceMap,
     );
 
-    dispatch({ type: actions.LINKNET_MISMATCHES_LOADED, mismatches });
+    dispatch({
+      type: actions.LINKNET_MISMATCHES_LOADED,
+      mismatches,
+      checkedPorts,
+    });
   }, [device, state.interfaces, state.lldpNeighbors, tokenRef, dispatch]);
 
   // --- Context value ---

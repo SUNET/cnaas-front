@@ -31,6 +31,31 @@ describe("interfaceConfigReducer", () => {
       expect(result.device).toBeNull();
       expect(result.synchronized).toBeNull();
     });
+
+    test("clears linknet verification data on device change", () => {
+      const state = {
+        ...initialState,
+        linknetMismatches: {
+          "Ethernet49/1": {
+            expectedHostname: "sw2",
+            expectedPort: "Ethernet1/1",
+            actualHostname: null,
+            actualPort: null,
+            linknetId: 1,
+            ipv4Network: "10.0.0.0/31",
+          },
+        },
+        linknetCheckedPorts: ["Ethernet49/1"],
+      };
+      const device = { id: 2, hostname: "sw2", synchronized: true } as Device;
+      const result = reducer(state, {
+        type: actions.DEVICE_LOADED,
+        device,
+      });
+
+      expect(result.linknetMismatches).toEqual({});
+      expect(result.linknetCheckedPorts).toEqual([]);
+    });
   });
 
   describe("SETTINGS_LOADED", () => {
@@ -565,7 +590,7 @@ describe("interfaceConfigReducer", () => {
   // --- Reload ---
 
   describe("LINKNET_MISMATCHES_LOADED", () => {
-    test("sets linknetMismatches from payload", () => {
+    test("sets linknetMismatches and checkedPorts from payload", () => {
       const mismatches = {
         "Ethernet49/1": {
           expectedHostname: "sw2",
@@ -576,12 +601,15 @@ describe("interfaceConfigReducer", () => {
           ipv4Network: "10.0.0.0/31",
         },
       };
+      const checkedPorts = ["Ethernet49/1", "Ethernet50/1"];
       const result = reducer(initialState, {
         type: actions.LINKNET_MISMATCHES_LOADED,
         mismatches,
+        checkedPorts,
       });
 
       expect(result.linknetMismatches).toBe(mismatches);
+      expect(result.linknetCheckedPorts).toBe(checkedPorts);
     });
 
     test("clears previous mismatches when dispatched with empty object", () => {
@@ -597,13 +625,16 @@ describe("interfaceConfigReducer", () => {
             ipv4Network: "10.0.0.0/31",
           },
         },
+        linknetCheckedPorts: ["Ethernet49/1"],
       };
       const result = reducer(state, {
         type: actions.LINKNET_MISMATCHES_LOADED,
         mismatches: {},
+        checkedPorts: [],
       });
 
       expect(result.linknetMismatches).toEqual({});
+      expect(result.linknetCheckedPorts).toEqual([]);
     });
   });
 

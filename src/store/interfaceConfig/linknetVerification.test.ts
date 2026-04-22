@@ -59,7 +59,8 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result).toEqual({});
+      expect(result.mismatches).toEqual({});
+      expect(result.checkedPorts).toEqual(["Ethernet49/1"]);
     });
 
     test("no mismatch when LLDP matches linknet (device is side B)", () => {
@@ -77,7 +78,8 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result).toEqual({});
+      expect(result.mismatches).toEqual({});
+      expect(result.checkedPorts).toEqual(["Ethernet1/1"]);
     });
 
     test("mismatch when LLDP hostname differs", () => {
@@ -97,10 +99,12 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet49/1"]).toBeDefined();
-      expect(result["Ethernet49/1"].expectedHostname).toBe("sw2");
-      expect(result["Ethernet49/1"].actualHostname).toBe("wrong-host");
-      expect(result["Ethernet49/1"].linknetId).toBe(1);
+      expect(result.mismatches["Ethernet49/1"]).toBeDefined();
+      expect(result.mismatches["Ethernet49/1"].expectedHostname).toBe("sw2");
+      expect(result.mismatches["Ethernet49/1"].actualHostname).toBe(
+        "wrong-host",
+      );
+      expect(result.mismatches["Ethernet49/1"].linknetId).toBe(1);
     });
 
     test("mismatch when LLDP port differs", () => {
@@ -116,9 +120,11 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet49/1"]).toBeDefined();
-      expect(result["Ethernet49/1"].expectedPort).toBe("Ethernet1/1");
-      expect(result["Ethernet49/1"].actualPort).toBe("Ethernet99/1");
+      expect(result.mismatches["Ethernet49/1"]).toBeDefined();
+      expect(result.mismatches["Ethernet49/1"].expectedPort).toBe(
+        "Ethernet1/1",
+      );
+      expect(result.mismatches["Ethernet49/1"].actualPort).toBe("Ethernet99/1");
     });
 
     test("mismatch when no LLDP data for linknet port", () => {
@@ -133,9 +139,9 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet49/1"]).toBeDefined();
-      expect(result["Ethernet49/1"].actualHostname).toBeNull();
-      expect(result["Ethernet49/1"].actualPort).toBeNull();
+      expect(result.mismatches["Ethernet49/1"]).toBeDefined();
+      expect(result.mismatches["Ethernet49/1"].actualHostname).toBeNull();
+      expect(result.mismatches["Ethernet49/1"].actualPort).toBeNull();
     });
 
     test("mismatch when LLDP data is empty array", () => {
@@ -151,7 +157,7 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet49/1"]).toBeDefined();
+      expect(result.mismatches["Ethernet49/1"]).toBeDefined();
     });
 
     test("uses ID fallback when device not in deviceMap", () => {
@@ -166,7 +172,7 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet49/1"].expectedHostname).toBe("ID:200");
+      expect(result.mismatches["Ethernet49/1"].expectedHostname).toBe("ID:200");
     });
 
     test("uses remote_chassis_id when remote_system_name is empty", () => {
@@ -190,8 +196,10 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet49/1"]).toBeDefined();
-      expect(result["Ethernet49/1"].actualHostname).toBe("aa:bb:cc:dd:ee:ff");
+      expect(result.mismatches["Ethernet49/1"]).toBeDefined();
+      expect(result.mismatches["Ethernet49/1"].actualHostname).toBe(
+        "aa:bb:cc:dd:ee:ff",
+      );
     });
 
     test("LLDP port lookup is case-insensitive", () => {
@@ -208,7 +216,8 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result).toEqual({});
+      expect(result.mismatches).toEqual({});
+      expect(result.checkedPorts).toEqual(["Ethernet49/1"]);
     });
   });
 
@@ -234,7 +243,8 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result).toEqual({});
+      expect(result.mismatches).toEqual({});
+      expect(result.checkedPorts).toEqual(["Ethernet50/1"]);
     });
 
     test("mismatch when LLDP hostname differs from neighbor_id device", () => {
@@ -256,11 +266,17 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet50/1"]).toBeDefined();
-      expect(result["Ethernet50/1"].expectedHostname).toBe("mlag-peer");
-      expect(result["Ethernet50/1"].actualHostname).toBe("wrong-peer");
-      expect(result["Ethernet50/1"].expectedPort).toBe("(neighbor_id)");
-      expect(result["Ethernet50/1"].linknetId).toBe(0);
+      expect(result.mismatches["Ethernet50/1"]).toBeDefined();
+      expect(result.mismatches["Ethernet50/1"].expectedHostname).toBe(
+        "mlag-peer",
+      );
+      expect(result.mismatches["Ethernet50/1"].actualHostname).toBe(
+        "wrong-peer",
+      );
+      expect(result.mismatches["Ethernet50/1"].expectedPort).toBe(
+        "(neighbor_id)",
+      );
+      expect(result.mismatches["Ethernet50/1"].linknetId).toBe(0);
     });
 
     test("mismatch when no LLDP data for neighbor_id interface", () => {
@@ -277,8 +293,8 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet50/1"]).toBeDefined();
-      expect(result["Ethernet50/1"].actualHostname).toBeNull();
+      expect(result.mismatches["Ethernet50/1"]).toBeDefined();
+      expect(result.mismatches["Ethernet50/1"].actualHostname).toBeNull();
     });
 
     test("uses ID fallback when neighbor_id device not in deviceMap", () => {
@@ -295,7 +311,7 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet50/1"].expectedHostname).toBe("ID:999");
+      expect(result.mismatches["Ethernet50/1"].expectedHostname).toBe("ID:999");
     });
 
     test("skipped when interface already flagged by linknet check", () => {
@@ -321,8 +337,8 @@ describe("computeLinknetMismatches", () => {
       );
 
       // Should be the linknet mismatch, not the neighbor_id one
-      expect(result["Ethernet50/1"].linknetId).toBe(1);
-      expect(result["Ethernet50/1"].expectedHostname).toBe("sw2");
+      expect(result.mismatches["Ethernet50/1"].linknetId).toBe(1);
+      expect(result.mismatches["Ethernet50/1"].expectedHostname).toBe("sw2");
     });
   });
 
@@ -343,7 +359,8 @@ describe("computeLinknetMismatches", () => {
         new Map(),
       );
 
-      expect(result).toEqual({});
+      expect(result.mismatches).toEqual({});
+      expect(result.checkedPorts).toEqual(["Ethernet1"]);
     });
 
     test("mismatch when LLDP hostname differs from ifData.neighbor", () => {
@@ -360,11 +377,13 @@ describe("computeLinknetMismatches", () => {
         new Map(),
       );
 
-      expect(result["Ethernet1"]).toBeDefined();
-      expect(result["Ethernet1"].expectedHostname).toBe("upstream-sw");
-      expect(result["Ethernet1"].actualHostname).toBe("other-sw");
-      expect(result["Ethernet1"].expectedPort).toBe("(neighbor)");
-      expect(result["Ethernet1"].linknetId).toBe(0);
+      expect(result.mismatches["Ethernet1"]).toBeDefined();
+      expect(result.mismatches["Ethernet1"].expectedHostname).toBe(
+        "upstream-sw",
+      );
+      expect(result.mismatches["Ethernet1"].actualHostname).toBe("other-sw");
+      expect(result.mismatches["Ethernet1"].expectedPort).toBe("(neighbor)");
+      expect(result.mismatches["Ethernet1"].linknetId).toBe(0);
     });
 
     test("mismatch when no LLDP data for neighbor interface", () => {
@@ -380,8 +399,8 @@ describe("computeLinknetMismatches", () => {
         new Map(),
       );
 
-      expect(result["Ethernet1"]).toBeDefined();
-      expect(result["Ethernet1"].actualHostname).toBeNull();
+      expect(result.mismatches["Ethernet1"]).toBeDefined();
+      expect(result.mismatches["Ethernet1"].actualHostname).toBeNull();
     });
 
     test("skipped when interface has neighbor_id (neighbor_id takes priority)", () => {
@@ -403,7 +422,8 @@ describe("computeLinknetMismatches", () => {
       );
 
       // neighbor_id matches, so no mismatch at all
-      expect(result).toEqual({});
+      expect(result.mismatches).toEqual({});
+      expect(result.checkedPorts).toEqual(["Ethernet1"]);
     });
 
     test("skipped when interface already flagged by linknet check", () => {
@@ -424,7 +444,7 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet1"].linknetId).toBe(1);
+      expect(result.mismatches["Ethernet1"].linknetId).toBe(1);
     });
   });
 
@@ -440,7 +460,8 @@ describe("computeLinknetMismatches", () => {
         new Map(),
       );
 
-      expect(result).toEqual({});
+      expect(result.mismatches).toEqual({});
+      expect(result.checkedPorts).toEqual([]);
     });
 
     test("skips interfaces without data", () => {
@@ -457,7 +478,8 @@ describe("computeLinknetMismatches", () => {
         new Map(),
       );
 
-      expect(result).toEqual({});
+      expect(result.mismatches).toEqual({});
+      expect(result.checkedPorts).toEqual([]);
     });
 
     test("handles multiple linknets independently", () => {
@@ -493,9 +515,9 @@ describe("computeLinknetMismatches", () => {
         deviceMap,
       );
 
-      expect(result["Ethernet49/1"]).toBeUndefined();
-      expect(result["Ethernet50/1"]).toBeDefined();
-      expect(result["Ethernet50/1"].linknetId).toBe(2);
+      expect(result.mismatches["Ethernet49/1"]).toBeUndefined();
+      expect(result.mismatches["Ethernet50/1"]).toBeDefined();
+      expect(result.mismatches["Ethernet50/1"].linknetId).toBe(2);
     });
   });
 });
