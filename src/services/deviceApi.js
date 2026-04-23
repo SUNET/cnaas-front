@@ -1,4 +1,5 @@
 import { getData, getDataHeaders } from "../utils/getData";
+import { postData } from "../utils/sendData";
 
 /**
  * Fetch a single device by hostname.
@@ -160,6 +161,33 @@ export async function fetchLinknets(token) {
     console.error("Failed to fetch linknets:", error);
     return [];
   }
+}
+
+/**
+ * Fetch BGP VRF settings for a device.
+ * Returns the extroute_bgp.vrfs array, or empty array on failure.
+ */
+export async function fetchBgpSettings(hostname, token) {
+  try {
+    const url = `${process.env.API_URL}/api/v1.0/settings?hostname=${hostname}`;
+    const data = await getData(url, token);
+    return data.data.settings.extroute_bgp?.vrfs ?? [];
+  } catch (error) {
+    console.error("Failed to fetch BGP settings:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetch BGP neighbors for a VRF via gNMI.
+ * Returns parsed JSON response from gNMI endpoint.
+ */
+export async function fetchBgpNeighbors(managementIp, vrfName, token) {
+  const url = `${process.env.API_URL}/gnmi/api/v1.0/gnmic/get/`;
+  return postData(url, token, {
+    host: managementIp,
+    path: `/network-instances/network-instance[name=${vrfName}]/protocols/protocol[identifier=BGP][name=BGP]/bgp/neighbors`,
+  });
 }
 
 /**
