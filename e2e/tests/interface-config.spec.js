@@ -12,7 +12,7 @@ test.describe("Interface config page", () => {
     const eosaccessRow = page.locator("tr", { hasText: "eosaccess" });
     await eosaccessRow
       .getByRole("link")
-      .filter({ has: page.locator("i.plug.icon") })
+      .filter({ has: page.locator("i.plug.icon") }) // cable icon
       .click();
 
     await expect(page).toHaveURL(/\/interface-config\?hostname=eosaccess/);
@@ -23,6 +23,8 @@ test.describe("Interface config page", () => {
 
   test("loads device info and interface table", async ({ page }) => {
     // Device info table shows hostname
+    const deviceDetails = page.getByText("Device details");
+    await deviceDetails.click();
     await expect(page.getByText("eosaccess")).toBeVisible();
 
     // "Configtype" column proves this is an ACCESS device (DIST shows "Interface class")
