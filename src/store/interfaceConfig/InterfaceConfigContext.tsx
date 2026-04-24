@@ -158,11 +158,23 @@ export function InterfaceConfigProvider({
       case "DIST": {
         const result = await fetchDistInterfaces(hostname, tokenRef.current);
         if (!result) return;
+        // Extract unique VLAN range strings from tagged_vlan_list
+        const seenRanges = new Set<string>();
+        for (const iface of result.interfaces as InterfaceItem[]) {
+          const list = iface["tagged_vlan_list"];
+          if (!Array.isArray(list)) continue;
+          for (const item of list) {
+            if (typeof item === "string" && /^\d+-\d+$/.test(item)) {
+              seenRanges.add(item);
+            }
+          }
+        }
         dispatch({
           type: actions.INTERFACES_LOADED,
           interfaces: result.interfaces as InterfaceItem[],
           tags: result.tags as DropdownOption[],
           portTemplates: result.portTemplates as DropdownOption[],
+          vlanRanges: [...seenRanges],
         });
         break;
       }
