@@ -14,7 +14,6 @@ import { formatISODate } from "../../utils/formatters";
 import { fetchBgpSettings, fetchBgpNeighbors } from "../../services/deviceApi";
 
 interface BgpNeighborModalProps {
-  readonly deviceId: number;
   readonly hostname: string;
   readonly managementIp: string;
   readonly platform: string;
@@ -181,7 +180,6 @@ export function parseGnmiNeighbors(gnmiResponse: any): BgpNeighborRow[] {
 }
 
 export function BgpNeighborModal({
-  deviceId,
   hostname,
   managementIp,
   platform,
@@ -201,8 +199,10 @@ export function BgpNeighborModal({
     setVrfData([]);
     setLoadingVrfs(new Set());
     try {
-      // Step 1: fetch VRFs from settings
-      const vrfs: BgpVrf[] = await fetchBgpSettings(hostname, token);
+      // Step 1: fetch VRFs from settings, filter out vrf with name "UNDERLAY"
+      const vrfs: BgpVrf[] = (await fetchBgpSettings(hostname, token)).filter(
+        (v: BgpVrf) => v.name.toUpperCase() !== "UNDERLAY",
+      );
       if (vrfs.length === 0) {
         setError("No BGP VRFs found in device settings.");
         setLoadingPhase("done");
@@ -302,7 +302,7 @@ export function BgpNeighborModal({
       }
     >
       <Modal.Header>
-        BGP Neighbors — {hostname} ({managementIp})
+        BGP Neighbors — {hostname} ({managementIp} - {platform})
       </Modal.Header>
       <Modal.Content scrolling>
         {loadingPhase === "settings" && (
@@ -343,7 +343,6 @@ export function BgpNeighborModal({
                     <Table.HeaderCell>Peer AS</Table.HeaderCell>
                     <Table.HeaderCell>Session State</Table.HeaderCell>
                     <Table.HeaderCell>AFI</Table.HeaderCell>
-                    <Table.HeaderCell>Active</Table.HeaderCell>
                     <Table.HeaderCell>Installed</Table.HeaderCell>
                     <Table.HeaderCell>Received</Table.HeaderCell>
                     <Table.HeaderCell>Recv Pre-Policy</Table.HeaderCell>
@@ -401,7 +400,6 @@ export function BgpNeighborModal({
                         />
                       </Table.Cell>
                       <Table.Cell>{n.afiSafi || "-"}</Table.Cell>
-                      <Table.Cell>{renderValue(n.prefixes.active)}</Table.Cell>
                       <Table.Cell>
                         {renderValue(n.prefixes.installed)}
                       </Table.Cell>

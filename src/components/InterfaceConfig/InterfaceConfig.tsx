@@ -14,7 +14,7 @@ import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { NewInterface } from "./NewInterface";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
-import { BgpNeighborModal } from "./BgpNeighborModal";
+import { BgpNeighborModal } from "../BgpNeighborModal/BgpNeighborModal";
 import { useInterfaceConfig } from "../../store/interfaceConfig/InterfaceConfigContext";
 import { useInterfaceConfigSocket } from "../../store/interfaceConfig/useInterfaceConfigSocket";
 
@@ -468,10 +468,9 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
           </p>
         )}
 
-        {deviceType === "DIST" && device && (
+        {deviceType === "DIST" && device && process.env.GNMI_PROXY_URL && (
           <span>
             <BgpNeighborModal
-              deviceId={device.id}
               hostname={device.hostname}
               managementIp={(device.management_ip as string) ?? ""}
               platform={(device.platform as string) ?? ""}
