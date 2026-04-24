@@ -58,14 +58,14 @@ interface VrfBgpData {
   error?: string;
 }
 
-function formatNsTimestamp(ns: string | null): string {
+export function formatNsTimestamp(ns: string | null): string {
   if (!ns || ns === "0") return "-";
   const ms = Math.floor(Number(ns) / 1e6);
   if (Number.isNaN(ms) || ms <= 0) return "-";
   return formatISODate(new Date(ms).toISOString());
 }
 
-function parsePrefixes(
+export function parsePrefixes(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   afiSafiList: any[],
 ): { prefixes: PrefixCounts; afiSafi: string } {
@@ -82,7 +82,7 @@ function parsePrefixes(
   }
 
   // Find the active afi-safi (IPv4 or IPv6) — prefer the one with active: true
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   let fallback: { prefixes: PrefixCounts; afiSafi: string } | null = null;
 
   for (const afi of afiSafiList) {
