@@ -92,8 +92,10 @@ export function VlanColumn({
         const validValues = new Set(
           (data.options as Array<{ value: unknown }>).map((o) => o.value),
         );
-        const filtered = (data.value as unknown[]).filter((v) =>
-          validValues.has(v),
+        const filtered = (data.value as unknown[]).filter(
+          (v) =>
+            validValues.has(v) ||
+            (typeof v === "string" && VLAN_RANGE_RE.test(v)),
         );
         updateFieldData(e, { ...data, value: filtered });
       } else {
