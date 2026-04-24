@@ -144,6 +144,7 @@ export type Action =
       tags: DropdownOption[];
       mlagPeerHostname?: string;
       portTemplates?: DropdownOption[];
+      vlanRanges?: string[];
     }
   | {
       type: typeof actions.INTERFACE_STATUS_LOADED;
@@ -269,14 +270,26 @@ export function interfaceConfigReducer(
         tags: mergeTags(state.tags, action.tags),
       };
 
-    case actions.INTERFACES_LOADED:
+    case actions.INTERFACES_LOADED: {
+      let vlans = state.vlans;
+      if (action.vlanRanges && action.vlanRanges.length > 0) {
+        const existing = new Set(vlans.map((o) => o.value));
+        const newRanges = action.vlanRanges
+          .filter((r) => !existing.has(r))
+          .map((r) => ({ text: `R:${r}`, value: r, description: r }));
+        if (newRanges.length > 0) {
+          vlans = [...vlans, ...newRanges];
+        }
+      }
       return {
         ...state,
         interfaces: action.interfaces,
         tags: mergeTags(state.tags, action.tags),
         portTemplates: action.portTemplates ?? state.portTemplates,
         mlagPeerHostname: action.mlagPeerHostname ?? state.mlagPeerHostname,
+        vlans,
       };
+    }
 
     case actions.INTERFACE_STATUS_LOADED:
       return { ...state, interfaceStatus: action.interfaceStatus };
@@ -337,6 +350,9 @@ export function interfaceConfigReducer(
       };
 
     case actions.ADD_VLAN_RANGE_OPTION:
+      if (state.vlans.some((o) => o.value === action.range)) {
+        return state;
+      }
       return {
         ...state,
         vlans: [
