@@ -163,7 +163,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
               description: string;
             }>;
             const found = options.find((e) => e.value === opt);
-            return found ? found.description : null;
+            return found ? found.description : opt;
           });
         } else {
           const options = data.options as Array<{
@@ -171,7 +171,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
             description: string;
           }>;
           const found = options.find((e) => e.value === data.value);
-          val = found ? found.description : null;
+          val = found ? found.description : data.value;
         }
       }
 

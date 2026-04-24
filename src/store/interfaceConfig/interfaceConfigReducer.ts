@@ -103,6 +103,7 @@ export const actions = {
   UPDATE_FIELD: "UPDATE_FIELD",
   TOGGLE_UNTAGGED: "TOGGLE_UNTAGGED",
   ADD_TAG_OPTION: "ADD_TAG_OPTION",
+  ADD_VLAN_RANGE_OPTION: "ADD_VLAN_RANGE_OPTION",
   ADD_PORT_TEMPLATE_OPTION: "ADD_PORT_TEMPLATE_OPTION",
   ADD_NEW_INTERFACE: "ADD_NEW_INTERFACE",
   SET_DISPLAY_COLUMNS: "SET_DISPLAY_COLUMNS",
@@ -171,6 +172,7 @@ export type Action =
       untagged: boolean;
     }
   | { type: typeof actions.ADD_TAG_OPTION; tag: string }
+  | { type: typeof actions.ADD_VLAN_RANGE_OPTION; range: string }
   | { type: typeof actions.ADD_PORT_TEMPLATE_OPTION; template: string }
   | { type: typeof actions.ADD_NEW_INTERFACE; interfaceName: string }
   | { type: typeof actions.SET_DISPLAY_COLUMNS; columns: string[] }
@@ -332,6 +334,19 @@ export function interfaceConfigReducer(
       return {
         ...state,
         tags: [...state.tags, { text: action.tag, value: action.tag }],
+      };
+
+    case actions.ADD_VLAN_RANGE_OPTION:
+      return {
+        ...state,
+        vlans: [
+          ...state.vlans,
+          {
+            text: `R:${action.range}`,
+            value: action.range,
+            description: action.range,
+          },
+        ],
       };
 
     case actions.ADD_PORT_TEMPLATE_OPTION:
