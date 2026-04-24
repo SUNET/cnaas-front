@@ -3,7 +3,6 @@ import {
   Button,
   Icon,
   Modal,
-  Loader,
   Table,
   Header,
   Label,
@@ -189,25 +188,37 @@ export function BgpNeighborModal({
 }: BgpNeighborModalProps) {
   const { token } = useAuthToken();
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState<
+    "idle" | "settings" | "neighbors" | "done"
+  >("idle");
+  const [loadingVrfs, setLoadingVrfs] = useState<Set<string>>(new Set());
   const [vrfData, setVrfData] = useState<VrfBgpData[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    setLoadingPhase("settings");
     setError(null);
     setVrfData([]);
+    setLoadingVrfs(new Set());
     try {
       // Step 1: fetch VRFs from settings
       const vrfs: BgpVrf[] = await fetchBgpSettings(hostname, token);
       if (vrfs.length === 0) {
         setError("No BGP VRFs found in device settings.");
+        setLoadingPhase("done");
         return;
       }
 
-      // Step 2: for each VRF, fetch BGP neighbors via gNMI
-      const results = await Promise.all(
-        vrfs.map(async (vrf): Promise<VrfBgpData> => {
+      // Step 2: show VRF headers with loaders, then fetch each
+      setLoadingPhase("neighbors");
+      const vrfNames = new Set(vrfs.map((v) => v.name));
+      setLoadingVrfs(vrfNames);
+      // Initialize vrfData with empty neighbors so headers render immediately
+      setVrfData(vrfs.map((vrf) => ({ vrf, neighbors: [] })));
+
+      // Fetch each VRF individually, updating state as each completes
+      await Promise.all(
+        vrfs.map(async (vrf) => {
           try {
             const response = await fetchBgpNeighbors(
               managementIp,
@@ -215,21 +226,36 @@ export function BgpNeighborModal({
               token,
             );
             const neighbors = parseGnmiNeighbors(response);
-            return { vrf, neighbors };
+            setVrfData((prev) =>
+              prev.map((vd) =>
+                vd.vrf.name === vrf.name ? { vrf, neighbors } : vd,
+              ),
+            );
           } catch (err) {
             const msg = err instanceof Error ? err.message : "Failed to fetch";
-            return { vrf, neighbors: [], error: msg };
+            setVrfData((prev) =>
+              prev.map((vd) =>
+                vd.vrf.name === vrf.name
+                  ? { vrf, neighbors: [], error: msg }
+                  : vd,
+              ),
+            );
+          } finally {
+            setLoadingVrfs((prev) => {
+              const next = new Set(prev);
+              next.delete(vrf.name);
+              return next;
+            });
           }
         }),
       );
 
-      setVrfData(results);
+      setLoadingPhase("done");
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to fetch BGP data";
       setError(msg);
-    } finally {
-      setLoading(false);
+      setLoadingPhase("done");
     }
   }, [hostname, managementIp, token]);
 
@@ -269,12 +295,7 @@ export function BgpNeighborModal({
       onClose={() => setOpen(false)}
       size="fullscreen"
       trigger={
-        <Button
-          icon
-          labelPosition="right"
-          onClick={handleOpen}
-          loading={loading}
-        >
+        <Button icon labelPosition="right" onClick={handleOpen}>
           BGP Neighbors
           <Icon name="exchange" />
         </Button>
@@ -284,13 +305,15 @@ export function BgpNeighborModal({
         BGP Neighbors — {hostname} ({managementIp})
       </Modal.Header>
       <Modal.Content scrolling>
-        {loading && (
-          <Loader active inline="centered" content="Loading BGP neighbors..." />
+        {loadingPhase === "settings" && (
+          <p>
+            <Icon loading name="spinner" /> Fetching VRF settings...
+          </p>
         )}
 
         {error && <Message negative>{error}</Message>}
 
-        {!loading && !error && vrfData.length === 0 && (
+        {loadingPhase === "done" && !error && vrfData.length === 0 && (
           <Message info>No BGP data loaded yet.</Message>
         )}
 
@@ -301,15 +324,17 @@ export function BgpNeighborModal({
               <Header.Subheader>Local AS: {vd.vrf.local_as}</Header.Subheader>
             </Header>
 
-            {vd.error && (
+            {loadingVrfs.has(vd.vrf.name) ? (
+              <p>
+                <Icon loading name="spinner" /> Fetching BGP neighbors...
+              </p>
+            ) : vd.error ? (
               <Message warning>
                 Error fetching neighbors for {vd.vrf.name}: {vd.error}
               </Message>
-            )}
-
-            {vd.neighbors.length === 0 && !vd.error ? (
+            ) : vd.neighbors.length === 0 ? (
               <Message>No BGP neighbors found in this VRF.</Message>
-            ) : vd.neighbors.length > 0 ? (
+            ) : (
               <Table compact celled structured>
                 <Table.Header>
                   <Table.Row>
@@ -391,12 +416,15 @@ export function BgpNeighborModal({
                   ))}
                 </Table.Body>
               </Table>
-            ) : null}
+            )}
           </div>
         ))}
       </Modal.Content>
       <Modal.Actions>
-        <Button onClick={loadData} disabled={loading}>
+        <Button
+          onClick={loadData}
+          disabled={loadingPhase === "settings" || loadingPhase === "neighbors"}
+        >
           <Icon name="refresh" />
           Refresh
         </Button>
