@@ -8,8 +8,10 @@ import {
   Header,
   Label,
   Message,
+  Popup,
 } from "semantic-ui-react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { formatISODate } from "../../utils/formatters";
 import { fetchBgpSettings, fetchBgpNeighbors } from "../../services/deviceApi";
 
 interface BgpNeighborModalProps {
@@ -34,6 +36,13 @@ interface PrefixCounts {
   sent: number | null;
 }
 
+interface SessionStateDetails {
+  lastEstablished: string | null;
+  lastNotificationCode: string | null;
+  lastNotificationSubcode: string | null;
+  lastNotificationTime: string | null;
+}
+
 interface BgpNeighborRow {
   neighborAddress: string;
   peerAs: number | null;
@@ -41,12 +50,20 @@ interface BgpNeighborRow {
   description: string;
   prefixes: PrefixCounts;
   afiSafi: string;
+  sessionDetails: SessionStateDetails;
 }
 
 interface VrfBgpData {
   vrf: BgpVrf;
   neighbors: BgpNeighborRow[];
   error?: string;
+}
+
+function formatNsTimestamp(ns: string | null): string {
+  if (!ns || ns === "0") return "-";
+  const ms = Math.floor(Number(ns) / 1e6);
+  if (Number.isNaN(ms) || ms <= 0) return "-";
+  return formatISODate(new Date(ms).toISOString());
 }
 
 function parsePrefixes(
@@ -141,6 +158,15 @@ export function parseGnmiNeighbors(gnmiResponse: any): BgpNeighborRow[] {
     const afiSafis = n?.["afi-safis"]?.["afi-safi"] ?? n?.["afi-safis"] ?? [];
     const { prefixes, afiSafi } = parsePrefixes(afiSafis);
 
+    const received = state?.messages?.received ?? {};
+    const sessionDetails: SessionStateDetails = {
+      lastEstablished: state?.["last-established"] ?? null,
+      lastNotificationCode: received?.["last-notification-error-code"] ?? null,
+      lastNotificationSubcode:
+        received?.["last-notification-error-subcode"] ?? null,
+      lastNotificationTime: received?.["last-notification-time"] ?? null,
+    };
+
     neighbors.push({
       neighborAddress: address,
       peerAs: state?.["peer-as"] ?? null,
@@ -148,6 +174,7 @@ export function parseGnmiNeighbors(gnmiResponse: any): BgpNeighborRow[] {
       description: state?.description ?? "",
       prefixes,
       afiSafi,
+      sessionDetails,
     });
   }
 
@@ -223,6 +250,13 @@ export function BgpNeighborModal({
     return "red";
   };
 
+  const stripOcPrefix = (s: string | null) => {
+    if (!s) return null;
+    // e.g. "openconfig-bgp-types:CEASE" -> "CEASE"
+    const idx = s.lastIndexOf(":");
+    return idx >= 0 ? s.substring(idx + 1) : s;
+  };
+
   const renderValue = (v: number | boolean | null) => {
     if (v === null || v === undefined) return "-";
     if (typeof v === "boolean") return v ? "Yes" : "No";
@@ -235,7 +269,12 @@ export function BgpNeighborModal({
       onClose={() => setOpen(false)}
       size="fullscreen"
       trigger={
-        <Button icon labelPosition="right" onClick={handleOpen}>
+        <Button
+          icon
+          labelPosition="right"
+          onClick={handleOpen}
+          loading={loading}
+        >
           BGP Neighbors
           <Icon name="exchange" />
         </Button>
@@ -293,12 +332,48 @@ export function BgpNeighborModal({
                       <Table.Cell>{n.description}</Table.Cell>
                       <Table.Cell>{renderValue(n.peerAs)}</Table.Cell>
                       <Table.Cell>
-                        <Label
-                          color={sessionStateColor(n.sessionState)}
-                          size="small"
-                        >
-                          {n.sessionState}
-                        </Label>
+                        <Popup
+                          hoverable
+                          position="right center"
+                          wide
+                          trigger={
+                            <Label
+                              color={sessionStateColor(n.sessionState)}
+                              size="small"
+                              style={{ cursor: "pointer" }}
+                            >
+                              {n.sessionState}
+                            </Label>
+                          }
+                          content={
+                            <div>
+                              <p>
+                                <strong>Last established:</strong>{" "}
+                                {formatNsTimestamp(
+                                  n.sessionDetails.lastEstablished,
+                                )}
+                              </p>
+                              {n.sessionDetails.lastNotificationCode && (
+                                <>
+                                  <p>
+                                    <strong>Last notification:</strong>{" "}
+                                    {stripOcPrefix(
+                                      n.sessionDetails.lastNotificationCode,
+                                    )}
+                                    {n.sessionDetails.lastNotificationSubcode &&
+                                      ` / ${stripOcPrefix(n.sessionDetails.lastNotificationSubcode)}`}
+                                  </p>
+                                  <p>
+                                    <strong>Notification time:</strong>{" "}
+                                    {formatNsTimestamp(
+                                      n.sessionDetails.lastNotificationTime,
+                                    )}
+                                  </p>
+                                </>
+                              )}
+                            </div>
+                          }
+                        />
                       </Table.Cell>
                       <Table.Cell>{n.afiSafi || "-"}</Table.Cell>
                       <Table.Cell>{renderValue(n.prefixes.active)}</Table.Cell>
@@ -319,11 +394,6 @@ export function BgpNeighborModal({
             ) : null}
           </div>
         ))}
-
-        <p>
-          <strong>Device ID:</strong> {deviceId} | <strong>Platform:</strong>{" "}
-          {platform}
-        </p>
       </Modal.Content>
       <Modal.Actions>
         <Button onClick={loadData} disabled={loading}>
