@@ -30,8 +30,7 @@ export interface JobListContextValue {
 
   readonly loadJobs: (options?: {
     sortField?: string;
-    filterField?: string | null;
-    filterValue?: string | null;
+    filter?: FilterState;
     pageNum?: number;
   }) => void;
   readonly sortByColumn: (column: string) => void;
@@ -68,18 +67,17 @@ export function JobListProvider({ children }: JobListProviderProps) {
   const loadJobs = useCallback(
     (options?: {
       sortField?: string;
-      filterField?: string | null;
-      filterValue?: string | null;
+      filter?: FilterState;
       pageNum?: number;
     }) => {
       const sortField = options?.sortField ?? state.sort.field;
       const filterField =
-        options?.filterField !== undefined
-          ? options.filterField
+        options?.filter !== undefined
+          ? options.filter.field
           : state.filter.field;
       const filterValue =
-        options?.filterValue !== undefined
-          ? options.filterValue
+        options?.filter !== undefined
+          ? options.filter.value
           : state.filter.value;
       const page = options?.pageNum ?? state.activePage;
 
@@ -92,13 +90,10 @@ export function JobListProvider({ children }: JobListProviderProps) {
           sort: { column, direction, field: options.sortField } as SortState,
         });
       }
-      if (
-        options?.filterField !== undefined &&
-        options?.filterValue !== undefined
-      ) {
+      if (options?.filter !== undefined) {
         dispatch({
           type: actions.SET_FILTER,
-          filter: { field: options.filterField, value: options.filterValue },
+          filter: options.filter,
         });
       }
       if (options?.pageNum !== undefined) {
@@ -158,7 +153,7 @@ export function JobListProvider({ children }: JobListProviderProps) {
 
   const setFilter = useCallback(
     (filter: FilterState) => {
-      loadJobs({ filterField: filter.field, filterValue: filter.value });
+      loadJobs({ filter });
     },
     [loadJobs],
   );

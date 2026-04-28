@@ -27,7 +27,6 @@ export function useJobListSocket(
     if (!token) return;
 
     socket.io.opts.query = { jwt: token };
-    socket.connect();
 
     const handleConnect = () => {
       socket.emit("events", { update: "job" });
@@ -43,11 +42,16 @@ export function useJobListSocket(
     };
 
     const handleEvents = (data: JobEventData | string) => {
-      if (data != null && typeof data === "object" && data.job_id) {
+      if (
+        data != null &&
+        typeof data === "object" &&
+        typeof data.job_id === "number"
+      ) {
+        const status = data.status ?? "UNKNOWN";
         const line =
-          data.status === "EXCEPTION"
-            ? `job #${data.job_id} changed status to ${data.status}: ${data.exception}\n`
-            : `job #${data.job_id} changed status to ${data.status}\n`;
+          status === "EXCEPTION"
+            ? `job #${data.job_id} changed status to ${status}: ${data.exception ?? ""}\n`
+            : `job #${data.job_id} changed status to ${status}\n`;
         dispatch({ type: actions.APPEND_LOG, line });
         onJobUpdateRef.current();
       } else if (typeof data === "string") {
@@ -59,6 +63,7 @@ export function useJobListSocket(
 
     socket.on("connect", handleConnect);
     socket.on("events", handleEvents);
+    socket.connect();
 
     return () => {
       socket.off("connect", handleConnect);
