@@ -33,7 +33,7 @@ export interface JobListContextValue {
     sortField?: string;
     filter?: FilterState;
     pageNum?: number;
-  }) => void;
+  }) => Promise<void>;
   readonly sortByColumn: (column: string) => void;
   readonly setFilter: (filter: FilterState) => void;
   readonly setPage: (page: number) => void;
