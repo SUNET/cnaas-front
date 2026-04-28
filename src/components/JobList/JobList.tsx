@@ -47,7 +47,7 @@ export function JobList() {
     setFilter({
       field: options.filterField ?? null,
       value: options.filterValue ?? null,
-    } as FilterState);
+    });
   };
 
   // --- Page change ---
