@@ -1,10 +1,15 @@
 import { useState } from "react";
-import PropTypes from "prop-types";
 import { Button, Select, Input, Icon } from "semantic-ui-react";
 
-JobSearchForm.propTypes = {
-  searchAction: PropTypes.func.isRequired,
-};
+interface SearchActionOptions {
+  readonly filterField?: string | null;
+  readonly filterValue?: string | null;
+  readonly sortField?: string;
+}
+
+interface JobSearchFormProps {
+  readonly searchAction: (options: SearchActionOptions) => void;
+}
 
 const searchOptions = [
   { key: "id", value: "id", text: "ID" },
@@ -16,7 +21,7 @@ const searchOptions = [
   { key: "finish_time", value: "finish_time", text: "Finish time" },
 ];
 
-export function JobSearchForm({ searchAction }) {
+export function JobSearchForm({ searchAction }: JobSearchFormProps) {
   const [searchText, setSearchText] = useState("");
   const [searchField, setSearchField] = useState("id");
 
@@ -25,7 +30,7 @@ export function JobSearchForm({ searchAction }) {
     searchAction({ filterField: null, filterValue: null });
   };
 
-  const submitSearch = (e) => {
+  const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     searchAction({
       filterField: searchField,
@@ -39,14 +44,20 @@ export function JobSearchForm({ searchAction }) {
         type="text"
         placeholder="Search..."
         action
-        onChange={(e) => setSearchText(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setSearchText(e.target.value)
+        }
         icon={<Icon name="delete" link onClick={clearSearch} />}
         value={searchText}
       />
       <Select
         options={searchOptions}
         defaultValue="id"
-        onChange={(_e, data) => setSearchField(data.value)}
+        onChange={
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (_e: React.SyntheticEvent, data: any) =>
+            setSearchField(String(data.value))
+        }
       />
       <Button type="submit">Search</Button>
     </form>

@@ -3,30 +3,36 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
 import { JobList } from "./JobList";
+import { JobListProvider } from "../../store/jobList/JobListContext";
 
-// Mock socket.io-client
-const mockSocket = {
-  on: jest.fn(),
-  emit: jest.fn(),
-  off: jest.fn(),
-};
-jest.mock("socket.io-client", () => ({
-  io: jest.fn(() => mockSocket),
+// Mock socket module
+jest.mock("../../store/jobList/socket", () => ({
+  socket: {
+    io: { opts: { query: {} } },
+    on: jest.fn(),
+    emit: jest.fn(),
+    off: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+  },
 }));
 
-// Mock getResponse
-jest.mock("../../utils/getData", () => ({
-  getResponse: jest.fn(),
-}));
+// Get reference to the mocked socket for assertions
+const { socket: mockSocket } = jest.requireMock("../../store/jobList/socket");
 
-// Mock checkJsonResponse
-jest.mock("../../utils/checkJsonResponse", () => {
-  return jest.fn((response) => response.json());
-});
+// Mock fetchJobs service
+jest.mock("../../services/jobApi", () => ({
+  fetchJobs: jest.fn(),
+}));
 
 // Mock useAuthToken
 jest.mock("../../contexts/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
+}));
+
+// Mock useFreshRef
+jest.mock("../../hooks/useFreshRef", () => ({
+  useFreshRef: (val) => ({ current: val }),
 }));
 
 // Mock LogViewer
@@ -58,7 +64,7 @@ jest.mock("../ConfigChange/VerifyDiff/VerifyDiffResult", () => {
   };
 });
 
-import { getResponse } from "../../utils/getData";
+import { fetchJobs } from "../../services/jobApi";
 
 const mockJobs = [
   {
@@ -91,31 +97,34 @@ const mockJobs = [
   },
 ];
 
-function createMockResponse(jobs, totalCount = jobs.length) {
-  return Promise.resolve({
-    headers: {
-      get: (name) => (name === "X-Total-Count" ? String(totalCount) : null),
-    },
-    json: () => Promise.resolve({ data: { jobs } }),
-  });
+function createMockResult(jobs, totalPages = 1) {
+  return Promise.resolve({ jobs, totalPages });
+}
+
+function renderJobList() {
+  return render(
+    <JobListProvider>
+      <JobList />
+    </JobListProvider>,
+  );
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
-  getResponse.mockImplementation(() => createMockResponse(mockJobs));
+  fetchJobs.mockImplementation(() => createMockResult(mockJobs));
 });
 
 test("displays loading state initially", () => {
   // Never resolve the API call
-  getResponse.mockImplementation(() => new Promise(() => {}));
+  fetchJobs.mockImplementation(() => new Promise(() => {}));
 
-  render(<JobList />);
+  renderJobList();
 
   expect(screen.getByText("Loading jobs...")).toBeInTheDocument();
 });
 
 test("displays jobs table with job data after loading", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -132,7 +141,7 @@ test("displays jobs table with job data after loading", async () => {
 });
 
 test("displays table headers with sortable columns", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -148,33 +157,30 @@ test("displays table headers with sortable columns", async () => {
 });
 
 test("clicking a column header triggers sort API call", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
   // Clear the initial call
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   // Click "Status" column header to sort by status
   const columnHeaders = screen.getAllByRole("columnheader");
   await userEvent.click(columnHeaders[2]); // Status column
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("sort=status"),
-    "test-token",
-  );
+  expect(fetchJobs).toHaveBeenCalledWith("test-token", "status", null, null, 1);
 });
 
 test("displays error message when API fails", async () => {
-  getResponse.mockImplementation(() =>
+  fetchJobs.mockImplementation(() =>
     Promise.reject({
       json: () => Promise.resolve({ message: "Server error occurred" }),
     }),
   );
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(
@@ -184,9 +190,9 @@ test("displays error message when API fails", async () => {
 });
 
 test("displays empty result message when no jobs returned", async () => {
-  getResponse.mockImplementation(() => createMockResponse([]));
+  fetchJobs.mockImplementation(() => createMockResult([]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("Empty result")).toBeInTheDocument();
@@ -194,7 +200,7 @@ test("displays empty result message when no jobs returned", async () => {
 });
 
 test("expands job details when clicking a row", async () => {
-  const { container } = render(<JobList />);
+  const { container } = renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -217,7 +223,7 @@ test("expands job details when clicking a row", async () => {
 });
 
 test("includes JobSearchForm for filtering", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -229,27 +235,24 @@ test("includes JobSearchForm for filtering", async () => {
 });
 
 test("search triggers API call with filter parameters", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   // Type in search and submit
   await userEvent.type(screen.getByPlaceholderText("Search..."), "103");
   await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("filter[id]=103"),
-    "test-token",
-  );
+  expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", "id", "103", 1);
 });
 
 // Sorting tests
 test("clicking ID header twice toggles sort direction", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -258,83 +261,85 @@ test("clicking ID header twice toggles sort direction", async () => {
   const columnHeaders = screen.getAllByRole("columnheader");
   const idHeader = columnHeaders[0];
 
-  // Initial state: sorted descending (↑ shown, meaning -id)
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
-  // First click: should sort ascending (id)
+  // First click: should sort ascending (id) — toggles from desc
   await userEvent.click(idHeader);
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("sort=id"),
-    "test-token",
-  );
+  expect(fetchJobs).toHaveBeenCalledWith("test-token", "id", null, null, 1);
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   // Second click: should sort descending (-id)
   await userEvent.click(idHeader);
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("sort=-id"),
-    "test-token",
-  );
+  expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", null, null, 1);
 });
 
 test("clicking Function name header triggers sort by function_name", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   const columnHeaders = screen.getAllByRole("columnheader");
   await userEvent.click(columnHeaders[1]); // Function name
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("sort=function_name"),
+  expect(fetchJobs).toHaveBeenCalledWith(
     "test-token",
+    "function_name",
+    null,
+    null,
+    1,
   );
 });
 
 test("clicking Scheduled by header triggers sort by scheduled_by", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   const columnHeaders = screen.getAllByRole("columnheader");
   await userEvent.click(columnHeaders[3]); // Scheduled by
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("sort=scheduled_by"),
+  expect(fetchJobs).toHaveBeenCalledWith(
     "test-token",
+    "scheduled_by",
+    null,
+    null,
+    1,
   );
 });
 
 test("clicking Finish time header triggers sort by finish_time", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   const columnHeaders = screen.getAllByRole("columnheader");
   await userEvent.click(columnHeaders[4]); // Finish time
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("sort=finish_time"),
+  expect(fetchJobs).toHaveBeenCalledWith(
     "test-token",
+    "finish_time",
+    null,
+    null,
+    1,
   );
 });
 
 // Search with different filter fields
-test("search with function_name field uses contains operator", async () => {
-  render(<JobList />);
+test("search with function_name field uses correct params", async () => {
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -344,19 +349,22 @@ test("search with function_name field uses contains operator", async () => {
   await userEvent.click(screen.getByRole("listbox"));
   await userEvent.click(screen.getByRole("option", { name: "Function name" }));
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   await userEvent.type(screen.getByPlaceholderText("Search..."), "sync");
   await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("filter[function_name][contains]=sync"),
+  expect(fetchJobs).toHaveBeenCalledWith(
     "test-token",
+    "-id",
+    "function_name",
+    "sync",
+    1,
   );
 });
 
-test("search with status field does not use contains operator", async () => {
-  render(<JobList />);
+test("search with status field uses correct params", async () => {
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -366,23 +374,22 @@ test("search with status field does not use contains operator", async () => {
   await userEvent.click(screen.getByRole("listbox"));
   await userEvent.click(screen.getByRole("option", { name: "Status" }));
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   await userEvent.type(screen.getByPlaceholderText("Search..."), "FINISHED");
   await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("filter[status]=FINISHED"),
+  expect(fetchJobs).toHaveBeenCalledWith(
     "test-token",
-  );
-  expect(getResponse).not.toHaveBeenCalledWith(
-    expect.stringContaining("[contains]"),
-    expect.anything(),
+    "-id",
+    "status",
+    "FINISHED",
+    1,
   );
 });
 
-test("search with scheduled_by field uses contains operator", async () => {
-  render(<JobList />);
+test("search with scheduled_by field uses correct params", async () => {
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -391,20 +398,23 @@ test("search with scheduled_by field uses contains operator", async () => {
   await userEvent.click(screen.getByRole("listbox"));
   await userEvent.click(screen.getByRole("option", { name: "Scheduled by" }));
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   await userEvent.type(screen.getByPlaceholderText("Search..."), "admin");
   await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("filter[scheduled_by][contains]=admin"),
+  expect(fetchJobs).toHaveBeenCalledWith(
     "test-token",
+    "-id",
+    "scheduled_by",
+    "admin",
+    1,
   );
 });
 
 // Expand/collapse tests
 test("collapses job details when clicking expanded row again", async () => {
-  const { container } = render(<JobList />);
+  const { container } = renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -422,7 +432,7 @@ test("collapses job details when clicking expanded row again", async () => {
 });
 
 test("can expand multiple job rows independently", async () => {
-  const { container } = render(<JobList />);
+  const { container } = renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -452,9 +462,9 @@ test("displays start_arguments in expanded details when present", async () => {
     ...mockJobs[0],
     start_arguments: { dry_run: true, hostnames: ["device1"] },
   };
-  getResponse.mockImplementation(() => createMockResponse([jobWithStartArgs]));
+  fetchJobs.mockImplementation(() => createMockResult([jobWithStartArgs]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -473,9 +483,9 @@ test("displays next_job_id in expanded details", async () => {
     ...mockJobs[0],
     next_job_id: 105,
   };
-  getResponse.mockImplementation(() => createMockResponse([jobWithNextId]));
+  fetchJobs.mockImplementation(() => createMockResult([jobWithNextId]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -488,11 +498,10 @@ test("displays next_job_id in expanded details", async () => {
 });
 
 test("displays change_score in expanded details", async () => {
-  // Use single job to avoid duplicate "Change score" elements
   const singleJob = { ...mockJobs[0] };
-  getResponse.mockImplementation(() => createMockResponse([singleJob]));
+  fetchJobs.mockImplementation(() => createMockResult([singleJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -524,9 +533,9 @@ test("displays exception message for EXCEPTION status job", async () => {
       traceback: "Traceback (most recent call last):\n  File...",
     },
   };
-  getResponse.mockImplementation(() => createMockResponse([exceptionJob]));
+  fetchJobs.mockImplementation(() => createMockResult([exceptionJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("103")).toBeInTheDocument();
@@ -556,9 +565,9 @@ test("displays empty exception message when exception is null", async () => {
     result: null,
     exception: null,
   };
-  getResponse.mockImplementation(() => createMockResponse([exceptionJob]));
+  fetchJobs.mockImplementation(() => createMockResult([exceptionJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("103")).toBeInTheDocument();
@@ -571,7 +580,7 @@ test("displays empty exception message when exception is null", async () => {
 
 // Pagination tests
 test("displays pagination controls", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -582,11 +591,11 @@ test("displays pagination controls", async () => {
   ).toBeInTheDocument();
 });
 
-test("displays correct total pages based on X-Total-Count header", async () => {
-  // 45 total items / 20 per page = 3 pages
-  getResponse.mockImplementation(() => createMockResponse(mockJobs, 45));
+test("displays correct total pages based on API response", async () => {
+  // 3 pages
+  fetchJobs.mockImplementation(() => createMockResult(mockJobs, 3));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -601,23 +610,19 @@ test("displays correct total pages based on X-Total-Count header", async () => {
 
 // WebSocket tests
 test("sets up websocket connection on mount", async () => {
-  const { io } = require("socket.io-client");
-
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  expect(io).toHaveBeenCalledWith(process.env.API_URL, {
-    query: { jwt: "test-token" },
-  });
+  expect(mockSocket.connect).toHaveBeenCalled();
   expect(mockSocket.on).toHaveBeenCalledWith("connect", expect.any(Function));
   expect(mockSocket.on).toHaveBeenCalledWith("events", expect.any(Function));
 });
 
 test("cleans up websocket on unmount", async () => {
-  const { unmount } = render(<JobList />);
+  const { unmount } = renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -625,64 +630,59 @@ test("cleans up websocket on unmount", async () => {
 
   unmount();
 
-  expect(mockSocket.off).toHaveBeenCalledWith("events");
+  expect(mockSocket.off).toHaveBeenCalledWith("connect", expect.any(Function));
+  expect(mockSocket.off).toHaveBeenCalledWith("events", expect.any(Function));
+  expect(mockSocket.disconnect).toHaveBeenCalled();
 });
 
 // API call format tests
 test("initial API call has correct format", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringMatching(/\/api\/v1\.0\/jobs\?sort=-id.*page=1.*per_page=20/),
-    "test-token",
-  );
+  expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", null, null, 1);
 });
 
 test("formats finish_time correctly in table", async () => {
-  // Use single job to avoid duplicates between table and expanded details
   const singleJob = { ...mockJobs[0] };
-  getResponse.mockImplementation(() => createMockResponse([singleJob]));
+  fetchJobs.mockImplementation(() => createMockResult([singleJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  // The formatISODate utility formats the date - appears in table row and hidden details
   const finishTimes = screen.getAllByText("2025-01-20 10:05:00");
   expect(finishTimes.length).toBeGreaterThanOrEqual(1);
 });
 
 test("displays NA for null finish_time", async () => {
-  // Use single job with null finish_time
   const runningJob = { ...mockJobs[1] };
-  getResponse.mockImplementation(() => createMockResponse([runningJob]));
+  fetchJobs.mockImplementation(() => createMockResult([runningJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("102")).toBeInTheDocument();
   });
 
-  // Job 102 has null finish_time - "NA" appears in table row and hidden details
   const naElements = screen.getAllByText("NA");
   expect(naElements.length).toBeGreaterThanOrEqual(1);
 });
 
 // Error handling tests
 test("handles error without json method", async () => {
-  getResponse.mockImplementation(() =>
+  fetchJobs.mockImplementation(() =>
     Promise.reject({
       message: "Network error",
     }),
   );
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText(/API error: Network error/)).toBeInTheDocument();
@@ -691,7 +691,7 @@ test("handles error without json method", async () => {
 
 // Clear search tests
 test("clearing search resets filter and reloads data", async () => {
-  const { container } = render(<JobList />);
+  const { container } = renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -700,22 +700,19 @@ test("clearing search resets filter and reloads data", async () => {
   // Type something in search
   await userEvent.type(screen.getByPlaceholderText("Search..."), "test");
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   // Click clear icon
   const clearIcon = container.querySelector("i.delete.icon");
   await userEvent.click(clearIcon);
 
   // Should call API without filter params
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.not.stringContaining("filter["),
-    "test-token",
-  );
+  expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", null, null, 1);
 });
 
 // Jobs heading test
 test("displays Jobs heading", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -728,33 +725,28 @@ test("displays Jobs heading", async () => {
 
 // Pagination page change tests
 test("clicking page 2 triggers API call with page=2", async () => {
-  // 45 total items = 3 pages
-  getResponse.mockImplementation(() => createMockResponse(mockJobs, 45));
+  fetchJobs.mockImplementation(() => createMockResult(mockJobs, 3));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
-  // Click page 2 - Semantic UI pagination uses <a> links, not buttons
   const nav = screen.getByRole("navigation", { name: "Pagination Navigation" });
   const page2Link = nav.querySelector('a[value="2"]');
   await userEvent.click(page2Link);
 
   await waitFor(() => {
-    expect(getResponse).toHaveBeenCalledWith(
-      expect.stringContaining("page=2"),
-      "test-token",
-    );
+    expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", null, null, 2);
   });
 });
 
 // Rows collapse on sort/page change tests
 test("expanded rows collapse when sorting by a different column", async () => {
-  const { container } = render(<JobList />);
+  const { container } = renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -769,7 +761,6 @@ test("expanded rows collapse when sorting by a different column", async () => {
   const columnHeaders = screen.getAllByRole("columnheader");
   await userEvent.click(columnHeaders[2]); // Status column
 
-  // Re-query the element after re-render and check it's collapsed
   await waitFor(() => {
     detailsRow = container.querySelector(".device_details_row");
     expect(detailsRow).toHaveAttribute("hidden");
@@ -777,10 +768,9 @@ test("expanded rows collapse when sorting by a different column", async () => {
 });
 
 test("expanded rows collapse when changing page", async () => {
-  // 45 total items = 3 pages
-  getResponse.mockImplementation(() => createMockResponse(mockJobs, 45));
+  fetchJobs.mockImplementation(() => createMockResult(mockJobs, 3));
 
-  const { container } = render(<JobList />);
+  const { container } = renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -791,12 +781,10 @@ test("expanded rows collapse when changing page", async () => {
   let detailsRow = container.querySelector(".device_details_row");
   expect(detailsRow).not.toHaveAttribute("hidden");
 
-  // Click page 2 - Semantic UI pagination uses <a> links, not buttons
   const nav = screen.getByRole("navigation", { name: "Pagination Navigation" });
   const page2Link = nav.querySelector('a[value="2"]');
   await userEvent.click(page2Link);
 
-  // Re-query the element after re-render and check it's collapsed
   await waitFor(() => {
     detailsRow = container.querySelector(".device_details_row");
     expect(detailsRow).toHaveAttribute("hidden");
@@ -823,9 +811,9 @@ test("clicking 'Show exception traceback' reveals traceback text", async () => {
       traceback: "Traceback (most recent call last):\n  File test.py line 42",
     },
   };
-  getResponse.mockImplementation(() => createMockResponse([exceptionJob]));
+  fetchJobs.mockImplementation(() => createMockResult([exceptionJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("103")).toBeInTheDocument();
@@ -846,8 +834,8 @@ test("clicking 'Show exception traceback' reveals traceback text", async () => {
 });
 
 // Additional filter field tests
-test("search with comment field uses contains operator", async () => {
-  render(<JobList />);
+test("search with comment field uses correct params", async () => {
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -857,7 +845,7 @@ test("search with comment field uses contains operator", async () => {
   await userEvent.click(screen.getByRole("listbox"));
   await userEvent.click(screen.getByRole("option", { name: "Comment" }));
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   await userEvent.type(
     screen.getByPlaceholderText("Search..."),
@@ -865,14 +853,17 @@ test("search with comment field uses contains operator", async () => {
   );
   await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("filter[comment][contains]=test comment"),
+  expect(fetchJobs).toHaveBeenCalledWith(
     "test-token",
+    "-id",
+    "comment",
+    "test comment",
+    1,
   );
 });
 
-test("search with ticket_ref field uses contains operator", async () => {
-  render(<JobList />);
+test("search with ticket_ref field uses correct params", async () => {
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -884,14 +875,17 @@ test("search with ticket_ref field uses contains operator", async () => {
     screen.getByRole("option", { name: "Ticket reference" }),
   );
 
-  getResponse.mockClear();
+  fetchJobs.mockClear();
 
   await userEvent.type(screen.getByPlaceholderText("Search..."), "TICKET-456");
   await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-  expect(getResponse).toHaveBeenCalledWith(
-    expect.stringContaining("filter[ticket_ref][contains]=TICKET-456"),
+  expect(fetchJobs).toHaveBeenCalledWith(
     "test-token",
+    "-id",
+    "ticket_ref",
+    "TICKET-456",
+    1,
   );
 });
 
@@ -916,9 +910,9 @@ test("displays VerifyDiffResult for finished sync_devices job with diffs", async
       },
     },
   };
-  getResponse.mockImplementation(() => createMockResponse([syncJob]));
+  fetchJobs.mockImplementation(() => createMockResult([syncJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("104")).toBeInTheDocument();
@@ -972,9 +966,9 @@ test("displays parsed results for init_access_device_step1 job", async () => {
       },
     },
   };
-  getResponse.mockImplementation(() => createMockResponse([initJob]));
+  fetchJobs.mockImplementation(() => createMockResult([initJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("105")).toBeInTheDocument();
@@ -1015,9 +1009,9 @@ test("displays error for init_access_device_step1 job when device kept old IP", 
       },
     },
   };
-  getResponse.mockImplementation(() => createMockResponse([initJob]));
+  fetchJobs.mockImplementation(() => createMockResult([initJob]));
 
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("106")).toBeInTheDocument();
@@ -1034,7 +1028,7 @@ test("displays error for init_access_device_step1 job when device kept old IP", 
 
 // LogViewer integration test (using mock)
 test("LogViewer is not rendered when no log lines exist", async () => {
-  render(<JobList />);
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
