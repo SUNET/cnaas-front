@@ -42,7 +42,7 @@ export function useJobListSocket(
     };
 
     const handleEvents = (data: JobEventData | string) => {
-      if (typeof data === "object" && data.job_id) {
+      if (data != null && typeof data === "object" && data.job_id) {
         const line =
           data.status === "EXCEPTION"
             ? `job #${data.job_id} changed status to ${data.status}: ${data.exception}\n`

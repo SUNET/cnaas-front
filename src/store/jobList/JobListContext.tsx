@@ -105,10 +105,10 @@ export function JobListProvider({ children }: JobListProviderProps) {
         dispatch({ type: actions.SET_PAGE, page: options.pageNum });
       }
 
-      dispatch({ type: actions.FETCH_STARTED });
-
       const currentToken = tokenRef.current;
       if (!currentToken) return;
+
+      dispatch({ type: actions.FETCH_STARTED });
 
       fetchJobs(currentToken, sortField, filterField, filterValue, page).then(
         (result) => {
@@ -179,8 +179,10 @@ export function JobListProvider({ children }: JobListProviderProps) {
   // --- Initial load ---
 
   useEffect(() => {
-    loadJobs();
-  }, []);
+    if (token) {
+      loadJobs();
+    }
+  }, [token]);
 
   // --- Context value ---
 

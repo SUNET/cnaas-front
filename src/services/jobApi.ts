@@ -36,7 +36,7 @@ export async function fetchJobs(
     let filterParams = "";
     if (filterField != null && filterValue != null) {
       const operator = STRING_FIELDS.has(filterField) ? "[contains]" : "";
-      filterParams = `&filter[${filterField}]${operator}=${filterValue}`;
+      filterParams = `&filter[${filterField}]${operator}=${encodeURIComponent(filterValue)}`;
     }
 
     const url = `${process.env.API_URL}/api/v1.0/jobs?sort=${sortField}${filterParams}&page=${page}&per_page=20`;
