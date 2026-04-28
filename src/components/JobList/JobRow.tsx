@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import type { ReactNode } from "react";
 import {
   Grid,
   GridColumn,
@@ -10,32 +10,18 @@ import {
 } from "semantic-ui-react";
 import { formatISODate } from "../../utils/formatters";
 import { JobDetails } from "./JobDetails";
+import type { Job } from "../../store/jobList/jobListReducer";
 
-JobRow.propTypes = {
-  job: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    function_name: PropTypes.string,
-    status: PropTypes.string.isRequired,
-    scheduled_by: PropTypes.string,
-    start_time: PropTypes.string,
-    finish_time: PropTypes.string,
-    comment: PropTypes.string,
-    ticket_ref: PropTypes.string,
-    start_arguments: PropTypes.object,
-    next_job_id: PropTypes.number,
-    change_score: PropTypes.number,
-    finished_devices: PropTypes.arrayOf(PropTypes.string),
-    result: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-    exception: PropTypes.object,
-  }).isRequired,
-  isExpanded: PropTypes.bool.isRequired,
-  onToggle: PropTypes.func.isRequired,
-};
+interface JobRowProps {
+  readonly job: Job;
+  readonly isExpanded: boolean;
+  readonly onToggle: () => void;
+}
 
 /**
  * Renders a single job row in the jobs table, including the expandable details section.
  */
-export function JobRow({ job, isExpanded, onToggle }) {
+export function JobRow({ job, isExpanded, onToggle }: JobRowProps) {
   const finishedDevices = job.finished_devices?.join(", ") ?? "";
 
   return (
@@ -66,20 +52,15 @@ export function JobRow({ job, isExpanded, onToggle }) {
   );
 }
 
-JobMetadataTable.propTypes = {
-  job: PropTypes.shape({
-    start_time: PropTypes.string,
-    finish_time: PropTypes.string,
-    comment: PropTypes.string,
-    ticket_ref: PropTypes.string,
-    start_arguments: PropTypes.object,
-    next_job_id: PropTypes.number,
-    change_score: PropTypes.number,
-  }).isRequired,
-  finishedDevices: PropTypes.string.isRequired,
-};
+interface JobMetadataTableProps {
+  readonly job: Job;
+  readonly finishedDevices: string;
+}
 
-function JobMetadataTable({ job, finishedDevices }) {
+function JobMetadataTable({
+  job,
+  finishedDevices,
+}: JobMetadataTableProps): ReactNode {
   return (
     <Table compact basic="very">
       <TableBody>

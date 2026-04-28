@@ -12,7 +12,7 @@ import FirmwareCopy from "./components/FirmwareCopy";
 import { FirmwareUpgrade } from "./components/FirmwareUpgrade";
 import GroupList from "./components/GroupList";
 import { InterfaceConfigPage } from "./components/InterfaceConfig/InterfaceConfigPage";
-import { JobList } from "./components/JobList";
+import { JobListPage } from "./components/JobList/JobListPage";
 import Login from "./components/Login/Login";
 import Settings from "./components/Settings";
 
@@ -27,7 +27,7 @@ const router = createBrowserRouter([
         children: [
           { path: "/dashboard", element: <Dashboard /> },
           { path: "/devices", element: <DeviceList /> },
-          { path: "/jobs", element: <JobList /> },
+          { path: "/jobs", element: <JobListPage /> },
           { path: "/groups", element: <GroupList /> },
           { path: "/config-change", element: <ConfigChange /> },
           { path: "/firmware-upgrade", element: <FirmwareUpgrade /> },
