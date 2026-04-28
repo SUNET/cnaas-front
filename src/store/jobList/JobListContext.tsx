@@ -18,7 +18,6 @@ import {
   actions,
   type JobListState,
   type Action,
-  type SortState,
   type FilterState,
 } from "./jobListReducer";
 import { useJobListSocket } from "./useJobListSocket";
@@ -89,7 +88,7 @@ export function JobListProvider({ children }: JobListProviderProps) {
         const column = options.sortField.replace(/^-/, "");
         dispatch({
           type: actions.SET_SORT,
-          sort: { column, direction, field: options.sortField } as SortState,
+          sort: { column, direction, field: options.sortField },
         });
       }
       if (options?.filter !== undefined) {

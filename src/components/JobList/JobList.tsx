@@ -13,7 +13,6 @@ import { JobRow } from "./JobRow";
 import { JobSearchForm } from "./JobSearchForm";
 import LogViewer from "../LogViewer";
 import { useJobList } from "../../store/jobList/JobListContext";
-import type { FilterState } from "../../store/jobList/jobListReducer";
 
 export function JobList() {
   const { state, sortByColumn, setFilter, setPage, toggleRow } = useJobList();
