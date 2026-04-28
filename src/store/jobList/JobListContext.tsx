@@ -110,31 +110,19 @@ export function JobListProvider({ children }: JobListProviderProps) {
       const currentToken = tokenRef.current;
       if (!currentToken) return;
 
-      fetchJobs(currentToken, sortField, filterField, filterValue, page)
-        .then(({ jobs, totalPages }) => {
-          dispatch({ type: actions.FETCH_SUCCESS, jobs, totalPages });
-        })
-        .catch(async (error: unknown) => {
-          let message = "Unknown error";
-          if (
-            error != null &&
-            typeof error === "object" &&
-            "json" in error &&
-            typeof (error as { json: unknown }).json === "function"
-          ) {
-            const jsonError = await (error as Response).json();
-            message = jsonError.message ?? "Unknown error";
-          } else if (error instanceof Error) {
-            message = error.message;
-          } else if (
-            error != null &&
-            typeof error === "object" &&
-            "message" in error
-          ) {
-            message = String((error as { message: unknown }).message);
+      fetchJobs(currentToken, sortField, filterField, filterValue, page).then(
+        (result) => {
+          if (result.error != null) {
+            dispatch({ type: actions.FETCH_FAILED, error: result.error });
+          } else {
+            dispatch({
+              type: actions.FETCH_SUCCESS,
+              jobs: result.jobs,
+              totalPages: result.totalPages,
+            });
           }
-          dispatch({ type: actions.FETCH_FAILED, error: message });
-        });
+        },
+      );
     },
 
     [

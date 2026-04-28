@@ -119,8 +119,8 @@ function InitDeviceResult({ job }: JobDetailsProps): ReactNode {
 
   return (
     <>
-      {results.map((line, index) => (
-        <p key={index}>{line}</p>
+      {results.map((line) => (
+        <p key={line}>{line}</p>
       ))}
     </>
   );

@@ -175,8 +175,8 @@ test("clicking a column header triggers sort API call", async () => {
 
 test("displays error message when API fails", async () => {
   fetchJobs.mockImplementation(() =>
-    Promise.reject({
-      json: () => Promise.resolve({ message: "Server error occurred" }),
+    Promise.resolve({
+      error: "Server error occurred",
     }),
   );
 
@@ -677,8 +677,8 @@ test("displays NA for null finish_time", async () => {
 // Error handling tests
 test("handles error without json method", async () => {
   fetchJobs.mockImplementation(() =>
-    Promise.reject({
-      message: "Network error",
+    Promise.resolve({
+      error: "Network error",
     }),
   );
 
