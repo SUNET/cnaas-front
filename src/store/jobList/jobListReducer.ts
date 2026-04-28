@@ -72,7 +72,7 @@ export type Action =
 
 export const initialState: JobListState = {
   jobs: [],
-  loading: true,
+  loading: false,
   error: null,
   sort: { column: "id", direction: "desc", field: "-id" },
   filter: { field: null, value: null },

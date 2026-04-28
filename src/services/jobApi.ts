@@ -58,8 +58,15 @@ export async function fetchJobs(
       "json" in error &&
       typeof (error as { json: unknown }).json === "function"
     ) {
-      const jsonError = await (error as Response).json();
-      message = jsonError.message ?? "Unknown error";
+      const jsonError: unknown = await (error as Response).json();
+      if (
+        jsonError != null &&
+        typeof jsonError === "object" &&
+        "message" in jsonError &&
+        typeof (jsonError as { message: unknown }).message === "string"
+      ) {
+        message = (jsonError as { message: string }).message;
+      }
     } else if (error instanceof Error) {
       message = error.message;
     } else if (

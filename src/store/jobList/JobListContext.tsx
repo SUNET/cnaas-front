@@ -106,7 +106,13 @@ export function JobListProvider({ children }: JobListProviderProps) {
       }
 
       const currentToken = tokenRef.current;
-      if (!currentToken) return;
+      if (!currentToken) {
+        dispatch({
+          type: actions.FETCH_FAILED,
+          error: "Authentication required to load jobs.",
+        });
+        return;
+      }
 
       dispatch({ type: actions.FETCH_STARTED });
 
