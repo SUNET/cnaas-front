@@ -83,7 +83,7 @@ function InitDeviceResult({ job }: JobDetailsProps): ReactNode {
   const result = job.result as InitResult;
   const deviceResult = Object.values(result.devices);
   const results = deviceResult[0].job_tasks
-    .map((task): string | undefined => {
+    .map((task): { key: string; text: string } | undefined => {
       if (task.task_name === "napalm_get") {
         if (
           (typeof task.result === "string" &&
@@ -91,36 +91,48 @@ function InitDeviceResult({ job }: JobDetailsProps): ReactNode {
             task.failed === true) ||
           (typeof task.result === "object" && task.failed === false)
         ) {
-          return "Error: Device kept old management IP";
+          return {
+            key: task.task_name,
+            text: "Error: Device kept old management IP",
+          };
         }
-        return "New management IP set";
+        return { key: task.task_name, text: "New management IP set" };
       }
       if (task.task_name === "Generate initial device config") {
         if (task.failed === true) {
-          return `Error: Failed to generate configuration from template: ${task.result}`;
+          return {
+            key: task.task_name,
+            text: `Error: Failed to generate configuration from template: ${task.result}`,
+          };
         }
-        return "Configuration was generated successfully from template";
+        return {
+          key: task.task_name,
+          text: "Configuration was generated successfully from template",
+        };
       }
       if (task.task_name === "ztp_device_cert") {
-        return String(task.result);
+        return { key: task.task_name, text: String(task.result) };
       }
       if (task.task_name === "Push base management config") {
         if (
           typeof task.result === "string" &&
           task.result.includes("ReplaceConfigException")
         ) {
-          return `Error: Failed to push configuration: ${task.result}`;
+          return {
+            key: task.task_name,
+            text: `Error: Failed to push configuration: ${task.result}`,
+          };
         }
-        return "Pushed base configuration";
+        return { key: task.task_name, text: "Pushed base configuration" };
       }
       return undefined;
     })
-    .filter((r): r is string => r !== undefined);
+    .filter((r): r is { key: string; text: string } => r !== undefined);
 
   return (
     <>
-      {results.map((line) => (
-        <p key={line}>{line}</p>
+      {results.map((item) => (
+        <p key={`${job.id}-${item.key}`}>{item.text}</p>
       ))}
     </>
   );

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import {
   Icon,
   Pagination,
@@ -43,25 +43,17 @@ export function JobList() {
   const searchAction = (options: {
     filterField?: string | null;
     filterValue?: string | null;
-    sortField?: string;
   }) => {
-    if (
-      options.filterField !== undefined &&
-      options.filterValue !== undefined
-    ) {
-      setFilter({
-        field: options.filterField,
-        value: options.filterValue,
-      } as FilterState);
-    } else if (options.sortField !== undefined) {
-      sortByColumn(options.sortField);
-    }
+    setFilter({
+      field: options.filterField ?? null,
+      value: options.filterValue ?? null,
+    } as FilterState);
   };
 
   // --- Page change ---
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pageChange = (_e: React.MouseEvent<HTMLAnchorElement>, data: any) => {
+  const pageChange = (_e: MouseEvent<HTMLAnchorElement>, data: any) => {
     setPage(Number(data.activePage));
   };
 

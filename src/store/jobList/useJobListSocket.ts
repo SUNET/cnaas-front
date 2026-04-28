@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { socket } from "./socket";
 import { actions, type Action } from "./jobListReducer";
 import type { Dispatch } from "react";
@@ -18,6 +18,11 @@ export function useJobListSocket(
   dispatch: Dispatch<Action>,
   onJobUpdate: () => void,
 ): void {
+  const onJobUpdateRef = useRef(onJobUpdate);
+  useEffect(() => {
+    onJobUpdateRef.current = onJobUpdate;
+  }, [onJobUpdate]);
+
   useEffect(() => {
     if (!token) return;
 
@@ -48,7 +53,7 @@ export function useJobListSocket(
             ? `job #${data.job_id} changed status to ${data.status}: ${data.exception}\n`
             : `job #${data.job_id} changed status to ${data.status}\n`;
         dispatch({ type: actions.APPEND_LOG, line });
-        onJobUpdate();
+        onJobUpdateRef.current();
       } else if (typeof data === "string") {
         if (data.toLowerCase().includes("job #")) {
           dispatch({ type: actions.APPEND_LOG, line: `${data}\n` });
@@ -64,5 +69,5 @@ export function useJobListSocket(
       socket.off("events", handleEvents);
       socket.disconnect();
     };
-  }, [token, dispatch, onJobUpdate]);
+  }, [token, dispatch]);
 }

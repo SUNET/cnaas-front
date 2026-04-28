@@ -1,10 +1,10 @@
+import type { ChangeEvent, FormEvent, SyntheticEvent } from "react";
 import { useState } from "react";
 import { Button, Select, Input, Icon } from "semantic-ui-react";
 
 interface SearchActionOptions {
   readonly filterField?: string | null;
   readonly filterValue?: string | null;
-  readonly sortField?: string;
 }
 
 interface JobSearchFormProps {
@@ -30,7 +30,7 @@ export function JobSearchForm({ searchAction }: JobSearchFormProps) {
     searchAction({ filterField: null, filterValue: null });
   };
 
-  const submitSearch = (e: React.FormEvent) => {
+  const submitSearch = (e: FormEvent) => {
     e.preventDefault();
     searchAction({
       filterField: searchField,
@@ -44,7 +44,7 @@ export function JobSearchForm({ searchAction }: JobSearchFormProps) {
         type="text"
         placeholder="Search..."
         action
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
           setSearchText(e.target.value)
         }
         icon={<Icon name="delete" link onClick={clearSearch} />}
@@ -55,8 +55,7 @@ export function JobSearchForm({ searchAction }: JobSearchFormProps) {
         defaultValue="id"
         onChange={
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (_e: React.SyntheticEvent, data: any) =>
-            setSearchField(String(data.value))
+          (_e: SyntheticEvent, data: any) => setSearchField(String(data.value))
         }
       />
       <Button type="submit">Search</Button>

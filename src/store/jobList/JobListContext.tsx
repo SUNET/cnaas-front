@@ -177,6 +177,8 @@ export function JobListProvider({ children }: JobListProviderProps) {
   useJobListSocket(token, dispatch, onJobUpdate);
 
   // --- Initial load ---
+  // Intentionally depends only on token — we want a single fetch when
+  // the token first becomes available, not on every sort/filter/page change.
 
   useEffect(() => {
     if (token) {
