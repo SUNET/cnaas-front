@@ -63,7 +63,7 @@ export function JobList() {
     if (error) {
       return (
         <TableRow>
-          <TableCell colSpan="5">API error: {error}</TableCell>
+          <TableCell colSpan={5}>API error: {error}</TableCell>
         </TableRow>
       );
     }
@@ -71,7 +71,7 @@ export function JobList() {
     if (loading) {
       return (
         <TableRow>
-          <TableCell colSpan="5">
+          <TableCell colSpan={5}>
             <Icon name="spinner" loading />
             Loading jobs...
           </TableCell>
@@ -82,7 +82,7 @@ export function JobList() {
     if (jobs.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan="5">Empty result</TableCell>
+          <TableCell colSpan={5}>Empty result</TableCell>
         </TableRow>
       );
     }

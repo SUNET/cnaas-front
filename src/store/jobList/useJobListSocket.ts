@@ -30,20 +30,16 @@ export function useJobListSocket(
     socket.connect();
 
     const handleConnect = () => {
-      const emitJob = socket.emit("events", { update: "job" });
-      if ((emitJob as unknown as { connected?: boolean }).connected) {
-        dispatch({
-          type: actions.APPEND_LOG,
-          line: "Listening to job update events\n",
-        });
-      }
-      const emitLog = socket.emit("events", { loglevel: "DEBUG" });
-      if ((emitLog as unknown as { connected?: boolean }).connected) {
-        dispatch({
-          type: actions.APPEND_LOG,
-          line: "Listening to log message events\n",
-        });
-      }
+      socket.emit("events", { update: "job" });
+      dispatch({
+        type: actions.APPEND_LOG,
+        line: "Listening to job update events\n",
+      });
+      socket.emit("events", { loglevel: "DEBUG" });
+      dispatch({
+        type: actions.APPEND_LOG,
+        line: "Listening to log message events\n",
+      });
     };
 
     const handleEvents = (data: JobEventData | string) => {
