@@ -14,6 +14,8 @@ export interface FetchJobsError {
   readonly error: string;
 }
 
+const PER_PAGE = 20;
+
 const STRING_FIELDS = new Set([
   "function_name",
   "scheduled_by",
@@ -39,13 +41,13 @@ export async function fetchJobs(
       filterParams = `&filter[${filterField}]${operator}=${encodeURIComponent(filterValue)}`;
     }
 
-    const url = `${process.env.API_URL}/api/v1.0/jobs?sort=${sortField}${filterParams}&page=${page}&per_page=20`;
+    const url = `${process.env.API_URL}/api/v1.0/jobs?sort=${sortField}${filterParams}&page=${page}&per_page=${PER_PAGE}`;
     const response = await getResponse(url, token);
 
     const totalCountHeader = response.headers.get("X-Total-Count");
     let totalPages = 1;
     if (totalCountHeader != null && !Number.isNaN(Number(totalCountHeader))) {
-      totalPages = Math.ceil(Number(totalCountHeader) / 20);
+      totalPages = Math.ceil(Number(totalCountHeader) / PER_PAGE);
     }
 
     const data = await checkJsonResponse(response);
@@ -58,14 +60,35 @@ export async function fetchJobs(
       "json" in error &&
       typeof (error as { json: unknown }).json === "function"
     ) {
-      const jsonError: unknown = await (error as Response).json();
-      if (
-        jsonError != null &&
-        typeof jsonError === "object" &&
-        "message" in jsonError &&
-        typeof (jsonError as { message: unknown }).message === "string"
-      ) {
-        message = (jsonError as { message: string }).message;
+      const responseError = error as Response;
+      try {
+        const jsonError: unknown = await responseError.json();
+        if (
+          jsonError != null &&
+          typeof jsonError === "object" &&
+          "message" in jsonError &&
+          typeof (jsonError as { message: unknown }).message === "string"
+        ) {
+          message = (jsonError as { message: string }).message;
+        } else if (
+          "status" in responseError &&
+          typeof responseError.status === "number"
+        ) {
+          message =
+            responseError.statusText != null && responseError.statusText !== ""
+              ? `${responseError.status} ${responseError.statusText}`
+              : String(responseError.status);
+        }
+      } catch {
+        if (
+          "status" in responseError &&
+          typeof responseError.status === "number"
+        ) {
+          message =
+            responseError.statusText != null && responseError.statusText !== ""
+              ? `${responseError.status} ${responseError.statusText}`
+              : String(responseError.status);
+        }
       }
     } else if (error instanceof Error) {
       message = error.message;

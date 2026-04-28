@@ -151,7 +151,7 @@ export function JobList() {
         <TableBody>{renderTableBody()}</TableBody>
       </Table>
       <Pagination
-        defaultActivePage={1}
+        activePage={state.activePage}
         totalPages={totalPages}
         onPageChange={pageChange}
       />
