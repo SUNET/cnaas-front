@@ -42,3 +42,16 @@ export function fetchLinknets(
   token: string | null,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any[]>;
+
+export function fetchBgpSettings(
+  hostname: string,
+  token: string | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any[]>;
+
+export function fetchBgpNeighbors(
+  managementIp: string,
+  vrfName: string,
+  token: string | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any>;

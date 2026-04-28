@@ -1,6 +1,7 @@
 #!/bin/sh
 
 VARS="CNAAS_API_URL \
+CNAAS_FRONT_URL \
 CNAAS_AUTH_URL \
 CNAAS_HTTPD_URL \
 NETBOX_API_URL \
@@ -62,6 +63,11 @@ fi
 if [ -z "$GNMI_PROXY_URL" ]; then
     echo "Disabling cnaas-gnmi-proxy integration in nginx.conf"
     sed -i "/location.*gnmi/,/}/d" /etc/nginx/conf.d/default.conf
+else
+    if [[ -z "${CNAAS_FRONT_URL}" ]]; then
+        echo "ERROR: Required environment variable $v is not set." >&2
+        exit 1
+    fi
 fi
 
 # Update nginx with dynamic variables
