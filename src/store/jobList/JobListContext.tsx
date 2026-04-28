@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   type Dispatch,
   type ReactNode,
 } from "react";
@@ -61,11 +62,12 @@ export function JobListProvider({ children }: JobListProviderProps) {
   const { token } = useAuthToken();
   const tokenRef = useFreshRef(token);
   const [state, dispatch] = useReducer(jobListReducer, initialState);
+  const requestIdRef = useRef(0);
 
   // --- Data fetching ---
 
   const loadJobs = useCallback(
-    (options?: {
+    async (options?: {
       sortField?: string;
       filter?: FilterState;
       pageNum?: number;
@@ -111,19 +113,27 @@ export function JobListProvider({ children }: JobListProviderProps) {
 
       dispatch({ type: actions.FETCH_STARTED });
 
-      fetchJobs(currentToken, sortField, filterField, filterValue, page).then(
-        (result) => {
-          if (result.error != null) {
-            dispatch({ type: actions.FETCH_FAILED, error: result.error });
-          } else {
-            dispatch({
-              type: actions.FETCH_SUCCESS,
-              jobs: result.jobs,
-              totalPages: result.totalPages,
-            });
-          }
-        },
+      const thisRequestId = ++requestIdRef.current;
+      const result = await fetchJobs(
+        currentToken,
+        sortField,
+        filterField,
+        filterValue,
+        page,
       );
+
+      // Ignore stale responses from earlier requests
+      if (thisRequestId !== requestIdRef.current) return;
+
+      if (result.error != null) {
+        dispatch({ type: actions.FETCH_FAILED, error: result.error });
+      } else {
+        dispatch({
+          type: actions.FETCH_SUCCESS,
+          jobs: result.jobs,
+          totalPages: result.totalPages,
+        });
+      }
     },
 
     [
