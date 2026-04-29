@@ -315,6 +315,7 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
         repoJobIdRef.current = -1;
       }
       isRepoRefreshingRef.current = isRefreshing;
+      dispatch({ type: actions.SET_REPO_REFRESHING, refreshing: isRefreshing });
     },
     [loadDevicesAndHistory],
   );
@@ -369,7 +370,7 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
       confirmRun,
       allRepoJobs,
       commitTarget,
-      isRepoRefreshing: isRepoRefreshingRef.current,
+      isRepoRefreshing: state.isRepoRefreshing,
       deviceSyncStart,
       handleRepoRefreshing,
       handleDryRunReady,

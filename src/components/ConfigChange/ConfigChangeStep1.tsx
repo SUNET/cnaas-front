@@ -184,7 +184,7 @@ export default function ConfigChangeStep1({
           </button>
           <p>{commitUpdateInfo.templates}</p>
         </div>
-        <LogViewer logs={logLines.filter(checkJobIds(repoJobs))} />
+        <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />
       </div>
     </div>
   );

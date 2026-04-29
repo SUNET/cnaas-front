@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type MutableRefObject, type Dispatch } from "react";
 import { socket } from "./socket";
 import { actions, type Action } from "./configChangeReducer";
 import {
@@ -7,7 +7,6 @@ import {
   showAnotherSessionDidRefreshToast,
   clearToastTimers,
 } from "./toasts";
-import type { Dispatch } from "react";
 
 interface JobEventData {
   readonly job_id: number;
@@ -28,9 +27,9 @@ interface SyncEventData {
 type EventData = JobEventData | SyncEventData | string;
 
 interface RepoJobRefs {
-  readonly repoJobIdRef: React.MutableRefObject<number | null>;
-  readonly stoppedRepoJobs: React.MutableRefObject<number[]>;
-  readonly isRepoRefreshingRef: React.MutableRefObject<boolean>;
+  readonly repoJobIdRef: MutableRefObject<number | null>;
+  readonly stoppedRepoJobs: MutableRefObject<number[]>;
+  readonly isRepoRefreshingRef: MutableRefObject<boolean>;
 }
 
 function isJobEvent(data: EventData): data is JobEventData {
@@ -59,6 +58,12 @@ export function useConfigChangeSocket(
   const refsRef = useRef(repoJobRefs);
   useEffect(() => {
     refsRef.current = repoJobRefs;
+  });
+
+  // Keep username in a ref to avoid stale closures without reconnecting
+  const usernameRef = useRef(username);
+  useEffect(() => {
+    usernameRef.current = username;
   });
 
   useEffect(() => {
@@ -105,7 +110,7 @@ export function useConfigChangeSocket(
           repoJobIdRef.current = data.job_id;
         } else if (
           data.function_name === "refresh_repo" &&
-          (!username || data.scheduled_by !== username)
+          (!usernameRef.current || data.scheduled_by !== usernameRef.current)
         ) {
           showAnotherSessionDidRefreshToast(data.job_id);
           dispatch({ type: actions.SET_DRY_RUN_PROGRESS, data: {} });
