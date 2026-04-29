@@ -4,7 +4,7 @@ import AuthContextProvider from "./contexts/AuthContext";
 import { Footer } from "./components/Footer";
 import { Panel } from "./components/Panel";
 import { Callback } from "./components/Callback";
-import { ConfigChange } from "./components/ConfigChange/ConfigChange";
+import { ConfigChangePage } from "./components/ConfigChange/ConfigChangePage";
 import Dashboard from "./components/Dashboard";
 import { DeviceList } from "./components/DeviceList/DeviceList";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
           { path: "/devices", element: <DeviceList /> },
           { path: "/jobs", element: <JobListPage /> },
           { path: "/groups", element: <GroupList /> },
-          { path: "/config-change", element: <ConfigChange /> },
+          { path: "/config-change", element: <ConfigChangePage /> },
           { path: "/firmware-upgrade", element: <FirmwareUpgrade /> },
           { path: "/firmware-copy", element: <FirmwareCopy /> },
           { path: "/interface-config", element: <InterfaceConfigPage /> },

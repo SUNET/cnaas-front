@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
 
 import { getData } from "../../utils/getData";
@@ -114,10 +114,13 @@ function ConfigChangeStep4({
     confirmButtonElem.disabled = true;
   }
 
-  const fetchConfirmModeOptions = useCallback(() => {
-    const url = `${process.env.API_URL}/api/v1.0/settings/server`;
-    getData(url, token)
-      .then((data) => {
+  useEffect(() => {
+    if (!token) return;
+
+    async function fetchConfirmModeOptions() {
+      const url = `${process.env.API_URL}/api/v1.0/settings/server`;
+      try {
+        const data = await getData(url, token);
         if (data.api.COMMIT_CONFIRMED_MODE >= 0) {
           setConfirmModeDefault(() => data.api.COMMIT_CONFIRMED_MODE);
           setConfirmMode(() => data.api.COMMIT_CONFIRMED_MODE);
@@ -135,19 +138,15 @@ function ConfigChangeStep4({
           });
           setConfirmModeOptions(updatedOptions);
         }
-      })
-      .catch(() => {
+      } catch {
         console.log(
           "API does not support settings/server to get default commit confirm mode",
         );
-      });
-  }, [token]);
-
-  useEffect(() => {
-    if (token) {
-      fetchConfirmModeOptions();
+      }
     }
-  }, [token, fetchConfirmModeOptions]);
+
+    fetchConfirmModeOptions();
+  }, [token]);
 
   function updateConfirmMode(value) {
     setConfirmMode(value !== -1 ? value : confirmModeDefault);

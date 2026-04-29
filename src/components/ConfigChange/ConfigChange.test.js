@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
-import { ConfigChange } from "./ConfigChange";
+import { ConfigChangePage } from "./ConfigChangePage";
 import { getData as mockGetData } from "../../utils/getData";
 
 jest.mock("../../utils/getData");
@@ -16,15 +16,15 @@ jest.mock("../../contexts/PermissionsContext", () => ({
   usePermissions: () => ({ permissionsCheck: () => true }),
 }));
 
-const mockSocketOn = jest.fn();
-const mockSocketEmit = jest.fn();
-const mockSocketOff = jest.fn();
-jest.mock("socket.io-client", () => ({
-  io: jest.fn(() => ({
-    on: mockSocketOn,
-    emit: mockSocketEmit,
-    off: mockSocketOff,
-  })),
+jest.mock("../../store/configChange/socket", () => ({
+  socket: {
+    io: { opts: {} },
+    on: jest.fn(),
+    off: jest.fn(),
+    emit: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+  },
 }));
 
 // Mock heavy child components to isolate query param behavior
@@ -74,7 +74,7 @@ beforeEach(() => {
 
 function renderComponent(search = "") {
   const router = createMemoryRouter(
-    [{ path: "/config-change", element: <ConfigChange /> }],
+    [{ path: "/config-change", element: <ConfigChangePage /> }],
     { initialEntries: [`/config-change${search}`] },
   );
   return render(<RouterProvider router={router} />);

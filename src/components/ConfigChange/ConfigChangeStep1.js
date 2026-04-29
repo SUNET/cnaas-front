@@ -19,7 +19,6 @@ function ConfigChangeStep1({
     settings: null,
     templates: null,
   });
-  const [triggerDryRun, setTriggerDryRun] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const { permissionsCheck } = usePermissions();
   const { token } = useAuthToken();
@@ -32,10 +31,12 @@ function ConfigChangeStep1({
   useEffect(() => {
     async function getRepoStatus(repoName) {
       const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
-
-      getData(url, token).then((data) => {
+      try {
+        const data = await getData(url, token);
         setCommitInfo((prev) => ({ ...prev, [repoName]: data.data }));
-      });
+      } catch (error) {
+        console.error(`Failed to fetch ${repoName} repo status:`, error);
+      }
     }
     if (token) {
       getRepoStatus("settings");
@@ -43,22 +44,6 @@ function ConfigChangeStep1({
     }
   }, [token]);
 
-  useEffect(() => {
-    if (!triggerDryRun) {
-      return;
-    }
-    if (commitUpdateInfo.settings === "success") {
-      onDryRunReady();
-    } else {
-      console.log(
-        `Refresh error occured. Status${JSON.stringify(commitUpdateInfo)}`,
-      );
-    }
-
-    setTriggerDryRun(false);
-  }, [commitUpdateInfo, onDryRunReady, triggerDryRun]);
-
-  // this request takes some time, perhaps work in a "loading..."
   async function refreshRepo(repoName) {
     setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "updating..." }));
     await setRepoWorking(true);
@@ -66,28 +51,34 @@ function ConfigChangeStep1({
     const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
     const dataToSend = { action: "REFRESH" };
 
-    return putData(url, token, dataToSend)
-      .then((data) => {
-        if (data.status === "success") {
-          setRepoWorking(false);
-        }
-        setCommitInfo((prev) => ({
-          ...prev,
-          [repoName]: data.status === "success" ? data.data : data.message,
-        }));
-        setCommitUpdateInfo((prev) => ({
-          ...prev,
-          [repoName]: data.status === "success" ? "success" : "error",
-        }));
-      })
-      .catch((error) => {
-        setCommitInfo((prev) => ({ ...prev, [repoName]: error.message }));
-        setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "error" }));
-      });
+    try {
+      const data = await putData(url, token, dataToSend);
+      if (data.status === "success") {
+        setRepoWorking(false);
+      }
+      setCommitInfo((prev) => ({
+        ...prev,
+        [repoName]: data.status === "success" ? data.data : data.message,
+      }));
+      setCommitUpdateInfo((prev) => ({
+        ...prev,
+        [repoName]: data.status === "success" ? "success" : "error",
+      }));
+      return data.status === "success";
+    } catch (error) {
+      setCommitInfo((prev) => ({ ...prev, [repoName]: error.message }));
+      setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "error" }));
+      return false;
+    }
   }
 
-  function handleRefreshAndDryRun(repoName) {
-    refreshRepo(repoName).then(() => setTriggerDryRun(true));
+  async function handleRefreshAndDryRun(repoName) {
+    const success = await refreshRepo(repoName);
+    if (success) {
+      onDryRunReady();
+    } else {
+      console.log(`Refresh error occurred for ${repoName}`);
+    }
   }
 
   function prettifyCommit(commitStr) {
