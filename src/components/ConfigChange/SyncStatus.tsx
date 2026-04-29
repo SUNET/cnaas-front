@@ -22,32 +22,34 @@ function NoEventsContent() {
   );
 }
 
-interface EventsTableProps {
-  readonly contents: React.ReactNode[];
-  readonly headers: string[];
+interface CauseColumn {
+  readonly cause: string;
+  readonly devices: React.ReactNode;
 }
 
-function EventsTable({ contents, headers }: EventsTableProps) {
+interface EventsTableProps {
+  readonly columns: CauseColumn[];
+}
+
+function EventsTable({ columns }: EventsTableProps) {
   return (
     <div key="tablecontainer" className="tablecontainer">
       <Table key="synceventlist" celled collapsing>
         <Table.Header>
           <Table.Row>
-            {headers.map((cause) => {
-              return <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>;
-            })}
+            {columns.map(({ cause }) => (
+              <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>
+            ))}
           </Table.Row>
         </Table.Header>
 
         <Table.Body>
           <Table.Row>
-            {contents.map((devices, index) => {
-              return (
-                <Table.Cell key={`devices_cell_${index}`}>
-                  <ul>{devices}</ul>
-                </Table.Cell>
-              );
-            })}
+            {columns.map(({ cause, devices }) => (
+              <Table.Cell key={cause}>
+                <ul>{devices}</ul>
+              </Table.Cell>
+            ))}
           </Table.Row>
         </Table.Body>
       </Table>
@@ -68,8 +70,8 @@ function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
         hoverable
         content={
           <ul key={`device_entry_${hostname}`}>
-            {eventList.map((item, index) => (
-              <li key={`device_entry_${hostname}_${index}`}>
+            {eventList.map((item) => (
+              <li key={`${hostname}_${item.cause}_${item.by}_${item.date}`}>
                 {item.cause} by {item.by} at {item.date}
               </li>
             ))}
@@ -151,19 +153,16 @@ export default function SyncStatus({
   const [expanded, setExpanded] = useState(false);
 
   const renderDeviceList = () => {
-    const headers: string[] = [];
-    const contents: React.ReactNode[] = [];
-
     const causes = getCauses(devices, synchistory);
-    Object.entries(causes).forEach(([cause, devices]) => {
-      headers.push(cause);
-      contents.push(devices);
-    });
+    const columns = Object.entries(causes).map(([cause, devices]) => ({
+      cause,
+      devices,
+    }));
 
-    return contents.length < 1 ? (
+    return columns.length === 0 ? (
       <NoEventsContent />
     ) : (
-      <EventsTable contents={contents} headers={headers} />
+      <EventsTable columns={columns} />
     );
   };
 

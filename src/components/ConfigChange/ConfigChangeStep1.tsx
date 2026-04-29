@@ -6,6 +6,14 @@ import { getData } from "../../utils/getData";
 import { putData } from "../../utils/sendData";
 import LogViewer from "../LogViewer";
 
+function filterLogLinesByJobIds(jobIds: number[]) {
+  return function (logLine: string) {
+    return jobIds.some((v) =>
+      logLine.toLowerCase().includes(`job #${String(v).toLowerCase()}`),
+    );
+  };
+}
+
 interface ConfigChangeStep1Props {
   readonly setRepoWorking: (working: boolean) => void;
   readonly dryRunJobStatus?: string | null;
@@ -55,7 +63,7 @@ export default function ConfigChangeStep1({
 
   async function refreshRepo(repoName: string) {
     setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "updating..." }));
-    await setRepoWorking(true);
+    setRepoWorking(true);
 
     const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
     const dataToSend = { action: "REFRESH" };
@@ -92,7 +100,10 @@ export default function ConfigChangeStep1({
   }
 
   function prettifyCommit(commitStr: unknown) {
-    if (typeof commitStr !== "string") return <p>{String(commitStr ?? "")}</p>;
+    if (typeof commitStr !== "string") {
+      if (commitStr == null) return <p />;
+      return <p>{JSON.stringify(commitStr)}</p>;
+    }
 
     const gitCommitRegex =
       /Commit ([a-z0-9]{8})([a-z0-9]{32}) (\w+) by (.+) at ([0-9:-\s]+)/i;
@@ -115,14 +126,6 @@ export default function ConfigChangeStep1({
     } catch {
       return <p>{commitStr}</p>;
     }
-  }
-
-  function checkJobIds(jobIds: number[]) {
-    return function filterLogLinesOnJobId(logLine: string) {
-      return jobIds.some((v) =>
-        logLine.toLowerCase().includes(`job #${String(v).toLowerCase()}`),
-      );
-    };
   }
 
   return (

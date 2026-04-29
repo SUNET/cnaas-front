@@ -65,14 +65,14 @@ export function showSyncWarningToast(data: SyncEventData): void {
           <p>
             {pendingSyncWarnings[0].syncevent_data.cause} by{" "}
             {pendingSyncWarnings[0].syncevent_data.by} <br />
-            <Button onClick={() => window.location.reload()}>
+            <Button onClick={() => globalThis.location.reload()}>
               Reload page
             </Button>
           </p>
         ) : (
           <p>
             {count} sync events from other sessions <br />
-            <Button onClick={() => window.location.reload()}>
+            <Button onClick={() => globalThis.location.reload()}>
               Reload page
             </Button>
           </p>

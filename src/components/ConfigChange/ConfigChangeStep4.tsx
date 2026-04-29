@@ -164,7 +164,7 @@ export function ConfigChangeStep4({
   }, [token]);
 
   function updateConfirmMode(value: number) {
-    setConfirmMode(value !== -1 ? value : confirmModeDefault);
+    setConfirmMode(value === -1 ? confirmModeDefault : value);
   }
 
   let commitButtonDisabled = true;
@@ -172,14 +172,14 @@ export function ConfigChangeStep4({
     commitButtonDisabled = !!liveRunJobStatus;
   }
 
-  const warnings = !commitButtonDisabled
-    ? createWarningPopups(
+  const warnings = commitButtonDisabled
+    ? []
+    : createWarningPopups(
         jobTicketRef,
         jobComment,
         dryRunChangeScore,
         synctoForce,
-      )
-    : [];
+      );
 
   return (
     <div className="task-container">

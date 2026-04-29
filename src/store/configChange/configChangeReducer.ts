@@ -49,6 +49,9 @@ export interface ConfigChangeState {
   readonly confirmRunProgressData: ConfirmRunProgress;
   readonly logLines: string[];
   readonly synctoForce: boolean;
+  readonly isRepoRefreshing: boolean;
+  readonly repoJobId: number | null;
+  readonly stoppedRepoJobs: readonly number[];
 }
 
 // --- Action types ---
@@ -66,6 +69,9 @@ export const actions = {
   SET_SYNCTO_FORCE: "SET_SYNCTO_FORCE",
   APPEND_LOG: "APPEND_LOG",
   RESET_STATE: "RESET_STATE",
+  SET_REPO_REFRESHING: "SET_REPO_REFRESHING",
+  SET_REPO_JOB_ID: "SET_REPO_JOB_ID",
+  REPO_JOB_STOPPED: "REPO_JOB_STOPPED",
 } as const;
 
 export type Action =
@@ -80,7 +86,10 @@ export type Action =
   | { type: typeof actions.SET_CONFIRM_RUN_PROGRESS; data: ConfirmRunProgress }
   | { type: typeof actions.SET_SYNCTO_FORCE; force: boolean }
   | { type: typeof actions.APPEND_LOG; line: string }
-  | { type: typeof actions.RESET_STATE };
+  | { type: typeof actions.RESET_STATE }
+  | { type: typeof actions.SET_REPO_REFRESHING; refreshing: boolean }
+  | { type: typeof actions.SET_REPO_JOB_ID; jobId: number | null }
+  | { type: typeof actions.REPO_JOB_STOPPED };
 
 // --- Initial state ---
 
@@ -96,6 +105,9 @@ export const initialState: ConfigChangeState = {
   confirmRunProgressData: {},
   logLines: [],
   synctoForce: false,
+  isRepoRefreshing: false,
+  repoJobId: null,
+  stoppedRepoJobs: [],
 };
 
 // --- Reducer ---
@@ -144,6 +156,21 @@ export function configChangeReducer(
       }
       return { ...state, logLines };
     }
+
+    case actions.SET_REPO_REFRESHING:
+      return { ...state, isRepoRefreshing: action.refreshing };
+
+    case actions.SET_REPO_JOB_ID:
+      return { ...state, repoJobId: action.jobId };
+
+    case actions.REPO_JOB_STOPPED:
+      return state.repoJobId != null
+        ? {
+            ...state,
+            stoppedRepoJobs: [...state.stoppedRepoJobs, state.repoJobId],
+            repoJobId: null,
+          }
+        : state;
 
     case actions.RESET_STATE:
       return { ...initialState };

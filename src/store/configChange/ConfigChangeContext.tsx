@@ -218,7 +218,7 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
           updateJobType(jobType, payload);
 
           if (STATUS_STOPPED.has(payload.status)) {
-            clearInterval(pollIntervalRef.current!);
+            clearInterval(pollIntervalRef.current ?? undefined);
             pollIntervalRef.current = null;
             dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
 
@@ -235,7 +235,7 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
           }
         } catch (error) {
           console.error("Polling error:", error);
-          clearInterval(pollIntervalRef.current!);
+          clearInterval(pollIntervalRef.current ?? undefined);
           pollIntervalRef.current = null;
           dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
         }
@@ -311,10 +311,8 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
     async (isRefreshing: boolean) => {
       if (isRepoRefreshingRef.current && !isRefreshing) {
         await loadDevicesAndHistory();
-      } else {
-        if (!repoJobIdRef.current) {
-          repoJobIdRef.current = -1;
-        }
+      } else if (!repoJobIdRef.current) {
+        repoJobIdRef.current = -1;
       }
       isRepoRefreshingRef.current = isRefreshing;
     },
