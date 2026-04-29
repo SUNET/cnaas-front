@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
 
@@ -6,12 +5,37 @@ import { getData } from "../../utils/getData";
 import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRun/DryRunProgressInfo";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
+import type { DeviceSyncOptions } from "../../services/configChangeApi";
+import type {
+  ConfirmRunProgress,
+  LiveRunProgress,
+} from "../../store/configChange/configChangeReducer";
+
+interface ConfirmModeOption {
+  readonly value: number;
+  readonly text: string;
+}
+
+interface ConfigChangeStep4Props {
+  readonly confirmJobId: number | string;
+  readonly confirmRunJobStatus: string;
+  readonly confirmRunProgressData: ConfirmRunProgress;
+  readonly dryRunChangeScore: string | number;
+  readonly dryRunJobStatus: string;
+  readonly jobId: number | string;
+  readonly liveRunJobStatus: string;
+  readonly liveRunProgressData: LiveRunProgress;
+  readonly liveRunSyncStart: (options: DeviceSyncOptions) => void;
+  readonly logLines: string[];
+  readonly synctoForce: boolean;
+  readonly totalCount: number;
+}
 
 function createWarningPopups(
-  jobTicketRef,
-  jobComment,
-  dryRunChangeScore,
-  synctoForce,
+  jobTicketRef: string,
+  jobComment: string,
+  dryRunChangeScore: string | number,
+  synctoForce: boolean,
 ) {
   const warnings = [];
 
@@ -27,7 +51,7 @@ function createWarningPopups(
     );
   }
   const warnChangeScore = 90;
-  if (dryRunChangeScore && dryRunChangeScore > warnChangeScore) {
+  if (dryRunChangeScore && Number(dryRunChangeScore) > warnChangeScore) {
     warnings.push(
       <Popup
         key="popup2"
@@ -64,22 +88,7 @@ function createWarningPopups(
   return warnings;
 }
 
-ConfigChangeStep4.propTypes = {
-  confirmJobId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  confirmRunJobStatus: PropTypes.string,
-  confirmRunProgressData: PropTypes.object,
-  dryRunChangeScore: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  dryRunJobStatus: PropTypes.string,
-  jobId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  liveRunJobStatus: PropTypes.string,
-  liveRunProgressData: PropTypes.object,
-  liveRunSyncStart: PropTypes.func,
-  logLines: PropTypes.array,
-  synctoForce: PropTypes.bool,
-  totalCount: PropTypes.number,
-};
-
-function ConfigChangeStep4({
+export function ConfigChangeStep4({
   confirmJobId,
   confirmRunJobStatus,
   confirmRunProgressData,
@@ -92,11 +101,13 @@ function ConfigChangeStep4({
   logLines,
   synctoForce,
   totalCount,
-}) {
+}: ConfigChangeStep4Props) {
   const [confirmDiagOpen, setConfirmDiagOpen] = useState(false);
   const [confirmMode, setConfirmMode] = useState(-1);
   const [confirmModeDefault, setConfirmModeDefault] = useState(-1);
-  const [confirmModeOptions, setConfirmModeOptions] = useState([]);
+  const [confirmModeOptions, setConfirmModeOptions] = useState<
+    ConfirmModeOption[]
+  >([]);
   const [expanded, setExpanded] = useState(true);
   const [jobComment, setJobComment] = useState("");
   const [jobTicketRef, setJobTicketRef] = useState("");
@@ -110,8 +121,12 @@ function ConfigChangeStep4({
       ticket_ref: jobTicketRef,
       confirm_mode: confirmMode,
     });
-    const confirmButtonElem = document.getElementById("confirmButton");
-    confirmButtonElem.disabled = true;
+    const confirmButtonElem = document.getElementById(
+      "confirmButton",
+    ) as HTMLButtonElement | null;
+    if (confirmButtonElem) {
+      confirmButtonElem.disabled = true;
+    }
   }
 
   useEffect(() => {
@@ -124,7 +139,7 @@ function ConfigChangeStep4({
         if (data.api.COMMIT_CONFIRMED_MODE >= 0) {
           setConfirmModeDefault(() => data.api.COMMIT_CONFIRMED_MODE);
           setConfirmMode(() => data.api.COMMIT_CONFIRMED_MODE);
-          const initialOptions = [
+          const initialOptions: ConfirmModeOption[] = [
             { value: -1, text: "use server default commit confirm mode" },
             { value: 0, text: "mode 0: no confirm" },
             { value: 1, text: "mode 1: per-device confirm" },
@@ -148,7 +163,7 @@ function ConfigChangeStep4({
     fetchConfirmModeOptions();
   }, [token]);
 
-  function updateConfirmMode(value) {
+  function updateConfirmMode(value: number) {
     setConfirmMode(value !== -1 ? value : confirmModeDefault);
   }
 
@@ -173,7 +188,7 @@ function ConfigChangeStep4({
           <Icon
             name="dropdown"
             onClick={() => setExpanded((prev) => !prev)}
-            rotated={expanded ? null : "counterclockwise"}
+            rotated={expanded ? undefined : "counterclockwise"}
           />
           Commit configuration (4/4)
           <Popup
@@ -216,8 +231,9 @@ function ConfigChangeStep4({
         <Select
           disabled={confirmModeDefault === -1}
           placeholder="commit confirm mode (use server default)"
-          options={confirmModeOptions}
-          onChange={(_e, option) => updateConfirmMode(option.value)}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Semantic UI Select types expect string values but we use numbers
+          options={confirmModeOptions as any}
+          onChange={(_e, option) => updateConfirmMode(option.value as number)}
         />
         <Confirm
           content="Are you sure you want to commit changes to devices and overwrite any local changes?"

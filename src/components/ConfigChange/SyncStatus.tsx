@@ -1,7 +1,17 @@
 import { useState } from "react";
-import PropTypes from "prop-types";
 import { Popup, Table, Icon } from "semantic-ui-react";
 import { formatISODate } from "../../utils/formatters";
+import type {
+  CommitTarget,
+  Device,
+  SyncHistory,
+} from "../../store/configChange/configChangeReducer";
+
+interface SyncEvent {
+  readonly cause: string;
+  readonly by: string;
+  readonly date: string;
+}
 
 function NoEventsContent() {
   return (
@@ -12,12 +22,12 @@ function NoEventsContent() {
   );
 }
 
-EventsTable.propTypes = {
-  contents: PropTypes.array,
-  headers: PropTypes.array,
-};
+interface EventsTableProps {
+  readonly contents: React.ReactNode[];
+  readonly headers: string[];
+}
 
-function EventsTable({ contents, headers }) {
+function EventsTable({ contents, headers }: EventsTableProps) {
   return (
     <div key="tablecontainer" className="tablecontainer">
       <Table key="synceventlist" celled collapsing>
@@ -45,12 +55,12 @@ function EventsTable({ contents, headers }) {
   );
 }
 
-DeviceEntry.propTypes = {
-  hostname: PropTypes.string,
-  eventList: PropTypes.array,
-};
+interface DeviceEntryProps {
+  readonly hostname: string;
+  readonly eventList: SyncEvent[];
+}
 
-function DeviceEntry({ hostname, eventList }) {
+function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
   return (
     <li key={hostname}>
       <Popup
@@ -75,32 +85,40 @@ function DeviceEntry({ hostname, eventList }) {
   );
 }
 
-function getCauses(devices, synchistory) {
+interface RawSyncEvent {
+  readonly cause: string;
+  readonly by: string;
+  readonly timestamp: number;
+}
+
+function getCauses(devices: Device[], synchistory: SyncHistory) {
   if (!synchistory || !devices.length) {
     return {};
   }
 
-  const byCause = {}; // events sorted by "cause" as key
-  const causeTypes = new Set(); // what unique "cause" types can the events have
+  const byCause: Record<string, React.ReactNode[]> = {};
+  const causeTypes = new Set<string>();
 
   devices.forEach((device) => {
     if (device.hostname in synchistory) {
-      const deviceCauses = new Set(); // Unique causes this device has been impacted by
-      const eventList = synchistory[device.hostname].map((e) => {
-        if (!causeTypes.has(e.cause)) {
-          byCause[e.cause] = [];
-          causeTypes.add(e.cause);
-        }
-        const timestamp = new Date();
-        timestamp.setTime(e.timestamp * 1000);
-        deviceCauses.add(e.cause);
+      const deviceCauses = new Set<string>();
+      const eventList = (synchistory[device.hostname] as RawSyncEvent[]).map(
+        (e) => {
+          if (!causeTypes.has(e.cause)) {
+            byCause[e.cause] = [];
+            causeTypes.add(e.cause);
+          }
+          const timestamp = new Date();
+          timestamp.setTime(e.timestamp * 1000);
+          deviceCauses.add(e.cause);
 
-        return {
-          cause: e.cause,
-          by: e.by,
-          date: formatISODate(timestamp.toISOString()),
-        };
-      });
+          return {
+            cause: e.cause,
+            by: e.by,
+            date: formatISODate(timestamp.toISOString()),
+          };
+        },
+      );
 
       const deviceEntry = (
         <DeviceEntry
@@ -119,15 +137,25 @@ function getCauses(devices, synchistory) {
   return byCause;
 }
 
-function SyncStatus({ devices, synchistory, target }) {
+interface SyncStatusProps {
+  readonly devices: Device[];
+  readonly synchistory: SyncHistory;
+  readonly target: CommitTarget;
+}
+
+export default function SyncStatus({
+  devices,
+  synchistory,
+  target,
+}: SyncStatusProps) {
   const [expanded, setExpanded] = useState(false);
 
   const renderDeviceList = () => {
-    const headers = [];
-    const contents = [];
+    const headers: string[] = [];
+    const contents: React.ReactNode[] = [];
 
     const causes = getCauses(devices, synchistory);
-    Object.entries(causes).map(([cause, devices]) => {
+    Object.entries(causes).forEach(([cause, devices]) => {
       headers.push(cause);
       contents.push(devices);
     });
@@ -161,7 +189,7 @@ function SyncStatus({ devices, synchistory, target }) {
             <Icon
               name="dropdown"
               onClick={() => setExpanded((prev) => !prev)}
-              rotated={expanded ? null : "counterclockwise"}
+              rotated={expanded ? undefined : "counterclockwise"}
             />
             Target: {getCommitTargetName()}
             <Popup
@@ -181,11 +209,3 @@ function SyncStatus({ devices, synchistory, target }) {
     </>
   );
 }
-
-SyncStatus.propTypes = {
-  devices: PropTypes.array,
-  synchistory: PropTypes.object,
-  target: PropTypes.object,
-};
-
-export default SyncStatus;

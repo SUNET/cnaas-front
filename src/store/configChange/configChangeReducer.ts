@@ -16,24 +16,26 @@ export interface CommitTarget {
   readonly all?: true;
 }
 
-export interface DryRunProgress {
+export interface JobProgress {
   readonly id?: number;
   readonly status?: string;
+  readonly finished_devices?: string[];
+  readonly start_time?: string;
+  readonly finish_time?: string;
+  readonly exception?: { readonly message?: string };
+}
+
+export interface DryRunProgress extends JobProgress {
   readonly change_score?: string;
   readonly result?: { devices: Record<string, unknown> };
 }
 
-export interface LiveRunProgress {
-  readonly id?: number;
-  readonly status?: string;
+export interface LiveRunProgress extends JobProgress {
   readonly next_job_id?: number;
   readonly result?: { devices: string };
 }
 
-export interface ConfirmRunProgress {
-  readonly id?: number;
-  readonly status?: string;
-}
+export type ConfirmRunProgress = JobProgress;
 
 export interface ConfigChangeState {
   readonly devices: Device[];

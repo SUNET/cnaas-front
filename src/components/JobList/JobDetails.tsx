@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import VerifyDiffResult from "../ConfigChange/VerifyDiff/VerifyDiffResult";
+import VerifyDiffResult, {
+  type DeviceData,
+} from "../ConfigChange/VerifyDiff/VerifyDiffResult";
 import type { Job } from "../../store/jobList/jobListReducer";
 
 interface JobDetailsProps {
@@ -59,7 +61,7 @@ function SyncDevicesResult({ job }: JobDetailsProps): ReactNode {
   const result = job.result as SyncResult;
   const devicesObj = result.devices;
   const deviceNames = Object.keys(devicesObj);
-  const deviceData = Object.values(devicesObj);
+  const deviceData = Object.values(devicesObj) as DeviceData[];
 
   return (
     <>

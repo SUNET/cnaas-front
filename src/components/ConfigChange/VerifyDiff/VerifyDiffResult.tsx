@@ -1,26 +1,28 @@
-import PropTypes from "prop-types";
 import { useMemo } from "react";
 import SyntaxHighlight from "../../SyntaxHighlight";
 
-VerifyDiffResult.propTypes = {
-  deviceNames: PropTypes.arrayOf(PropTypes.string),
-  deviceData: PropTypes.arrayOf(
-    PropTypes.shape({
-      job_tasks: PropTypes.arrayOf(
-        PropTypes.shape({
-          task_name: PropTypes.string,
-          result: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-          failed: PropTypes.bool,
-          diff: PropTypes.string,
-        }),
-      ),
-    }),
-  ),
-};
+export interface JobTask {
+  readonly task_name: string;
+  readonly result: string | undefined;
+  readonly failed: boolean;
+  readonly diff: string;
+}
+
+export interface DeviceData {
+  readonly job_tasks: JobTask[];
+}
+
+interface VerifyDiffResultProps {
+  readonly deviceNames: string[];
+  readonly deviceData: DeviceData[];
+}
 
 const ignoreTaskNames = new Set(["push_sync_device"]);
 
-function VerifyDiffResult({ deviceNames, deviceData }) {
+export default function VerifyDiffResult({
+  deviceNames,
+  deviceData,
+}: VerifyDiffResultProps) {
   // Extract diffs from device data
   const deviceDiffs = useMemo(() => {
     return deviceData
@@ -32,7 +34,7 @@ function VerifyDiffResult({ deviceNames, deviceData }) {
 
         return diffs ? { name: deviceNames[i], diff: diffs } : null;
       })
-      .filter(Boolean); // Remove null entries
+      .filter(Boolean) as { name: string; diff: string }[];
   }, [deviceData, deviceNames]);
 
   // Extract exceptions from device data
@@ -54,7 +56,10 @@ function VerifyDiffResult({ deviceNames, deviceData }) {
           })),
         };
       })
-      .filter(Boolean); // Remove null entries
+      .filter(Boolean) as {
+      name: string;
+      tasks: { task_name: string; result: string | undefined }[];
+    }[];
   }, [deviceData, deviceNames]);
 
   const hasEmptyDiffs = deviceData?.length > 0 && deviceDiffs.length === 0;
@@ -107,5 +112,3 @@ function VerifyDiffResult({ deviceNames, deviceData }) {
     </div>
   );
 }
-
-export default VerifyDiffResult;

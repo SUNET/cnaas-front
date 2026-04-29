@@ -1,19 +1,24 @@
-import PropTypes from "prop-types";
 import { useMemo, useState } from "react";
 import { Popup, Icon } from "semantic-ui-react";
 import VerifyDiffInfo from "./VerifyDiffInfo";
-import VerifyDiffResult from "./VerifyDiffResult";
+import VerifyDiffResult, { type DeviceData } from "./VerifyDiffResult";
 
-VerifyDiff.propTypes = {
-  devices: PropTypes.object,
-  dryRunChangeScore: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
+interface VerifyDiffProps {
+  readonly devices: Record<string, unknown>;
+  readonly dryRunChangeScore: string | number;
+}
 
-function VerifyDiff({ devices, dryRunChangeScore }) {
+export default function VerifyDiff({
+  devices,
+  dryRunChangeScore,
+}: VerifyDiffProps) {
   const [expanded, setExpanded] = useState(true);
 
   const deviceNames = useMemo(() => Object.keys(devices), [devices]);
-  const deviceData = useMemo(() => Object.values(devices), [devices]);
+  const deviceData = useMemo(
+    () => Object.values(devices) as DeviceData[],
+    [devices],
+  );
 
   return (
     <section className="task-container">
@@ -22,7 +27,7 @@ function VerifyDiff({ devices, dryRunChangeScore }) {
           <Icon
             name="dropdown"
             onClick={() => setExpanded((prev) => !prev)}
-            rotated={expanded ? null : "counterclockwise"}
+            rotated={expanded ? undefined : "counterclockwise"}
           />
           Verify difference (3/4)
           <Popup
@@ -45,5 +50,3 @@ function VerifyDiff({ devices, dryRunChangeScore }) {
     </section>
   );
 }
-
-export default VerifyDiff;
