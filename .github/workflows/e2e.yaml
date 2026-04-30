@@ -24,15 +24,15 @@ jobs:
 
       - name: Clone or update cnaas-nms
         run: |
-          if [ -d /tmp/cnaas-nms ]; then
-            git -C /tmp/cnaas-nms switch develop
-            git -C /tmp/cnaas-nms pull
+          if [ -d ~/cnaas-nms ]; then
+            git -C ~/cnaas-nms switch develop
+            git -C ~/cnaas-nms pull
           else
-            git clone --depth 1 --branch develop https://github.com/SUNET/cnaas-nms.git /tmp/cnaas-nms
+            git clone --depth 1 --branch develop https://github.com/SUNET/cnaas-nms.git ~/cnaas-nms
           fi
 
       - name: Build backend Docker images
-        working-directory: /tmp/cnaas-nms/docker
+        working-directory: /home/integrationtest/cnaas-nms/docker
         run: docker compose -f docker-compose.yaml build
 
       - name: Start containerlab
