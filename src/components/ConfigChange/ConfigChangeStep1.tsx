@@ -70,23 +70,23 @@ export function ConfigChangeStep1({
 
     try {
       const data = await putData(url, token, dataToSend);
-      if (data.status === "success") {
-        setRepoWorking(false);
-      }
+      const success = data.status === "success";
       setCommitInfo((prev) => ({
         ...prev,
-        [repoName]: data.status === "success" ? data.data : data.message,
+        [repoName]: success ? data.data : data.message,
       }));
       setCommitUpdateInfo((prev) => ({
         ...prev,
-        [repoName]: data.status === "success" ? "success" : "error",
+        [repoName]: success ? "success" : "error",
       }));
-      return data.status === "success";
+      return success;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
       setCommitInfo((prev) => ({ ...prev, [repoName]: message }));
       setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "error" }));
       return false;
+    } finally {
+      setRepoWorking(false);
     }
   }
 

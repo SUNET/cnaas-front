@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Popup, Table, Icon } from "semantic-ui-react";
 import { formatISODate } from "../../utils/formatters";
 import type {
@@ -24,7 +24,7 @@ function NoEventsContent() {
 
 interface CauseColumn {
   readonly cause: string;
-  readonly devices: React.ReactNode;
+  readonly devices: ReactNode;
 }
 
 interface EventsTableProps {
@@ -98,7 +98,7 @@ function getCauses(devices: Device[], synchistory: SyncHistory) {
     return {};
   }
 
-  const byCause: Record<string, React.ReactNode[]> = {};
+  const byCause: Record<string, ReactNode[]> = {};
   const causeTypes = new Set<string>();
 
   devices.forEach((device) => {
