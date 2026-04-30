@@ -1,8 +1,21 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Button } from "semantic-ui-react";
 import { toast } from "react-semantic-toasts-2";
 
 const BATCH_INTERVAL_MS = 1000;
+
+// `react-semantic-toasts-2` types `description` as `string` but the underlying
+// component renders any ReactNode. This wrapper localises the cast so call
+// sites stay type-safe.
+type ToastOptions = Omit<Parameters<typeof toast>[0], "description"> & {
+  description?: ReactNode;
+};
+
+function showToast(options: ToastOptions): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  toast(options as any);
+}
 
 // --- Sync toast batching ---
 
@@ -24,7 +37,7 @@ export function showSyncToast(hostname: string): void {
           ? `Refresh affected: ${hostnames[0]}`
           : `Refresh affected: ${hostnames.length} devices`;
 
-      toast({ type: "info", icon: "paper plane", title, time: 2000 });
+      showToast({ type: "info", icon: "paper plane", title, time: 2000 });
       pendingHostnames.clear();
     }
     toastBatchTimer = null;
@@ -78,12 +91,11 @@ export function showSyncWarningToast(data: SyncEventData): void {
           </p>
         );
 
-      toast({
+      showToast({
         type: "warning",
         icon: "paper plane",
         title,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- library accepts ReactNode but types it as string
-        description: description as any,
+        description,
         animation: "bounce",
         time: 0,
       });
@@ -97,8 +109,7 @@ export function showSyncWarningToast(data: SyncEventData): void {
 // --- Another session refresh toast ---
 
 export function showAnotherSessionDidRefreshToast(jobId: number): void {
-  /* eslint-disable @typescript-eslint/no-explicit-any -- library accepts ReactNode but types it as string */
-  toast({
+  showToast({
     type: "warning",
     icon: "paper plane",
     title: `Another session did refresh`,
@@ -108,11 +119,10 @@ export function showAnotherSessionDidRefreshToast(jobId: number): void {
         <br />
         <Link to="/jobs">job log</Link>
       </p>
-    ) as any,
+    ),
     animation: "bounce",
     time: 0,
   });
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 }
 
 // --- Cleanup ---

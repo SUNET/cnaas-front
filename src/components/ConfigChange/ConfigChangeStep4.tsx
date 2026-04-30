@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
+import type { InputOnChangeData } from "semantic-ui-react";
 
 import { getData } from "../../utils/getData";
 import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
@@ -207,7 +208,9 @@ export function ConfigChangeStep4({
             maxLength="255"
             className="job_comment"
             error={!jobTicketRef && !jobComment}
-            onChange={(_e, data) => setJobComment(data.value)}
+            onChange={(_e: unknown, data: InputOnChangeData) =>
+              setJobComment(data.value)
+            }
           />
         </div>
         <p>Enter service ticket ID reference:</p>
@@ -216,7 +219,9 @@ export function ConfigChangeStep4({
           maxLength="32"
           className="job_ticket_ref"
           error={!jobTicketRef && !jobComment}
-          onChange={(_e, data) => setJobTicketRef(data.value)}
+          onChange={(_e: unknown, data: InputOnChangeData) =>
+            setJobTicketRef(data.value)
+          }
         />
         <br />
         <button
@@ -274,5 +279,3 @@ export function ConfigChangeStep4({
     </div>
   );
 }
-
-export default ConfigChangeStep4;

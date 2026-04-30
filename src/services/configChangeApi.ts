@@ -2,7 +2,10 @@ import { getData } from "../utils/getData";
 import { post } from "../utils/sendData";
 import type {
   CommitTarget,
+  ConfirmRunProgress,
   Device,
+  DryRunProgress,
+  LiveRunProgress,
   SyncHistory,
 } from "../store/configChange/configChangeReducer";
 
@@ -100,5 +103,33 @@ export async function startDeviceSync(
   return {
     job_id: responseJson.job_id,
     totalCount: Number.isNaN(totalCount) ? 0 : totalCount,
+  };
+}
+
+// --- Job status polling ---
+
+const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
+
+export type JobStatusPayload =
+  | DryRunProgress
+  | LiveRunProgress
+  | ConfirmRunProgress;
+
+export interface FetchJobStatusResult {
+  readonly payload: JobStatusPayload;
+  readonly stopped: boolean;
+}
+
+export async function fetchJobStatus(
+  jobId: number,
+  token: string | null,
+  signal?: AbortSignal,
+): Promise<FetchJobStatusResult> {
+  const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
+  const response = await getData(url, token, signal);
+  const payload: JobStatusPayload = response.data.jobs[0];
+  return {
+    payload,
+    stopped: STATUS_STOPPED.has(payload.status ?? ""),
   };
 }

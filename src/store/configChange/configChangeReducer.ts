@@ -1,5 +1,12 @@
 // --- Types ---
 
+export interface JobTask {
+  readonly task_name: string;
+  readonly result: string | undefined;
+  readonly failed: boolean;
+  readonly diff: string;
+}
+
 export interface Device {
   readonly hostname: string;
   readonly synchronized: boolean;
@@ -27,7 +34,7 @@ export interface JobProgress {
 
 export interface DryRunProgress extends JobProgress {
   readonly change_score?: string;
-  readonly result?: { devices: Record<string, unknown> };
+  readonly result?: { devices: Record<string, { job_tasks: JobTask[] }> };
 }
 
 export interface LiveRunProgress extends JobProgress {

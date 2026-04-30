@@ -3,7 +3,7 @@ interface VerifyDiffInfoProps {
   readonly dryRunChangeScore: string | number;
 }
 
-export default function VerifyDiffInfo({
+export function VerifyDiffInfo({
   deviceNames,
   dryRunChangeScore,
 }: VerifyDiffInfoProps) {

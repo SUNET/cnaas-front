@@ -145,11 +145,7 @@ interface SyncStatusProps {
   readonly target: CommitTarget;
 }
 
-export default function SyncStatus({
-  devices,
-  synchistory,
-  target,
-}: SyncStatusProps) {
+export function SyncStatus({ devices, synchistory, target }: SyncStatusProps) {
   const [expanded, setExpanded] = useState(false);
 
   const renderDeviceList = () => {

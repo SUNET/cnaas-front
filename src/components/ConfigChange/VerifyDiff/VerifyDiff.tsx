@@ -1,22 +1,22 @@
 import { useMemo, useState } from "react";
 import { Popup, Icon } from "semantic-ui-react";
-import VerifyDiffInfo from "./VerifyDiffInfo";
-import VerifyDiffResult, { type DeviceData } from "./VerifyDiffResult";
+import { VerifyDiffInfo } from "./VerifyDiffInfo";
+import { VerifyDiffResult, type Device } from "./VerifyDiffResult";
 
 interface VerifyDiffProps {
-  readonly devices: Record<string, unknown>;
+  readonly devices: Record<string, { job_tasks: Device["jobTasks"] }>;
   readonly dryRunChangeScore: string | number;
 }
 
-export default function VerifyDiff({
-  devices,
-  dryRunChangeScore,
-}: VerifyDiffProps) {
+export function VerifyDiff({ devices, dryRunChangeScore }: VerifyDiffProps) {
   const [expanded, setExpanded] = useState(true);
 
-  const deviceNames = useMemo(() => Object.keys(devices), [devices]);
-  const deviceData = useMemo(
-    () => Object.values(devices) as DeviceData[],
+  const deviceList: Device[] = useMemo(
+    () =>
+      Object.entries(devices).map(([name, { job_tasks: jobTasks }]) => ({
+        name,
+        jobTasks,
+      })),
     [devices],
   );
 
@@ -41,10 +41,10 @@ export default function VerifyDiff({
         <p>Step 3 of 4: Look through and verify diff</p>
         <div>
           <VerifyDiffInfo
-            deviceNames={deviceNames}
+            deviceNames={deviceList.map((d) => d.name)}
             dryRunChangeScore={dryRunChangeScore}
           />
-          <VerifyDiffResult deviceNames={deviceNames} deviceData={deviceData} />
+          <VerifyDiffResult devices={deviceList} />
         </div>
       </div>
     </section>

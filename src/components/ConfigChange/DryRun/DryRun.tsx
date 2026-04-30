@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Checkbox, Form, Icon, Popup } from "semantic-ui-react";
+import type { CheckboxProps } from "semantic-ui-react";
 import permissionsCheck from "../../../utils/permissions/permissionsCheck";
-import DryRunError from "./DryRunError";
+import { DryRunError } from "./DryRunError";
 import { DryRunProgressBar } from "./DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
 import type { DeviceSyncOptions } from "../../../services/configChangeApi";
@@ -70,7 +71,9 @@ export function DryRun({
               label="Re-sync devices (check for local changes made outside of NMS)"
               name="resync"
               checked={resync}
-              onChange={(_e, data) => setResync(data.checked as boolean)}
+              onChange={(_e: unknown, data: CheckboxProps) =>
+                setResync(data.checked === true)
+              }
             />
           </div>
           <div className="info">

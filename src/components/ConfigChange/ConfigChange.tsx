@@ -1,11 +1,11 @@
 import { SemanticToastContainer } from "react-semantic-toasts-2";
 import { NavigationBlocker } from "../NavigationBlocker";
 import { useConfigChange } from "../../store/configChange/ConfigChangeContext";
-import ConfigChangeStep1 from "./ConfigChangeStep1";
-import ConfigChangeStep4 from "./ConfigChangeStep4";
+import { ConfigChangeStep1 } from "./ConfigChangeStep1";
+import { ConfigChangeStep4 } from "./ConfigChangeStep4";
 import { DryRun } from "./DryRun/DryRun";
-import SyncStatus from "./SyncStatus";
-import VerifyDiff from "./VerifyDiff/VerifyDiff";
+import { SyncStatus } from "./SyncStatus";
+import { VerifyDiff } from "./VerifyDiff/VerifyDiff";
 
 import "../../styles/react-semantic-alert.css";
 

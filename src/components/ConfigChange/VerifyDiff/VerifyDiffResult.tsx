@@ -1,68 +1,70 @@
 import { useMemo } from "react";
 import SyntaxHighlight from "../../SyntaxHighlight";
+import type { JobTask } from "../../../store/configChange/configChangeReducer";
 
-export interface JobTask {
-  readonly task_name: string;
-  readonly result: string | undefined;
-  readonly failed: boolean;
-  readonly diff: string;
-}
+export type { JobTask };
 
-export interface DeviceData {
-  readonly job_tasks: JobTask[];
+export interface Device {
+  readonly name: string;
+  readonly jobTasks: JobTask[];
 }
 
 interface VerifyDiffResultProps {
-  readonly deviceNames: string[];
-  readonly deviceData: DeviceData[];
+  readonly devices: Device[];
 }
 
 const ignoreTaskNames = new Set(["push_sync_device"]);
 
-export default function VerifyDiffResult({
-  deviceNames,
-  deviceData,
-}: VerifyDiffResultProps) {
-  // Extract diffs from device data
-  const deviceDiffs = useMemo(() => {
-    return deviceData
-      .map((jobsObj, i) => {
-        const diffs = jobsObj.job_tasks
-          .map((task) => task.diff)
-          .filter((diff) => diff !== "")
-          .join("");
+interface DeviceDiff {
+  readonly name: string;
+  readonly diff: string;
+}
 
-        return diffs ? { name: deviceNames[i], diff: diffs } : null;
-      })
-      .filter(Boolean) as { name: string; diff: string }[];
-  }, [deviceData, deviceNames]);
+interface DeviceException {
+  readonly name: string;
+  readonly tasks: {
+    readonly task_name: string;
+    readonly result: string | undefined;
+  }[];
+}
 
-  // Extract exceptions from device data
-  const deviceExceptions = useMemo(() => {
-    return deviceData
-      .map((jobsObj, i) => {
-        const failedTasks = jobsObj.job_tasks.filter(
-          (task) =>
-            task.failed === true && !ignoreTaskNames.has(task.task_name),
-        );
+export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
+  const deviceDiffs: DeviceDiff[] = useMemo(
+    () =>
+      devices
+        .map(({ name, jobTasks }) => {
+          const diff = jobTasks
+            .map((task) => task.diff)
+            .filter((d) => d !== "")
+            .join("");
+          return diff ? { name, diff } : null;
+        })
+        .filter((d): d is DeviceDiff => d !== null),
+    [devices],
+  );
 
-        if (failedTasks.length === 0) return null;
+  const deviceExceptions: DeviceException[] = useMemo(
+    () =>
+      devices
+        .map(({ name, jobTasks }) => {
+          const failedTasks = jobTasks.filter(
+            (task) =>
+              task.failed === true && !ignoreTaskNames.has(task.task_name),
+          );
+          if (failedTasks.length === 0) return null;
+          return {
+            name,
+            tasks: failedTasks.map((task) => ({
+              task_name: task.task_name,
+              result: task.result,
+            })),
+          };
+        })
+        .filter((d): d is DeviceException => d !== null),
+    [devices],
+  );
 
-        return {
-          name: deviceNames[i],
-          tasks: failedTasks.map((task) => ({
-            task_name: task.task_name,
-            result: task.result,
-          })),
-        };
-      })
-      .filter(Boolean) as {
-      name: string;
-      tasks: { task_name: string; result: string | undefined }[];
-    }[];
-  }, [deviceData, deviceNames]);
-
-  const hasEmptyDiffs = deviceData?.length > 0 && deviceDiffs.length === 0;
+  const hasEmptyDiffs = devices.length > 0 && deviceDiffs.length === 0;
   const hasFailures = deviceExceptions.length > 0;
   const showEmptyDiffsMessage = hasEmptyDiffs && !hasFailures;
 
@@ -76,7 +78,7 @@ export default function VerifyDiffResult({
             </li>
           ) : (
             deviceDiffs.map((device, i) => (
-              <li key={`${device.name}-${i}`}>
+              <li key={device.name}>
                 <p className="device-name">{device.name} diffs</p>
                 <SyntaxHighlight
                   index={i}

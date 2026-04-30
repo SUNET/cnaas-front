@@ -1,4 +1,5 @@
-import { useEffect, useRef, type MutableRefObject, type Dispatch } from "react";
+import { useEffect, type Dispatch } from "react";
+import { useFreshRef } from "../../hooks/useFreshRef";
 import { socket } from "./socket";
 import { actions, type Action } from "./configChangeReducer";
 import {
@@ -26,12 +27,6 @@ interface SyncEventData {
 
 type EventData = JobEventData | SyncEventData | string;
 
-interface RepoJobRefs {
-  readonly repoJobIdRef: MutableRefObject<number | null>;
-  readonly stoppedRepoJobs: MutableRefObject<number[]>;
-  readonly isRepoRefreshingRef: MutableRefObject<boolean>;
-}
-
 function isJobEvent(data: EventData): data is JobEventData {
   return data != null && typeof data === "object" && "job_id" in data;
 }
@@ -48,23 +43,24 @@ function isSyncEvent(data: EventData): data is SyncEventData {
 const STATUS_RUNNING = new Set(["RUNNING"]);
 const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
 
+interface RepoJobState {
+  readonly repoJobId: number | null;
+  readonly stoppedRepoJobs: readonly number[];
+  readonly isRepoRefreshing: boolean;
+}
+
 export function useConfigChangeSocket(
   token: string | null,
   username: string | null,
   dispatch: Dispatch<Action>,
-  repoJobRefs: RepoJobRefs,
+  repoJobState: RepoJobState,
 ): void {
-  // Keep refs in a stable ref so the socket effect doesn't re-run
-  const refsRef = useRef(repoJobRefs);
-  useEffect(() => {
-    refsRef.current = repoJobRefs;
-  });
-
-  // Keep username in a ref to avoid stale closures without reconnecting
-  const usernameRef = useRef(username);
-  useEffect(() => {
-    usernameRef.current = username;
-  });
+  // useFreshRef gives socket handlers synchronous access to the latest values
+  // without re-running the effect (which would tear down the connection).
+  const usernameRef = useFreshRef(username);
+  const repoJobIdRef = useFreshRef(repoJobState.repoJobId);
+  const stoppedRepoJobsRef = useFreshRef(repoJobState.stoppedRepoJobs);
+  const isRepoRefreshingRef = useFreshRef(repoJobState.isRepoRefreshing);
 
   useEffect(() => {
     if (!token) return;
@@ -78,7 +74,7 @@ export function useConfigChangeSocket(
     };
 
     const handleError = (error: unknown) => {
-      console.log("SOCKET ERROR", error);
+      console.error("SOCKET ERROR", error);
     };
 
     const handleDisconnect = (reason: string, details: unknown) => {
@@ -91,23 +87,17 @@ export function useConfigChangeSocket(
       } else if (isSyncEvent(data)) {
         handleSyncEvent(data);
       } else if (typeof data === "string") {
-        dispatch({
-          type: actions.APPEND_LOG,
-          line: `${data}\n`,
-        });
+        dispatch({ type: actions.APPEND_LOG, line: `${data}\n` });
       }
     };
 
     const handleJobEvent = (data: JobEventData) => {
-      const { repoJobIdRef, stoppedRepoJobs, isRepoRefreshingRef } =
-        refsRef.current;
-
       if (STATUS_RUNNING.has(data.status)) {
         if (
           (repoJobIdRef.current === null && isRepoRefreshingRef.current) ||
           repoJobIdRef.current === -1
         ) {
-          repoJobIdRef.current = data.job_id;
+          dispatch({ type: actions.SET_REPO_JOB_ID, jobId: data.job_id });
         } else if (
           data.function_name === "refresh_repo" &&
           (!usernameRef.current || data.scheduled_by !== usernameRef.current)
@@ -118,20 +108,18 @@ export function useConfigChangeSocket(
       }
 
       if (STATUS_STOPPED.has(data.status) && repoJobIdRef.current != null) {
-        stoppedRepoJobs.current.push(repoJobIdRef.current);
-        repoJobIdRef.current = null;
+        dispatch({ type: actions.REPO_JOB_STOPPED });
       }
     };
 
     const handleSyncEvent = (data: SyncEventData) => {
-      const { repoJobIdRef, stoppedRepoJobs } = refsRef.current;
-      let showWarning = true;
       const eventJobId = data.syncevent_data.job_id;
+      let showWarning = true;
 
       if (eventJobId != null) {
         const jobIsCurrentOrPrevious = (jobId: number) =>
           jobId === repoJobIdRef.current ||
-          stoppedRepoJobs.current.includes(jobId);
+          stoppedRepoJobsRef.current.includes(jobId);
 
         if (repoJobIdRef.current === -1) {
           showWarning = false;

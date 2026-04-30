@@ -2,7 +2,7 @@ import "@testing-library/jest-dom";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import ConfigChangeStep4 from "./ConfigChangeStep4";
+import { ConfigChangeStep4 } from "./ConfigChangeStep4";
 
 import { useAuthToken as mockUseAuthToken } from "../../contexts/AuthTokenContext";
 import { getData as mockGetData } from "../../utils/getData";

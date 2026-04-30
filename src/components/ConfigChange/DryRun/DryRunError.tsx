@@ -1,5 +1,6 @@
-import { DryRunFailList } from "./DryRunFailList";
 import { Checkbox } from "semantic-ui-react";
+import type { CheckboxProps } from "semantic-ui-react";
+import { DryRunFailList } from "./DryRunFailList";
 import type { DeviceSyncOptions } from "../../../services/configChangeApi";
 
 interface DryRunErrorProps {
@@ -10,7 +11,7 @@ interface DryRunErrorProps {
   readonly setSynctoForce: (force: boolean) => void;
 }
 
-export default function DryRunError({
+export function DryRunError({
   devices,
   dryRunSyncStart,
   resync,
@@ -26,7 +27,9 @@ export default function DryRunError({
           label="Force overwrite of local changes"
           name="force"
           checked={synctoForce}
-          onChange={(_e, data) => setSynctoForce(data.checked as boolean)}
+          onChange={(_e: unknown, data: CheckboxProps) =>
+            setSynctoForce(data.checked === true)
+          }
         />
       </div>
     </div>

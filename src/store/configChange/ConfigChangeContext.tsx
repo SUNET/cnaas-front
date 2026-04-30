@@ -11,9 +11,10 @@ import {
 import { useSearchParams } from "react-router";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { useFreshRef } from "../../hooks/useFreshRef";
-import { getData } from "../../utils/getData";
+import { useBeforeUnloadWarning } from "../../hooks/useBeforeUnloadWarning";
 import {
   fetchDeviceList,
+  fetchJobStatus,
   fetchSyncHistory,
   startDeviceSync,
   type DeviceSyncOptions,
@@ -27,6 +28,7 @@ import {
   type DryRunProgress,
   type LiveRunProgress,
   type ConfirmRunProgress,
+  type JobTask,
 } from "./configChangeReducer";
 import { useConfigChangeSocket } from "./useConfigChangeSocket";
 
@@ -34,7 +36,7 @@ import { useConfigChangeSocket } from "./useConfigChangeSocket";
 
 export interface DryRunDerived {
   readonly status: string;
-  readonly results: Record<string, unknown>;
+  readonly results: Record<string, { job_tasks: JobTask[] }>;
   readonly changeScore: string;
   readonly jobId: number | string;
 }
@@ -112,10 +114,6 @@ export function useConfigChange(): ConfigChangeContextValue {
   return ctx;
 }
 
-// --- Status sets ---
-
-const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
-
 // --- Provider ---
 
 interface ProviderProps {
@@ -128,17 +126,14 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
   const [searchParams] = useSearchParams();
   const [state, dispatch] = useReducer(configChangeReducer, initialState);
 
-  // Refs for repo job tracking (shared with socket hook)
-  const repoJobIdRef = useRef<number | null>(null);
-  const stoppedRepoJobs = useRef<number[]>([]);
-  const isRepoRefreshingRef = useRef(false);
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Polling AbortController — genuinely a ref (imperative resource, not state)
+  const pollAbortRef = useRef<AbortController | null>(null);
 
   // Socket
   useConfigChangeSocket(token, username, dispatch, {
-    repoJobIdRef,
-    stoppedRepoJobs,
-    isRepoRefreshingRef,
+    repoJobId: state.repoJobId,
+    stoppedRepoJobs: state.stoppedRepoJobs,
+    isRepoRefreshing: state.isRepoRefreshing,
   });
 
   // Commit target from URL params
@@ -164,24 +159,23 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
     [state.confirmRunProgressData],
   );
 
-  // Repo job refs are mutated synchronously by socket events and read here
-  // for display purposes. Converting to state would break the synchronous
-  // read/write pattern the socket handler relies on.
-  /* eslint-disable react-hooks/refs */
+  // Repo job IDs to display in the log filter — derived from reducer state
   const allRepoJobs = useMemo(() => {
-    const jobs = [...stoppedRepoJobs.current];
-    if (repoJobIdRef.current != null) {
-      jobs.push(repoJobIdRef.current);
+    const jobs = [...state.stoppedRepoJobs];
+    if (state.repoJobId != null) {
+      jobs.push(state.repoJobId);
     }
     return jobs;
-  }, [state]); // re-derive when state changes (side effect of repo job tracking)
-  /* eslint-enable react-hooks/refs */
+  }, [state.repoJobId, state.stoppedRepoJobs]);
 
   // --- Polling ---
 
-  const updateJobType = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (jobType: string, payload: any) => {
+  type JobType = "dry_run" | "live_run" | "confirm_run";
+
+  const POLL_INTERVAL_MS = 1000;
+
+  const dispatchProgress = useCallback(
+    (jobType: JobType, payload: DryRunProgress & LiveRunProgress) => {
       switch (jobType) {
         case "dry_run":
           dispatch({ type: actions.SET_DRY_RUN_PROGRESS, data: payload });
@@ -192,68 +186,85 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
         case "confirm_run":
           dispatch({ type: actions.SET_CONFIRM_RUN_PROGRESS, data: payload });
           break;
-        default:
-          throw new Error("pollJobStatus called with unknown jobtype");
+        default: {
+          const exhaustive: never = jobType;
+          throw new Error(`Unknown jobtype: ${exhaustive}`);
+        }
       }
     },
     [],
   );
 
-  const pollJobStatusRef = useRef<(jobId: number, jobType: string) => void>();
-
-  const pollJobStatus = useCallback(
-    (jobId: number, jobType: string) => {
-      const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
-
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
+  // Poll a single job until it stops or is aborted. Returns the final payload
+  // so callers can chain (e.g. live_run → confirm_run).
+  const pollUntilStopped = useCallback(
+    async (
+      jobId: number,
+      jobType: JobType,
+      signal: AbortSignal,
+    ): Promise<(DryRunProgress & LiveRunProgress) | null> => {
+      while (!signal.aborted) {
+        const { payload, stopped } = await fetchJobStatus(
+          jobId,
+          tokenRef.current,
+          signal,
+        );
+        if (signal.aborted) return null;
+        dispatchProgress(jobType, payload as DryRunProgress & LiveRunProgress);
+        if (stopped) return payload as DryRunProgress & LiveRunProgress;
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
       }
+      return null;
+    },
+    [tokenRef, dispatchProgress],
+  );
+
+  const startPolling = useCallback(
+    (jobId: number, jobType: JobType) => {
+      pollAbortRef.current?.abort();
+      const controller = new AbortController();
+      pollAbortRef.current = controller;
+      const { signal } = controller;
 
       dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: true });
 
-      pollIntervalRef.current = setInterval(async () => {
+      (async () => {
         try {
-          const response = await getData(url, tokenRef.current);
-          const payload = response.data.jobs[0];
-          updateJobType(jobType, payload);
+          const finalPayload = await pollUntilStopped(jobId, jobType, signal);
+          if (signal.aborted || finalPayload == null) return;
 
-          if (STATUS_STOPPED.has(payload.status)) {
-            clearInterval(pollIntervalRef.current ?? undefined);
-            pollIntervalRef.current = null;
-            dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
+          if (jobType === "live_run") {
+            dispatch({ type: actions.SET_SYNCTO_FORCE, force: false });
 
+            // Chain confirm_run when live_run finishes successfully with a follow-up job.
             if (
-              jobType === "live_run" &&
-              payload.status === "FINISHED" &&
-              typeof payload.next_job_id === "number"
+              finalPayload.status === "FINISHED" &&
+              typeof finalPayload.next_job_id === "number"
             ) {
-              pollJobStatusRef.current?.(payload.next_job_id, "confirm_run");
-            }
-            if (jobType === "live_run") {
-              dispatch({ type: actions.SET_SYNCTO_FORCE, force: false });
+              await pollUntilStopped(
+                finalPayload.next_job_id,
+                "confirm_run",
+                signal,
+              );
             }
           }
         } catch (error) {
+          if (signal.aborted) return;
           console.error("Polling error:", error);
-          clearInterval(pollIntervalRef.current ?? undefined);
-          pollIntervalRef.current = null;
-          dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
+        } finally {
+          if (!signal.aborted) {
+            dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
+          }
         }
-      }, 1000);
+      })();
     },
-    [tokenRef, updateJobType],
+    [pollUntilStopped],
   );
 
-  useEffect(() => {
-    pollJobStatusRef.current = pollJobStatus;
-  }, [pollJobStatus]);
-
-  // Cleanup polling on unmount
+  // Abort any in-flight polling on unmount
   useEffect(() => {
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
+      pollAbortRef.current?.abort();
     };
   }, []);
 
@@ -295,10 +306,10 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
       }
 
       const pollType = isDryRun ? "dry_run" : "live_run";
-      pollJobStatus(result.job_id, pollType);
+      startPolling(result.job_id, pollType);
       dispatch({ type: actions.SET_DRY_RUN_DISABLE, disabled: true });
     },
-    [tokenRef, commitTarget, state.synctoForce, pollJobStatus],
+    [tokenRef, commitTarget, state.synctoForce, startPolling],
   );
 
   const handleDryRunReady = useCallback(() => {
@@ -309,22 +320,20 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
 
   const handleRepoRefreshing = useCallback(
     async (isRefreshing: boolean) => {
-      if (isRepoRefreshingRef.current && !isRefreshing) {
+      if (state.isRepoRefreshing && !isRefreshing) {
         await loadDevicesAndHistory();
-      } else if (!repoJobIdRef.current) {
-        repoJobIdRef.current = -1;
+      } else if (state.repoJobId == null) {
+        // Sentinel: a refresh started locally but the socket hasn't yet seen
+        // a RUNNING event with the real job_id. -1 marks "ours, awaiting id".
+        dispatch({ type: actions.SET_REPO_JOB_ID, jobId: -1 });
       }
-      isRepoRefreshingRef.current = isRefreshing;
       dispatch({ type: actions.SET_REPO_REFRESHING, refreshing: isRefreshing });
     },
-    [loadDevicesAndHistory],
+    [state.isRepoRefreshing, state.repoJobId, loadDevicesAndHistory],
   );
 
   const resetState = useCallback(async () => {
     dispatch({ type: actions.RESET_STATE });
-    stoppedRepoJobs.current = [];
-    repoJobIdRef.current = null;
-    isRepoRefreshingRef.current = false;
     await loadDevicesAndHistory();
   }, [loadDevicesAndHistory]);
 
@@ -338,7 +347,10 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
     loadDevicesAndHistory();
   }, [loadDevicesAndHistory]);
 
-  // scrollTo and autoDryRun from URL
+  // scrollTo and autoDryRun from URL — read once on mount.
+  // Use a fresh ref for `handleDryRunReady` so we always invoke the latest
+  // version without re-running the effect on every render.
+  const handleDryRunReadyRef = useFreshRef(handleDryRunReady);
   useEffect(() => {
     const scrollTo = searchParams.get("scrollTo");
     if (scrollTo != null) {
@@ -347,21 +359,16 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
     }
 
     if (searchParams.get("autoDryRun")) {
-      handleDryRunReady();
+      handleDryRunReadyRef.current();
     }
-    // Only run on mount
+    // searchParams is intentionally only consumed on mount; subsequent URL
+    // changes should not retrigger scrolling or auto-dry-run.
   }, []);
 
-  // onbeforeunload
-  useEffect(() => {
-    if (state.blockNavigation) {
-      window.onbeforeunload = () => true;
-    } else {
-      window.onbeforeunload = null;
-    }
-  }, [state.blockNavigation]);
+  // Warn before unloading the browser tab while a job is running.
+  // In-app router navigation is handled separately by <NavigationBlocker>.
+  useBeforeUnloadWarning(state.blockNavigation);
 
-  /* eslint-disable react-hooks/refs -- see allRepoJobs comment above */
   const value = useMemo(
     (): ConfigChangeContextValue => ({
       state,
@@ -397,5 +404,4 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
       {children}
     </ConfigChangeContext.Provider>
   );
-  /* eslint-enable react-hooks/refs */
 }

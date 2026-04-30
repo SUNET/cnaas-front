@@ -28,11 +28,11 @@ jest.mock("../../store/configChange/socket", () => ({
 }));
 
 // Mock heavy child components to isolate query param behavior
-jest.mock("./ConfigChangeStep1", () => {
-  return function MockConfigChangeStep1() {
+jest.mock("./ConfigChangeStep1", () => ({
+  ConfigChangeStep1: function MockConfigChangeStep1() {
     return <div data-testid="config-change-step1">Step 1</div>;
-  };
-});
+  },
+}));
 
 jest.mock("./DryRun/DryRun", () => ({
   DryRun: function MockDryRun() {
@@ -40,17 +40,17 @@ jest.mock("./DryRun/DryRun", () => ({
   },
 }));
 
-jest.mock("./VerifyDiff/VerifyDiff", () => {
-  return function MockVerifyDiff() {
+jest.mock("./VerifyDiff/VerifyDiff", () => ({
+  VerifyDiff: function MockVerifyDiff() {
     return <div data-testid="verify-diff">Verify Diff</div>;
-  };
-});
+  },
+}));
 
-jest.mock("./ConfigChangeStep4", () => {
-  return function MockConfigChangeStep4() {
+jest.mock("./ConfigChangeStep4", () => ({
+  ConfigChangeStep4: function MockConfigChangeStep4() {
     return <div data-testid="config-change-step4">Step 4</div>;
-  };
-});
+  },
+}));
 
 beforeEach(() => {
   jest.clearAllMocks();

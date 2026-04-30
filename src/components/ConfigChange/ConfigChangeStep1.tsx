@@ -22,7 +22,7 @@ interface ConfigChangeStep1Props {
   readonly logLines?: string[];
 }
 
-export default function ConfigChangeStep1({
+export function ConfigChangeStep1({
   setRepoWorking,
   dryRunJobStatus,
   onDryRunReady,
@@ -95,7 +95,7 @@ export default function ConfigChangeStep1({
     if (success) {
       onDryRunReady();
     } else {
-      console.log(`Refresh error occurred for ${repoName}`);
+      console.error(`Refresh error occurred for ${repoName}`);
     }
   }
 
@@ -108,24 +108,20 @@ export default function ConfigChangeStep1({
     const gitCommitRegex =
       /Commit ([a-z0-9]{8})([a-z0-9]{32}) (\w+) by (.+) at ([0-9:-\s]+)/i;
     const match = gitCommitRegex.exec(commitStr);
-    try {
-      if (!match) return <p>{commitStr}</p>;
-      const commitPopup = (
-        <Popup
-          content={match[1] + match[2]}
-          position="top center"
-          hoverable
-          trigger={<u>{match[1]}</u>}
-        />
-      );
-      return (
-        <p>
-          Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}
-        </p>
-      );
-    } catch {
-      return <p>{commitStr}</p>;
-    }
+    if (!match) return <p>{commitStr}</p>;
+    const commitPopup = (
+      <Popup
+        content={match[1] + match[2]}
+        position="top center"
+        hoverable
+        trigger={<u>{match[1]}</u>}
+      />
+    );
+    return (
+      <p>
+        Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}
+      </p>
+    );
   }
 
   return (
