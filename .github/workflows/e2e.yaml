@@ -35,8 +35,8 @@ jobs:
         working-directory: /tmp/cnaas-nms/docker
         run: docker compose -f docker-compose.yaml build
 
-      - name: Start VMs
-        run: ~/start-vms.sh
+      - name: Start containerlab
+        run: ~/start-clab.sh
 
       - name: Start backend
         run: ./e2e/start-backend.sh
@@ -88,6 +88,6 @@ jobs:
         run: ./e2e/stop-backend.sh
         if: always()
 
-      - name: Stop VMs
-        run: ~/stop-vms.sh
+      - name: Stop containerlab
+        run: ~/stop-clab.sh
         if: always()
