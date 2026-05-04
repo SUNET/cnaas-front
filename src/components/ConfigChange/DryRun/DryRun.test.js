@@ -4,11 +4,11 @@ import "@testing-library/jest-dom";
 
 import { DryRun } from "./DryRun";
 
-jest.mock("./DryRunError", () => {
-  return function MockDryRunError() {
+jest.mock("./DryRunError", () => ({
+  DryRunError: function MockDryRunError() {
     return <p className="error">Dry run error occurred</p>;
-  };
-});
+  },
+}));
 
 jest.mock("./DryRunProgressBar", () => ({
   DryRunProgressBar: function MockDryRunProgressBar() {

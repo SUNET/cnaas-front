@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
-import VerifyDiffResult from "../ConfigChange/VerifyDiff/VerifyDiffResult";
+import {
+  VerifyDiffResult,
+  type Device,
+} from "../ConfigChange/VerifyDiff/VerifyDiffResult";
 import type { Job } from "../../store/jobList/jobListReducer";
 
 interface JobDetailsProps {
@@ -52,19 +55,19 @@ function ExceptionDetails({ job }: JobDetailsProps): ReactNode {
 }
 
 interface SyncResult {
-  devices: Record<string, { job_tasks: unknown[] }>;
+  devices: Record<string, { job_tasks: Device["jobTasks"] }>;
 }
 
 function SyncDevicesResult({ job }: JobDetailsProps): ReactNode {
   const result = job.result as SyncResult;
-  const devicesObj = result.devices;
-  const deviceNames = Object.keys(devicesObj);
-  const deviceData = Object.values(devicesObj);
+  const devices: Device[] = Object.entries(result.devices).map(
+    ([name, { job_tasks: jobTasks }]) => ({ name, jobTasks }),
+  );
 
   return (
     <>
       <p>Diff results:</p>
-      <VerifyDiffResult deviceNames={deviceNames} deviceData={deviceData} />
+      <VerifyDiffResult devices={devices} />
     </>
   );
 }

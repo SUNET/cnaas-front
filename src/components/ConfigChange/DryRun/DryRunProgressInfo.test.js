@@ -8,8 +8,8 @@ jest.mock("../../LogViewer", () => {
   return function MockLogViewer({ logs }) {
     return (
       <section aria-label="log viewer">
-        {logs.map((log, i) => (
-          <div key={i}>{log}</div>
+        {logs.map((log) => (
+          <div key={log}>{log}</div>
         ))}
       </section>
     );

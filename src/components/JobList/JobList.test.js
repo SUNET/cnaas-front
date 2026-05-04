@@ -41,8 +41,8 @@ jest.mock("../LogViewer", () => {
     if (!logs || logs.length === 0) return null;
     return (
       <section aria-label="log viewer">
-        {logs.map((log, i) => (
-          <div key={i}>{log}</div>
+        {logs.map((log) => (
+          <div key={log}>{log}</div>
         ))}
       </section>
     );
@@ -50,19 +50,19 @@ jest.mock("../LogViewer", () => {
 });
 
 // Mock VerifyDiffResult
-jest.mock("../ConfigChange/VerifyDiff/VerifyDiffResult", () => {
-  return function MockVerifyDiffResult({ deviceNames, deviceData }) {
+jest.mock("../ConfigChange/VerifyDiff/VerifyDiffResult", () => ({
+  VerifyDiffResult: function MockVerifyDiffResult({ devices }) {
     return (
       <div data-testid="verify-diff-result">
-        {deviceNames.map((name, i) => (
-          <div key={i}>
-            {name}: {deviceData[i]?.job_tasks?.length || 0} tasks
+        {devices.map((device) => (
+          <div key={device.name}>
+            {device.name}: {device.jobTasks?.length || 0} tasks
           </div>
         ))}
       </div>
     );
-  };
-});
+  },
+}));
 
 import { fetchJobs } from "../../services/jobApi";
 

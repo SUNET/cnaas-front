@@ -1,9 +1,12 @@
-import { getDeviceList, getSyncHistory } from "./utils";
+import {
+  fetchDeviceList,
+  fetchSyncHistory,
+} from "../../services/configChangeApi";
 import { getData } from "../../utils/getData";
 
 jest.mock("../../utils/getData");
 
-describe("getDeviceList", () => {
+describe("fetchDeviceList", () => {
   it("returns devices from API when target.hostname is provided", async () => {
     const dummyData = {
       status: "success",
@@ -30,7 +33,7 @@ describe("getDeviceList", () => {
     const token = "dummy-token";
     const target = { hostname: "a1" };
 
-    const result = await getDeviceList(token, target);
+    const result = await fetchDeviceList(token, target);
 
     expect(getData).toHaveBeenCalledWith(
       `${process.env.API_URL}/api/v1.0/devices?filter[hostname]=a1&filter[state]=MANAGED&per_page=1`,
@@ -39,9 +42,38 @@ describe("getDeviceList", () => {
 
     expect(result).toEqual(dummyData.data.devices);
   });
+
+  it("filters unsynchronized devices by group membership", async () => {
+    getData.mockImplementation((url) => {
+      if (url.includes("/devices")) {
+        return Promise.resolve({
+          data: {
+            devices: [
+              { hostname: "sw1", synchronized: false, state: "MANAGED" },
+              { hostname: "sw2", synchronized: false, state: "MANAGED" },
+              { hostname: "sw3", synchronized: false, state: "MANAGED" },
+            ],
+          },
+        });
+      }
+      if (url.includes("/groups/core")) {
+        return Promise.resolve({
+          data: { groups: { core: ["sw1", "sw3"] } },
+        });
+      }
+      return Promise.resolve({ data: {} });
+    });
+
+    const result = await fetchDeviceList("token", { group: "core" });
+
+    expect(result).toEqual([
+      { hostname: "sw1", synchronized: false, state: "MANAGED" },
+      { hostname: "sw3", synchronized: false, state: "MANAGED" },
+    ]);
+  });
 });
 
-describe("getSyncHistory", () => {
+describe("fetchSyncHistory", () => {
   it("returns hostnames from API response", async () => {
     const dummyData = {
       status: "success",
@@ -59,11 +91,10 @@ describe("getSyncHistory", () => {
       },
     };
 
-    // Mock getData to resolve with our dummy data
     getData.mockResolvedValue(dummyData);
 
     const token = "dummy-token";
-    const result = await getSyncHistory(token);
+    const result = await fetchSyncHistory(token);
 
     expect(getData).toHaveBeenCalledWith(
       `${process.env.API_URL}/api/v1.0/device_synchistory`,

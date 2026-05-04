@@ -1,25 +1,27 @@
 import { useState } from "react";
 import { Checkbox, Form, Icon, Popup } from "semantic-ui-react";
-import PropTypes from "prop-types";
+import type { CheckboxProps } from "semantic-ui-react";
 import permissionsCheck from "../../../utils/permissions/permissionsCheck";
-import DryRunError from "./DryRunError";
+import { DryRunError } from "./DryRunError";
 import { DryRunProgressBar } from "./DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
+import type { DeviceSyncOptions } from "../../../services/configChangeApi";
+import type { DryRunProgress } from "../../../store/configChange/configChangeReducer";
 
-DryRun.propTypes = {
-  devices: PropTypes.object,
-  dryRunSyncStart: PropTypes.func.isRequired,
-  dryRunProgressData: PropTypes.object,
-  dryRunJobStatus: PropTypes.string,
-  jobId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  repoWorkingState: PropTypes.bool,
-  synctoForce: PropTypes.bool,
-  setSynctoForce: PropTypes.func,
-  dryRunDisable: PropTypes.bool,
-  resetState: PropTypes.func.isRequired,
-  totalCount: PropTypes.number,
-  logLines: PropTypes.arrayOf(PropTypes.string),
-};
+interface DryRunProps {
+  readonly devices: Record<string, unknown>;
+  readonly dryRunSyncStart: (options: DeviceSyncOptions) => void;
+  readonly dryRunProgressData: DryRunProgress;
+  readonly dryRunJobStatus: string;
+  readonly jobId: number | string;
+  readonly repoWorkingState: boolean;
+  readonly synctoForce: boolean;
+  readonly setSynctoForce: (force: boolean) => void;
+  readonly dryRunDisable: boolean;
+  readonly resetState: () => void;
+  readonly totalCount: number;
+  readonly logLines: string[];
+}
 
 export function DryRun({
   devices,
@@ -34,7 +36,7 @@ export function DryRun({
   resetState,
   totalCount,
   logLines,
-}) {
+}: DryRunProps) {
   const [resync, setResync] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
@@ -45,7 +47,7 @@ export function DryRun({
           <Icon
             name="dropdown"
             onClick={() => setExpanded((prev) => !prev)}
-            rotated={expanded ? null : "counterclockwise"}
+            rotated={expanded ? undefined : "counterclockwise"}
           />
           Dry run (2/4)
           <Popup
@@ -69,7 +71,9 @@ export function DryRun({
               label="Re-sync devices (check for local changes made outside of NMS)"
               name="resync"
               checked={resync}
-              onChange={(_e, data) => setResync(data.checked)}
+              onChange={(_e: unknown, data: CheckboxProps) =>
+                setResync(data.checked === true)
+              }
             />
           </div>
           <div className="info">
@@ -106,7 +110,6 @@ export function DryRun({
       {dryRunJobStatus === "EXCEPTION" && (
         <DryRunError
           dryRunSyncStart={dryRunSyncStart}
-          dryRunProgressData={dryRunProgressData}
           devices={devices}
           resync={resync}
           synctoForce={synctoForce}

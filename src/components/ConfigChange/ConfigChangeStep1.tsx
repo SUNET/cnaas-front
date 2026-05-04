@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
@@ -7,19 +6,36 @@ import { getData } from "../../utils/getData";
 import { putData } from "../../utils/sendData";
 import LogViewer from "../LogViewer";
 
-function ConfigChangeStep1({
+function filterLogLinesByJobIds(jobIds: number[]) {
+  return function (logLine: string) {
+    return jobIds.some((v) =>
+      logLine.toLowerCase().includes(`job #${String(v).toLowerCase()}`),
+    );
+  };
+}
+
+interface ConfigChangeStep1Props {
+  readonly setRepoWorking: (working: boolean) => void;
+  readonly dryRunJobStatus?: string | null;
+  readonly onDryRunReady: () => void;
+  readonly repoJobs?: number[];
+  readonly logLines?: string[];
+}
+
+export function ConfigChangeStep1({
   setRepoWorking,
   dryRunJobStatus,
   onDryRunReady,
-  repoJobs,
-  logLines,
-}) {
-  const [commitInfo, setCommitInfo] = useState({});
-  const [commitUpdateInfo, setCommitUpdateInfo] = useState({
+  repoJobs = [],
+  logLines = [],
+}: ConfigChangeStep1Props) {
+  const [commitInfo, setCommitInfo] = useState<Record<string, unknown>>({});
+  const [commitUpdateInfo, setCommitUpdateInfo] = useState<
+    Record<string, string | null>
+  >({
     settings: null,
     templates: null,
   });
-  const [triggerDryRun, setTriggerDryRun] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const { permissionsCheck } = usePermissions();
   const { token } = useAuthToken();
@@ -30,12 +46,14 @@ function ConfigChangeStep1({
     commitUpdateInfo.templates === "updating...";
 
   useEffect(() => {
-    async function getRepoStatus(repoName) {
+    async function getRepoStatus(repoName: string) {
       const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
-
-      getData(url, token).then((data) => {
+      try {
+        const data = await getData(url, token);
         setCommitInfo((prev) => ({ ...prev, [repoName]: data.data }));
-      });
+      } catch (error) {
+        console.error(`Failed to fetch ${repoName} repo status:`, error);
+      }
     }
     if (token) {
       getRepoStatus("settings");
@@ -43,83 +61,67 @@ function ConfigChangeStep1({
     }
   }, [token]);
 
-  useEffect(() => {
-    if (!triggerDryRun) {
-      return;
-    }
-    if (commitUpdateInfo.settings === "success") {
-      onDryRunReady();
-    } else {
-      console.log(
-        `Refresh error occured. Status${JSON.stringify(commitUpdateInfo)}`,
-      );
-    }
-
-    setTriggerDryRun(false);
-  }, [commitUpdateInfo, onDryRunReady, triggerDryRun]);
-
-  // this request takes some time, perhaps work in a "loading..."
-  async function refreshRepo(repoName) {
+  async function refreshRepo(repoName: string) {
     setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "updating..." }));
-    await setRepoWorking(true);
+    setRepoWorking(true);
 
     const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
     const dataToSend = { action: "REFRESH" };
 
-    return putData(url, token, dataToSend)
-      .then((data) => {
-        if (data.status === "success") {
-          setRepoWorking(false);
-        }
-        setCommitInfo((prev) => ({
-          ...prev,
-          [repoName]: data.status === "success" ? data.data : data.message,
-        }));
-        setCommitUpdateInfo((prev) => ({
-          ...prev,
-          [repoName]: data.status === "success" ? "success" : "error",
-        }));
-      })
-      .catch((error) => {
-        setCommitInfo((prev) => ({ ...prev, [repoName]: error.message }));
-        setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "error" }));
-      });
-  }
-
-  function handleRefreshAndDryRun(repoName) {
-    refreshRepo(repoName).then(() => setTriggerDryRun(true));
-  }
-
-  function prettifyCommit(commitStr) {
-    // const p = 'Commit addce6b8e7e62fbf0e6cf0adf6c05ccdab5fe24d master by Johan Marcusson at 2020-11-30 10:55:54+01:00';
-    const gitCommitRegex =
-      /Commit ([a-z0-9]{8})([a-z0-9]{32}) (\w+) by (.+) at ([0-9:-\s]+)/i;
-    const match = gitCommitRegex.exec(commitStr);
     try {
-      const commitPopup = (
-        <Popup
-          content={match[1] + match[2]}
-          position="top center"
-          hoverable
-          trigger={<u>{match[1]}</u>}
-        />
-      );
-      return (
-        <p>
-          Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}
-        </p>
-      );
-    } catch {
-      return <p>{commitStr}</p>;
+      const data = await putData(url, token, dataToSend);
+      const success = data.status === "success";
+      setCommitInfo((prev) => ({
+        ...prev,
+        [repoName]: success ? data.data : data.message,
+      }));
+      setCommitUpdateInfo((prev) => ({
+        ...prev,
+        [repoName]: success ? "success" : "error",
+      }));
+      return success;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      setCommitInfo((prev) => ({ ...prev, [repoName]: message }));
+      setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "error" }));
+      return false;
+    } finally {
+      setRepoWorking(false);
     }
   }
 
-  function checkJobIds(jobIds) {
-    return function filterLogLinesOnJobId(logLine) {
-      return jobIds.some((v) =>
-        logLine.toLowerCase().includes(`job #${String(v).toLowerCase()}`),
-      );
-    };
+  async function handleRefreshAndDryRun(repoName: string) {
+    const success = await refreshRepo(repoName);
+    if (success) {
+      onDryRunReady();
+    } else {
+      console.error(`Refresh error occurred for ${repoName}`);
+    }
+  }
+
+  function prettifyCommit(commitStr: unknown) {
+    if (typeof commitStr !== "string") {
+      if (commitStr == null) return <p />;
+      return <p>{JSON.stringify(commitStr)}</p>;
+    }
+
+    const gitCommitRegex =
+      /Commit ([a-z0-9]{8})([a-z0-9]{32}) (\w+) by (.+) at ([0-9:-\s]+)/i;
+    const match = gitCommitRegex.exec(commitStr);
+    if (!match) return <p>{commitStr}</p>;
+    const commitPopup = (
+      <Popup
+        content={match[1] + match[2]}
+        position="top center"
+        hoverable
+        trigger={<u>{match[1]}</u>}
+      />
+    );
+    return (
+      <p>
+        Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}
+      </p>
+    );
   }
 
   return (
@@ -129,7 +131,7 @@ function ConfigChangeStep1({
           <Icon
             name="dropdown"
             onClick={() => setExpanded((prev) => !prev)}
-            rotated={expanded ? null : "counterclockwise"}
+            rotated={expanded ? undefined : "counterclockwise"}
           />
           Optional: Refresh repositories (1/4)
           <Popup
@@ -152,7 +154,7 @@ function ConfigChangeStep1({
           <button
             type="button"
             hidden={!permissionsCheck("Config change", "write")}
-            disabled={buttonsDisabled}
+            disabled={!!buttonsDisabled}
             onClick={() => refreshRepo("settings")}
           >
             Refresh settings
@@ -160,7 +162,7 @@ function ConfigChangeStep1({
           <button
             type="button"
             hidden={!permissionsCheck("Config change", "write")}
-            disabled={buttonsDisabled}
+            disabled={!!buttonsDisabled}
             onClick={() => handleRefreshAndDryRun("settings")}
           >
             Refresh settings + dry run
@@ -171,31 +173,15 @@ function ConfigChangeStep1({
           <button
             type="button"
             hidden={!permissionsCheck("Config change", "write")}
-            disabled={buttonsDisabled}
+            disabled={!!buttonsDisabled}
             onClick={() => refreshRepo("templates")}
           >
             Refresh templates
           </button>
           <p>{commitUpdateInfo.templates}</p>
         </div>
-        <LogViewer logs={logLines.filter(checkJobIds(repoJobs))} />
+        <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />
       </div>
     </div>
   );
 }
-
-ConfigChangeStep1.propTypes = {
-  setRepoWorking: PropTypes.func.isRequired,
-  dryRunJobStatus: PropTypes.string,
-  onDryRunReady: PropTypes.func.isRequired,
-  repoJobs: PropTypes.arrayOf(PropTypes.number),
-  logLines: PropTypes.arrayOf(PropTypes.string),
-};
-
-ConfigChangeStep1.defaultProps = {
-  dryRunJobStatus: null,
-  repoJobs: [],
-  logLines: [],
-};
-
-export default ConfigChangeStep1;

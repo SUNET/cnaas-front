@@ -1,19 +1,24 @@
-import PropTypes from "prop-types";
 import { useMemo, useState } from "react";
 import { Popup, Icon } from "semantic-ui-react";
-import VerifyDiffInfo from "./VerifyDiffInfo";
-import VerifyDiffResult from "./VerifyDiffResult";
+import { VerifyDiffInfo } from "./VerifyDiffInfo";
+import { VerifyDiffResult, type Device } from "./VerifyDiffResult";
 
-VerifyDiff.propTypes = {
-  devices: PropTypes.object,
-  dryRunChangeScore: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
+interface VerifyDiffProps {
+  readonly devices: Record<string, { job_tasks: Device["jobTasks"] }>;
+  readonly dryRunChangeScore: string | number;
+}
 
-function VerifyDiff({ devices, dryRunChangeScore }) {
+export function VerifyDiff({ devices, dryRunChangeScore }: VerifyDiffProps) {
   const [expanded, setExpanded] = useState(true);
 
-  const deviceNames = useMemo(() => Object.keys(devices), [devices]);
-  const deviceData = useMemo(() => Object.values(devices), [devices]);
+  const deviceList: Device[] = useMemo(
+    () =>
+      Object.entries(devices).map(([name, { job_tasks: jobTasks }]) => ({
+        name,
+        jobTasks,
+      })),
+    [devices],
+  );
 
   return (
     <section className="task-container">
@@ -22,7 +27,7 @@ function VerifyDiff({ devices, dryRunChangeScore }) {
           <Icon
             name="dropdown"
             onClick={() => setExpanded((prev) => !prev)}
-            rotated={expanded ? null : "counterclockwise"}
+            rotated={expanded ? undefined : "counterclockwise"}
           />
           Verify difference (3/4)
           <Popup
@@ -36,14 +41,12 @@ function VerifyDiff({ devices, dryRunChangeScore }) {
         <p>Step 3 of 4: Look through and verify diff</p>
         <div>
           <VerifyDiffInfo
-            deviceNames={deviceNames}
+            deviceNames={deviceList.map((d) => d.name)}
             dryRunChangeScore={dryRunChangeScore}
           />
-          <VerifyDiffResult deviceNames={deviceNames} deviceData={deviceData} />
+          <VerifyDiffResult devices={deviceList} />
         </div>
       </div>
     </section>
   );
 }
-
-export default VerifyDiff;
