@@ -31,18 +31,20 @@ const getDataToken = (url, credentials, signal) => {
   }).then((response) => checkJsonResponse(response));
 };
 
-const getResponse = (url, credentials) => {
+const getResponse = (url, credentials, signal) => {
   if (credentials !== undefined) {
     return fetch(url, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${credentials}`,
       },
+      ...(signal && { signal }),
     }).then((response) => checkResponseStatus(response));
   }
 
   return fetch(url, {
     method: "GET",
+    ...(signal && { signal }),
   }).then((response) => checkResponseStatus(response));
 };
 

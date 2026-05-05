@@ -1,0 +1,74 @@
+import type { ReactNode } from "react";
+import { Loader, TableBody, TableCell, TableRow } from "semantic-ui-react";
+import type { DeviceColumnKey } from "../columns";
+import type { Device } from "../../../types/device";
+import { DeviceTableBodyRow } from "./DeviceTableBodyRow";
+
+interface DeviceTableBodyProps {
+  readonly deviceData: readonly Device[];
+  readonly activeColumns: readonly DeviceColumnKey[];
+  readonly loading: boolean;
+  readonly error: Error | null;
+  readonly defaultOpenIds: ReadonlySet<number>;
+  readonly mangleDeviceData: (device: Device) => ReactNode;
+  readonly getAdditionalDeviceData: (hostname: string) => void;
+}
+
+export function DeviceTableBody({
+  deviceData,
+  activeColumns,
+  loading,
+  error,
+  mangleDeviceData,
+  defaultOpenIds,
+  getAdditionalDeviceData,
+}: DeviceTableBodyProps) {
+  if (loading) {
+    return (
+      <TableBody>
+        <TableRow>
+          <TableCell>
+            <Loader active inline="centered">
+              Loading
+            </Loader>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    );
+  }
+
+  if (error) {
+    return (
+      <TableBody>
+        <TableRow>
+          <TableCell>API Error: {error.message}</TableCell>
+        </TableRow>
+      </TableBody>
+    );
+  }
+
+  if (deviceData.length === 0) {
+    return (
+      <TableBody>
+        <TableRow>
+          <TableCell>No data</TableCell>
+        </TableRow>
+      </TableBody>
+    );
+  }
+
+  return (
+    <TableBody>
+      {deviceData.map((device) => (
+        <DeviceTableBodyRow
+          key={`${device.id}_row`}
+          device={device}
+          activeColumns={activeColumns}
+          mangleDeviceData={mangleDeviceData}
+          defaultOpen={defaultOpenIds.has(device.id)}
+          getAdditionalDeviceData={getAdditionalDeviceData}
+        />
+      ))}
+    </TableBody>
+  );
+}
