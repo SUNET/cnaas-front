@@ -5,7 +5,9 @@ test.describe("Interface config page", () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to devices page and click the plug icon for eosaccess
     await page.goto("/devices");
-    await expect(page.getByRole("cell", { name: "eosaccess" })).toBeVisible({
+    await expect(
+      page.getByRole("cell", { name: "eosaccess", exact: true }),
+    ).toBeVisible({
       timeout: 15000,
     });
 

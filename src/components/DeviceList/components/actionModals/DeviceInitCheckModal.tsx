@@ -36,7 +36,7 @@ interface InitCheckResult {
 type InitCheckOutput = InitCheckResult | string | null;
 
 async function extractErrorMessage(error: unknown): Promise<string> {
-  if (error instanceof Response) {
+  if (typeof Response !== "undefined" && error instanceof Response) {
     try {
       const body = await error.clone().json();
       if (body && typeof body === "object" && "message" in body) {
