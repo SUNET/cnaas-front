@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import {
@@ -17,13 +17,13 @@ import { actions } from "../stores/deviceListReducer";
 import type { FilterData, SortDirection } from "../types/table";
 import type { DeviceInterface } from "../types/deviceInterface";
 import {
+  fetchDeviceById,
   fetchDeviceInterfaces,
   fetchDevicesPage,
   fetchMgmtDomains,
   updateDevice,
   updateDeviceFacts,
 } from "../api/deviceListApi";
-import { fetchNetboxDevice, fetchNetboxModel } from "../../../services/netbox";
 import type { Device, DeviceState } from "../../../types/device";
 import { isCoreDevice, isDistDevice } from "../../../types/device";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
@@ -35,14 +35,6 @@ import { DeviceReplaceForm } from "./DeviceReplaceForm";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
-import type {
-  AddMgmtDomainModalConf,
-  ChangeHostnameModalConf,
-  DeleteModalConf,
-  DeviceStateModalConf,
-  ShowConfigModalConf,
-  UpdateMgmtDomainModalConf,
-} from "../types/modals";
 import { getMenuActionsConfig } from "../utils";
 import { AddMgmtDomainModal } from "./actionModals/AddMgmtDomainModal";
 import { DeleteModal } from "./actionModals/DeleteModal";
@@ -73,6 +65,12 @@ export function DeviceList() {
     netboxDeviceData,
     deviceJobs,
     logLines,
+    addMgmtDomainModal,
+    deleteModal,
+    deviceStateModal,
+    updateMgmtDomainModal,
+    showConfigModal,
+    changeHostnameModal,
   } = deviceListState;
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -81,64 +79,27 @@ export function DeviceList() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Filter that triggered a "Go to device" lookup; matching rows auto-expand.
-  const [autoExpandFilter, setAutoExpandFilter] = useState<FilterData | null>(
-    null,
-  );
-  const [addMgmtDomainModalConf, setAddMgmtDomainModalConf] =
-    useState<AddMgmtDomainModalConf>({
-      isOpen: false,
-      deviceA: null,
-      deviceBCandidates: [],
-    });
-  const [deleteModalConf, setDeleteModalConf] = useState<DeleteModalConf>({
-    device: null,
-    isOpen: false,
-  });
-  const [deviceStateModalConf, setDeviceStateModalConf] =
-    useState<DeviceStateModalConf>({
-      isOpen: false,
-      hostname: null,
-      deviceId: null,
-      newState: null,
-    });
-
-  const [updateMgmtDomainModalConf, setUpdateMgmtDomainModalConf] =
-    useState<UpdateMgmtDomainModalConf>({
-      isOpen: false,
-      mgmtId: null,
-      deviceA: null,
-      deviceB: null,
-      ipv4Initial: null,
-      ipv6Initial: null,
-      vlanInitial: null,
-    });
-
-  const [showConfigModalConf, setShowConfigModalConf] =
-    useState<ShowConfigModalConf>({
-      isOpen: false,
-      hostname: null,
-      state: null,
-    });
-
-  const [changeHostnameModalConf, setChangeHostnameModalConf] =
-    useState<ChangeHostnameModalConf>({
-      isOpen: false,
-      deviceId: null,
-      hostname: null,
-    });
-
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set filterData on searchParam change
+    // Sync filter + expanded ids from URL to reducer.
     const locationFilterData: { [key: string]: string } = {};
     for (const [key, value] of searchParams.entries()) {
       const match = /^filter\[(.+)\]$/.exec(key);
       if (match) locationFilterData[match[1]] = value;
     }
-
     dispatch({ type: actions.SET_FILTER, filterData: locationFilterData });
+
+    const expandParam = searchParams.get("expand");
+    if (expandParam) {
+      const deviceIds = expandParam
+        .split(",")
+        .map((raw) => Number.parseInt(raw, 10))
+        .filter((id) => Number.isFinite(id));
+      if (deviceIds.length > 0) {
+        dispatch({ type: actions.EXPAND_DEVICES, deviceIds });
+      }
+    }
   }, [searchParams]);
 
   const getAllMgmtDomainsData = async (signal?: AbortSignal) => {
@@ -155,37 +116,24 @@ export function DeviceList() {
     dispatch({ type: actions.ADD_DEVICE_JOB, deviceId, jobId });
   };
 
-  const findAction = (filter: FilterData, closeToast: boolean) => {
+  const findAction = (
+    filter: FilterData,
+    expandDeviceId: number | null,
+    closeToast: boolean,
+  ) => {
     if (closeToast) {
       // close toast
       document
         .querySelectorAll(".ui.floating.message")
         .forEach((el) => el.remove());
     }
-    handleFilterChange(filter);
+    handleFilterChange(filter, expandDeviceId);
     dispatch({
       type: actions.SET_FILTER_ACTIVE,
       active: Object.keys(filter).length > 0,
     });
-    // Auto-expand matching row(s) once data arrives (see autoExpandIds below).
-    setAutoExpandFilter(filter);
     globalThis.scrollTo(0, 0);
   };
-
-  // Derived from current filter + data; no setState-in-effect needed.
-  const autoExpandIds = useMemo<ReadonlySet<number>>(() => {
-    if (!autoExpandFilter) return new Set();
-    const matches = deviceData
-      .filter((d) =>
-        Object.entries(autoExpandFilter).every(([key, value]) => {
-          if (value === undefined || value === "") return true;
-          const deviceValue = (d as unknown as Record<string, unknown>)[key];
-          return String(deviceValue ?? "") === String(value);
-        }),
-      )
-      .map((d) => d.id);
-    return new Set(matches);
-  }, [autoExpandFilter, deviceData]);
 
   const getDevices = async (signal?: AbortSignal) => {
     const operatorMap: { [key: string]: string } = {
@@ -269,16 +217,22 @@ export function DeviceList() {
     handleFilterChange({ ...filterData, [column]: value });
   };
 
-  const handleFilterChange = (nextFilterData: FilterData) => {
+  const handleFilterChange = (
+    nextFilterData: FilterData,
+    expandDeviceId: number | null = null,
+  ) => {
     // Reset to page 1 during filtering
     dispatch({ type: actions.SET_ACTIVE_PAGE, page: 1 });
     dispatch({ type: actions.SET_FILTER, filterData: nextFilterData });
     // Set queryParams on filterData change
-    const filterParams = Object.fromEntries(
+    const filterParams: { [key: string]: string } = Object.fromEntries(
       Object.entries(nextFilterData)
         .filter(([, value]) => value) // skip empty values
         .map(([key, value]) => [`filter[${key}]`, value]),
     );
+    if (expandDeviceId != null) {
+      filterParams.expand = String(expandDeviceId);
+    }
 
     const newSearchParams = new URLSearchParams(filterParams);
     const newSearch = newSearchParams.toString()
@@ -301,10 +255,7 @@ export function DeviceList() {
       time: 5000,
     });
     getAllMgmtDomainsData();
-    setAddMgmtDomainModalConf((prev) => ({
-      ...prev,
-      isOpen: false,
-    }));
+    dispatch({ type: actions.CLOSE_ADD_MGMT_DOMAIN_MODAL });
   };
 
   const handleDeleteMgmtDomain = (id: number) => {
@@ -314,10 +265,7 @@ export function DeviceList() {
       time: 5000,
     });
     getAllMgmtDomainsData();
-    setUpdateMgmtDomainModalConf((prev) => ({
-      ...prev,
-      isOpen: false,
-    }));
+    dispatch({ type: actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL });
   };
 
   const handleUpdateMgmtDomains = (id: number) => {
@@ -327,28 +275,17 @@ export function DeviceList() {
       time: 5000,
     });
     getAllMgmtDomainsData();
-    setUpdateMgmtDomainModalConf((prev) => ({
-      ...prev,
-      isOpen: false,
-    }));
+    dispatch({ type: actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL });
   };
 
   const handleMgmtAddModalOpen = (
     deviceA: string,
     deviceBCandidates: Device[],
   ) => {
-    setAddMgmtDomainModalConf({
+    dispatch({
+      type: actions.OPEN_ADD_MGMT_DOMAIN_MODAL,
       deviceA,
       deviceBCandidates,
-      isOpen: true,
-    });
-  };
-
-  const handleMgmtAddDomainModalClose = () => {
-    setAddMgmtDomainModalConf({
-      isOpen: false,
-      deviceA: null,
-      deviceBCandidates: [],
     });
   };
 
@@ -360,108 +297,23 @@ export function DeviceList() {
     ipv6_gw: ipv6GW,
     vlan,
   }: MgmtDomain) => {
-    setUpdateMgmtDomainModalConf({
+    dispatch({
+      type: actions.OPEN_UPDATE_MGMT_DOMAIN_MODAL,
       mgmtId: id,
       deviceA,
       deviceB,
       ipv4Initial: ipv4GW,
       ipv6Initial: ipv6GW,
       vlanInitial: vlan,
-      isOpen: true,
-    });
-  };
-
-  const mgmtUpdateModalClose = () => {
-    setUpdateMgmtDomainModalConf({
-      isOpen: false,
-      mgmtId: null,
-      deviceA: null,
-      deviceB: null,
-      ipv4Initial: null,
-      ipv6Initial: null,
-      vlanInitial: null,
     });
   };
 
   const handleShowConfigModalOpen = (hostname: string, state: DeviceState) => {
-    setShowConfigModalConf({
-      isOpen: true,
-      hostname,
-      state,
-    });
+    dispatch({ type: actions.OPEN_SHOW_CONFIG_MODAL, hostname, state });
   };
 
-  const handleShowConfigModalClose = () => {
-    setShowConfigModalConf({
-      isOpen: false,
-      hostname: null,
-      state: null,
-    });
-  };
-
-  const handleHostnameModalOpen = async (
-    deviceId: number,
-    hostname: string,
-  ) => {
-    setChangeHostnameModalConf({
-      isOpen: true,
-      deviceId,
-      hostname,
-    });
-  };
-
-  const handleHostnameModalClose = async () => {
-    setChangeHostnameModalConf({
-      isOpen: false,
-    });
-  };
-
-  const getModel = (hostname: string): string | null => {
-    // loop through devicesData and return model for matching hostname
-    const device = deviceData.find((element) => element.hostname === hostname);
-    return device?.model ?? null;
-  };
-
-  const getNetboxModelData = async (hostname: string) => {
-    const model = getModel(hostname);
-    if (!model || netboxModelData[model]) return;
-
-    const data = await fetchNetboxModel(model, token ?? "");
-    if (data) {
-      dispatch({ type: actions.CACHE_NETBOX_MODEL, model, data });
-    }
-  };
-
-  const getNetboxDeviceData = async (hostname: string) => {
-    if (netboxDeviceData[hostname]) return;
-
-    const data = await fetchNetboxDevice(hostname, token ?? "");
-    if (data) {
-      dispatch({ type: actions.CACHE_NETBOX_DEVICE, hostname, data });
-    }
-  };
-
-  const getInterfacesData = async (hostname: string) => {
-    try {
-      const interfaces = (await fetchDeviceInterfaces(
-        hostname,
-        token,
-      )) as readonly DeviceInterface[];
-
-      // If interface data already exists return
-      if (deviceInterfaceData[hostname]) return;
-
-      if (interfaces.length) {
-        dispatch({
-          type: actions.CACHE_INTERFACES,
-          hostname,
-          interfaces,
-        });
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-      setLoading(false);
-    }
+  const handleHostnameModalOpen = (deviceId: number, hostname: string) => {
+    dispatch({ type: actions.OPEN_CHANGE_HOSTNAME_MODAL, deviceId, hostname });
   };
 
   const hasJobId = (jobId: number) => {
@@ -482,6 +334,7 @@ export function DeviceList() {
             onClick={() =>
               findAction(
                 { id: String(intf.data.neighbor_id ?? "") } as FilterData,
+                intf.data.neighbor_id ?? null,
                 false,
               )
             }
@@ -504,6 +357,7 @@ export function DeviceList() {
             onClick={() =>
               findAction(
                 { hostname: intf.data.neighbor ?? "" } as FilterData,
+                intf.data.neighbor_id ?? null,
                 false,
               )
             }
@@ -584,17 +438,7 @@ export function DeviceList() {
   };
 
   const handleDeleteModalOpen = (device: Device) => {
-    setDeleteModalConf({
-      isOpen: true,
-      device,
-    });
-  };
-
-  const deleteModalClose = () => {
-    setDeleteModalConf({
-      isOpen: false,
-      device: null,
-    });
+    dispatch({ type: actions.OPEN_DELETE_MODAL, device });
   };
 
   const changeStateLocally = (deviceId: number, state: DeviceState) => {
@@ -619,8 +463,8 @@ export function DeviceList() {
     deviceId: number,
     newState: DeviceState,
   ) => {
-    setDeviceStateModalConf({
-      isOpen: true,
+    dispatch({
+      type: actions.OPEN_DEVICE_STATE_MODAL,
       hostname,
       deviceId,
       newState,
@@ -630,13 +474,13 @@ export function DeviceList() {
   const createDeviceButtonsExtraForDevice = (device: Device): ReactNode[] => {
     const deviceButtons: ReactNode[] = [];
 
-    if (device.hostname in deviceInterfaceData !== false) {
-      const mlagPeerLink = renderMlagLink(deviceInterfaceData[device.hostname]);
+    if (device.id in deviceInterfaceData) {
+      const mlagPeerLink = renderMlagLink(deviceInterfaceData[device.id]);
       if (mlagPeerLink !== null) {
         deviceButtons.push(...mlagPeerLink);
       }
 
-      const uplinkLink = renderUplinkLink(deviceInterfaceData[device.hostname]);
+      const uplinkLink = renderUplinkLink(deviceInterfaceData[device.id]);
       if (uplinkLink !== null) {
         deviceButtons.push(...uplinkLink);
       }
@@ -711,8 +555,8 @@ export function DeviceList() {
         ? netboxModelData[device.model]
         : null;
 
-    const netboxDevice = Object.hasOwn(netboxDeviceData, device.hostname)
-      ? netboxDeviceData[device.hostname]
+    const netboxDevice = Object.hasOwn(netboxDeviceData, device.id)
+      ? netboxDeviceData[device.id]
       : null;
 
     return (
@@ -766,12 +610,6 @@ export function DeviceList() {
     dispatch({ type: actions.SET_ACTIVE_COLUMNS, columns: newColumns });
   };
 
-  const getAdditionalDeviceData = (hostname: string) => {
-    getInterfacesData(hostname);
-    getNetboxModelData(hostname);
-    getNetboxDeviceData(hostname);
-  };
-
   return (
     <section>
       <Grid divided="vertically">
@@ -818,68 +656,80 @@ export function DeviceList() {
       <SemanticToastContainer position="top-right" maxToasts={3} />
 
       <DeviceStateModal
-        isOpen={deviceStateModalConf.isOpen}
-        deviceId={deviceStateModalConf.deviceId}
-        hostname={deviceStateModalConf.hostname}
-        newState={deviceStateModalConf.newState}
-        closeAction={() =>
-          setDeviceStateModalConf({
-            isOpen: false,
-            hostname: null,
-            deviceId: null,
-            newState: null,
-          })
-        }
+        isOpen={deviceStateModal.isOpen}
+        deviceId={deviceStateModal.deviceId}
+        hostname={deviceStateModal.hostname}
+        newState={deviceStateModal.newState}
+        closeAction={() => dispatch({ type: actions.CLOSE_DEVICE_STATE_MODAL })}
         onStateChange={getDevices}
       />
 
       <DeleteModal
-        key={deleteModalConf.device?.id || "deletemodal"}
-        device={deleteModalConf.device}
-        isOpen={deleteModalConf.isOpen}
+        key={deleteModal.device?.id || "deletemodal"}
+        device={deleteModal.device}
+        isOpen={deleteModal.isOpen}
         addDeviceJob={addDeviceJob}
-        closeAction={deleteModalClose}
+        closeAction={() => dispatch({ type: actions.CLOSE_DELETE_MODAL })}
       />
 
       <AddMgmtDomainModal
-        deviceA={addMgmtDomainModalConf.deviceA}
-        deviceBCandidates={addMgmtDomainModalConf.deviceBCandidates}
-        isOpen={addMgmtDomainModalConf.isOpen}
-        closeAction={handleMgmtAddDomainModalClose}
+        deviceA={addMgmtDomainModal.deviceA}
+        deviceBCandidates={[...addMgmtDomainModal.deviceBCandidates]}
+        isOpen={addMgmtDomainModal.isOpen}
+        closeAction={() =>
+          dispatch({ type: actions.CLOSE_ADD_MGMT_DOMAIN_MODAL })
+        }
         onAdd={(v: number) => handleAddMgmtDomains(v)}
       />
 
       <UpdateMgmtDomainModal
-        key={updateMgmtDomainModalConf.mgmtId ?? "new"}
-        mgmtId={updateMgmtDomainModalConf.mgmtId}
-        deviceA={updateMgmtDomainModalConf.deviceA}
-        deviceB={updateMgmtDomainModalConf.deviceB}
-        ipv4Initial={updateMgmtDomainModalConf.ipv4Initial}
-        ipv6Initial={updateMgmtDomainModalConf.ipv6Initial}
-        vlanInitial={updateMgmtDomainModalConf.vlanInitial}
-        isOpen={updateMgmtDomainModalConf.isOpen}
-        closeAction={mgmtUpdateModalClose}
+        key={updateMgmtDomainModal.mgmtId ?? "new"}
+        mgmtId={updateMgmtDomainModal.mgmtId}
+        deviceA={updateMgmtDomainModal.deviceA}
+        deviceB={updateMgmtDomainModal.deviceB}
+        ipv4Initial={updateMgmtDomainModal.ipv4Initial}
+        ipv6Initial={updateMgmtDomainModal.ipv6Initial}
+        vlanInitial={updateMgmtDomainModal.vlanInitial}
+        isOpen={updateMgmtDomainModal.isOpen}
+        closeAction={() =>
+          dispatch({ type: actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL })
+        }
         onDelete={(v: number) => handleDeleteMgmtDomain(v)}
         onUpdate={(v: number) => handleUpdateMgmtDomains(v)}
       />
       <HostnameModal
-        key={changeHostnameModalConf.deviceId ?? "hostnamemodal"}
-        hostname={changeHostnameModalConf.hostname}
-        deviceId={changeHostnameModalConf.deviceId}
-        isOpen={changeHostnameModalConf.isOpen}
-        closeAction={handleHostnameModalClose}
-        onSuccess={(oldHostname: string, newHostname: string) => {
-          dispatch({ type: actions.REMOVE_INTERFACES, hostname: oldHostname });
-          getDevices();
-          getInterfacesData(newHostname);
+        key={changeHostnameModal.deviceId ?? "hostnamemodal"}
+        hostname={changeHostnameModal.hostname}
+        deviceId={changeHostnameModal.deviceId}
+        isOpen={changeHostnameModal.isOpen}
+        closeAction={() =>
+          dispatch({ type: actions.CLOSE_CHANGE_HOSTNAME_MODAL })
+        }
+        onSuccess={async (_oldHostname: string, newHostname: string) => {
+          const deviceId = changeHostnameModal.deviceId;
+          if (deviceId == null) return;
+          try {
+            const device = await fetchDeviceById(deviceId, token);
+            dispatch({ type: actions.UPDATE_DEVICE, deviceId, device });
+            const interfaces = await fetchDeviceInterfaces(newHostname, token);
+            if (interfaces.length > 0) {
+              dispatch({
+                type: actions.CACHE_INTERFACES,
+                deviceId,
+                interfaces,
+              });
+            }
+          } catch {
+            // Swallow — UI keeps stale row; user can retry.
+          }
         }}
       />
       <ShowConfigModal
-        key={showConfigModalConf.hostname ?? "closed"}
-        hostname={showConfigModalConf.hostname}
-        state={showConfigModalConf.state}
-        isOpen={showConfigModalConf.isOpen}
-        closeAction={handleShowConfigModalClose}
+        key={showConfigModal.hostname ?? "closed"}
+        hostname={showConfigModal.hostname}
+        state={showConfigModal.state}
+        isOpen={showConfigModal.isOpen}
+        closeAction={() => dispatch({ type: actions.CLOSE_SHOW_CONFIG_MODAL })}
       />
       <Table sortable celled striped>
         <DeviceTableHeader
@@ -896,9 +746,7 @@ export function DeviceList() {
           activeColumns={[...activeColumns]}
           loading={loading}
           error={error}
-          defaultOpenIds={autoExpandIds}
           mangleDeviceData={mangleDeviceData}
-          getAdditionalDeviceData={getAdditionalDeviceData}
         />
       </Table>
 

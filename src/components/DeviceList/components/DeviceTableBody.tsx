@@ -9,9 +9,7 @@ interface DeviceTableBodyProps {
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly loading: boolean;
   readonly error: Error | null;
-  readonly defaultOpenIds: ReadonlySet<number>;
   readonly mangleDeviceData: (device: Device) => ReactNode;
-  readonly getAdditionalDeviceData: (hostname: string) => void;
 }
 
 export function DeviceTableBody({
@@ -20,8 +18,6 @@ export function DeviceTableBody({
   loading,
   error,
   mangleDeviceData,
-  defaultOpenIds,
-  getAdditionalDeviceData,
 }: DeviceTableBodyProps) {
   if (loading) {
     return (
@@ -65,8 +61,6 @@ export function DeviceTableBody({
           device={device}
           activeColumns={activeColumns}
           mangleDeviceData={mangleDeviceData}
-          defaultOpen={defaultOpenIds.has(device.id)}
-          getAdditionalDeviceData={getAdditionalDeviceData}
         />
       ))}
     </TableBody>

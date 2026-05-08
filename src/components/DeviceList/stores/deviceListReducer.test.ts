@@ -135,27 +135,13 @@ describe("deviceListReducer", () => {
     expect(next.activePage).toBe(1);
   });
 
-  test("CACHE_INTERFACES adds and REMOVE_INTERFACES drops the entry", () => {
-    let state = deviceListReducer(baseState(), {
+  test("CACHE_INTERFACES stores entries by deviceId", () => {
+    const state = deviceListReducer(baseState(), {
       type: actions.CACHE_INTERFACES,
-      hostname: "host-1",
+      deviceId: 1,
       interfaces: [],
     });
-    expect(state.deviceInterfaceData["host-1"]).toEqual([]);
-    state = deviceListReducer(state, {
-      type: actions.REMOVE_INTERFACES,
-      hostname: "host-1",
-    });
-    expect("host-1" in state.deviceInterfaceData).toBe(false);
-  });
-
-  test("REMOVE_INTERFACES on missing hostname returns same reference", () => {
-    const start = baseState();
-    const next = deviceListReducer(start, {
-      type: actions.REMOVE_INTERFACES,
-      hostname: "nope",
-    });
-    expect(next).toBe(start);
+    expect(state.deviceInterfaceData[1]).toEqual([]);
   });
 
   test("ADD_DEVICE_JOB appends to existing list", () => {
@@ -213,11 +199,11 @@ describe("deviceListReducer", () => {
     });
     state = deviceListReducer(state, {
       type: actions.CACHE_NETBOX_DEVICE,
-      hostname: "host-1",
+      deviceId: 42,
       data: { y: 2 },
     });
     expect(state.netboxModelData.ABC).toEqual({ x: 1 });
-    expect(state.netboxDeviceData["host-1"]).toEqual({ y: 2 });
+    expect(state.netboxDeviceData[42]).toEqual({ y: 2 });
   });
 
   test("default branch returns same state reference", () => {
@@ -228,5 +214,182 @@ describe("deviceListReducer", () => {
       { type: "UNKNOWN_ACTION" },
     );
     expect(next).toBe(start);
+  });
+
+  test("EXPAND_DEVICES adds multiple new ids", () => {
+    const s1 = deviceListReducer(baseState(), {
+      type: actions.EXPAND_DEVICES,
+      deviceIds: [3, 7, 11],
+    });
+    expect(s1.expandedIds.has(3)).toBe(true);
+    expect(s1.expandedIds.has(7)).toBe(true);
+    expect(s1.expandedIds.has(11)).toBe(true);
+  });
+
+  test("EXPAND_DEVICES is idempotent when all ids already present", () => {
+    const s1 = deviceListReducer(baseState(), {
+      type: actions.EXPAND_DEVICES,
+      deviceIds: [7],
+    });
+    const s2 = deviceListReducer(s1, {
+      type: actions.EXPAND_DEVICES,
+      deviceIds: [7],
+    });
+    expect(s2).toBe(s1);
+  });
+
+  test("EXPAND_DEVICES with empty array returns same state ref", () => {
+    const start = baseState();
+    const next = deviceListReducer(start, {
+      type: actions.EXPAND_DEVICES,
+      deviceIds: [],
+    });
+    expect(next).toBe(start);
+  });
+
+  test("EXPAND_DEVICES adds only new ids when mixed with existing", () => {
+    const s1 = deviceListReducer(baseState(), {
+      type: actions.EXPAND_DEVICES,
+      deviceIds: [7],
+    });
+    const s2 = deviceListReducer(s1, {
+      type: actions.EXPAND_DEVICES,
+      deviceIds: [7, 9],
+    });
+    expect(s2).not.toBe(s1);
+    expect(s2.expandedIds.has(7)).toBe(true);
+    expect(s2.expandedIds.has(9)).toBe(true);
+  });
+
+  test("COLLAPSE_DEVICE removes id; no-op when absent", () => {
+    const start = baseState();
+    const same = deviceListReducer(start, {
+      type: actions.COLLAPSE_DEVICE,
+      deviceId: 99,
+    });
+    expect(same).toBe(start);
+    const expanded = deviceListReducer(start, {
+      type: actions.EXPAND_DEVICES,
+      deviceIds: [7],
+    });
+    const collapsed = deviceListReducer(expanded, {
+      type: actions.COLLAPSE_DEVICE,
+      deviceId: 7,
+    });
+    expect(collapsed.expandedIds.has(7)).toBe(false);
+  });
+
+  test("TOGGLE_DEVICE_EXPANDED flips membership", () => {
+    const s1 = deviceListReducer(baseState(), {
+      type: actions.TOGGLE_DEVICE_EXPANDED,
+      deviceId: 3,
+    });
+    expect(s1.expandedIds.has(3)).toBe(true);
+    const s2 = deviceListReducer(s1, {
+      type: actions.TOGGLE_DEVICE_EXPANDED,
+      deviceId: 3,
+    });
+    expect(s2.expandedIds.has(3)).toBe(false);
+  });
+
+  test("OPEN/CLOSE_ADD_MGMT_DOMAIN_MODAL round-trip", () => {
+    const opened = deviceListReducer(baseState(), {
+      type: actions.OPEN_ADD_MGMT_DOMAIN_MODAL,
+      deviceA: "host-1",
+      deviceBCandidates: [dev(2)],
+    });
+    expect(opened.addMgmtDomainModal.isOpen).toBe(true);
+    expect(opened.addMgmtDomainModal.deviceA).toBe("host-1");
+    expect(opened.addMgmtDomainModal.deviceBCandidates).toHaveLength(1);
+    const closed = deviceListReducer(opened, {
+      type: actions.CLOSE_ADD_MGMT_DOMAIN_MODAL,
+    });
+    expect(closed.addMgmtDomainModal.isOpen).toBe(false);
+    expect(closed.addMgmtDomainModal.deviceA).toBeNull();
+    expect(closed.addMgmtDomainModal.deviceBCandidates).toEqual([]);
+  });
+
+  test("OPEN/CLOSE_DELETE_MODAL round-trip", () => {
+    const opened = deviceListReducer(baseState(), {
+      type: actions.OPEN_DELETE_MODAL,
+      device: dev(5),
+    });
+    expect(opened.deleteModal.isOpen).toBe(true);
+    expect(opened.deleteModal.device?.id).toBe(5);
+    const closed = deviceListReducer(opened, {
+      type: actions.CLOSE_DELETE_MODAL,
+    });
+    expect(closed.deleteModal.isOpen).toBe(false);
+    expect(closed.deleteModal.device).toBeNull();
+  });
+
+  test("OPEN/CLOSE_DEVICE_STATE_MODAL round-trip", () => {
+    const opened = deviceListReducer(baseState(), {
+      type: actions.OPEN_DEVICE_STATE_MODAL,
+      hostname: "host-7",
+      deviceId: 7,
+      newState: "MANAGED",
+    });
+    expect(opened.deviceStateModal.isOpen).toBe(true);
+    expect(opened.deviceStateModal.deviceId).toBe(7);
+    expect(opened.deviceStateModal.newState).toBe("MANAGED");
+    const closed = deviceListReducer(opened, {
+      type: actions.CLOSE_DEVICE_STATE_MODAL,
+    });
+    expect(closed.deviceStateModal.isOpen).toBe(false);
+    expect(closed.deviceStateModal.deviceId).toBeNull();
+    expect(closed.deviceStateModal.newState).toBeNull();
+  });
+
+  test("OPEN/CLOSE_UPDATE_MGMT_DOMAIN_MODAL round-trip", () => {
+    const opened = deviceListReducer(baseState(), {
+      type: actions.OPEN_UPDATE_MGMT_DOMAIN_MODAL,
+      mgmtId: 99,
+      deviceA: "host-a",
+      deviceB: "host-b",
+      ipv4Initial: "10.0.0.1",
+      ipv6Initial: "::1",
+      vlanInitial: 100,
+    });
+    expect(opened.updateMgmtDomainModal.isOpen).toBe(true);
+    expect(opened.updateMgmtDomainModal.mgmtId).toBe(99);
+    expect(opened.updateMgmtDomainModal.vlanInitial).toBe(100);
+    const closed = deviceListReducer(opened, {
+      type: actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL,
+    });
+    expect(closed.updateMgmtDomainModal.isOpen).toBe(false);
+    expect(closed.updateMgmtDomainModal.mgmtId).toBeNull();
+  });
+
+  test("OPEN/CLOSE_SHOW_CONFIG_MODAL round-trip", () => {
+    const opened = deviceListReducer(baseState(), {
+      type: actions.OPEN_SHOW_CONFIG_MODAL,
+      hostname: "host-3",
+      state: "MANAGED",
+    });
+    expect(opened.showConfigModal.isOpen).toBe(true);
+    expect(opened.showConfigModal.hostname).toBe("host-3");
+    const closed = deviceListReducer(opened, {
+      type: actions.CLOSE_SHOW_CONFIG_MODAL,
+    });
+    expect(closed.showConfigModal.isOpen).toBe(false);
+    expect(closed.showConfigModal.hostname).toBeNull();
+  });
+
+  test("OPEN/CLOSE_CHANGE_HOSTNAME_MODAL round-trip", () => {
+    const opened = deviceListReducer(baseState(), {
+      type: actions.OPEN_CHANGE_HOSTNAME_MODAL,
+      deviceId: 11,
+      hostname: "host-11",
+    });
+    expect(opened.changeHostnameModal.isOpen).toBe(true);
+    expect(opened.changeHostnameModal.deviceId).toBe(11);
+    expect(opened.changeHostnameModal.hostname).toBe("host-11");
+    const closed = deviceListReducer(opened, {
+      type: actions.CLOSE_CHANGE_HOSTNAME_MODAL,
+    });
+    expect(closed.changeHostnameModal.isOpen).toBe(false);
+    expect(closed.changeHostnameModal.deviceId).toBeNull();
+    expect(closed.changeHostnameModal.hostname).toBeNull();
   });
 });

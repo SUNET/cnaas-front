@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 
 import { isActive, isInZtp, type Device } from "../../../../types/device";
+import { useDeviceInterfaces } from "../../hooks/useDeviceInterfaces";
+import { useNetboxDevice } from "../../hooks/useNetboxDevice";
+import { useNetboxModel } from "../../hooks/useNetboxModel";
 
 import { AccessDevice } from "./AccessDevice";
 import { CoreDevice } from "./CoreDevice";
@@ -24,14 +27,21 @@ interface DeviceExpandedProps {
  * (DHCP_BOOT / DISCOVERED / INIT) are the assembly line that produces
  * typed devices and are grouped under <ZtpDevice>.
  *
+ * Calls the cache-aware fetch hooks at the top so per-device caches
+ * populate on first expand for both the legacy `fallback` and the
+ * leaves below.
+ *
  * `fallback` is rendered for any branch not yet migrated from the
- * legacy `mangleDeviceData` function. It is removed in Phase E once all
- * branches are migrated.
+ * legacy `mangleDeviceData` function. Removed in Phase E.
  */
 export function DeviceExpanded({
   device,
   fallback,
 }: DeviceExpandedProps): ReactNode {
+  useDeviceInterfaces(device.id, device.hostname);
+  useNetboxDevice(device.id, device.hostname);
+  useNetboxModel(device.model);
+
   if (isInZtp(device)) {
     return <ZtpDevice device={device} fallback={fallback} />;
   }

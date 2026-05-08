@@ -1,35 +1,28 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { TableCell, TableRow } from "semantic-ui-react";
 import type { DeviceColumnKey } from "../types/columns";
 import type { Device } from "../../../types/device";
+import { useDeviceList } from "../stores/DeviceListContext";
+import { actions } from "../stores/deviceListReducer";
 import { DeviceTableBodyRowCellContent } from "./DeviceTableBodyRowCellContent";
+import { DeviceExpanded } from "./expanded/DeviceExpanded";
 
 interface DeviceTableBodyRowProps {
   readonly device: Device;
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly mangleDeviceData: (device: Device) => ReactNode;
-  readonly defaultOpen: boolean;
-  readonly getAdditionalDeviceData: (hostname: string) => void;
 }
 
 export function DeviceTableBodyRow({
   device,
   activeColumns,
   mangleDeviceData,
-  defaultOpen,
-  getAdditionalDeviceData,
 }: DeviceTableBodyRowProps) {
-  const [open, setOpen] = useState(defaultOpen);
-  const deviceInfo = mangleDeviceData(device);
-
-  // Auto-fetch details when row mounts already-open ("Go to device" toast).
-  useEffect(() => {
-    if (defaultOpen) getAdditionalDeviceData(device.hostname);
-  }, [defaultOpen, device.hostname, getAdditionalDeviceData]);
+  const { state, dispatch } = useDeviceList();
+  const open = state.expandedIds.has(device.id);
 
   const handleRowClick = () => {
-    if (!open) getAdditionalDeviceData(device.hostname);
-    setOpen((prev) => !prev);
+    dispatch({ type: actions.TOGGLE_DEVICE_EXPANDED, deviceId: device.id });
   };
 
   return (
@@ -55,17 +48,22 @@ export function DeviceTableBodyRow({
           </TableCell>
         ))}
       </TableRow>
-      <TableRow hidden={!open}>
-        <TableCell
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            overflow: "visible",
-          }}
-        >
-          {deviceInfo}
-        </TableCell>
-      </TableRow>
+      {open && (
+        <TableRow>
+          <TableCell
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              overflow: "visible",
+            }}
+          >
+            <DeviceExpanded
+              device={device}
+              fallback={mangleDeviceData(device)}
+            />
+          </TableCell>
+        </TableRow>
+      )}
     </>
   );
 }

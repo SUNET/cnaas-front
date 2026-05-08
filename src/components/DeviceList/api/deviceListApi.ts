@@ -79,6 +79,16 @@ export async function fetchDevicesPage(
   return { devices: data.data.devices, totalPages };
 }
 
+export async function fetchDeviceById(
+  deviceId: number,
+  token: string | null,
+  signal?: AbortSignal,
+): Promise<Device> {
+  const url = `${API}/api/v1.0/device/${deviceId}`;
+  const data = await getData(url, token, signal);
+  return data.data.devices[0];
+}
+
 export async function fetchDeviceInterfaces(
   hostname: string,
   token: string | null,

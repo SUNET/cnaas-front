@@ -2,6 +2,14 @@ import type { Device, DeviceState } from "../../../types/device";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
 import type { DeviceColumnKey } from "../types/columns";
 import type { DeviceInterface } from "../types/deviceInterface";
+import type {
+  AddMgmtDomainModal,
+  ChangeHostnameModal,
+  DeleteModal,
+  DeviceStateModal,
+  ShowConfigModal,
+  UpdateMgmtDomainModal,
+} from "../types/modals";
 import type { FilterData, SortDirection } from "../types/table";
 
 // --- Types ---
@@ -11,7 +19,7 @@ export interface DeviceJobs {
 }
 
 export interface InterfaceCache {
-  readonly [hostname: string]: readonly DeviceInterface[];
+  readonly [deviceId: number]: readonly DeviceInterface[];
 }
 
 export interface NetboxModelCache {
@@ -19,7 +27,7 @@ export interface NetboxModelCache {
 }
 
 export interface NetboxDeviceCache {
-  readonly [hostname: string]: unknown;
+  readonly [deviceId: number]: unknown;
 }
 
 export interface DeviceListState {
@@ -38,6 +46,13 @@ export interface DeviceListState {
   readonly netboxDeviceData: NetboxDeviceCache;
   readonly deviceJobs: DeviceJobs;
   readonly logLines: readonly string[];
+  readonly expandedIds: ReadonlySet<number>;
+  readonly addMgmtDomainModal: AddMgmtDomainModal;
+  readonly deleteModal: DeleteModal;
+  readonly deviceStateModal: DeviceStateModal;
+  readonly updateMgmtDomainModal: UpdateMgmtDomainModal;
+  readonly showConfigModal: ShowConfigModal;
+  readonly changeHostnameModal: ChangeHostnameModal;
 }
 
 // --- Action types ---
@@ -56,13 +71,27 @@ export const actions = {
   SET_TOTAL_PAGES: "SET_TOTAL_PAGES",
   SET_MGMT_DOMAINS: "SET_MGMT_DOMAINS",
   CACHE_INTERFACES: "CACHE_INTERFACES",
-  REMOVE_INTERFACES: "REMOVE_INTERFACES",
   CACHE_NETBOX_MODEL: "CACHE_NETBOX_MODEL",
   CACHE_NETBOX_DEVICE: "CACHE_NETBOX_DEVICE",
   CLEAR_FILTER_AND_SORT: "CLEAR_FILTER_AND_SORT",
   ADD_DEVICE_JOB: "ADD_DEVICE_JOB",
   CHAIN_DEVICE_NEXT_JOB: "CHAIN_DEVICE_NEXT_JOB",
   APPEND_LOG: "APPEND_LOG",
+  EXPAND_DEVICES: "EXPAND_DEVICES",
+  COLLAPSE_DEVICE: "COLLAPSE_DEVICE",
+  TOGGLE_DEVICE_EXPANDED: "TOGGLE_DEVICE_EXPANDED",
+  OPEN_ADD_MGMT_DOMAIN_MODAL: "OPEN_ADD_MGMT_DOMAIN_MODAL",
+  CLOSE_ADD_MGMT_DOMAIN_MODAL: "CLOSE_ADD_MGMT_DOMAIN_MODAL",
+  OPEN_DELETE_MODAL: "OPEN_DELETE_MODAL",
+  CLOSE_DELETE_MODAL: "CLOSE_DELETE_MODAL",
+  OPEN_DEVICE_STATE_MODAL: "OPEN_DEVICE_STATE_MODAL",
+  CLOSE_DEVICE_STATE_MODAL: "CLOSE_DEVICE_STATE_MODAL",
+  OPEN_UPDATE_MGMT_DOMAIN_MODAL: "OPEN_UPDATE_MGMT_DOMAIN_MODAL",
+  CLOSE_UPDATE_MGMT_DOMAIN_MODAL: "CLOSE_UPDATE_MGMT_DOMAIN_MODAL",
+  OPEN_SHOW_CONFIG_MODAL: "OPEN_SHOW_CONFIG_MODAL",
+  CLOSE_SHOW_CONFIG_MODAL: "CLOSE_SHOW_CONFIG_MODAL",
+  OPEN_CHANGE_HOSTNAME_MODAL: "OPEN_CHANGE_HOSTNAME_MODAL",
+  CLOSE_CHANGE_HOSTNAME_MODAL: "CLOSE_CHANGE_HOSTNAME_MODAL",
 } as const;
 
 export type Action =
@@ -94,10 +123,9 @@ export type Action =
     }
   | {
       type: typeof actions.CACHE_INTERFACES;
-      hostname: string;
+      deviceId: number;
       interfaces: readonly DeviceInterface[];
     }
-  | { type: typeof actions.REMOVE_INTERFACES; hostname: string }
   | {
       type: typeof actions.CACHE_NETBOX_MODEL;
       model: string;
@@ -105,7 +133,7 @@ export type Action =
     }
   | {
       type: typeof actions.CACHE_NETBOX_DEVICE;
-      hostname: string;
+      deviceId: number;
       data: unknown;
     }
   | { type: typeof actions.CLEAR_FILTER_AND_SORT }
@@ -115,7 +143,50 @@ export type Action =
       jobId: number;
       nextJobId: number;
     }
-  | { type: typeof actions.APPEND_LOG; line: string };
+  | { type: typeof actions.APPEND_LOG; line: string }
+  | {
+      type: typeof actions.EXPAND_DEVICES;
+      deviceIds: readonly number[];
+    }
+  | { type: typeof actions.COLLAPSE_DEVICE; deviceId: number }
+  | { type: typeof actions.TOGGLE_DEVICE_EXPANDED; deviceId: number }
+  | {
+      type: typeof actions.OPEN_ADD_MGMT_DOMAIN_MODAL;
+      deviceA: string;
+      deviceBCandidates: readonly Device[];
+    }
+  | { type: typeof actions.CLOSE_ADD_MGMT_DOMAIN_MODAL }
+  | { type: typeof actions.OPEN_DELETE_MODAL; device: Device }
+  | { type: typeof actions.CLOSE_DELETE_MODAL }
+  | {
+      type: typeof actions.OPEN_DEVICE_STATE_MODAL;
+      hostname: string;
+      deviceId: number;
+      newState: DeviceState;
+    }
+  | { type: typeof actions.CLOSE_DEVICE_STATE_MODAL }
+  | {
+      type: typeof actions.OPEN_UPDATE_MGMT_DOMAIN_MODAL;
+      mgmtId: number;
+      deviceA: string;
+      deviceB: string;
+      ipv4Initial: string;
+      ipv6Initial: string;
+      vlanInitial: number;
+    }
+  | { type: typeof actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL }
+  | {
+      type: typeof actions.OPEN_SHOW_CONFIG_MODAL;
+      hostname: string;
+      state: DeviceState;
+    }
+  | { type: typeof actions.CLOSE_SHOW_CONFIG_MODAL }
+  | {
+      type: typeof actions.OPEN_CHANGE_HOSTNAME_MODAL;
+      deviceId: number;
+      hostname: string;
+    }
+  | { type: typeof actions.CLOSE_CHANGE_HOSTNAME_MODAL };
 
 // --- Initial state ---
 
@@ -142,6 +213,47 @@ export interface StoredSettings {
   readonly resultsPerPage?: number;
 }
 
+// Closed-state constants — also returned by close actions.
+const CLOSED_ADD_MGMT_DOMAIN: AddMgmtDomainModal = {
+  isOpen: false,
+  deviceA: null,
+  deviceBCandidates: [],
+};
+
+const CLOSED_DELETE: DeleteModal = {
+  isOpen: false,
+  device: null,
+};
+
+const CLOSED_DEVICE_STATE: DeviceStateModal = {
+  isOpen: false,
+  hostname: null,
+  deviceId: null,
+  newState: null,
+};
+
+const CLOSED_UPDATE_MGMT_DOMAIN: UpdateMgmtDomainModal = {
+  isOpen: false,
+  mgmtId: null,
+  deviceA: null,
+  deviceB: null,
+  ipv4Initial: null,
+  ipv6Initial: null,
+  vlanInitial: null,
+};
+
+const CLOSED_SHOW_CONFIG: ShowConfigModal = {
+  isOpen: false,
+  hostname: null,
+  state: null,
+};
+
+const CLOSED_CHANGE_HOSTNAME: ChangeHostnameModal = {
+  isOpen: false,
+  deviceId: null,
+  hostname: null,
+};
+
 export function buildInitialState(settings: InitialSettings): DeviceListState {
   return {
     deviceData: [],
@@ -159,6 +271,13 @@ export function buildInitialState(settings: InitialSettings): DeviceListState {
     netboxDeviceData: {},
     deviceJobs: {},
     logLines: [],
+    expandedIds: new Set(),
+    addMgmtDomainModal: CLOSED_ADD_MGMT_DOMAIN,
+    deleteModal: CLOSED_DELETE,
+    deviceStateModal: CLOSED_DEVICE_STATE,
+    updateMgmtDomainModal: CLOSED_UPDATE_MGMT_DOMAIN,
+    showConfigModal: CLOSED_SHOW_CONFIG,
+    changeHostnameModal: CLOSED_CHANGE_HOSTNAME,
   };
 }
 
@@ -231,16 +350,9 @@ export function deviceListReducer(
         ...state,
         deviceInterfaceData: {
           ...state.deviceInterfaceData,
-          [action.hostname]: action.interfaces,
+          [action.deviceId]: action.interfaces,
         },
       };
-
-    case actions.REMOVE_INTERFACES: {
-      if (!(action.hostname in state.deviceInterfaceData)) return state;
-      const rest = { ...state.deviceInterfaceData };
-      delete rest[action.hostname];
-      return { ...state, deviceInterfaceData: rest };
-    }
 
     case actions.CACHE_NETBOX_MODEL:
       return {
@@ -256,7 +368,7 @@ export function deviceListReducer(
         ...state,
         netboxDeviceData: {
           ...state.netboxDeviceData,
-          [action.hostname]: action.data,
+          [action.deviceId]: action.data,
         },
       };
 
@@ -297,6 +409,112 @@ export function deviceListReducer(
       }
       return { ...state, logLines };
     }
+
+    case actions.EXPAND_DEVICES: {
+      if (action.deviceIds.length === 0) return state;
+      const next = new Set(state.expandedIds);
+      let added = false;
+      for (const id of action.deviceIds) {
+        if (!next.has(id)) {
+          next.add(id);
+          added = true;
+        }
+      }
+      return added ? { ...state, expandedIds: next } : state;
+    }
+
+    case actions.COLLAPSE_DEVICE: {
+      if (!state.expandedIds.has(action.deviceId)) return state;
+      const next = new Set(state.expandedIds);
+      next.delete(action.deviceId);
+      return { ...state, expandedIds: next };
+    }
+
+    case actions.TOGGLE_DEVICE_EXPANDED: {
+      const next = new Set(state.expandedIds);
+      if (next.has(action.deviceId)) next.delete(action.deviceId);
+      else next.add(action.deviceId);
+      return { ...state, expandedIds: next };
+    }
+
+    case actions.OPEN_ADD_MGMT_DOMAIN_MODAL:
+      return {
+        ...state,
+        addMgmtDomainModal: {
+          isOpen: true,
+          deviceA: action.deviceA,
+          deviceBCandidates: action.deviceBCandidates,
+        },
+      };
+
+    case actions.CLOSE_ADD_MGMT_DOMAIN_MODAL:
+      return { ...state, addMgmtDomainModal: CLOSED_ADD_MGMT_DOMAIN };
+
+    case actions.OPEN_DELETE_MODAL:
+      return {
+        ...state,
+        deleteModal: { isOpen: true, device: action.device },
+      };
+
+    case actions.CLOSE_DELETE_MODAL:
+      return { ...state, deleteModal: CLOSED_DELETE };
+
+    case actions.OPEN_DEVICE_STATE_MODAL:
+      return {
+        ...state,
+        deviceStateModal: {
+          isOpen: true,
+          hostname: action.hostname,
+          deviceId: action.deviceId,
+          newState: action.newState,
+        },
+      };
+
+    case actions.CLOSE_DEVICE_STATE_MODAL:
+      return { ...state, deviceStateModal: CLOSED_DEVICE_STATE };
+
+    case actions.OPEN_UPDATE_MGMT_DOMAIN_MODAL:
+      return {
+        ...state,
+        updateMgmtDomainModal: {
+          isOpen: true,
+          mgmtId: action.mgmtId,
+          deviceA: action.deviceA,
+          deviceB: action.deviceB,
+          ipv4Initial: action.ipv4Initial,
+          ipv6Initial: action.ipv6Initial,
+          vlanInitial: action.vlanInitial,
+        },
+      };
+
+    case actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL:
+      return { ...state, updateMgmtDomainModal: CLOSED_UPDATE_MGMT_DOMAIN };
+
+    case actions.OPEN_SHOW_CONFIG_MODAL:
+      return {
+        ...state,
+        showConfigModal: {
+          isOpen: true,
+          hostname: action.hostname,
+          state: action.state,
+        },
+      };
+
+    case actions.CLOSE_SHOW_CONFIG_MODAL:
+      return { ...state, showConfigModal: CLOSED_SHOW_CONFIG };
+
+    case actions.OPEN_CHANGE_HOSTNAME_MODAL:
+      return {
+        ...state,
+        changeHostnameModal: {
+          isOpen: true,
+          deviceId: action.deviceId,
+          hostname: action.hostname,
+        },
+      };
+
+    case actions.CLOSE_CHANGE_HOSTNAME_MODAL:
+      return { ...state, changeHostnameModal: CLOSED_CHANGE_HOSTNAME };
 
     default:
       return state;
