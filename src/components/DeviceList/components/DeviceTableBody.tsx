@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Loader, TableBody, TableCell, TableRow } from "semantic-ui-react";
-import type { DeviceColumnKey } from "../columns";
+import type { DeviceColumnKey } from "../types/columns";
 import type { Device } from "../../../types/device";
 import { DeviceTableBodyRow } from "./DeviceTableBodyRow";
 

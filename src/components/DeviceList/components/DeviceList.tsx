@@ -13,11 +13,9 @@ import {
 
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import { useDeviceList } from "../stores/DeviceListContext";
-import {
-  actions,
-  type FilterData,
-  type SortDirection,
-} from "../stores/deviceListReducer";
+import { actions } from "../stores/deviceListReducer";
+import type { FilterData, SortDirection } from "../types/table";
+import type { DeviceInterface } from "../types/deviceInterface";
 import {
   fetchDeviceInterfaces,
   fetchDevicesPage,
@@ -25,7 +23,6 @@ import {
   fetchMgmtDomains,
   updateDevice,
   updateDeviceFacts,
-  type DeviceInterface,
 } from "../api/deviceListApi";
 import { fetchNetboxDevice, fetchNetboxModel } from "../../../services/netbox";
 import type { Device, DeviceState } from "../../../types/device";
@@ -54,7 +51,7 @@ import { HostnameModal } from "./actionModals/HostnameModal";
 import { ShowConfigModal } from "./actionModals/ShowConfigModal";
 import { DeviceStateModal } from "./actionModals/DeviceStateModal";
 
-import { COLUMN_MAP, type DeviceColumnKey } from "../columns";
+import { COLUMN_MAP, type DeviceColumnKey } from "../types/columns";
 
 // --- Local types ---
 

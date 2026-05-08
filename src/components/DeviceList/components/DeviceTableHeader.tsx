@@ -1,7 +1,7 @@
 import { TableHeader, TableHeaderCell, TableRow } from "semantic-ui-react";
 
-import { COLUMN_MAP, type DeviceColumnKey } from "../columns";
-import type { FilterData, SortDirection } from "../stores/deviceListReducer";
+import { COLUMN_MAP, type DeviceColumnKey } from "../types/columns";
+import type { FilterData, SortDirection } from "../types/table";
 import { DeviceTableHeaderFilter } from "./DeviceTableHeaderFilter";
 
 interface DeviceTableHeaderProps {

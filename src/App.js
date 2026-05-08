@@ -6,7 +6,7 @@ import { Panel } from "./components/Panel";
 import { Callback } from "./components/Callback";
 import { ConfigChangePage } from "./components/ConfigChange/ConfigChangePage";
 import Dashboard from "./components/Dashboard";
-import { DeviceListPage } from "./components/DeviceList/components/DeviceListPage";
+import { DeviceListPage } from "./components/DeviceList/DeviceListPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import FirmwareCopy from "./components/FirmwareCopy";
 import { FirmwareUpgrade } from "./components/FirmwareUpgrade";

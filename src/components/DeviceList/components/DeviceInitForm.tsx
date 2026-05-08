@@ -8,6 +8,7 @@ import {
 import { fetchDiscoveredDevices, initDevice } from "../api/deviceListApi";
 import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { type DeviceType, isDeviceType } from "../../../types/device";
 
 interface DeviceInitFormProps {
   readonly deviceId: number;
@@ -23,7 +24,7 @@ interface MlagPeerOption {
 async function submitInitJob(
   deviceId: number,
   hostname: string,
-  deviceType: string,
+  deviceType: DeviceType,
   jobIdCallback: (deviceId: number, jobId: number) => void,
   token: string | null,
   mlagPeerHostname: string | null = null,
@@ -56,7 +57,7 @@ export function DeviceInitForm({
     "window restore outline",
   );
   const [submitText, setSubmitText] = useState("Initialize...");
-  const [deviceType, setDeviceType] = useState<string | null>(null);
+  const [deviceType, setDeviceType] = useState<DeviceType | null>(null);
   const [mlagInit, setMlagInit] = useState(false);
   const [mlagPeerHostname, setMlagPeerHostname] = useState<string | null>(null);
   const [mlagPeerId, setMlagPeerId] = useState<number | null>(null);
@@ -96,7 +97,7 @@ export function DeviceInitForm({
       setDeviceType("ACCESS");
       setMlagInit(true);
     } else {
-      setDeviceType(typeof data.value === "string" ? data.value : null);
+      setDeviceType(isDeviceType(data.value) ? data.value : null);
       setMlagInit(false);
     }
   };

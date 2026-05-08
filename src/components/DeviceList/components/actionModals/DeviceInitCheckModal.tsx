@@ -10,6 +10,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { initCheckDevice } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import type { DeviceType } from "../../../../types/device";
 
 interface DeviceInitCheckModalProps {
   readonly submitDisabled?: boolean;
@@ -18,7 +19,7 @@ interface DeviceInitCheckModalProps {
   readonly submitInit: () => void;
   readonly deviceId: number;
   readonly hostname: string;
-  readonly deviceType: string;
+  readonly deviceType: DeviceType;
   readonly mlagPeerHostname?: string | null;
   readonly mlagPeerId?: number | null;
 }

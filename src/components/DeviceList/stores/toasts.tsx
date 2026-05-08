@@ -9,8 +9,7 @@ interface DeviceEvent {
   readonly object: Device;
 }
 
-// Removes any other floating toasts from the DOM. Mirrors legacy behavior of
-// the "Go to device" action in DeviceList toasts.
+// Removes any other floating toasts from the DOM
 function dismissFloatingMessages(): void {
   document
     .querySelectorAll(".ui.floating.message")
@@ -24,7 +23,7 @@ export function showDeviceDiscoveredToast(
   toast({
     type: "info",
     icon: "paper plane",
-    title: `Device discovered: ${data.hostname} `,
+    title: `Device discovered: ${data.hostname}`,
     description: (
       <p>
         Model: {data.object.model}, Serial: {data.object.serial}

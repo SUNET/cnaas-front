@@ -12,10 +12,11 @@ import {
 } from "../api/deviceListApi";
 import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import type { DeviceType } from "../../../types/device";
 
 interface DeviceReplaceFormProps {
   readonly hostname: string;
-  readonly deviceType: string;
+  readonly deviceType: DeviceType;
   readonly deviceId: number;
   readonly deviceModel: string | null | undefined;
   readonly jobIdCallback: (deviceId: number, jobId: number) => void;
@@ -34,7 +35,7 @@ async function submitInitJob(
   candidateDeviceId: number,
   deviceId: number,
   hostname: string,
-  deviceType: string,
+  deviceType: DeviceType,
   jobIdCallback: (deviceId: number, jobId: number) => void,
 ) {
   try {

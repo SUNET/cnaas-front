@@ -1,15 +1,10 @@
 import type { Device, DeviceState } from "../../../types/device";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
-import type { DeviceColumnKey } from "../columns";
-import type { DeviceInterface } from "../api/deviceListApi";
+import type { DeviceColumnKey } from "../types/columns";
+import type { DeviceInterface } from "../types/deviceInterface";
+import type { FilterData, SortDirection } from "../types/table";
 
 // --- Types ---
-
-export type SortDirection = "ascending" | "descending" | null;
-
-export interface FilterData {
-  readonly [key: string]: string;
-}
 
 export interface DeviceJobs {
   readonly [deviceId: string]: readonly number[];

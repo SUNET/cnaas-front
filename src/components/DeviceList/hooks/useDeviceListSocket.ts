@@ -3,11 +3,8 @@ import { useEffect, type Dispatch } from "react";
 import type { Device } from "../../../types/device";
 import { useFreshRef } from "../../../hooks/useFreshRef";
 import { socket } from "../stores/socket";
-import {
-  actions,
-  type Action,
-  type FilterData,
-} from "../stores/deviceListReducer";
+import { actions, type Action } from "../stores/deviceListReducer";
+import type { FilterData } from "../types/table";
 import {
   showDeviceDiscoveredToast,
   showDeviceCreatedToast,

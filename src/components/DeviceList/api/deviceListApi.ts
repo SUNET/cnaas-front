@@ -1,8 +1,9 @@
-import type { Device } from "../../../types/device";
+import type { Device, DeviceState, DeviceType } from "../../../types/device";
 import type { JobIdResponse } from "../../../types/job";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
 import { getData, getResponse } from "../../../utils/getData";
 import { deleteData, postData, putData } from "../../../utils/sendData";
+import type { DeviceInterface } from "../types/deviceInterface";
 
 const API = process.env.API_URL;
 
@@ -27,14 +28,14 @@ export interface MgmtDomainUpdatePayload extends MgmtDomainPayload {
 
 export interface DeviceInitPayload {
   readonly hostname: string;
-  readonly device_type: string;
+  readonly device_type: DeviceType;
   readonly mlag_peer_hostname?: string;
   readonly mlag_peer_id?: number;
   readonly replace_hostname?: boolean;
 }
 
 export interface DeviceUpdatePayload {
-  readonly state?: string;
+  readonly state?: DeviceState;
   readonly hostname?: string;
   readonly synchronized?: boolean;
 }
@@ -50,10 +51,11 @@ export async function fetchDiscoveredDevices(
   perPage?: number,
   signal?: AbortSignal,
 ): Promise<readonly Device[]> {
+  const state: DeviceState = "DISCOVERED";
   const query =
     perPage == null
-      ? "filter[state]=DISCOVERED"
-      : `filter[state]=DISCOVERED&per_page=${perPage}`;
+      ? `filter[state]=${state}`
+      : `filter[state]=${state}&per_page=${perPage}`;
   const url = `${API}/api/v1.0/devices?${query}`;
   const data = await getData(url, token, signal);
   return data.data.devices;
@@ -75,20 +77,6 @@ export async function fetchDevicesPage(
     : Math.max(1, Math.ceil(totalCount / perPage));
   const data = await response.json();
   return { devices: data.data.devices, totalPages };
-}
-
-/**
- * Subset of the LLDP-derived interface payload from
- * GET /device/{hostname}/interfaces. The backend is untyped at this boundary;
- * we narrow to the fields the UI consumes.
- */
-export interface DeviceInterface {
-  readonly name: string;
-  readonly configtype: string;
-  readonly data: {
-    readonly neighbor?: string;
-    readonly neighbor_id?: number;
-  };
 }
 
 export async function fetchDeviceInterfaces(

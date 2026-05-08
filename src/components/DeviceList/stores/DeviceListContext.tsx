@@ -36,9 +36,7 @@ export function useDeviceList(): DeviceListContextValue {
 
 interface ProviderProps {
   readonly initialSettings: InitialSettings;
-  // Page-level callbacks invoked from the socket layer. Live here (not in
-  // shared state) because they touch UI concerns the reducer doesn't own:
-  // navigation and URL/page reset.
+  // Routing callbacks the reducer doesn't own.
   readonly onGoToDevice: (deviceId: number) => void;
   readonly onFilteredDeviceDeleted: () => void;
   readonly children: ReactNode;

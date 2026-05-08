@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Icon } from "semantic-ui-react";
 
-import type { DeviceColumnKey } from "../columns";
+import type { DeviceColumnKey } from "../types/columns";
 import type { Device } from "../../../types/device";
 import { isAccessDevice, isManaged } from "../../../types/device";
 

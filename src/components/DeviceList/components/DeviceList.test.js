@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
-import { DeviceListPage } from "./DeviceListPage";
+import { DeviceListPage } from "../DeviceListPage";
 
 import {
   getData as mockGetData,

@@ -1,14 +1,14 @@
 import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
-import { COLUMN_MAP, type DeviceColumnKey } from "../columns";
-import { DeviceListProvider } from "../stores/DeviceListContext";
+import { COLUMN_MAP, type DeviceColumnKey } from "./types/columns";
+import { DeviceListProvider } from "./stores/DeviceListContext";
 import type {
-  FilterData,
   InitialSettings,
   StoredSettings,
-} from "../stores/deviceListReducer";
-import { DeviceList } from "./DeviceList";
+} from "./stores/deviceListReducer";
+import type { FilterData } from "./types/table";
+import { DeviceList } from "./components/DeviceList";
 
 const DEFAULT_ACTIVE_COLUMNS: readonly DeviceColumnKey[] = [
   "id",
@@ -96,9 +96,11 @@ export function DeviceListPage() {
     [navigate],
   );
 
-  // Currently filtered device was deleted server-side — clear URL filter so
-  // the table reloads without it. Reducer state (filter/sort) is reset via
-  // the CLEAR_FILTER_AND_SORT dispatch the socket emits alongside.
+  // URL path part of the "filtered device was deleted" cleanup.
+  // When the socket reports the device matching the current URL filter has
+  // been deleted, useDeviceListSocket calls this to drop the URL filter and
+  // immediately dispatches CLEAR_FILTER_AND_SORT to drop the matching
+  // reducer state.
   const onFilteredDeviceDeleted = useCallback(() => {
     setSearchParams({});
   }, [setSearchParams]);

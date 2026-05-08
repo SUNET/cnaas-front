@@ -8,6 +8,19 @@
 export type DeviceType = "UNKNOWN" | "ACCESS" | "DIST" | "CORE" | "FIREWALL";
 
 /**
+ * Runtime arrays for the literal unions above. `as const satisfies …` keeps
+ * them in sync with the type at compile time: removing a literal from the
+ * union without updating the array is a type error, and vice versa.
+ */
+export const DEVICE_TYPES = [
+  "UNKNOWN",
+  "ACCESS",
+  "DIST",
+  "CORE",
+  "FIREWALL",
+] as const satisfies readonly DeviceType[];
+
+/**
  * Discriminating values for `Device.state`.
  *
  * `UNMANAGED (Replacing)` is a transient client-only marker pushed via
@@ -23,6 +36,49 @@ export type DeviceState =
   | "INIT"
   | "UNKNOWN"
   | "PRE_CONFIGURED";
+
+export const DEVICE_STATES = [
+  "UNKNOWN",
+  "PRE_CONFIGURED",
+  "DHCP_BOOT",
+  "DISCOVERED",
+  "INIT",
+  "MANAGED",
+  "UNMANAGED",
+] as const satisfies readonly DeviceState[];
+
+/**
+ * ZTP lifecycle states: a device is in the Zero Touch Provisioning pipeline.
+ * Pre-typed and pre-fabric — the goal is to bring devices out of these states
+ * and into MANAGED with a concrete device_type.
+ *
+ * Lifecycle: DHCP_BOOT → DISCOVERED → INIT → MANAGED.
+ */
+export const ZTP_STATES = [
+  "DHCP_BOOT",
+  "DISCOVERED",
+  "INIT",
+] as const satisfies readonly DeviceState[];
+export type ZtpState = (typeof ZTP_STATES)[number];
+
+/**
+ * Active states: device has completed ZTP and has a concrete device_type.
+ * The action menu and expanded panel are dispatched by device_type when
+ * a device is in one of these states.
+ */
+export const ACTIVE_STATES = [
+  "MANAGED",
+  "UNMANAGED",
+  "UNMANAGED (Replacing)",
+] as const satisfies readonly DeviceState[];
+export type ActiveState = (typeof ACTIVE_STATES)[number];
+
+// Sentinel state/type literals — named because they represent fallback cases
+// in the dispatch tree (defensive branches, not first-class domain values).
+export const DEVICE_STATE_PRE_CONFIGURED =
+  "PRE_CONFIGURED" as const satisfies DeviceState;
+export const DEVICE_STATE_UNKNOWN = "UNKNOWN" as const satisfies DeviceState;
+export const DEVICE_TYPE_UNKNOWN = "UNKNOWN" as const satisfies DeviceType;
 
 export interface Device {
   readonly id: number;
@@ -41,40 +97,7 @@ export interface Device {
   readonly deleted?: boolean;
 }
 
-/**
- * Runtime arrays for the literal unions above. `as const satisfies …` keeps
- * them in sync with the type at compile time: removing a literal from the
- * union without updating the array is a type error, and vice versa.
- *
- * `UNMANAGED (Replacing)` is intentionally excluded from `DEVICE_STATES` —
- * it is a UI-only marker and is not a valid filterable backend state.
- */
-export const DEVICE_TYPES = [
-  "UNKNOWN",
-  "ACCESS",
-  "DIST",
-  "CORE",
-  "FIREWALL",
-] as const satisfies readonly DeviceType[];
-
-export const DEVICE_STATES = [
-  "UNKNOWN",
-  "PRE_CONFIGURED",
-  "DHCP_BOOT",
-  "DISCOVERED",
-  "INIT",
-  "MANAGED",
-  "UNMANAGED",
-] as const satisfies readonly DeviceState[];
-
 // ----- Predicate helpers (type guards) ------------------------------------
-// Encode the DeviceList feature's recurring "ubiquitous language" so call
-// sites read as domain language rather than raw conjunctions.
-//
-// ACCESS / DIST / CORE / FIREWALL are genuine network roles, not arbitrary
-// tags — predicates that match a role earn their keep. Compose them with
-// lifecycle predicates (isManaged) at the call site rather than introducing
-// fused names like `isManagedAccess` that bundle two orthogonal concerns.
 
 export function isAccessDevice(
   device: Device,
@@ -104,4 +127,23 @@ export function isManaged(
   device: Device,
 ): device is Device & { state: "MANAGED" } {
   return device.state === "MANAGED";
+}
+
+export function isInZtp(
+  device: Device,
+): device is Device & { state: ZtpState } {
+  return ZTP_STATES.some((s) => s === device.state);
+}
+
+export function isActive(
+  device: Device,
+): device is Device & { state: ActiveState } {
+  return ACTIVE_STATES.some((s) => s === device.state);
+}
+
+export function isDeviceType(value: unknown): value is DeviceType {
+  return (
+    typeof value === "string" &&
+    (DEVICE_TYPES as readonly string[]).includes(value)
+  );
 }
