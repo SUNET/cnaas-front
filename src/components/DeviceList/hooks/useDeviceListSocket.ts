@@ -73,10 +73,6 @@ export function useDeviceListSocket(
         ) {
           discoveredIdsRef.current.add(data.device_id);
           showDeviceDiscoveredToast(data, callbacksRef.current.onGoToDevice);
-          dispatch({
-            type: actions.ADD_DISCOVERED_DEVICE,
-            deviceId: data.device_id,
-          });
         }
         dispatch({
           type: actions.UPDATE_DEVICE,

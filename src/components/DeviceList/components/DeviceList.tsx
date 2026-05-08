@@ -19,7 +19,6 @@ import type { DeviceInterface } from "../types/deviceInterface";
 import {
   fetchDeviceInterfaces,
   fetchDevicesPage,
-  fetchDiscoveredDevices,
   fetchMgmtDomains,
   updateDevice,
   updateDeviceFacts,
@@ -68,8 +67,6 @@ export function DeviceList() {
     activeColumns,
     resultsPerPage,
     totalPages,
-    loading,
-    error,
     mgmtDomainsData,
     deviceInterfaceData,
     netboxModelData,
@@ -79,6 +76,10 @@ export function DeviceList() {
   } = deviceListState;
 
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Page-fetch UI status — sole concern of <DeviceList>, kept local.
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
   // Filter that triggered a "Go to device" lookup; matching rows auto-expand.
   const [autoExpandFilter, setAutoExpandFilter] = useState<FilterData | null>(
@@ -127,9 +128,6 @@ export function DeviceList() {
       hostname: null,
     });
 
-  const addDiscoveredDeviceId = (deviceId: number) => {
-    dispatch({ type: actions.ADD_DISCOVERED_DEVICE, deviceId });
-  };
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -143,31 +141,13 @@ export function DeviceList() {
     dispatch({ type: actions.SET_FILTER, filterData: locationFilterData });
   }, [searchParams]);
 
-  const populateDiscoveredDevices = async (signal?: AbortSignal) => {
-    try {
-      const devices = await fetchDiscoveredDevices(token, undefined, signal);
-      devices.forEach((dev) => {
-        addDiscoveredDeviceId(dev.id);
-      });
-    } catch (err) {
-      if (signal?.aborted) return;
-      dispatch({
-        type: actions.SET_ERROR,
-        error: err instanceof Error ? err : new Error(String(err)),
-      });
-    }
-  };
-
   const getAllMgmtDomainsData = async (signal?: AbortSignal) => {
     try {
       const mgmtdomains = await fetchMgmtDomains(token, signal);
       dispatch({ type: actions.SET_MGMT_DOMAINS, mgmtDomains: mgmtdomains });
     } catch (err) {
       if (signal?.aborted) return;
-      dispatch({
-        type: actions.SET_ERROR,
-        error: err instanceof Error ? err : new Error(String(err)),
-      });
+      setError(err instanceof Error ? err : new Error(String(err)));
     }
   };
 
@@ -252,24 +232,20 @@ export function DeviceList() {
       dispatch({ type: actions.SET_DEVICES, devices });
     } catch (err) {
       if (signal?.aborted) return;
-      dispatch({
-        type: actions.SET_ERROR,
-        error: err instanceof Error ? err : new Error(String(err)),
-      });
+      setError(err instanceof Error ? err : new Error(String(err)));
       dispatch({ type: actions.SET_DEVICES, devices: [] });
     } finally {
       if (!signal?.aborted) {
-        dispatch({ type: actions.SET_LOADING, loading: false });
+        setLoading(false);
       }
     }
   };
 
   useEffect(() => {
     const controller = new AbortController();
-    populateDiscoveredDevices(controller.signal);
     getAllMgmtDomainsData(controller.signal);
     return () => controller.abort();
-    // Mount-only fetches; helpers close over `token` but it's stable enough for initial load.
+    // Mount-only fetch; helper closes over `token` but it's stable enough for initial load.
   }, []);
 
   // Update deviceData on changes
@@ -483,11 +459,8 @@ export function DeviceList() {
         });
       }
     } catch (err) {
-      dispatch({
-        type: actions.SET_ERROR,
-        error: err instanceof Error ? err : new Error(String(err)),
-      });
-      dispatch({ type: actions.SET_LOADING, loading: false });
+      setError(err instanceof Error ? err : new Error(String(err)));
+      setLoading(false);
     }
   };
 

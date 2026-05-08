@@ -32,15 +32,12 @@ export interface DeviceListState {
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly resultsPerPage: number;
   readonly totalPages: number;
-  readonly loading: boolean;
-  readonly error: Error | null;
   readonly mgmtDomainsData: readonly MgmtDomain[];
   readonly deviceInterfaceData: InterfaceCache;
   readonly netboxModelData: NetboxModelCache;
   readonly netboxDeviceData: NetboxDeviceCache;
   readonly deviceJobs: DeviceJobs;
   readonly logLines: readonly string[];
-  readonly discoveredDeviceIds: ReadonlySet<number>;
 }
 
 // --- Action types ---
@@ -57,8 +54,6 @@ export const actions = {
   SET_ACTIVE_COLUMNS: "SET_ACTIVE_COLUMNS",
   SET_RESULTS_PER_PAGE: "SET_RESULTS_PER_PAGE",
   SET_TOTAL_PAGES: "SET_TOTAL_PAGES",
-  SET_LOADING: "SET_LOADING",
-  SET_ERROR: "SET_ERROR",
   SET_MGMT_DOMAINS: "SET_MGMT_DOMAINS",
   CACHE_INTERFACES: "CACHE_INTERFACES",
   REMOVE_INTERFACES: "REMOVE_INTERFACES",
@@ -68,7 +63,6 @@ export const actions = {
   ADD_DEVICE_JOB: "ADD_DEVICE_JOB",
   CHAIN_DEVICE_NEXT_JOB: "CHAIN_DEVICE_NEXT_JOB",
   APPEND_LOG: "APPEND_LOG",
-  ADD_DISCOVERED_DEVICE: "ADD_DISCOVERED_DEVICE",
 } as const;
 
 export type Action =
@@ -94,8 +88,6 @@ export type Action =
     }
   | { type: typeof actions.SET_RESULTS_PER_PAGE; perPage: number }
   | { type: typeof actions.SET_TOTAL_PAGES; pages: number }
-  | { type: typeof actions.SET_LOADING; loading: boolean }
-  | { type: typeof actions.SET_ERROR; error: Error | null }
   | {
       type: typeof actions.SET_MGMT_DOMAINS;
       mgmtDomains: readonly MgmtDomain[];
@@ -123,8 +115,7 @@ export type Action =
       jobId: number;
       nextJobId: number;
     }
-  | { type: typeof actions.APPEND_LOG; line: string }
-  | { type: typeof actions.ADD_DISCOVERED_DEVICE; deviceId: number };
+  | { type: typeof actions.APPEND_LOG; line: string };
 
 // --- Initial state ---
 
@@ -162,15 +153,12 @@ export function buildInitialState(settings: InitialSettings): DeviceListState {
     activeColumns: settings.activeColumns,
     resultsPerPage: settings.resultsPerPage,
     totalPages: 1,
-    loading: true,
-    error: null,
     mgmtDomainsData: [],
     deviceInterfaceData: {},
     netboxModelData: {},
     netboxDeviceData: {},
     deviceJobs: {},
     logLines: [],
-    discoveredDeviceIds: new Set(),
   };
 }
 
@@ -234,12 +222,6 @@ export function deviceListReducer(
 
     case actions.SET_TOTAL_PAGES:
       return { ...state, totalPages: action.pages };
-
-    case actions.SET_LOADING:
-      return { ...state, loading: action.loading };
-
-    case actions.SET_ERROR:
-      return { ...state, error: action.error };
 
     case actions.SET_MGMT_DOMAINS:
       return { ...state, mgmtDomainsData: action.mgmtDomains };
@@ -314,12 +296,6 @@ export function deviceListReducer(
         logLines.shift();
       }
       return { ...state, logLines };
-    }
-
-    case actions.ADD_DISCOVERED_DEVICE: {
-      const next = new Set(state.discoveredDeviceIds);
-      next.add(action.deviceId);
-      return { ...state, discoveredDeviceIds: next };
     }
 
     default:

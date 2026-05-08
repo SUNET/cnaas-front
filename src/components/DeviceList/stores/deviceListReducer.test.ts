@@ -33,9 +33,6 @@ describe("deviceListReducer", () => {
     const state = baseState();
     expect(state.activePage).toBe(1);
     expect(state.activeColumns).toEqual(["id", "hostname"]);
-    expect(state.loading).toBe(true);
-    expect(state.discoveredDeviceIds).toBeInstanceOf(Set);
-    expect(state.discoveredDeviceIds.size).toBe(0);
   });
 
   test("SET_DEVICES replaces deviceData", () => {
@@ -206,33 +203,6 @@ describe("deviceListReducer", () => {
     expect(state.logLines).toHaveLength(1000);
     expect(state.logLines[0]).toBe("line-5");
     expect(state.logLines[999]).toBe("line-1004");
-  });
-
-  test("ADD_DISCOVERED_DEVICE accumulates ids", () => {
-    let state = deviceListReducer(baseState(), {
-      type: actions.ADD_DISCOVERED_DEVICE,
-      deviceId: 1,
-    });
-    state = deviceListReducer(state, {
-      type: actions.ADD_DISCOVERED_DEVICE,
-      deviceId: 2,
-    });
-    state = deviceListReducer(state, {
-      type: actions.ADD_DISCOVERED_DEVICE,
-      deviceId: 1,
-    });
-    expect(state.discoveredDeviceIds.size).toBe(2);
-    expect(state.discoveredDeviceIds.has(1)).toBe(true);
-    expect(state.discoveredDeviceIds.has(2)).toBe(true);
-  });
-
-  test("SET_ERROR stores the error", () => {
-    const err = new Error("boom");
-    const next = deviceListReducer(baseState(), {
-      type: actions.SET_ERROR,
-      error: err,
-    });
-    expect(next.error).toBe(err);
   });
 
   test("CACHE_NETBOX_MODEL and CACHE_NETBOX_DEVICE merge entries", () => {
