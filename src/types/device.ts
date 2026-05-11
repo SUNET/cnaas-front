@@ -80,22 +80,37 @@ export const DEVICE_STATE_PRE_CONFIGURED =
 export const DEVICE_STATE_UNKNOWN = "UNKNOWN" as const satisfies DeviceState;
 export const DEVICE_TYPE_UNKNOWN = "UNKNOWN" as const satisfies DeviceType;
 
-export interface Device {
+export type Device = {
   readonly id: number;
   readonly hostname: string;
   readonly device_type: DeviceType;
   readonly state: DeviceState;
-  readonly synchronized: boolean;
-  readonly model?: string;
-  readonly os_version?: string;
-  readonly management_ip?: string;
-  readonly dhcp_ip?: string;
-  readonly serial?: string;
-  readonly vendor?: string;
-  readonly platform?: string;
-  readonly ztp_mac?: string;
+  readonly site_id: number | null;
+  readonly description: string | null;
+  readonly management_ip: string | null;
+  readonly secondary_management_ip: string | null;
+  readonly dhcp_ip: string | null;
+  readonly infra_ip: string | null;
+  readonly oob_ip: string | null;
+  readonly serial: string | null;
+  readonly ztp_mac: string | null;
+  readonly platform: string | null;
+  readonly vendor: string | null;
+  readonly model: string | null;
+  readonly os_version: string | null;
+  readonly synchronized: boolean | null;
+  readonly confhash: string | null;
+  readonly last_seen: string | null; // "YYYY-MM-DD HH:MM:SS.ffffff", not ISO 8601
+  readonly port: number | null;
+
+  // primary_group is added by the backend's device_data_postprocess only when
+  // the hostname maps to a group; therefore genuinely optional, not nullable.
+  readonly primary_group?: string;
+
+  // Frontend-only soft-delete marker; set in the reducer when a delete socket
+  // event arrives. The backend Device.as_dict() never emits this field.
   readonly deleted?: boolean;
-}
+};
 
 // ----- Predicate helpers (type guards) ------------------------------------
 

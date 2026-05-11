@@ -82,9 +82,10 @@ test("submit button remains disabled when typing the same hostname", async () =>
 });
 
 test("shows error message when backend request fails", async () => {
-  mockUpdateDevice.mockResolvedValue({
-    status: "error",
-    error: "Hostname already exists",
+  mockUpdateDevice.mockRejectedValue({
+    status: 400,
+    statusText: "Bad Request",
+    message: "Hostname already exists",
   });
   renderComponent();
 

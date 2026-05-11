@@ -60,9 +60,10 @@ test("calls API and closes modal on successful state change", async () => {
 });
 
 test("shows error and stays open when API returns non-success", async () => {
-  mockUpdateDevice.mockResolvedValue({
-    status: "error",
-    error: "Invalid state",
+  mockUpdateDevice.mockRejectedValue({
+    status: 400,
+    statusText: "Bad Request",
+    message: "Invalid state",
   });
   renderComponent();
 

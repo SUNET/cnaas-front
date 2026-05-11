@@ -3,6 +3,7 @@ import { Button, Modal, Loader, Icon } from "semantic-ui-react";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import type { DeviceState } from "../../../../types/device";
 import { updateDevice } from "../../api/deviceListApi";
+import { extractErrorMessage } from "../../utils";
 
 type DeviceStateModalProps = {
   readonly isOpen: boolean;
@@ -36,19 +37,10 @@ export function DeviceStateModal({
     setError("");
 
     try {
-      const data = await updateDevice(
-        id,
-        { state, synchronized: false },
-        token,
-      );
-      if (data.status !== "success") {
-        const backendError = data.error || "Unknown error.";
-        setError(`Error when updating state: ${backendError}`);
-        return;
-      }
+      await updateDevice(id, { state, synchronized: false }, token);
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(extractErrorMessage(err));
     } finally {
       onStateChange();
       setIsLoading(false);

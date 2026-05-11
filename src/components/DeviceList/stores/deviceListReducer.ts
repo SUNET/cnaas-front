@@ -170,8 +170,8 @@ export type Action =
       mgmtId: number;
       deviceA: string;
       deviceB: string;
-      ipv4Initial: string;
-      ipv6Initial: string;
+      ipv4Initial: string | null;
+      ipv6Initial: string | null;
       vlanInitial: number;
     }
   | { type: typeof actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL }

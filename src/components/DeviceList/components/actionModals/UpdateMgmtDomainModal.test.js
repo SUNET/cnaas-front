@@ -82,7 +82,6 @@ test("type input and click add", async () => {
   expect(mockUpdateMgmtDomain).toHaveBeenCalledWith(
     "42",
     {
-      id: "42",
       device_a: "deviceA",
       device_b: "deviceB",
       ipv4_gw: "1.2.3.4/24",

@@ -34,7 +34,7 @@ function parseUrlFilters(searchParams: URLSearchParams): FilterData {
     const match = /^filter\[(.+)\]$/.exec(key);
     if (match) filterData[match[1]] = value;
   }
-  return filterData as FilterData;
+  return filterData;
 }
 
 // Merge default columns + stored columns + filter keys (URL + persisted),

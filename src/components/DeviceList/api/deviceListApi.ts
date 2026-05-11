@@ -1,5 +1,6 @@
 import type { Device, DeviceState, DeviceType } from "../../../types/device";
 import type { JobIdResponse } from "../../../types/job";
+import type { Linknet } from "../../../types/linknet";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
 import { getData, getResponse } from "../../../utils/getData";
 import { deleteData, postData, putData } from "../../../utils/sendData";
@@ -7,12 +8,20 @@ import type { DeviceInterface } from "../types/deviceInterface";
 
 const API = process.env.API_URL;
 
-// --- Request/response payloads (API-shape only) ---
+// --- Response envelope ---
+//
+// Every success response from the backend is wrapped as
+//   { status: "success", data: T }
+// Error responses are { status: "error", message: string } and surface as
+// thrown errors via checkResponseStatus in the transport layer, so callers
+// only see the success branch.
 
-export type DevicesPage = {
-  readonly devices: readonly Device[];
-  readonly totalPages: number;
+type ApiSuccess<T> = {
+  readonly status: "success";
+  readonly data: T;
 };
+
+// --- Request payloads (API-shape only) ---
 
 export type MgmtDomainPayload = {
   readonly device_a: string;
@@ -20,10 +29,6 @@ export type MgmtDomainPayload = {
   readonly ipv4_gw: string;
   readonly ipv6_gw: string;
   readonly vlan: number;
-};
-
-export type MgmtDomainUpdatePayload = MgmtDomainPayload & {
-  readonly id: number;
 };
 
 export type DeviceInitPayload = {
@@ -44,6 +49,13 @@ export type DeviceDeletePayload = {
   readonly factory_default?: boolean;
 };
 
+// --- View-layer types for callers ---
+
+export type DevicesPage = {
+  readonly devices: readonly Device[];
+  readonly totalPages: number;
+};
+
 // --- Devices ---
 
 export async function fetchDiscoveredDevices(
@@ -57,7 +69,8 @@ export async function fetchDiscoveredDevices(
       ? `filter[state]=${state}`
       : `filter[state]=${state}&per_page=${perPage}`;
   const url = `${API}/api/v1.0/devices?${query}`;
-  const data = await getData(url, token, signal);
+  const data: ApiSuccess<{ readonly devices: readonly Device[] }> =
+    await getData(url, token, signal);
   return data.data.devices;
 }
 
@@ -71,12 +84,13 @@ export async function fetchDevicesPage(
   const response = await getResponse(url, token ?? undefined, signal);
   const totalCountHeader = response.headers.get("X-Total-Count");
   const totalCount =
-    totalCountHeader != null ? Number.parseInt(totalCountHeader, 10) : 0;
+    totalCountHeader !== null ? Number.parseInt(totalCountHeader, 10) : 0;
   const totalPages = Number.isNaN(totalCount)
     ? 1
     : Math.max(1, Math.ceil(totalCount / perPage));
-  const data = await response.json();
-  return { devices: data.data.devices, totalPages };
+  const body: ApiSuccess<{ readonly devices: readonly Device[] }> =
+    await response.json();
+  return { devices: body.data.devices, totalPages };
 }
 
 export async function fetchDeviceById(
@@ -85,7 +99,8 @@ export async function fetchDeviceById(
   signal?: AbortSignal,
 ): Promise<Device> {
   const url = `${API}/api/v1.0/device/${deviceId}`;
-  const data = await getData(url, token, signal);
+  const data: ApiSuccess<{ readonly devices: readonly Device[] }> =
+    await getData(url, token, signal);
   return data.data.devices[0];
 }
 
@@ -94,23 +109,33 @@ export async function fetchDeviceInterfaces(
   token: string | null,
 ): Promise<readonly DeviceInterface[]> {
   const url = `${API}/api/v1.0/device/${hostname}/interfaces`;
-  const data = await getData(url, token);
+  const data: ApiSuccess<{ readonly interfaces: readonly DeviceInterface[] }> =
+    await getData(url, token);
   return Array.isArray(data?.data?.interfaces) ? data.data.interfaces : [];
 }
+
+export type LldpNeighborsResponse = ApiSuccess<{
+  // Backend driver-dependent payload; not consumed by current callers.
+  readonly lldp_neighbors: unknown;
+}>;
 
 export async function fetchLldpNeighbors(
   hostname: string,
   token: string | null,
-): Promise<{ status: string }> {
+): Promise<LldpNeighborsResponse> {
   const url = `${API}/api/v1.0/device/${hostname}/lldp_neighbors`;
   return getData(url, token);
 }
+
+export type UpdateDeviceResponse = ApiSuccess<{
+  readonly updated_device: Device;
+}>;
 
 export async function updateDevice(
   deviceId: number,
   payload: DeviceUpdatePayload,
   token: string | null,
-): Promise<{ status?: string; error?: string }> {
+): Promise<UpdateDeviceResponse> {
   const url = `${API}/api/v1.0/device/${deviceId}`;
   return putData(url, token, payload);
 }
@@ -143,11 +168,28 @@ export async function initDevice(
   return postData(url, token, payload);
 }
 
+// Backend assembles this incrementally inside DeviceInitCheckApi.post; keys
+// are genuinely conditional (e.g. `neighbors` only set when `linknets` is
+// non-empty), so optional `?` matches the wire shape.
+export type InitCheckResult = {
+  readonly compatible: boolean;
+  readonly linknets: readonly Linknet[];
+  readonly linknets_compatible: boolean;
+  readonly linknets_error?: string;
+  readonly neighbors?: readonly string[];
+  readonly neighbors_compatible: boolean;
+  readonly neighbors_error?: string;
+  readonly mlag_compatible?: boolean;
+  readonly parsed_args: Record<string, unknown>;
+};
+
+export type InitCheckResponse = ApiSuccess<InitCheckResult>;
+
 export async function initCheckDevice(
   deviceId: number,
   payload: DeviceInitPayload,
   token: string | null,
-): Promise<{ data: unknown }> {
+): Promise<InitCheckResponse> {
   const url = `${API}/api/v1.0/device_initcheck/${deviceId}`;
   return postData(url, token, payload);
 }
@@ -159,56 +201,69 @@ export async function fetchMgmtDomains(
   signal?: AbortSignal,
 ): Promise<readonly MgmtDomain[]> {
   const url = `${API}/api/v1.0/mgmtdomains`;
-  const data = await getData(url, token, signal);
+  const data: ApiSuccess<{ readonly mgmtdomains: readonly MgmtDomain[] }> =
+    await getData(url, token, signal);
   return data.data.mgmtdomains;
 }
+
+export type CreateMgmtDomainResponse = ApiSuccess<{
+  readonly added_mgmtdomain: MgmtDomain;
+}>;
 
 export async function createMgmtDomain(
   payload: MgmtDomainPayload,
   token: string | null,
-): Promise<{ data: { added_mgmtdomain: { id: number } } }> {
+): Promise<CreateMgmtDomainResponse> {
   const url = `${API}/api/v1.0/mgmtdomains`;
   return postData(url, token, payload);
 }
 
+// Backend returns updated_mgmtdomain when fields changed, unchanged_mgmtdomain
+// when the PUT was a no-op. Both carry the full MgmtDomain.
+export type UpdateMgmtDomainResponse = ApiSuccess<
+  | { readonly updated_mgmtdomain: MgmtDomain }
+  | { readonly unchanged_mgmtdomain: MgmtDomain }
+>;
+
 export async function updateMgmtDomain(
   id: number,
-  payload: MgmtDomainUpdatePayload,
+  payload: MgmtDomainPayload,
   token: string | null,
-): Promise<unknown> {
+): Promise<UpdateMgmtDomainResponse> {
   const url = `${API}/api/v1.0/mgmtdomain/${id}`;
   return putData(url, token, payload);
 }
 
+export type DeleteMgmtDomainResponse = ApiSuccess<{
+  readonly deleted_mgmtdomain: MgmtDomain;
+}>;
+
 export async function deleteMgmtDomain(
   id: number,
   token: string | null,
-): Promise<unknown> {
+): Promise<DeleteMgmtDomainResponse> {
   const url = `${API}/api/v1.0/mgmtdomain/${id}`;
   return deleteData(url, token);
 }
 
 // --- Configs ---
 
-export type RunningConfigResponse = {
-  readonly data: { readonly config: string };
-};
+export type RunningConfigResponse = ApiSuccess<{
+  readonly config: string;
+}>;
 
-export type GenerateConfigResponse = {
-  readonly data: {
-    readonly config: {
-      readonly generated_config: string;
-      readonly available_variables?: unknown;
-    };
+export type GenerateConfigResponse = ApiSuccess<{
+  readonly config: {
+    readonly hostname: string;
+    readonly generated_config: string;
+    readonly available_variables: Record<string, unknown>;
   };
-};
+}>;
 
-export type PreviousConfigResponse = {
-  readonly data: {
-    readonly config: string;
-    readonly job_id: number;
-  };
-};
+export type PreviousConfigResponse = ApiSuccess<{
+  readonly config: string;
+  readonly job_id: number;
+}>;
 
 export async function fetchRunningConfig(
   hostname: string,

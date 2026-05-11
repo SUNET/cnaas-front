@@ -1,4 +1,5 @@
 import type { Device } from "../../../types/device";
+import { makeDevice } from "../testUtils";
 import {
   actions,
   buildInitialState,
@@ -19,14 +20,8 @@ const SETTINGS: InitialSettings = {
 
 const baseState = (): DeviceListState => buildInitialState(SETTINGS);
 
-const dev = (id: number, overrides: Partial<Device> = {}): Device => ({
-  id,
-  hostname: `host-${id}`,
-  device_type: "ACCESS",
-  state: "MANAGED",
-  synchronized: true,
-  ...overrides,
-});
+const dev = (id: number, overrides: Partial<Device> = {}): Device =>
+  makeDevice(id, overrides);
 
 describe("deviceListReducer", () => {
   test("buildInitialState wires settings into state", () => {

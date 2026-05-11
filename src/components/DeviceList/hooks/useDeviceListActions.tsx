@@ -96,13 +96,14 @@ export function useDeviceListActions(): DeviceListActions {
     deviceId: number,
     deviceState: DeviceState,
   ) => {
-    const data = await updateDevice(
-      deviceId,
-      { state: deviceState, synchronized: false },
-      token,
-    );
-    if (data.status !== "success") {
-      console.log("error when updating state:", data.error);
+    try {
+      await updateDevice(
+        deviceId,
+        { state: deviceState, synchronized: false },
+        token,
+      );
+    } catch (err) {
+      console.log("error when updating state:", err);
       return;
     }
     // Reducer-pushing: API confirmed truth, write directly.
@@ -210,7 +211,7 @@ export function useDeviceListActions(): DeviceListActions {
           key={intf.name}
           onClick={() =>
             findAction(
-              { id: String(intf.data.neighbor_id ?? "") } as FilterData,
+              { id: String(intf.data.neighbor_id ?? "") },
               intf.data.neighbor_id ?? null,
             )
           }
@@ -231,7 +232,7 @@ export function useDeviceListActions(): DeviceListActions {
           key={intf.name}
           onClick={() =>
             findAction(
-              { hostname: intf.data.neighbor ?? "" } as FilterData,
+              { hostname: intf.data.neighbor ?? "" },
               intf.data.neighbor_id ?? null,
             )
           }

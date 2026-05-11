@@ -3,16 +3,11 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 import { DeviceTableBodyRowCellContent } from "./DeviceTableBodyRowCellContent";
+import { makeDevice } from "../testUtils";
 import type { Device } from "../../../types/device";
 
-const device = (overrides: Partial<Device> = {}): Device => ({
-  id: 42,
-  hostname: "host-42",
-  device_type: "ACCESS",
-  state: "MANAGED",
-  synchronized: true,
-  ...overrides,
-});
+const device = (overrides: Partial<Device> = {}): Device =>
+  makeDevice(42, { hostname: "host-42", ...overrides });
 
 const renderCell = (
   props: Parameters<typeof DeviceTableBodyRowCellContent>[0],

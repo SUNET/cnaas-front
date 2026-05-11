@@ -44,7 +44,7 @@ function hasJsonMethod(error: unknown): error is ApiErrorWithJson {
     typeof error === "object" &&
     error !== null &&
     "json" in error &&
-    typeof (error as { json: unknown }).json === "function"
+    typeof error.json === "function"
   );
 }
 
@@ -127,7 +127,6 @@ export function UpdateMgmtDomainModal({
       await updateMgmtDomain(
         mgmtId,
         {
-          id: mgmtId,
           device_a: deviceA,
           device_b: deviceB,
           ipv4_gw: ipv4,

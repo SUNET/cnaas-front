@@ -29,7 +29,7 @@ function hasJsonMethod(error: unknown): error is ApiErrorWithJson {
     typeof error === "object" &&
     error !== null &&
     "json" in error &&
-    typeof (error as { json: unknown }).json === "function"
+    typeof error.json === "function"
   );
 }
 

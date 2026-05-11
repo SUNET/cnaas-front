@@ -1,4 +1,5 @@
 import { getMenuActionsConfig, type MenuActionHandlers } from "./utils";
+import { makeDevice } from "./testUtils";
 import type { Device } from "../../types/device";
 
 const noopHandlers: MenuActionHandlers = {
@@ -14,14 +15,8 @@ const noopHandlers: MenuActionHandlers = {
   configurePortsAction: jest.fn(),
 };
 
-const device = (overrides: Partial<Device> = {}): Device => ({
-  id: 1,
-  hostname: "host-1",
-  device_type: "ACCESS",
-  state: "MANAGED",
-  synchronized: true,
-  ...overrides,
-});
+const device = (overrides: Partial<Device> = {}): Device =>
+  makeDevice(1, overrides);
 
 afterEach(() => {
   globalThis.localStorage.clear();

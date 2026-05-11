@@ -163,3 +163,21 @@ export function getMenuActionsConfig(
     (action) => action.condition === undefined || action.condition,
   );
 }
+
+/**
+ * Extracts a human-readable error message from a thrown value.
+ * Handles `checkJsonResponse` rejections (object with `.message`),
+ * `Error` instances, and falls back to `String(err)`.
+ */
+export function extractErrorMessage(err: unknown): string {
+  if (
+    err !== null &&
+    typeof err === "object" &&
+    "message" in err &&
+    typeof (err as { message: unknown }).message === "string"
+  ) {
+    return (err as { message: string }).message;
+  }
+  if (err instanceof Error) return err.message;
+  return String(err);
+}

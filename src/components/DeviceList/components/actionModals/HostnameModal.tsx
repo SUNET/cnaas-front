@@ -3,6 +3,7 @@ import { Button, Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
 import { useNavigate } from "react-router";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import { updateDevice } from "../../api/deviceListApi";
+import { extractErrorMessage } from "../../utils";
 
 type HostnameModalProps = {
   readonly closeAction: () => void;
@@ -40,19 +41,10 @@ export function HostnameModal({
     setSuccess(false);
 
     try {
-      const data = await updateDevice(
-        deviceId,
-        { hostname: newHostname },
-        token,
-      );
-
-      if (data.status === "success") {
-        handleSuccess();
-      } else {
-        setError(data.error ?? "Unknown error.");
-      }
+      await updateDevice(deviceId, { hostname: newHostname }, token);
+      handleSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(extractErrorMessage(err));
       setSuccess(false);
     }
     setIsLoading(false);

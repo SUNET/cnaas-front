@@ -8,7 +8,7 @@ import {
 } from "semantic-ui-react";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { initCheckDevice } from "../../api/deviceListApi";
+import { initCheckDevice, type InitCheckResult } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import type { DeviceType } from "../../../../types/device";
 
@@ -22,16 +22,6 @@ type DeviceInitCheckModalProps = {
   readonly deviceType: DeviceType;
   readonly mlagPeerHostname?: string | null;
   readonly mlagPeerId?: number | null;
-};
-
-type InitCheckResult = {
-  readonly compatible?: boolean;
-  readonly linknets?: readonly unknown[];
-  readonly linknets_compatible?: boolean;
-  readonly linknets_error?: string;
-  readonly neighbors?: readonly unknown[];
-  readonly neighbors_compatible?: boolean;
-  readonly neighbors_error?: string;
 };
 
 type InitCheckOutput = InitCheckResult | string | null;
@@ -89,7 +79,7 @@ export function DeviceInitCheckModal({
     async function runInitCheck() {
       try {
         const response = await initCheckDevice(deviceId, payload, token);
-        if (!cancelled) setInitcheckOutput(response.data as InitCheckResult);
+        if (!cancelled) setInitcheckOutput(response.data);
       } catch (error: unknown) {
         const message = await extractErrorMessage(error);
         if (!cancelled) setInitcheckOutput(message);
