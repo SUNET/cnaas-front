@@ -3,10 +3,12 @@
  *
  * Backend source: cnaas_nms.db.mgmtdomain.Mgmtdomain.as_dict()
  *
- * `device_a` / `device_b` are hostnames added by `as_dict` from the
- * relationship; the `*_id` and `*_ip` fields come straight from the DB
- * columns. Nullable DB columns are returned as explicit `null`, never
- * omitted.
+ * `device_a` / `device_b` are hostname strings augmented onto the response by
+ * the API layer (resolved from `device_a_id` / `device_b_id`); they are not
+ * columns on the underlying ORM model.
+ *
+ * Nullable DB columns are returned as explicit `null`, never omitted.
+ * Verified against `GET /api/v1.0/mgmtdomains` sample response.
  */
 export type MgmtDomain = {
   readonly id: number;

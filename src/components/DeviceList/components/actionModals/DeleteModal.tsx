@@ -72,7 +72,7 @@ export function DeleteModal({
         { factory_default: factoryDefault },
         token,
       );
-      if (typeof data?.job_id === "number") {
+      if ("job_id" in data) {
         addDeviceJob(device.id, data.job_id);
       }
       handleClose();

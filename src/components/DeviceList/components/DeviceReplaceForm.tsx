@@ -48,10 +48,8 @@ async function submitInitJob(
       },
       token,
     );
-    if (typeof response.job_id === "number") {
-      jobIdCallback(deviceId, response.job_id);
-      jobIdCallback(candidateDeviceId, response.job_id);
-    }
+    jobIdCallback(deviceId, response.job_id);
+    jobIdCallback(candidateDeviceId, response.job_id);
   } catch (error) {
     console.error("Error submitting device init job:", error);
   }

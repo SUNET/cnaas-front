@@ -1,9 +1,6 @@
 /**
  * Linknet — physical link between two devices.
  *
- * Backend source: cnaas_nms.db.linknet.Linknet.as_dict(), augmented with
- * device hostnames in cnaas_nms.db.device.Device.get_linknets_as_dict().
- *
  * Nullable DB columns are returned as explicit `null`, never omitted.
  */
 export type Linknet = {

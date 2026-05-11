@@ -8,7 +8,7 @@ import type { FilterData } from "../types/table";
 import {
   showDeviceDiscoveredToast,
   showDeviceCreatedToast,
-} from "../stores/toasts";
+} from "../components/toasts";
 
 type DeviceEvent = {
   readonly device_id: number;

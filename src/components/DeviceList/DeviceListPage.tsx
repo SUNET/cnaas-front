@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
-import { COLUMN_MAP, type DeviceColumnKey } from "./types/columns";
+import { COLUMN_MAP, isDeviceColumnKey } from "./types/columns";
+import type { DeviceColumnKey } from "./types/columns";
 import { DeviceListProvider } from "./stores/DeviceListContext";
 import type {
   InitialSettings,
@@ -29,10 +30,12 @@ function readStoredSettings(): StoredSettings {
 }
 
 function parseUrlFilters(searchParams: URLSearchParams): FilterData {
-  const filterData: { [key: string]: string } = {};
+  const filterData: Partial<Record<DeviceColumnKey, string>> = {};
   for (const [key, value] of searchParams.entries()) {
     const match = /^filter\[(.+)\]$/.exec(key);
-    if (match) filterData[match[1]] = value;
+    if (match && isDeviceColumnKey(match[1])) {
+      filterData[match[1]] = value;
+    }
   }
   return filterData;
 }

@@ -39,9 +39,7 @@ async function submitInitJob(
   };
   try {
     const response = await initDevice(deviceId, payload, token);
-    if (typeof response.job_id === "number") {
-      jobIdCallback(deviceId, response.job_id);
-    }
+    jobIdCallback(deviceId, response.job_id);
   } catch (error) {
     console.error("Error submitting device init job:", error);
   }

@@ -33,7 +33,11 @@ import { HostnameModal } from "./actionModals/HostnameModal";
 import { ShowConfigModal } from "./actionModals/ShowConfigModal";
 import { DeviceStateModal } from "./actionModals/DeviceStateModal";
 
-import { COLUMN_MAP, type DeviceColumnKey } from "../types/columns";
+import {
+  COLUMN_MAP,
+  isDeviceColumnKey,
+  type DeviceColumnKey,
+} from "../types/columns";
 
 export function DeviceList() {
   const { token } = useAuthToken();
@@ -64,10 +68,12 @@ export function DeviceList() {
 
   useEffect(() => {
     // Sync filter + expanded ids from URL to reducer.
-    const locationFilterData: { [key: string]: string } = {};
+    const locationFilterData: Partial<Record<DeviceColumnKey, string>> = {};
     for (const [key, value] of searchParams.entries()) {
       const match = /^filter\[(.+)\]$/.exec(key);
-      if (match) locationFilterData[match[1]] = value;
+      if (match && isDeviceColumnKey(match[1])) {
+        locationFilterData[match[1]] = value;
+      }
     }
     dispatch({ type: actions.SET_FILTER, filterData: locationFilterData });
 

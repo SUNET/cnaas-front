@@ -14,3 +14,7 @@ export const COLUMN_MAP = {
 } as const;
 
 export type DeviceColumnKey = keyof typeof COLUMN_MAP;
+
+export function isDeviceColumnKey(key: string): key is DeviceColumnKey {
+  return key in COLUMN_MAP;
+}

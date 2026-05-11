@@ -77,11 +77,7 @@ export function useDeviceListActions(): DeviceListActions {
 
   const updateFactsAction = async (hostname: string, deviceId: number) => {
     const data = await updateDeviceFacts(hostname, token);
-    if (data.job_id !== undefined && typeof data.job_id === "number") {
-      addDeviceJob(deviceId, data.job_id);
-    } else {
-      console.log("error when submitting device_update_facts job", data.job_id);
-    }
+    addDeviceJob(deviceId, data.job_id);
   };
 
   const changeStateLocally = (deviceId: number, deviceState: DeviceState) => {

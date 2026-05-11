@@ -1,5 +1,5 @@
 import type { Device, DeviceState, DeviceType } from "../../../types/device";
-import type { JobIdResponse } from "../../../types/job";
+import type { ScheduledJobResponse } from "../../../types/job";
 import type { Linknet } from "../../../types/linknet";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
 import { getData, getResponse } from "../../../utils/getData";
@@ -109,14 +109,22 @@ export async function fetchDeviceInterfaces(
   token: string | null,
 ): Promise<readonly DeviceInterface[]> {
   const url = `${API}/api/v1.0/device/${hostname}/interfaces`;
-  const data: ApiSuccess<{ readonly interfaces: readonly DeviceInterface[] }> =
-    await getData(url, token);
+  const data: ApiSuccess<{
+    readonly interfaces: readonly DeviceInterface[];
+    readonly hostname: string;
+  }> = await getData(url, token);
   return Array.isArray(data?.data?.interfaces) ? data.data.interfaces : [];
 }
 
+export type LldpNeighbor = {
+  readonly hostname: string;
+  readonly port: string;
+};
+
 export type LldpNeighborsResponse = ApiSuccess<{
-  // Backend driver-dependent payload; not consumed by current callers.
-  readonly lldp_neighbors: unknown;
+  // Keyed by local interface name; an interface can have multiple neighbors
+  // visible (shared media), so each value is an array.
+  readonly lldp_neighbors: Record<string, readonly LldpNeighbor[]>;
 }>;
 
 export async function fetchLldpNeighbors(
@@ -140,11 +148,15 @@ export async function updateDevice(
   return putData(url, token, payload);
 }
 
+export type DeleteDeviceResponse =
+  | ScheduledJobResponse
+  | ApiSuccess<{ readonly deleted_device: Device }>;
+
 export async function deleteDevice(
   deviceId: number,
   payload: DeviceDeletePayload,
   token: string | null,
-): Promise<JobIdResponse> {
+): Promise<DeleteDeviceResponse> {
   const url = `${API}/api/v1.0/device/${deviceId}`;
   return deleteData(url, token, payload);
 }
@@ -152,7 +164,7 @@ export async function deleteDevice(
 export async function updateDeviceFacts(
   hostname: string,
   token: string | null,
-): Promise<JobIdResponse> {
+): Promise<ScheduledJobResponse> {
   const url = `${API}/api/v1.0/device_update_facts`;
   return postData(url, token, { hostname });
 }
@@ -163,7 +175,7 @@ export async function initDevice(
   deviceId: number,
   payload: DeviceInitPayload,
   token: string | null,
-): Promise<JobIdResponse> {
+): Promise<ScheduledJobResponse> {
   const url = `${API}/api/v1.0/device_init/${deviceId}`;
   return postData(url, token, payload);
 }
@@ -263,6 +275,8 @@ export type GenerateConfigResponse = ApiSuccess<{
 export type PreviousConfigResponse = ApiSuccess<{
   readonly config: string;
   readonly job_id: number;
+  readonly finish_time: string; // ISO 8601, e.g. "2026-04-27T14:36:13"
+  readonly failed: boolean;
 }>;
 
 export async function fetchRunningConfig(
