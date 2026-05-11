@@ -3,11 +3,11 @@
 // `data.neighbor` and `data.neighbor_id` are populated from LLDP when a
 // neighbor is present.
 
-export interface DeviceInterface {
+export type DeviceInterface = {
   readonly name: string;
   readonly configtype: string;
   readonly data: {
     readonly neighbor?: string;
     readonly neighbor_id?: number;
   };
-}
+};

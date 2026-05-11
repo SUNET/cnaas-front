@@ -4,9 +4,9 @@ import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
-interface CoreDeviceProps {
+type CoreDeviceProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Expanded panel for CORE devices in MANAGED / UNMANAGED state.

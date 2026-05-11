@@ -6,9 +6,9 @@ import { useDeviceListActions } from "../../hooks/useDeviceListActions";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 import { DeviceInitForm } from "../DeviceInitForm";
 
-interface ZtpDeviceProps {
+type ZtpDeviceProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Expanded panel for devices in the Zero Touch Provisioning lifecycle.

@@ -4,9 +4,9 @@ import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
-interface UnknownDeviceProps {
+type UnknownDeviceProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Defensive fallback panel for devices in an unrecognised configuration.

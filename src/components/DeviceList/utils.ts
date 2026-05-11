@@ -1,7 +1,7 @@
 import type { Device, DeviceState } from "../../types/device";
 import { isAccessDevice, isDistDevice } from "../../types/device";
 
-export interface MenuActionHandlers {
+export type MenuActionHandlers = {
   readonly handleDeleteModalOpen: (device: Device) => void;
   readonly handleShowHostnameModal: (
     deviceId: number,
@@ -22,15 +22,15 @@ export interface MenuActionHandlers {
   ) => void;
   readonly changeStateLocally: (deviceId: number, state: DeviceState) => void;
   readonly configurePortsAction: (hostname: string) => void;
-}
+};
 
-export interface MenuAction {
+export type MenuAction = {
   readonly key: string;
   readonly text: string;
   readonly disabled?: boolean;
   readonly onClick?: () => void;
   readonly condition?: boolean;
-}
+};
 
 function isDistPortConfigEnabled(): boolean {
   const raw = globalThis.localStorage?.getItem("distPortConfig");

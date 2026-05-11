@@ -4,7 +4,7 @@ import { COLUMN_MAP, type DeviceColumnKey } from "../types/columns";
 import type { FilterData, SortDirection } from "../types/table";
 import { DeviceTableHeaderFilter } from "./DeviceTableHeaderFilter";
 
-interface DeviceTableHeaderProps {
+type DeviceTableHeaderProps = {
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly sortColumn: string | null;
   readonly sortDirection: SortDirection;
@@ -12,7 +12,7 @@ interface DeviceTableHeaderProps {
   readonly filterData: FilterData;
   readonly sortClick: (column: DeviceColumnKey) => void;
   readonly handleFilterColumnChange: (column: string, value: string) => void;
-}
+};
 
 export function DeviceTableHeader({
   activeColumns,

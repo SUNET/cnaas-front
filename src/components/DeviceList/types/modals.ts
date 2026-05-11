@@ -9,25 +9,25 @@
 
 import type { Device, DeviceState } from "../../../types/device";
 
-export interface AddMgmtDomainModal {
+export type AddMgmtDomainModal = {
   readonly isOpen: boolean;
   readonly deviceA: string | null;
   readonly deviceBCandidates: readonly Device[];
-}
+};
 
-export interface DeleteModal {
+export type DeleteModal = {
   readonly isOpen: boolean;
   readonly device: Device | null;
-}
+};
 
-export interface DeviceStateModal {
+export type DeviceStateModal = {
   readonly isOpen: boolean;
   readonly hostname: string | null;
   readonly deviceId: number | null;
   readonly newState: DeviceState | null;
-}
+};
 
-export interface UpdateMgmtDomainModal {
+export type UpdateMgmtDomainModal = {
   readonly isOpen: boolean;
   readonly mgmtId: number | null;
   readonly deviceA: string | null;
@@ -35,16 +35,16 @@ export interface UpdateMgmtDomainModal {
   readonly ipv4Initial: string | null;
   readonly ipv6Initial: string | null;
   readonly vlanInitial: number | null;
-}
+};
 
-export interface ShowConfigModal {
+export type ShowConfigModal = {
   readonly isOpen: boolean;
   readonly hostname: string | null;
   readonly state: DeviceState | null;
-}
+};
 
-export interface ChangeHostnameModal {
+export type ChangeHostnameModal = {
   readonly isOpen: boolean;
   readonly deviceId: number | null;
   readonly hostname: string | null;
-}
+};

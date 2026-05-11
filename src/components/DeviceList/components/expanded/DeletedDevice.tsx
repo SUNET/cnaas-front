@@ -4,9 +4,9 @@ import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
-interface DeletedDeviceProps {
+type DeletedDeviceProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Expanded panel for soft-deleted devices (`device.deleted === true`).

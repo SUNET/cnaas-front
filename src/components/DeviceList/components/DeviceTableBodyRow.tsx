@@ -6,10 +6,10 @@ import { actions } from "../stores/deviceListReducer";
 import { DeviceTableBodyRowCellContent } from "./DeviceTableBodyRowCellContent";
 import { DeviceExpanded } from "./expanded/DeviceExpanded";
 
-interface DeviceTableBodyRowProps {
+type DeviceTableBodyRowProps = {
   readonly device: Device;
   readonly activeColumns: readonly DeviceColumnKey[];
-}
+};
 
 export function DeviceTableBodyRow({
   device,

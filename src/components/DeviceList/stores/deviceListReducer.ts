@@ -14,23 +14,23 @@ import type { FilterData, SortDirection } from "../types/table";
 
 // --- Types ---
 
-export interface DeviceJobs {
+export type DeviceJobs = {
   readonly [deviceId: string]: readonly number[];
-}
+};
 
-export interface InterfaceCache {
+export type InterfaceCache = {
   readonly [deviceId: number]: readonly DeviceInterface[];
-}
+};
 
-export interface NetboxModelCache {
+export type NetboxModelCache = {
   readonly [model: string]: unknown;
-}
+};
 
-export interface NetboxDeviceCache {
+export type NetboxDeviceCache = {
   readonly [deviceId: number]: unknown;
-}
+};
 
-export interface DeviceListState {
+export type DeviceListState = {
   readonly deviceData: readonly Device[];
   readonly filterData: FilterData;
   readonly filterActive: boolean;
@@ -53,7 +53,7 @@ export interface DeviceListState {
   readonly updateMgmtDomainModal: UpdateMgmtDomainModal;
   readonly showConfigModal: ShowConfigModal;
   readonly changeHostnameModal: ChangeHostnameModal;
-}
+};
 
 // --- Action types ---
 
@@ -190,7 +190,7 @@ export type Action =
 
 // --- Initial state ---
 
-export interface InitialSettings {
+export type InitialSettings = {
   readonly filterData: FilterData;
   readonly filterActive: boolean;
   readonly sortColumn: string | null;
@@ -198,20 +198,20 @@ export interface InitialSettings {
   readonly activePage: number;
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly resultsPerPage: number;
-}
+};
 
 /**
  * Persistence shape for state slices owned by this reducer.
  * Mirrors the JSON written to localStorage("deviceList"). Optional fields
  * because older payloads may be missing keys.
  */
-export interface StoredSettings {
+export type StoredSettings = {
   readonly sortColumn?: string | null;
   readonly sortDirection?: SortDirection;
   readonly activePage?: number;
   readonly activeColumns?: readonly DeviceColumnKey[];
   readonly resultsPerPage?: number;
-}
+};
 
 // Closed-state constants — also returned by close actions.
 const CLOSED_ADD_MGMT_DOMAIN: AddMgmtDomainModal = {

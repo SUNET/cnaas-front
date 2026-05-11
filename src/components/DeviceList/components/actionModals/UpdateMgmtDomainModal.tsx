@@ -16,7 +16,7 @@ import {
 import { deleteMgmtDomain, updateMgmtDomain } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 
-interface UpdateMgmtDomainModalProps {
+type UpdateMgmtDomainModalProps = {
   readonly mgmtId: number | null;
   readonly deviceA?: string | null;
   readonly deviceB?: string | null;
@@ -27,17 +27,17 @@ interface UpdateMgmtDomainModalProps {
   readonly onUpdate: (id: number) => void;
   readonly isOpen: boolean;
   readonly closeAction: () => void;
-}
+};
 
-interface FormState {
+type FormState = {
   readonly ipv4: string;
   readonly ipv6: string;
   readonly vlan: string;
-}
+};
 
-interface ApiErrorWithJson {
+type ApiErrorWithJson = {
   readonly json: () => Promise<{ message?: unknown }>;
-}
+};
 
 function hasJsonMethod(error: unknown): error is ApiErrorWithJson {
   return (

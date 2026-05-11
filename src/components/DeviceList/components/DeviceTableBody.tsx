@@ -3,12 +3,12 @@ import type { DeviceColumnKey } from "../types/columns";
 import type { Device } from "../../../types/device";
 import { DeviceTableBodyRow } from "./DeviceTableBodyRow";
 
-interface DeviceTableBodyProps {
+type DeviceTableBodyProps = {
   readonly deviceData: readonly Device[];
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly loading: boolean;
   readonly error: Error | null;
-}
+};
 
 export function DeviceTableBody({
   deviceData,

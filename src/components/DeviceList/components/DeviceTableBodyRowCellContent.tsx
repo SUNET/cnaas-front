@@ -6,11 +6,11 @@ import type { DeviceColumnKey } from "../types/columns";
 import type { Device } from "../../../types/device";
 import { isAccessDevice, isManaged } from "../../../types/device";
 
-interface DeviceTableBodyRowCellContentProps {
+type DeviceTableBodyRowCellContentProps = {
   readonly device: Device;
   readonly column: DeviceColumnKey;
   readonly open: boolean;
-}
+};
 
 export function DeviceTableBodyRowCellContent({
   device,

@@ -14,21 +14,21 @@ import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import type { DeviceType } from "../../../types/device";
 
-interface DeviceReplaceFormProps {
+type DeviceReplaceFormProps = {
   readonly hostname: string;
   readonly deviceType: DeviceType;
   readonly deviceId: number;
   readonly deviceModel: string | null | undefined;
   readonly jobIdCallback: (deviceId: number, jobId: number) => void;
   readonly clearCandidate: () => void;
-}
+};
 
-interface CandidateOption {
+type CandidateOption = {
   readonly key: number;
   readonly value: number;
   readonly text: string;
   readonly label: { color: string; empty: boolean; circular: boolean };
-}
+};
 
 async function submitInitJob(
   token: string | null,

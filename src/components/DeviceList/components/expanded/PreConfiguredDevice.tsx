@@ -4,9 +4,9 @@ import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
-interface PreConfiguredDeviceProps {
+type PreConfiguredDeviceProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Expanded panel for `PRE_CONFIGURED` devices.

@@ -12,17 +12,17 @@ import { deleteDevice } from "../../api/deviceListApi";
 import type { Device } from "../../../../types/device";
 import { isAccessDevice, isManaged } from "../../../../types/device";
 
-interface DeleteModalProps {
+type DeleteModalProps = {
   readonly addDeviceJob: (deviceId: number, jobId: number) => void;
   readonly closeAction: () => void;
   readonly device: Device | null;
   readonly isOpen: boolean;
-}
+};
 
-interface ApiErrorWithJson {
+type ApiErrorWithJson = {
   readonly json: () => Promise<{ message?: string }>;
   readonly statusText?: string;
-}
+};
 
 function hasJsonMethod(error: unknown): error is ApiErrorWithJson {
   return (

@@ -10,16 +10,16 @@ import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import { type DeviceType, isDeviceType } from "../../../types/device";
 
-interface DeviceInitFormProps {
+type DeviceInitFormProps = {
   readonly deviceId: number;
   readonly jobIdCallback: (deviceId: number, jobId: number) => void;
-}
+};
 
-interface MlagPeerOption {
+type MlagPeerOption = {
   readonly key: number;
   readonly value: number;
   readonly text: string;
-}
+};
 
 async function submitInitJob(
   deviceId: number,

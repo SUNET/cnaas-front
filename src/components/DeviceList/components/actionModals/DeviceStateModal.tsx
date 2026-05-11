@@ -4,14 +4,14 @@ import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import type { DeviceState } from "../../../../types/device";
 import { updateDevice } from "../../api/deviceListApi";
 
-interface DeviceStateModalProps {
+type DeviceStateModalProps = {
   readonly isOpen: boolean;
   readonly closeAction: () => void;
   readonly deviceId?: number | null;
   readonly hostname?: string | null;
   readonly newState?: DeviceState | null;
   readonly onStateChange: () => void;
-}
+};
 
 export function DeviceStateModal({
   isOpen,

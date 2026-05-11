@@ -3,11 +3,11 @@ import { toast } from "react-semantic-toasts-2";
 
 import type { Device } from "../../../types/device";
 
-interface DeviceEvent {
+type DeviceEvent = {
   readonly device_id: number;
   readonly hostname: string;
   readonly object: Device;
-}
+};
 
 // Removes any other floating toasts from the DOM
 function dismissFloatingMessages(): void {

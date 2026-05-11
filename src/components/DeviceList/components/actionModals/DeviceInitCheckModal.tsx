@@ -12,7 +12,7 @@ import { initCheckDevice } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import type { DeviceType } from "../../../../types/device";
 
-interface DeviceInitCheckModalProps {
+type DeviceInitCheckModalProps = {
   readonly submitDisabled?: boolean;
   readonly submitText: string;
   readonly submitIcon?: SemanticICONS;
@@ -22,9 +22,9 @@ interface DeviceInitCheckModalProps {
   readonly deviceType: DeviceType;
   readonly mlagPeerHostname?: string | null;
   readonly mlagPeerId?: number | null;
-}
+};
 
-interface InitCheckResult {
+type InitCheckResult = {
   readonly compatible?: boolean;
   readonly linknets?: readonly unknown[];
   readonly linknets_compatible?: boolean;
@@ -32,7 +32,7 @@ interface InitCheckResult {
   readonly neighbors?: readonly unknown[];
   readonly neighbors_compatible?: boolean;
   readonly neighbors_error?: string;
-}
+};
 
 type InitCheckOutput = InitCheckResult | string | null;
 

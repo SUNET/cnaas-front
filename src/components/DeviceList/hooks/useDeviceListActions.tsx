@@ -16,7 +16,7 @@ import type { FilterData } from "../types/table";
 import type { DeviceInterface } from "../types/deviceInterface";
 import { getMenuActionsConfig } from "../utils";
 
-export interface DeviceListActions {
+export type DeviceListActions = {
   readonly addDeviceJob: (deviceId: number, jobId: number) => void;
   readonly buildLog: (deviceId: number) => { [id: string]: string[] };
   readonly buildMenuActions: (device: Device) => ReactNode;
@@ -30,7 +30,7 @@ export interface DeviceListActions {
     deviceId: number,
     hostname: string,
   ) => void;
-}
+};
 
 /**
  * Bundles every action handler needed by the expanded-row leaves.

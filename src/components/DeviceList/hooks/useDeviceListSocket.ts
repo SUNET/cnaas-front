@@ -10,19 +10,19 @@ import {
   showDeviceCreatedToast,
 } from "../stores/toasts";
 
-interface DeviceEvent {
+type DeviceEvent = {
   readonly device_id: number;
   readonly hostname: string;
   readonly action: "UPDATED" | "DELETED" | "CREATED";
   readonly object: Device;
-}
+};
 
-interface JobEvent {
+type JobEvent = {
   readonly job_id: number;
   readonly status: string;
   readonly exception?: string;
   readonly next_job_id?: number;
-}
+};
 
 type EventData = DeviceEvent | JobEvent | string;
 
@@ -34,14 +34,14 @@ function isJobEvent(data: EventData): data is JobEvent {
   return data != null && typeof data === "object" && "job_id" in data;
 }
 
-interface SocketCallbacks {
+type SocketCallbacks = {
   // Invoked when a toast's "Go to device" button is clicked
   readonly onGoToDevice: (deviceId: number) => void;
   // Invoked when the currently filtered device is deleted; component clears
   // its UI-level filter state (URL params, active page) before the reducer
   // CLEAR_FILTER_AND_SORT runs
   readonly onFilteredDeviceDeleted: () => void;
-}
+};
 
 export function useDeviceListSocket(
   token: string | null,

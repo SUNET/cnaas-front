@@ -4,9 +4,9 @@ import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
-interface FirewallDeviceProps {
+type FirewallDeviceProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Expanded panel for FIREWALL devices in MANAGED / UNMANAGED state.

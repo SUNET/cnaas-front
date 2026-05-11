@@ -9,40 +9,40 @@ const API = process.env.API_URL;
 
 // --- Request/response payloads (API-shape only) ---
 
-export interface DevicesPage {
+export type DevicesPage = {
   readonly devices: readonly Device[];
   readonly totalPages: number;
-}
+};
 
-export interface MgmtDomainPayload {
+export type MgmtDomainPayload = {
   readonly device_a: string;
   readonly device_b: string;
   readonly ipv4_gw: string;
   readonly ipv6_gw: string;
   readonly vlan: number;
-}
+};
 
-export interface MgmtDomainUpdatePayload extends MgmtDomainPayload {
+export type MgmtDomainUpdatePayload = MgmtDomainPayload & {
   readonly id: number;
-}
+};
 
-export interface DeviceInitPayload {
+export type DeviceInitPayload = {
   readonly hostname: string;
   readonly device_type: DeviceType;
   readonly mlag_peer_hostname?: string;
   readonly mlag_peer_id?: number;
   readonly replace_hostname?: boolean;
-}
+};
 
-export interface DeviceUpdatePayload {
+export type DeviceUpdatePayload = {
   readonly state?: DeviceState;
   readonly hostname?: string;
   readonly synchronized?: boolean;
-}
+};
 
-export interface DeviceDeletePayload {
+export type DeviceDeletePayload = {
   readonly factory_default?: boolean;
-}
+};
 
 // --- Devices ---
 
@@ -188,27 +188,27 @@ export async function deleteMgmtDomain(
   return deleteData(url, token);
 }
 
-// --- Configs (for ShowConfigModal) ---
+// --- Configs ---
 
-export interface RunningConfigResponse {
+export type RunningConfigResponse = {
   readonly data: { readonly config: string };
-}
+};
 
-export interface GenerateConfigResponse {
+export type GenerateConfigResponse = {
   readonly data: {
     readonly config: {
       readonly generated_config: string;
       readonly available_variables?: unknown;
     };
   };
-}
+};
 
-export interface PreviousConfigResponse {
+export type PreviousConfigResponse = {
   readonly data: {
     readonly config: string;
     readonly job_id: number;
   };
-}
+};
 
 export async function fetchRunningConfig(
   hostname: string,

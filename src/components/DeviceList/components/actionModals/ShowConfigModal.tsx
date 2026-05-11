@@ -28,34 +28,34 @@ import {
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import type { DeviceState } from "../../../../types/device";
 
-interface ShowConfigModalProps {
+type ShowConfigModalProps = {
   readonly hostname: string | null;
   readonly state?: DeviceState | null;
   readonly isOpen: boolean;
   readonly closeAction: () => void;
-}
+};
 
 type LoadStatus = "idle" | "loading" | "loaded" | "error";
 
-interface RunningConfigState {
+type RunningConfigState = {
   readonly status: LoadStatus;
   readonly config: string;
   readonly error?: string;
-}
+};
 
-interface GeneratedConfigState {
+type GeneratedConfigState = {
   readonly status: LoadStatus;
   readonly generated_config: string;
   readonly available_variables?: unknown;
   readonly error?: string;
-}
+};
 
-interface PreviousConfigEntry {
+type PreviousConfigEntry = {
   readonly status: LoadStatus;
   readonly config: string;
   readonly job_id: number;
   readonly error?: string;
-}
+};
 
 const EMPTY_RUNNING: RunningConfigState = { status: "idle", config: "" };
 const EMPTY_GENERATED: GeneratedConfigState = {

@@ -4,9 +4,9 @@ import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
-interface DistDeviceProps {
+type DistDeviceProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Expanded panel for DIST devices in MANAGED / UNMANAGED state.

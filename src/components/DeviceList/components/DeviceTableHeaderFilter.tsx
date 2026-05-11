@@ -5,11 +5,11 @@ import { COLUMN_MAP, type DeviceColumnKey } from "../types/columns";
 import type { FilterData } from "../types/table";
 import { DEVICE_STATES, DEVICE_TYPES } from "../../../types/device";
 
-interface DeviceTableHeaderFilterProps {
+type DeviceTableHeaderFilterProps = {
   readonly column: DeviceColumnKey;
   readonly filterData: FilterData;
   readonly handleFilterColumnChange: (column: string, value: string) => void;
-}
+};
 
 const synchronizedOptions = [
   { key: "NONE", value: "", text: "" },

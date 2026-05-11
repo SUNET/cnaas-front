@@ -14,9 +14,9 @@ import { PreConfiguredDevice } from "./PreConfiguredDevice";
 import { UnknownDevice } from "./UnknownDevice";
 import { ZtpDevice } from "./ZtpDevice";
 
-interface DeviceExpandedProps {
+type DeviceExpandedProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Top-level dispatch for the expanded-row panel of a Device.

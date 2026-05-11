@@ -20,10 +20,10 @@ import {
 import type { FilterData } from "../types/table";
 import { useDeviceListSocket } from "../hooks/useDeviceListSocket";
 
-interface DeviceListContextValue {
+type DeviceListContextValue = {
   readonly state: DeviceListState;
   readonly dispatch: Dispatch<Action>;
-}
+};
 
 const DeviceListContext = createContext<DeviceListContextValue | null>(null);
 
@@ -41,12 +41,12 @@ export function useDeviceList(): DeviceListContextValue {
  * by <DeviceList> so descendants (expanded leaves, action hook) can call
  * them without prop-drilling.
  */
-export interface DeviceListPageActions {
+export type DeviceListPageActions = {
   readonly handleFilterChange: (
     nextFilterData: FilterData,
     expandDeviceId?: number | null,
   ) => void;
-}
+};
 
 const DeviceListPageActionsContext =
   createContext<DeviceListPageActions | null>(null);
@@ -75,13 +75,13 @@ export function DeviceListPageActionsProvider({
   );
 }
 
-interface ProviderProps {
+type ProviderProps = {
   readonly initialSettings: InitialSettings;
   // Routing callbacks the reducer doesn't own.
   readonly onGoToDevice: (deviceId: number) => void;
   readonly onFilteredDeviceDeleted: () => void;
   readonly children: ReactNode;
-}
+};
 
 export function DeviceListProvider({
   initialSettings,

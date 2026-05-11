@@ -27,7 +27,7 @@ const EXTRA_COLUMNS: readonly DeviceColumnKey[] = [
   "platform",
 ];
 
-interface DeviceTableButtonGroupProps {
+type DeviceTableButtonGroupProps = {
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly setFilterActive: (
     value: boolean | ((prev: boolean) => boolean),
@@ -39,7 +39,7 @@ interface DeviceTableButtonGroupProps {
   readonly setResultsPerPage: (perPage: number) => void;
   readonly setSortColumn: (column: string | null) => void;
   readonly setSortDirection: (direction: SortDirection) => void;
-}
+};
 
 export function DeviceTableButtonGroup({
   activeColumns,

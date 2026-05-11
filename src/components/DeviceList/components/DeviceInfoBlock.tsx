@@ -5,14 +5,14 @@ import { DeviceInfoTable } from "../../DeviceInfoTable";
 import LogViewer from "../../LogViewer";
 import type { Device } from "../../../types/device";
 
-interface DeviceInfoBlockProps {
+type DeviceInfoBlockProps = {
   readonly device: Device;
   readonly menuActions: ReactNode;
   readonly deviceStateExtra?: ReactNode;
   readonly log: { readonly [deviceId: string]: readonly string[] };
   readonly model?: unknown;
   readonly netboxDevice?: unknown;
-}
+};
 
 export function DeviceInfoBlock({
   device,

@@ -4,13 +4,13 @@ import { useNavigate } from "react-router";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import { updateDevice } from "../../api/deviceListApi";
 
-interface HostnameModalProps {
+type HostnameModalProps = {
   readonly closeAction: () => void;
   readonly deviceId?: number | null;
   readonly hostname?: string | null;
   readonly isOpen: boolean;
   readonly onSuccess: (oldHostname: string, newHostname: string) => void;
-}
+};
 
 export function HostnameModal({
   closeAction,

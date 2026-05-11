@@ -6,6 +6,6 @@
 
 export type SortDirection = "ascending" | "descending" | null;
 
-export interface FilterData {
+export type FilterData = {
   readonly [key: string]: string;
-}
+};

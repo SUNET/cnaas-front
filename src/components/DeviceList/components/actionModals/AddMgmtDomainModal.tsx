@@ -18,24 +18,24 @@ import { createMgmtDomain } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import type { Device } from "../../../../types/device";
 
-interface AddMgmtDomainModalProps {
+type AddMgmtDomainModalProps = {
   readonly deviceA?: string | null;
   readonly deviceBCandidates?: readonly Device[];
   readonly isOpen: boolean;
   readonly onAdd: (id: number) => void;
   readonly closeAction: () => void;
-}
+};
 
-interface FormState {
+type FormState = {
   readonly deviceB: string;
   readonly ipv4: string;
   readonly ipv6: string;
   readonly vlan: string;
-}
+};
 
-interface ApiErrorWithJson {
+type ApiErrorWithJson = {
   readonly json: () => Promise<{ message?: readonly string[] }>;
-}
+};
 
 function hasJsonMethod(error: unknown): error is ApiErrorWithJson {
   return (

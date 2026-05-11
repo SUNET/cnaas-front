@@ -5,9 +5,9 @@ import { useDeviceListActions } from "../../hooks/useDeviceListActions";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 import { DeviceReplaceForm } from "../DeviceReplaceForm";
 
-interface AccessDeviceProps {
+type AccessDeviceProps = {
   readonly device: Device;
-}
+};
 
 /**
  * Expanded panel for ACCESS devices in MANAGED / UNMANAGED state.
