@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
-import { ConfigChange } from "./ConfigChange";
+import { ConfigChangePage } from "./ConfigChangePage";
 import { getData as mockGetData } from "../../utils/getData";
 
 jest.mock("../../utils/getData");
@@ -16,23 +16,23 @@ jest.mock("../../contexts/PermissionsContext", () => ({
   usePermissions: () => ({ permissionsCheck: () => true }),
 }));
 
-const mockSocketOn = jest.fn();
-const mockSocketEmit = jest.fn();
-const mockSocketOff = jest.fn();
-jest.mock("socket.io-client", () => ({
-  io: jest.fn(() => ({
-    on: mockSocketOn,
-    emit: mockSocketEmit,
-    off: mockSocketOff,
-  })),
+jest.mock("../../store/configChange/socket", () => ({
+  socket: {
+    io: { opts: {} },
+    on: jest.fn(),
+    off: jest.fn(),
+    emit: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+  },
 }));
 
 // Mock heavy child components to isolate query param behavior
-jest.mock("./ConfigChangeStep1", () => {
-  return function MockConfigChangeStep1() {
+jest.mock("./ConfigChangeStep1", () => ({
+  ConfigChangeStep1: function MockConfigChangeStep1() {
     return <div data-testid="config-change-step1">Step 1</div>;
-  };
-});
+  },
+}));
 
 jest.mock("./DryRun/DryRun", () => ({
   DryRun: function MockDryRun() {
@@ -40,17 +40,17 @@ jest.mock("./DryRun/DryRun", () => ({
   },
 }));
 
-jest.mock("./VerifyDiff/VerifyDiff", () => {
-  return function MockVerifyDiff() {
+jest.mock("./VerifyDiff/VerifyDiff", () => ({
+  VerifyDiff: function MockVerifyDiff() {
     return <div data-testid="verify-diff">Verify Diff</div>;
-  };
-});
+  },
+}));
 
-jest.mock("./ConfigChangeStep4", () => {
-  return function MockConfigChangeStep4() {
+jest.mock("./ConfigChangeStep4", () => ({
+  ConfigChangeStep4: function MockConfigChangeStep4() {
     return <div data-testid="config-change-step4">Step 4</div>;
-  };
-});
+  },
+}));
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -74,7 +74,7 @@ beforeEach(() => {
 
 function renderComponent(search = "") {
   const router = createMemoryRouter(
-    [{ path: "/config-change", element: <ConfigChange /> }],
+    [{ path: "/config-change", element: <ConfigChangePage /> }],
     { initialEntries: [`/config-change${search}`] },
   );
   return render(<RouterProvider router={router} />);

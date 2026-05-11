@@ -64,7 +64,7 @@ if [ -z "$GNMI_PROXY_URL" ]; then
     echo "Disabling cnaas-gnmi-proxy integration in nginx.conf"
     sed -i "/location.*gnmi/,/}/d" /etc/nginx/conf.d/default.conf
 else
-    if [ -z "$(printenv "CNAAS_FRONT_URL")" ]; then
+    if [[ -z "${CNAAS_FRONT_URL}" ]]; then
         echo "ERROR: Required environment variable $v is not set." >&2
         exit 1
     fi

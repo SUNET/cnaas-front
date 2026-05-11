@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-import VerifyDiffResult from "./VerifyDiffResult";
+import { VerifyDiffResult } from "./VerifyDiffResult";
 
 // Mock SyntaxHighlight component
 jest.mock("../../SyntaxHighlight", () => {
@@ -11,22 +11,19 @@ jest.mock("../../SyntaxHighlight", () => {
 });
 
 function renderComponent(props = {}) {
-  const defaultProps = {
-    deviceNames: [],
-    deviceData: [],
-  };
+  const defaultProps = { devices: [] };
   return render(<VerifyDiffResult {...defaultProps} {...props} />);
 }
 
 test("displays 'All devices returned empty diffs' when devices have no diffs", () => {
-  const deviceNames = ["switch-01"];
-  const deviceData = [
+  const devices = [
     {
-      job_tasks: [{ diff: "", failed: false, result: "", task_name: "task1" }],
+      name: "switch-01",
+      jobTasks: [{ diff: "", failed: false, result: "", task_name: "task1" }],
     },
   ];
 
-  renderComponent({ deviceNames, deviceData });
+  renderComponent({ devices });
 
   expect(
     screen.getByText("All devices returned empty diffs"),
@@ -34,10 +31,10 @@ test("displays 'All devices returned empty diffs' when devices have no diffs", (
 });
 
 test("displays device diffs when devices have diff content", () => {
-  const deviceNames = ["switch-01"];
-  const deviceData = [
+  const devices = [
     {
-      job_tasks: [
+      name: "switch-01",
+      jobTasks: [
         {
           diff: "+new config line",
           failed: false,
@@ -48,7 +45,7 @@ test("displays device diffs when devices have diff content", () => {
     },
   ];
 
-  renderComponent({ deviceNames, deviceData });
+  renderComponent({ devices });
 
   expect(screen.getByText("switch-01 diffs")).toBeInTheDocument();
   expect(screen.getByTestId("syntax-highlight")).toHaveTextContent(
@@ -67,10 +64,10 @@ test("displays all failed tasks except ignored ones, with task names and traceba
     "    raise CommandError(code, msg, command_error=err, output=out)\n" +
     "pyeapi.eapilib.CommandError: Error [1002]: CLI command failed";
 
-  const deviceNames = ["tug-dc-sw3"];
-  const deviceData = [
+  const devices = [
     {
-      job_tasks: [
+      name: "tug-dc-sw3",
+      jobTasks: [
         {
           diff: "",
           failed: true,
@@ -93,7 +90,7 @@ test("displays all failed tasks except ignored ones, with task names and traceba
     },
   ];
 
-  renderComponent({ deviceNames, deviceData });
+  renderComponent({ devices });
 
   // Should show device name with "failed result" label
   expect(screen.getByText("tug-dc-sw3 failed result")).toBeInTheDocument();
@@ -122,10 +119,10 @@ test("displays all failed tasks except ignored ones, with task names and traceba
 });
 
 test("handles device with failed task but undefined result gracefully", () => {
-  const deviceNames = ["switch-01"];
-  const deviceData = [
+  const devices = [
     {
-      job_tasks: [
+      name: "switch-01",
+      jobTasks: [
         {
           diff: "",
           failed: true,
@@ -137,7 +134,7 @@ test("handles device with failed task but undefined result gracefully", () => {
   ];
 
   // Should not throw an error
-  expect(() => renderComponent({ deviceNames, deviceData })).not.toThrow();
+  expect(() => renderComponent({ devices })).not.toThrow();
 
   // Should still show the device name with "failed result" label
   expect(screen.getByText("switch-01 failed result")).toBeInTheDocument();

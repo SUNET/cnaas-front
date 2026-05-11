@@ -1,27 +1,21 @@
 import ProgressBar from "../../ProgressBar";
+import type { JobProgress } from "../../../store/configChange/configChangeReducer";
 
-import PropTypes from "prop-types";
-
-DryRunProgressBar.propTypes = {
-  dryRunProgressData: PropTypes.object,
-  dryRunJobStatus: PropTypes.string,
-  hidden: PropTypes.bool,
-  totalDevices: PropTypes.number,
-  keyNum: PropTypes.number,
-};
-
-DryRunProgressBar.defaultProps = {
-  hidden: false,
-  keyNum: 1,
-};
+interface DryRunProgressBarProps {
+  readonly dryRunProgressData: JobProgress;
+  readonly dryRunJobStatus: string | null;
+  readonly hidden?: boolean;
+  readonly totalDevices: number;
+  readonly keyNum?: number;
+}
 
 export function DryRunProgressBar({
   dryRunProgressData,
   dryRunJobStatus,
-  hidden,
+  hidden = false,
   totalDevices,
-  keyNum,
-}) {
+  keyNum = 1,
+}: DryRunProgressBarProps) {
   const isActiveJob =
     dryRunJobStatus === "RUNNING" || dryRunJobStatus === "FINISHED";
   const finishedDevicesNum = isActiveJob

@@ -2,7 +2,7 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
-import ConfigChangeStep1 from "./ConfigChangeStep1";
+import { ConfigChangeStep1 } from "./ConfigChangeStep1";
 
 import { getData as mockGetData } from "../../utils/getData";
 import { putData as mockPutData } from "../../utils/sendData";

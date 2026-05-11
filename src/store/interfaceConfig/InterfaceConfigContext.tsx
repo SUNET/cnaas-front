@@ -159,7 +159,7 @@ export function InterfaceConfigProvider({
         if (!result) return;
         // Extract unique VLAN range strings from tagged_vlan_list
         const seenRanges = new Set<string>();
-        for (const iface of result.interfaces) {
+        for (const iface of result.interfaces as InterfaceItem[]) {
           const list = iface["tagged_vlan_list"];
           if (!Array.isArray(list)) continue;
           for (const item of list) {
