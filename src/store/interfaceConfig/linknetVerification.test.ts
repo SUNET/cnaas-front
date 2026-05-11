@@ -3,7 +3,10 @@ import {
   type Linknet,
   type LldpNeighbor,
 } from "./linknetVerification";
-import type { InterfaceItem } from "./interfaceConfigReducer";
+import type {
+  AccessInterfaceItem,
+  DistInterfaceItem,
+} from "./interfaceConfigReducer";
 
 // --- Helpers ---
 
@@ -225,8 +228,12 @@ describe("computeLinknetMismatches", () => {
 
   describe("neighbor_id verification", () => {
     test("no mismatch when LLDP hostname matches neighbor_id device", () => {
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet50/1", data: { neighbor_id: 300 } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet50/1",
+          ifclass: "downlink",
+          data: { neighbor_id: 300 },
+        },
       ];
       const deviceMap = new Map([[300, "mlag-peer"]]);
       const lldpNeighbors = lldpEntry(
@@ -248,8 +255,12 @@ describe("computeLinknetMismatches", () => {
     });
 
     test("mismatch when LLDP hostname differs from neighbor_id device", () => {
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet50/1", data: { neighbor_id: 300 } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet50/1",
+          ifclass: "downlink",
+          data: { neighbor_id: 300 },
+        },
       ];
       const deviceMap = new Map([[300, "mlag-peer"]]);
       const lldpNeighbors = lldpEntry(
@@ -280,8 +291,12 @@ describe("computeLinknetMismatches", () => {
     });
 
     test("mismatch when no LLDP data for neighbor_id interface", () => {
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet50/1", data: { neighbor_id: 300 } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet50/1",
+          ifclass: "downlink",
+          data: { neighbor_id: 300 },
+        },
       ];
       const deviceMap = new Map([[300, "mlag-peer"]]);
 
@@ -298,8 +313,12 @@ describe("computeLinknetMismatches", () => {
     });
 
     test("uses ID fallback when neighbor_id device not in deviceMap", () => {
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet50/1", data: { neighbor_id: 999 } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet50/1",
+          ifclass: "downlink",
+          data: { neighbor_id: 999 },
+        },
       ];
       const deviceMap = new Map<number, string>();
 
@@ -318,8 +337,12 @@ describe("computeLinknetMismatches", () => {
       const linknets = [
         makeLinknet({ device_a_port: "Ethernet50/1", device_b_id: 200 }),
       ];
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet50/1", data: { neighbor_id: 300 } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet50/1",
+          ifclass: "downlink",
+          data: { neighbor_id: 300 },
+        },
       ];
       const deviceMap = new Map([
         [200, "sw2"],
@@ -346,8 +369,12 @@ describe("computeLinknetMismatches", () => {
 
   describe("neighbor (hostname) verification", () => {
     test("no mismatch when LLDP hostname matches ifData.neighbor", () => {
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet1", data: { neighbor: "upstream-sw" } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet1",
+          ifclass: "downlink",
+          data: { neighbor: "upstream-sw" },
+        },
       ];
       const lldpNeighbors = lldpEntry("Ethernet1", "upstream-sw", "Ethernet2");
 
@@ -364,8 +391,12 @@ describe("computeLinknetMismatches", () => {
     });
 
     test("mismatch when LLDP hostname differs from ifData.neighbor", () => {
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet1", data: { neighbor: "upstream-sw" } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet1",
+          ifclass: "downlink",
+          data: { neighbor: "upstream-sw" },
+        },
       ];
       const lldpNeighbors = lldpEntry("Ethernet1", "other-sw", "Ethernet2");
 
@@ -387,8 +418,12 @@ describe("computeLinknetMismatches", () => {
     });
 
     test("mismatch when no LLDP data for neighbor interface", () => {
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet1", data: { neighbor: "upstream-sw" } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet1",
+          ifclass: "downlink",
+          data: { neighbor: "upstream-sw" },
+        },
       ];
 
       const result = computeLinknetMismatches(
@@ -404,9 +439,10 @@ describe("computeLinknetMismatches", () => {
     });
 
     test("skipped when interface has neighbor_id (neighbor_id takes priority)", () => {
-      const interfaces: InterfaceItem[] = [
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet1",
+          ifclass: "downlink",
           data: { neighbor_id: 300, neighbor: "upstream-sw" },
         },
       ];
@@ -430,8 +466,12 @@ describe("computeLinknetMismatches", () => {
       const linknets = [
         makeLinknet({ device_a_port: "Ethernet1", device_b_id: 200 }),
       ];
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet1", data: { neighbor: "upstream-sw" } },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        {
+          name: "Ethernet1",
+          ifclass: "downlink",
+          data: { neighbor: "upstream-sw" },
+        },
       ];
       const deviceMap = new Map([[200, "sw2"]]);
       const lldpNeighbors = lldpEntry("Ethernet1", "wrong", "wrong");
@@ -454,7 +494,7 @@ describe("computeLinknetMismatches", () => {
     test("returns empty when no linknets and no neighbor data", () => {
       const result = computeLinknetMismatches(
         DEVICE_ID,
-        [{ name: "Ethernet1" }],
+        [{ name: "Ethernet1", ifclass: "downlink" }],
         {},
         [],
         new Map(),
@@ -465,9 +505,9 @@ describe("computeLinknetMismatches", () => {
     });
 
     test("skips interfaces without data", () => {
-      const interfaces: InterfaceItem[] = [
-        { name: "Ethernet1" },
-        { name: "Ethernet2", data: undefined },
+      const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
+        { name: "Ethernet1", ifclass: "downlink" },
+        { name: "Ethernet2", ifclass: "downlink", data: undefined },
       ];
 
       const result = computeLinknetMismatches(

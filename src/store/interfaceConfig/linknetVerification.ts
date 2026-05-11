@@ -6,7 +6,11 @@
  * actual LLDP neighbors.
  */
 
-import type { InterfaceItem, LinknetMismatch } from "./interfaceConfigReducer";
+import type {
+  AccessInterfaceItem,
+  DistInterfaceItem,
+  LinknetMismatch,
+} from "./interfaceConfigReducer";
 
 export interface Linknet {
   id: number;
@@ -61,7 +65,7 @@ export interface LinknetVerificationResult {
  */
 export function computeLinknetMismatches(
   deviceId: number,
-  interfaces: InterfaceItem[],
+  interfaces: (AccessInterfaceItem | DistInterfaceItem)[],
   lldpNeighbors: Record<string, unknown>,
   linknets: Linknet[],
   deviceMap: Map<number, string>,

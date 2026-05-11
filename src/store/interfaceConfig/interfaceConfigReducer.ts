@@ -18,14 +18,20 @@ export interface DropdownOption {
 
 export interface InterfaceItem {
   name: string;
-  configtype?: string;
-  ifclass?: string;
   data?: Record<string, unknown>;
   config?: string;
-  peer_hostname?: string;
   model?: string;
   tags?: string[] | null;
-  [key: string]: unknown;
+}
+
+export interface AccessInterfaceItem extends InterfaceItem {
+  configtype: string;
+  peer_hostname?: string;
+}
+
+export interface DistInterfaceItem extends InterfaceItem {
+  ifclass: string;
+  tagged_vlan_list?: string[];
 }
 
 export interface Device {
@@ -59,7 +65,7 @@ export interface InterfaceConfigState {
   device: Device | null;
 
   settings: Record<string, unknown> | null;
-  interfaces: InterfaceItem[];
+  interfaces: (AccessInterfaceItem | DistInterfaceItem)[];
   interfaceStatus: Record<string, Record<string, unknown>>;
   lldpNeighbors: Record<string, unknown>;
   mlagPeerHostname: string | null;
@@ -140,9 +146,9 @@ export type Action =
     }
   | {
       type: typeof actions.INTERFACES_LOADED;
-      interfaces: InterfaceItem[];
+      interfaces: (AccessInterfaceItem | DistInterfaceItem)[];
       tags: DropdownOption[];
-      mlagPeerHostname?: string;
+      mlagPeerHostname?: string | null;
       portTemplates?: DropdownOption[];
       vlanRanges?: string[];
     }

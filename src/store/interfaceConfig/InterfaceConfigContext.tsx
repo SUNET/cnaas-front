@@ -34,7 +34,6 @@ import {
   actions,
   type InterfaceConfigState,
   type Action,
-  type InterfaceItem,
   type DropdownOption,
 } from "./interfaceConfigReducer";
 import { computeLinknetMismatches, type Linknet } from "./linknetVerification";
@@ -149,8 +148,8 @@ export function InterfaceConfigProvider({
         if (!result) return;
         dispatch({
           type: actions.INTERFACES_LOADED,
-          interfaces: result.interfaces as InterfaceItem[],
-          tags: result.tags as DropdownOption[],
+          interfaces: result.interfaces,
+          tags: result.tags,
           mlagPeerHostname: result.mlagPeerHostname,
         });
         break;
@@ -160,7 +159,7 @@ export function InterfaceConfigProvider({
         if (!result) return;
         // Extract unique VLAN range strings from tagged_vlan_list
         const seenRanges = new Set<string>();
-        for (const iface of result.interfaces as InterfaceItem[]) {
+        for (const iface of result.interfaces) {
           const list = iface["tagged_vlan_list"];
           if (!Array.isArray(list)) continue;
           for (const item of list) {
@@ -171,9 +170,9 @@ export function InterfaceConfigProvider({
         }
         dispatch({
           type: actions.INTERFACES_LOADED,
-          interfaces: result.interfaces as InterfaceItem[],
-          tags: result.tags as DropdownOption[],
-          portTemplates: result.portTemplates as DropdownOption[],
+          interfaces: result.interfaces,
+          tags: result.tags,
+          portTemplates: result.portTemplates,
           vlanRanges: [...seenRanges],
         });
         break;
