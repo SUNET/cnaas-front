@@ -16,7 +16,6 @@ import { ZtpDevice } from "./ZtpDevice";
 
 interface DeviceExpandedProps {
   readonly device: Device;
-  readonly fallback: ReactNode;
 }
 
 /**
@@ -28,45 +27,38 @@ interface DeviceExpandedProps {
  * typed devices and are grouped under <ZtpDevice>.
  *
  * Calls the cache-aware fetch hooks at the top so per-device caches
- * populate on first expand for both the legacy `fallback` and the
- * leaves below.
- *
- * `fallback` is rendered for any branch not yet migrated from the
- * legacy `mangleDeviceData` function. Removed in Phase E.
+ * populate on first expand.
  */
-export function DeviceExpanded({
-  device,
-  fallback,
-}: DeviceExpandedProps): ReactNode {
+export function DeviceExpanded({ device }: DeviceExpandedProps): ReactNode {
   useDeviceInterfaces(device.id, device.hostname);
   useNetboxDevice(device.id, device.hostname);
   useNetboxModel(device.model);
 
   if (isInZtp(device)) {
-    return <ZtpDevice device={device} fallback={fallback} />;
+    return <ZtpDevice device={device} />;
   }
   if (device.deleted) {
-    return <DeletedDevice device={device} fallback={fallback} />;
+    return <DeletedDevice device={device} />;
   }
   if (device.state === "PRE_CONFIGURED") {
-    return <PreConfiguredDevice device={device} fallback={fallback} />;
+    return <PreConfiguredDevice device={device} />;
   }
   if (device.state === "UNKNOWN") {
-    return <UnknownDevice device={device} fallback={fallback} />;
+    return <UnknownDevice device={device} />;
   }
   if (isActive(device)) {
     switch (device.device_type) {
       case "ACCESS":
-        return <AccessDevice device={device} fallback={fallback} />;
+        return <AccessDevice device={device} />;
       case "DIST":
-        return <DistDevice device={device} fallback={fallback} />;
+        return <DistDevice device={device} />;
       case "CORE":
-        return <CoreDevice device={device} fallback={fallback} />;
+        return <CoreDevice device={device} />;
       case "FIREWALL":
-        return <FirewallDevice device={device} fallback={fallback} />;
+        return <FirewallDevice device={device} />;
       case "UNKNOWN":
-        return <UnknownDevice device={device} fallback={fallback} />;
+        return <UnknownDevice device={device} />;
     }
   }
-  return fallback;
+  return <UnknownDevice device={device} />;
 }

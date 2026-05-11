@@ -17,6 +17,7 @@ import {
   type InitialSettings,
   type StoredSettings,
 } from "./deviceListReducer";
+import type { FilterData } from "../types/table";
 import { useDeviceListSocket } from "../hooks/useDeviceListSocket";
 
 interface DeviceListContextValue {
@@ -32,6 +33,46 @@ export function useDeviceList(): DeviceListContextValue {
     throw new Error("useDeviceList must be used within DeviceListProvider");
   }
   return ctx;
+}
+
+/**
+ * Side-channel context for page-level callbacks that the reducer can't own
+ * because they touch URL state, paging, and sort orchestration. Provided
+ * by <DeviceList> so descendants (expanded leaves, action hook) can call
+ * them without prop-drilling.
+ */
+export interface DeviceListPageActions {
+  readonly handleFilterChange: (
+    nextFilterData: FilterData,
+    expandDeviceId?: number | null,
+  ) => void;
+}
+
+const DeviceListPageActionsContext =
+  createContext<DeviceListPageActions | null>(null);
+
+export function useDeviceListPageActions(): DeviceListPageActions {
+  const ctx = useContext(DeviceListPageActionsContext);
+  if (ctx == null) {
+    throw new Error(
+      "useDeviceListPageActions must be used within DeviceListPageActionsProvider",
+    );
+  }
+  return ctx;
+}
+
+export function DeviceListPageActionsProvider({
+  value,
+  children,
+}: {
+  readonly value: DeviceListPageActions;
+  readonly children: ReactNode;
+}) {
+  return (
+    <DeviceListPageActionsContext.Provider value={value}>
+      {children}
+    </DeviceListPageActionsContext.Provider>
+  );
 }
 
 interface ProviderProps {

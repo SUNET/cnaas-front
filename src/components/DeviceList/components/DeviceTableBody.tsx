@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { Loader, TableBody, TableCell, TableRow } from "semantic-ui-react";
 import type { DeviceColumnKey } from "../types/columns";
 import type { Device } from "../../../types/device";
@@ -9,7 +8,6 @@ interface DeviceTableBodyProps {
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly loading: boolean;
   readonly error: Error | null;
-  readonly mangleDeviceData: (device: Device) => ReactNode;
 }
 
 export function DeviceTableBody({
@@ -17,7 +15,6 @@ export function DeviceTableBody({
   activeColumns,
   loading,
   error,
-  mangleDeviceData,
 }: DeviceTableBodyProps) {
   if (loading) {
     return (
@@ -60,7 +57,6 @@ export function DeviceTableBody({
           key={`${device.id}_row`}
           device={device}
           activeColumns={activeColumns}
-          mangleDeviceData={mangleDeviceData}
         />
       ))}
     </TableBody>

@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 
 import type { Device } from "../../../../types/device";
+import { useDeviceListActions } from "../../hooks/useDeviceListActions";
+import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
 interface PreConfiguredDeviceProps {
   readonly device: Device;
-  readonly fallback: ReactNode;
 }
 
 /**
@@ -16,7 +17,18 @@ interface PreConfiguredDeviceProps {
  * "no actions allowed" fallback later, after consulting domain experts.
  */
 export function PreConfiguredDevice({
-  fallback,
+  device,
 }: PreConfiguredDeviceProps): ReactNode {
-  return fallback;
+  const { buildMenuActions, buildLog, buildNetboxLookups } =
+    useDeviceListActions();
+  const { model, netboxDevice } = buildNetboxLookups(device);
+  return (
+    <DeviceInfoBlock
+      device={device}
+      menuActions={buildMenuActions(device)}
+      log={buildLog(device.id)}
+      model={model}
+      netboxDevice={netboxDevice}
+    />
+  );
 }

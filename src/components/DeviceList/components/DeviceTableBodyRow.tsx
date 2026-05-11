@@ -1,4 +1,3 @@
-import { type ReactNode } from "react";
 import { TableCell, TableRow } from "semantic-ui-react";
 import type { DeviceColumnKey } from "../types/columns";
 import type { Device } from "../../../types/device";
@@ -10,13 +9,11 @@ import { DeviceExpanded } from "./expanded/DeviceExpanded";
 interface DeviceTableBodyRowProps {
   readonly device: Device;
   readonly activeColumns: readonly DeviceColumnKey[];
-  readonly mangleDeviceData: (device: Device) => ReactNode;
 }
 
 export function DeviceTableBodyRow({
   device,
   activeColumns,
-  mangleDeviceData,
 }: DeviceTableBodyRowProps) {
   const { state, dispatch } = useDeviceList();
   const open = state.expandedIds.has(device.id);
@@ -57,10 +54,7 @@ export function DeviceTableBodyRow({
               overflow: "visible",
             }}
           >
-            <DeviceExpanded
-              device={device}
-              fallback={mangleDeviceData(device)}
-            />
+            <DeviceExpanded device={device} />
           </TableCell>
         </TableRow>
       )}
