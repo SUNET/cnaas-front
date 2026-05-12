@@ -88,18 +88,16 @@ export function AddMgmtDomainModal({
       );
       clearForm();
       onAdd(resp.data.added_mgmtdomain.id);
-    } catch (errResp) {
-      if (hasJsonMethod(errResp)) {
+    } catch (error) {
+      if (hasJsonMethod(error)) {
         try {
-          const errObj = await errResp.json();
+          const errObj = await error.json();
           setErrors(errObj.message ?? ["Unknown error"]);
         } catch {
           setErrors(["Failed to parse error response"]);
         }
       } else {
-        setErrors([
-          errResp instanceof Error ? errResp.message : String(errResp),
-        ]);
+        setErrors([error instanceof Error ? error.message : String(error)]);
       }
     }
   }

@@ -111,7 +111,7 @@ export function useDeviceListActions(): DeviceListActions {
   };
 
   const handleDeleteModalOpen = (device: Device) => {
-    dispatch({ type: actions.OPEN_DELETE_MODAL, device });
+    dispatch({ type: actions.TOGGLE_DELETE_MODAL, isOpen: true, device });
   };
 
   const handleDeviceStateModalOpen = (
@@ -120,7 +120,8 @@ export function useDeviceListActions(): DeviceListActions {
     newState: DeviceState,
   ) => {
     dispatch({
-      type: actions.OPEN_DEVICE_STATE_MODAL,
+      type: actions.TOGGLE_DEVICE_STATE_MODAL,
+      isOpen: true,
       hostname,
       deviceId,
       newState,
@@ -132,14 +133,20 @@ export function useDeviceListActions(): DeviceListActions {
     deviceState: DeviceState,
   ) => {
     dispatch({
-      type: actions.OPEN_SHOW_CONFIG_MODAL,
+      type: actions.TOGGLE_SHOW_CONFIG_MODAL,
+      isOpen: true,
       hostname,
       state: deviceState,
     });
   };
 
   const handleHostnameModalOpen = (deviceId: number, hostname: string) => {
-    dispatch({ type: actions.OPEN_CHANGE_HOSTNAME_MODAL, deviceId, hostname });
+    dispatch({
+      type: actions.TOGGLE_CHANGE_HOSTNAME_MODAL,
+      isOpen: true,
+      deviceId,
+      hostname,
+    });
   };
 
   const handleMgmtAddModalOpen = (
@@ -147,7 +154,8 @@ export function useDeviceListActions(): DeviceListActions {
     deviceBCandidates: Device[],
   ) => {
     dispatch({
-      type: actions.OPEN_ADD_MGMT_DOMAIN_MODAL,
+      type: actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL,
+      isOpen: true,
       deviceA,
       deviceBCandidates,
     });
@@ -162,7 +170,8 @@ export function useDeviceListActions(): DeviceListActions {
     vlan,
   }: MgmtDomain) => {
     dispatch({
-      type: actions.OPEN_UPDATE_MGMT_DOMAIN_MODAL,
+      type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL,
+      isOpen: true,
       mgmtId: id,
       deviceA,
       deviceB,
@@ -284,8 +293,10 @@ export function useDeviceListActions(): DeviceListActions {
     const buttons: ReactNode[] = [];
     const interfaces = deviceInterfaceData[device.id];
     if (interfaces) {
-      buttons.push(...renderMlagButtons(interfaces));
-      buttons.push(...renderUplinkButtons(interfaces));
+      buttons.push(
+        ...renderMlagButtons(interfaces),
+        ...renderUplinkButtons(interfaces),
+      );
     }
 
     const includeCore = process.env.MGMT_DOMAIN_CORE_ENABLED === "true";

@@ -80,18 +80,12 @@ export const actions = {
   EXPAND_DEVICES: "EXPAND_DEVICES",
   COLLAPSE_DEVICE: "COLLAPSE_DEVICE",
   TOGGLE_DEVICE_EXPANDED: "TOGGLE_DEVICE_EXPANDED",
-  OPEN_ADD_MGMT_DOMAIN_MODAL: "OPEN_ADD_MGMT_DOMAIN_MODAL",
-  CLOSE_ADD_MGMT_DOMAIN_MODAL: "CLOSE_ADD_MGMT_DOMAIN_MODAL",
-  OPEN_DELETE_MODAL: "OPEN_DELETE_MODAL",
-  CLOSE_DELETE_MODAL: "CLOSE_DELETE_MODAL",
-  OPEN_DEVICE_STATE_MODAL: "OPEN_DEVICE_STATE_MODAL",
-  CLOSE_DEVICE_STATE_MODAL: "CLOSE_DEVICE_STATE_MODAL",
-  OPEN_UPDATE_MGMT_DOMAIN_MODAL: "OPEN_UPDATE_MGMT_DOMAIN_MODAL",
-  CLOSE_UPDATE_MGMT_DOMAIN_MODAL: "CLOSE_UPDATE_MGMT_DOMAIN_MODAL",
-  OPEN_SHOW_CONFIG_MODAL: "OPEN_SHOW_CONFIG_MODAL",
-  CLOSE_SHOW_CONFIG_MODAL: "CLOSE_SHOW_CONFIG_MODAL",
-  OPEN_CHANGE_HOSTNAME_MODAL: "OPEN_CHANGE_HOSTNAME_MODAL",
-  CLOSE_CHANGE_HOSTNAME_MODAL: "CLOSE_CHANGE_HOSTNAME_MODAL",
+  TOGGLE_ADD_MGMT_DOMAIN_MODAL: "TOGGLE_ADD_MGMT_DOMAIN_MODAL",
+  TOGGLE_DELETE_MODAL: "TOGGLE_DELETE_MODAL",
+  TOGGLE_DEVICE_STATE_MODAL: "TOGGLE_DEVICE_STATE_MODAL",
+  TOGGLE_UPDATE_MGMT_DOMAIN_MODAL: "TOGGLE_UPDATE_MGMT_DOMAIN_MODAL",
+  TOGGLE_SHOW_CONFIG_MODAL: "TOGGLE_SHOW_CONFIG_MODAL",
+  TOGGLE_CHANGE_HOSTNAME_MODAL: "TOGGLE_CHANGE_HOSTNAME_MODAL",
 } as const;
 
 export type Action =
@@ -151,42 +145,45 @@ export type Action =
   | { type: typeof actions.COLLAPSE_DEVICE; deviceId: number }
   | { type: typeof actions.TOGGLE_DEVICE_EXPANDED; deviceId: number }
   | {
-      type: typeof actions.OPEN_ADD_MGMT_DOMAIN_MODAL;
-      deviceA: string;
-      deviceBCandidates: readonly Device[];
+      type: typeof actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL;
+      isOpen: boolean;
+      deviceA?: string;
+      deviceBCandidates?: readonly Device[];
     }
-  | { type: typeof actions.CLOSE_ADD_MGMT_DOMAIN_MODAL }
-  | { type: typeof actions.OPEN_DELETE_MODAL; device: Device }
-  | { type: typeof actions.CLOSE_DELETE_MODAL }
   | {
-      type: typeof actions.OPEN_DEVICE_STATE_MODAL;
-      hostname: string;
-      deviceId: number;
-      newState: DeviceState;
+      type: typeof actions.TOGGLE_DELETE_MODAL;
+      isOpen: boolean;
+      device?: Device | null;
     }
-  | { type: typeof actions.CLOSE_DEVICE_STATE_MODAL }
   | {
-      type: typeof actions.OPEN_UPDATE_MGMT_DOMAIN_MODAL;
-      mgmtId: number;
-      deviceA: string;
-      deviceB: string;
-      ipv4Initial: string | null;
-      ipv6Initial: string | null;
-      vlanInitial: number;
+      type: typeof actions.TOGGLE_DEVICE_STATE_MODAL;
+      isOpen: boolean;
+      hostname?: string;
+      deviceId?: number;
+      newState?: DeviceState;
     }
-  | { type: typeof actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL }
   | {
-      type: typeof actions.OPEN_SHOW_CONFIG_MODAL;
-      hostname: string;
-      state: DeviceState;
+      type: typeof actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL;
+      isOpen: boolean;
+      mgmtId?: number;
+      deviceA?: string;
+      deviceB?: string;
+      ipv4Initial?: string | null;
+      ipv6Initial?: string | null;
+      vlanInitial?: number;
     }
-  | { type: typeof actions.CLOSE_SHOW_CONFIG_MODAL }
   | {
-      type: typeof actions.OPEN_CHANGE_HOSTNAME_MODAL;
-      deviceId: number;
-      hostname: string;
+      type: typeof actions.TOGGLE_SHOW_CONFIG_MODAL;
+      isOpen: boolean;
+      hostname?: string;
+      state?: DeviceState;
     }
-  | { type: typeof actions.CLOSE_CHANGE_HOSTNAME_MODAL };
+  | {
+      type: typeof actions.TOGGLE_CHANGE_HOSTNAME_MODAL;
+      isOpen: boolean;
+      deviceId?: number;
+      hostname?: string;
+    };
 
 // --- Initial state ---
 
@@ -437,84 +434,81 @@ export function deviceListReducer(
       return { ...state, expandedIds: next };
     }
 
-    case actions.OPEN_ADD_MGMT_DOMAIN_MODAL:
+    case actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL:
       return {
         ...state,
-        addMgmtDomainModal: {
-          isOpen: true,
-          deviceA: action.deviceA,
-          deviceBCandidates: action.deviceBCandidates,
-        },
+        addMgmtDomainModal: action.isOpen
+          ? {
+              isOpen: true,
+              deviceA: action.deviceA ?? null,
+              deviceBCandidates: action.deviceBCandidates ?? [],
+            }
+          : CLOSED_ADD_MGMT_DOMAIN,
       };
 
-    case actions.CLOSE_ADD_MGMT_DOMAIN_MODAL:
-      return { ...state, addMgmtDomainModal: CLOSED_ADD_MGMT_DOMAIN };
-
-    case actions.OPEN_DELETE_MODAL:
+    case actions.TOGGLE_DELETE_MODAL:
       return {
         ...state,
-        deleteModal: { isOpen: true, device: action.device },
+        deleteModal: action.isOpen
+          ? {
+              isOpen: true,
+              device: action.device ? { ...action.device } : null,
+            }
+          : CLOSED_DELETE,
       };
 
-    case actions.CLOSE_DELETE_MODAL:
-      return { ...state, deleteModal: CLOSED_DELETE };
-
-    case actions.OPEN_DEVICE_STATE_MODAL:
+    case actions.TOGGLE_DEVICE_STATE_MODAL:
       return {
         ...state,
-        deviceStateModal: {
-          isOpen: true,
-          hostname: action.hostname,
-          deviceId: action.deviceId,
-          newState: action.newState,
-        },
+        deviceStateModal: action.isOpen
+          ? {
+              isOpen: true,
+              hostname: action.hostname ?? null,
+              deviceId: action.deviceId ?? null,
+              newState: action.newState ?? null,
+            }
+          : CLOSED_DEVICE_STATE,
       };
 
-    case actions.CLOSE_DEVICE_STATE_MODAL:
-      return { ...state, deviceStateModal: CLOSED_DEVICE_STATE };
-
-    case actions.OPEN_UPDATE_MGMT_DOMAIN_MODAL:
+    case actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL:
       return {
         ...state,
-        updateMgmtDomainModal: {
-          isOpen: true,
-          mgmtId: action.mgmtId,
-          deviceA: action.deviceA,
-          deviceB: action.deviceB,
-          ipv4Initial: action.ipv4Initial,
-          ipv6Initial: action.ipv6Initial,
-          vlanInitial: action.vlanInitial,
-        },
+        updateMgmtDomainModal: action.isOpen
+          ? {
+              isOpen: true,
+              mgmtId: action.mgmtId ?? null,
+              deviceA: action.deviceA ?? null,
+              deviceB: action.deviceB ?? null,
+              ipv4Initial: action.ipv4Initial ?? null,
+              ipv6Initial: action.ipv6Initial ?? null,
+              vlanInitial: action.vlanInitial ?? null,
+            }
+          : CLOSED_UPDATE_MGMT_DOMAIN,
       };
 
-    case actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL:
-      return { ...state, updateMgmtDomainModal: CLOSED_UPDATE_MGMT_DOMAIN };
-
-    case actions.OPEN_SHOW_CONFIG_MODAL:
+    case actions.TOGGLE_SHOW_CONFIG_MODAL:
       return {
         ...state,
-        showConfigModal: {
-          isOpen: true,
-          hostname: action.hostname,
-          state: action.state,
-        },
+        showConfigModal: action.isOpen
+          ? {
+              isOpen: true,
+              hostname: action.hostname ?? null,
+              state: action.state ?? null,
+            }
+          : CLOSED_SHOW_CONFIG,
       };
 
-    case actions.CLOSE_SHOW_CONFIG_MODAL:
-      return { ...state, showConfigModal: CLOSED_SHOW_CONFIG };
-
-    case actions.OPEN_CHANGE_HOSTNAME_MODAL:
+    case actions.TOGGLE_CHANGE_HOSTNAME_MODAL:
       return {
         ...state,
-        changeHostnameModal: {
-          isOpen: true,
-          deviceId: action.deviceId,
-          hostname: action.hostname,
-        },
+        changeHostnameModal: action.isOpen
+          ? {
+              isOpen: true,
+              deviceId: action.deviceId ?? null,
+              hostname: action.hostname ?? null,
+            }
+          : CLOSED_CHANGE_HOSTNAME,
       };
-
-    case actions.CLOSE_CHANGE_HOSTNAME_MODAL:
-      return { ...state, changeHostnameModal: CLOSED_CHANGE_HOSTNAME };
 
     default:
       return state;

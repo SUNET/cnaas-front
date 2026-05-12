@@ -289,7 +289,8 @@ describe("deviceListReducer", () => {
 
   test("OPEN/CLOSE_ADD_MGMT_DOMAIN_MODAL round-trip", () => {
     const opened = deviceListReducer(baseState(), {
-      type: actions.OPEN_ADD_MGMT_DOMAIN_MODAL,
+      type: actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL,
+      isOpen: true,
       deviceA: "host-1",
       deviceBCandidates: [dev(2)],
     });
@@ -297,7 +298,8 @@ describe("deviceListReducer", () => {
     expect(opened.addMgmtDomainModal.deviceA).toBe("host-1");
     expect(opened.addMgmtDomainModal.deviceBCandidates).toHaveLength(1);
     const closed = deviceListReducer(opened, {
-      type: actions.CLOSE_ADD_MGMT_DOMAIN_MODAL,
+      type: actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL,
+      isOpen: false,
     });
     expect(closed.addMgmtDomainModal.isOpen).toBe(false);
     expect(closed.addMgmtDomainModal.deviceA).toBeNull();
@@ -306,13 +308,15 @@ describe("deviceListReducer", () => {
 
   test("OPEN/CLOSE_DELETE_MODAL round-trip", () => {
     const opened = deviceListReducer(baseState(), {
-      type: actions.OPEN_DELETE_MODAL,
+      type: actions.TOGGLE_DELETE_MODAL,
+      isOpen: true,
       device: dev(5),
     });
     expect(opened.deleteModal.isOpen).toBe(true);
     expect(opened.deleteModal.device?.id).toBe(5);
     const closed = deviceListReducer(opened, {
-      type: actions.CLOSE_DELETE_MODAL,
+      type: actions.TOGGLE_DELETE_MODAL,
+      isOpen: false,
     });
     expect(closed.deleteModal.isOpen).toBe(false);
     expect(closed.deleteModal.device).toBeNull();
@@ -320,7 +324,8 @@ describe("deviceListReducer", () => {
 
   test("OPEN/CLOSE_DEVICE_STATE_MODAL round-trip", () => {
     const opened = deviceListReducer(baseState(), {
-      type: actions.OPEN_DEVICE_STATE_MODAL,
+      type: actions.TOGGLE_DEVICE_STATE_MODAL,
+      isOpen: true,
       hostname: "host-7",
       deviceId: 7,
       newState: "MANAGED",
@@ -329,7 +334,8 @@ describe("deviceListReducer", () => {
     expect(opened.deviceStateModal.deviceId).toBe(7);
     expect(opened.deviceStateModal.newState).toBe("MANAGED");
     const closed = deviceListReducer(opened, {
-      type: actions.CLOSE_DEVICE_STATE_MODAL,
+      type: actions.TOGGLE_DEVICE_STATE_MODAL,
+      isOpen: false,
     });
     expect(closed.deviceStateModal.isOpen).toBe(false);
     expect(closed.deviceStateModal.deviceId).toBeNull();
@@ -338,7 +344,8 @@ describe("deviceListReducer", () => {
 
   test("OPEN/CLOSE_UPDATE_MGMT_DOMAIN_MODAL round-trip", () => {
     const opened = deviceListReducer(baseState(), {
-      type: actions.OPEN_UPDATE_MGMT_DOMAIN_MODAL,
+      type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL,
+      isOpen: true,
       mgmtId: 99,
       deviceA: "host-a",
       deviceB: "host-b",
@@ -350,7 +357,8 @@ describe("deviceListReducer", () => {
     expect(opened.updateMgmtDomainModal.mgmtId).toBe(99);
     expect(opened.updateMgmtDomainModal.vlanInitial).toBe(100);
     const closed = deviceListReducer(opened, {
-      type: actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL,
+      type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL,
+      isOpen: false,
     });
     expect(closed.updateMgmtDomainModal.isOpen).toBe(false);
     expect(closed.updateMgmtDomainModal.mgmtId).toBeNull();
@@ -358,14 +366,16 @@ describe("deviceListReducer", () => {
 
   test("OPEN/CLOSE_SHOW_CONFIG_MODAL round-trip", () => {
     const opened = deviceListReducer(baseState(), {
-      type: actions.OPEN_SHOW_CONFIG_MODAL,
+      type: actions.TOGGLE_SHOW_CONFIG_MODAL,
+      isOpen: true,
       hostname: "host-3",
       state: "MANAGED",
     });
     expect(opened.showConfigModal.isOpen).toBe(true);
     expect(opened.showConfigModal.hostname).toBe("host-3");
     const closed = deviceListReducer(opened, {
-      type: actions.CLOSE_SHOW_CONFIG_MODAL,
+      type: actions.TOGGLE_SHOW_CONFIG_MODAL,
+      isOpen: false,
     });
     expect(closed.showConfigModal.isOpen).toBe(false);
     expect(closed.showConfigModal.hostname).toBeNull();
@@ -373,7 +383,8 @@ describe("deviceListReducer", () => {
 
   test("OPEN/CLOSE_CHANGE_HOSTNAME_MODAL round-trip", () => {
     const opened = deviceListReducer(baseState(), {
-      type: actions.OPEN_CHANGE_HOSTNAME_MODAL,
+      type: actions.TOGGLE_CHANGE_HOSTNAME_MODAL,
+      isOpen: true,
       deviceId: 11,
       hostname: "host-11",
     });
@@ -381,7 +392,8 @@ describe("deviceListReducer", () => {
     expect(opened.changeHostnameModal.deviceId).toBe(11);
     expect(opened.changeHostnameModal.hostname).toBe("host-11");
     const closed = deviceListReducer(opened, {
-      type: actions.CLOSE_CHANGE_HOSTNAME_MODAL,
+      type: actions.TOGGLE_CHANGE_HOSTNAME_MODAL,
+      isOpen: false,
     });
     expect(closed.changeHostnameModal.isOpen).toBe(false);
     expect(closed.changeHostnameModal.deviceId).toBeNull();

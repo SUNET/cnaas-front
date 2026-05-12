@@ -223,7 +223,7 @@ export function DeviceList() {
       time: 5000,
     });
     getAllMgmtDomainsData();
-    dispatch({ type: actions.CLOSE_ADD_MGMT_DOMAIN_MODAL });
+    dispatch({ type: actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL, isOpen: false });
   };
 
   const handleDeleteMgmtDomain = (id: number) => {
@@ -233,7 +233,7 @@ export function DeviceList() {
       time: 5000,
     });
     getAllMgmtDomainsData();
-    dispatch({ type: actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL });
+    dispatch({ type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL, isOpen: false });
   };
 
   const handleUpdateMgmtDomains = (id: number) => {
@@ -243,7 +243,7 @@ export function DeviceList() {
       time: 5000,
     });
     getAllMgmtDomainsData();
-    dispatch({ type: actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL });
+    dispatch({ type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL, isOpen: false });
   };
 
   const columnSelectorChange = (column: DeviceColumnKey) => {
@@ -310,7 +310,7 @@ export function DeviceList() {
           hostname={deviceStateModal.hostname}
           newState={deviceStateModal.newState}
           closeAction={() =>
-            dispatch({ type: actions.CLOSE_DEVICE_STATE_MODAL })
+            dispatch({ type: actions.TOGGLE_DEVICE_STATE_MODAL, isOpen: false })
           }
           onStateChange={getDevices}
         />
@@ -320,7 +320,9 @@ export function DeviceList() {
           device={deleteModal.device}
           isOpen={deleteModal.isOpen}
           addDeviceJob={addDeviceJob}
-          closeAction={() => dispatch({ type: actions.CLOSE_DELETE_MODAL })}
+          closeAction={() =>
+            dispatch({ type: actions.TOGGLE_DELETE_MODAL, isOpen: false })
+          }
         />
 
         <AddMgmtDomainModal
@@ -328,7 +330,10 @@ export function DeviceList() {
           deviceBCandidates={[...addMgmtDomainModal.deviceBCandidates]}
           isOpen={addMgmtDomainModal.isOpen}
           closeAction={() =>
-            dispatch({ type: actions.CLOSE_ADD_MGMT_DOMAIN_MODAL })
+            dispatch({
+              type: actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL,
+              isOpen: false,
+            })
           }
           onAdd={(v: number) => handleAddMgmtDomains(v)}
         />
@@ -343,7 +348,10 @@ export function DeviceList() {
           vlanInitial={updateMgmtDomainModal.vlanInitial}
           isOpen={updateMgmtDomainModal.isOpen}
           closeAction={() =>
-            dispatch({ type: actions.CLOSE_UPDATE_MGMT_DOMAIN_MODAL })
+            dispatch({
+              type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL,
+              isOpen: false,
+            })
           }
           onDelete={(v: number) => handleDeleteMgmtDomain(v)}
           onUpdate={(v: number) => handleUpdateMgmtDomains(v)}
@@ -354,7 +362,10 @@ export function DeviceList() {
           deviceId={changeHostnameModal.deviceId}
           isOpen={changeHostnameModal.isOpen}
           closeAction={() =>
-            dispatch({ type: actions.CLOSE_CHANGE_HOSTNAME_MODAL })
+            dispatch({
+              type: actions.TOGGLE_CHANGE_HOSTNAME_MODAL,
+              isOpen: false,
+            })
           }
           onSuccess={async (_oldHostname: string, newHostname: string) => {
             const deviceId = changeHostnameModal.deviceId;
@@ -384,7 +395,7 @@ export function DeviceList() {
           state={showConfigModal.state}
           isOpen={showConfigModal.isOpen}
           closeAction={() =>
-            dispatch({ type: actions.CLOSE_SHOW_CONFIG_MODAL })
+            dispatch({ type: actions.TOGGLE_SHOW_CONFIG_MODAL, isOpen: false })
           }
         />
         <Table sortable celled striped>

@@ -55,17 +55,24 @@ function normalizeErrors(message: unknown): readonly string[] {
   return [String(message)];
 }
 
-async function extractErrors(errResp: unknown): Promise<readonly string[]> {
-  if (hasJsonMethod(errResp)) {
+function hasMessageField(value: unknown): value is { message: unknown } {
+  return typeof value === "object" && value !== null && "message" in value;
+}
+
+async function extractErrors(error: unknown): Promise<readonly string[]> {
+  // Raw Response (deleteData → checkResponseStatus)
+  if (hasJsonMethod(error)) {
     try {
-      const errObj = await errResp.json();
+      const errObj = await error.json();
       return normalizeErrors(errObj.message);
     } catch {
       return ["Failed to parse error response"];
     }
   }
-  if (errResp instanceof Error) return [errResp.message];
-  return [String(errResp)];
+  // Plain object reject (putData → checkJsonResponse)
+  if (hasMessageField(error)) return normalizeErrors(error.message);
+  if (error instanceof Error) return [error.message];
+  return [String(error)];
 }
 
 export function UpdateMgmtDomainModal({
@@ -116,8 +123,8 @@ export function UpdateMgmtDomainModal({
       await deleteMgmtDomain(mgmtId, token);
       clearForm();
       onDelete(mgmtId);
-    } catch (errResp) {
-      setErrors(await extractErrors(errResp));
+    } catch (error) {
+      setErrors(await extractErrors(error));
     }
   }
 
@@ -137,8 +144,8 @@ export function UpdateMgmtDomainModal({
       );
       clearForm();
       onUpdate(mgmtId);
-    } catch (errResp) {
-      setErrors(await extractErrors(errResp));
+    } catch (error) {
+      setErrors(await extractErrors(error));
     }
   }
 
