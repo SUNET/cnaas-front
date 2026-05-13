@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
+import { DeviceActionsMenu } from "../DeviceActionsMenu";
+import { DeviceExtras } from "../DeviceExtras";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
 type FirewallDeviceProps = {
@@ -16,14 +18,13 @@ type FirewallDeviceProps = {
  * (MLAG/uplink) appear if any are configured.
  */
 export function FirewallDevice({ device }: FirewallDeviceProps): ReactNode {
-  const { buildMenuActions, buildButtonsExtra, buildLog, buildNetboxLookups } =
-    useDeviceListActions();
+  const { buildLog, buildNetboxLookups } = useDeviceListActions();
   const { model, netboxDevice } = buildNetboxLookups(device);
   return (
     <DeviceInfoBlock
       device={device}
-      menuActions={buildMenuActions(device)}
-      deviceStateExtra={buildButtonsExtra(device)}
+      menuActions={<DeviceActionsMenu device={device} />}
+      deviceStateExtra={<DeviceExtras device={device} />}
       log={buildLog(device.id)}
       model={model}
       netboxDevice={netboxDevice}

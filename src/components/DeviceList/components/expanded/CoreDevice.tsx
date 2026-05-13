@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
+import { DeviceActionsMenu } from "../DeviceActionsMenu";
+import { DeviceExtras } from "../DeviceExtras";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
 type CoreDeviceProps = {
@@ -15,17 +17,16 @@ type CoreDeviceProps = {
  * no peer connections, no external connections, no VTEP — it just
  * full-meshes to all DIST switches. The expanded panel is correspondingly
  * sparse: shows the management-domain widget only when the deployment
- * has `MGMT_DOMAIN_CORE_ENABLED` set (handled inside buildButtonsExtra).
+ * has `MGMT_DOMAIN_CORE_ENABLED` set (handled inside <DeviceExtras>).
  */
 export function CoreDevice({ device }: CoreDeviceProps): ReactNode {
-  const { buildMenuActions, buildButtonsExtra, buildLog, buildNetboxLookups } =
-    useDeviceListActions();
+  const { buildLog, buildNetboxLookups } = useDeviceListActions();
   const { model, netboxDevice } = buildNetboxLookups(device);
   return (
     <DeviceInfoBlock
       device={device}
-      menuActions={buildMenuActions(device)}
-      deviceStateExtra={buildButtonsExtra(device)}
+      menuActions={<DeviceActionsMenu device={device} />}
+      deviceStateExtra={<DeviceExtras device={device} />}
       log={buildLog(device.id)}
       model={model}
       netboxDevice={netboxDevice}

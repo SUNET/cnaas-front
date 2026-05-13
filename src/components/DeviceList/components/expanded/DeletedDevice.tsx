@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
+import { DeviceActionsMenu } from "../DeviceActionsMenu";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
 type DeletedDeviceProps = {
@@ -16,11 +17,11 @@ type DeletedDeviceProps = {
  * no logs.
  */
 export function DeletedDevice({ device }: DeletedDeviceProps): ReactNode {
-  const { buildMenuActions, buildLog } = useDeviceListActions();
+  const { buildLog } = useDeviceListActions();
   return (
     <DeviceInfoBlock
       device={device}
-      menuActions={buildMenuActions(device)}
+      menuActions={<DeviceActionsMenu device={device} />}
       log={buildLog(device.id)}
     />
   );

@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
+import { DeviceActionsMenu } from "../DeviceActionsMenu";
+import { DeviceExtras } from "../DeviceExtras";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 import { DeviceReplaceForm } from "../DeviceReplaceForm";
 
@@ -18,17 +20,11 @@ type AccessDeviceProps = {
  *     hosts <DeviceReplaceForm>; "Replace device..." menu entry on
  *     MANAGED opens the device-state modal that transitions there.
  *   - Configure-ports menu entry (always for ACCESS).
- *   - Interface buttons (MLAG / uplink) via buildButtonsExtra.
+ *   - Interface buttons (MLAG / uplink) via <DeviceExtras>.
  */
 export function AccessDevice({ device }: AccessDeviceProps): ReactNode {
-  const {
-    addDeviceJob,
-    buildMenuActions,
-    buildButtonsExtra,
-    buildLog,
-    buildNetboxLookups,
-    changeStateLocally,
-  } = useDeviceListActions();
+  const { addDeviceJob, buildLog, buildNetboxLookups, changeStateLocally } =
+    useDeviceListActions();
   const { model, netboxDevice } = buildNetboxLookups(device);
 
   const extras: ReactNode[] = [];
@@ -45,14 +41,13 @@ export function AccessDevice({ device }: AccessDeviceProps): ReactNode {
       />,
     );
   }
-  const buttons = buildButtonsExtra(device);
-  if (buttons) extras.push(buttons);
+  extras.push(<DeviceExtras key={`${device.id}_extras`} device={device} />);
 
   return (
     <DeviceInfoBlock
       device={device}
-      menuActions={buildMenuActions(device)}
-      deviceStateExtra={extras.length > 0 ? extras : undefined}
+      menuActions={<DeviceActionsMenu device={device} />}
+      deviceStateExtra={extras}
       log={buildLog(device.id)}
       model={model}
       netboxDevice={netboxDevice}

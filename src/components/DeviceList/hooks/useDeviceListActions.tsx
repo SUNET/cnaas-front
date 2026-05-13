@@ -1,66 +1,68 @@
-import { type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { Button, Dropdown } from "semantic-ui-react";
 
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
-import {
-  useDeviceList,
-  useDeviceListPageActions,
-} from "../stores/DeviceListContext";
-import { actions } from "../stores/deviceListReducer";
 import { updateDevice, updateDeviceFacts } from "../api/deviceListApi";
+import { useDeviceList } from "../stores/DeviceListContext";
+import { actions } from "../stores/deviceListReducer";
 import type { Device, DeviceState } from "../../../types/device";
-import { isCoreDevice, isDistDevice } from "../../../types/device";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
-import type { FilterData } from "../types/table";
-import type { DeviceInterface } from "../types/deviceInterface";
-import { getMenuActionsConfig } from "../utils";
 
 export type DeviceListActions = {
   readonly addDeviceJob: (deviceId: number, jobId: number) => void;
   readonly buildLog: (deviceId: number) => { [id: string]: string[] };
-  readonly buildMenuActions: (device: Device) => ReactNode;
-  readonly buildButtonsExtra: (device: Device) => ReactNode;
   readonly buildNetboxLookups: (device: Device) => {
     readonly model: unknown;
     readonly netboxDevice: unknown;
   };
+  readonly changeStateAction: (
+    deviceId: number,
+    state: DeviceState,
+  ) => Promise<void>;
   readonly changeStateLocally: (deviceId: number, state: DeviceState) => void;
+  readonly configurePortsAction: (hostname: string) => void;
+  readonly handleDeleteModalOpen: (device: Device) => void;
+  readonly handleDeviceStateModalOpen: (
+    hostname: string,
+    deviceId: number,
+    newState: DeviceState,
+  ) => void;
   readonly handleHostnameModalOpen: (
     deviceId: number,
     hostname: string,
   ) => void;
+  readonly handleMgmtAddModalOpen: (
+    deviceA: string,
+    deviceBCandidates: readonly Device[],
+  ) => void;
+  readonly handleMgmtUpdateModalOpen: (domain: MgmtDomain) => void;
+  readonly handleShowConfigModalOpen: (
+    hostname: string,
+    state: DeviceState,
+  ) => void;
+  readonly syncDeviceAction: (hostname: string) => void;
+  readonly updateFactsAction: (
+    hostname: string,
+    deviceId: number,
+  ) => Promise<void>;
+  readonly upgradeDeviceAction: (hostname: string) => void;
 };
 
 /**
- * Bundles every action handler needed by the expanded-row leaves.
+ * Action handlers for the DeviceList page. Pure (args) -> dispatch /
+ * navigate / fetch — no JSX. JSX assembly lives in components
+ * (DeviceActionsMenu, MgmtDomainButton, MlagButtons, ...).
  *
  * Page-level callbacks (URL writes via `handleFilterChange`) live on
- * <DeviceList> and are exposed through DeviceListPageActionsContext so
- * leaves stay self-contained without prop-drilling.
+ * <DeviceList> and are exposed through DeviceListPageActionsContext.
  */
 export function useDeviceListActions(): DeviceListActions {
   const { token } = useAuthToken();
   const { state, dispatch } = useDeviceList();
-  const { handleFilterChange } = useDeviceListPageActions();
-  const {
-    deviceData,
-    deviceInterfaceData,
-    deviceJobs,
-    logLines,
-    mgmtDomainsData,
-    netboxDeviceData,
-    netboxModelData,
-  } = state;
+  const { deviceJobs, logLines, netboxDeviceData, netboxModelData } = state;
   const navigate = useNavigate();
 
   const addDeviceJob = (deviceId: number, jobId: number) => {
     dispatch({ type: actions.ADD_DEVICE_JOB, deviceId, jobId });
-  };
-
-  const findAction = (filter: FilterData, expandDeviceId: number | null) => {
-    handleFilterChange(filter, expandDeviceId);
-    globalThis.scrollTo(0, 0);
   };
 
   const syncDeviceAction = (hostname: string) => {
@@ -151,7 +153,7 @@ export function useDeviceListActions(): DeviceListActions {
 
   const handleMgmtAddModalOpen = (
     deviceA: string,
-    deviceBCandidates: Device[],
+    deviceBCandidates: readonly Device[],
   ) => {
     dispatch({
       type: actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL,
@@ -179,139 +181,6 @@ export function useDeviceListActions(): DeviceListActions {
       ipv6Initial: ipv6GW,
       vlanInitial: vlan,
     });
-  };
-
-  const buildMenuActions = (device: Device): ReactNode => {
-    const handlers = {
-      changeStateAction,
-      changeStateLocally,
-      configurePortsAction,
-      handleDeleteModalOpen,
-      handleDeviceStateModalOpen,
-      handleShowConfigModalOpen,
-      handleShowHostnameModal: handleHostnameModalOpen,
-      syncDeviceAction,
-      updateFactsAction,
-      upgradeDeviceAction,
-    };
-    return getMenuActionsConfig(device, handlers).map((action) => (
-      <Dropdown.Item
-        key={action.key}
-        text={action.text}
-        onClick={action.onClick}
-        disabled={action.disabled}
-      />
-    ));
-  };
-
-  const renderMlagButtons = (
-    interfaces: readonly DeviceInterface[],
-  ): ReactNode[] =>
-    interfaces
-      .filter((intf) => intf.configtype === "MLAG_PEER")
-      .map((intf) => (
-        <Button
-          compact
-          icon="exchange"
-          key={intf.name}
-          onClick={() =>
-            findAction(
-              { id: String(intf.data.neighbor_id ?? "") },
-              intf.data.neighbor_id ?? null,
-            )
-          }
-          title="Go to MLAG peer device"
-          content={`${intf.name}: MLAG peer`}
-        />
-      ));
-
-  const renderUplinkButtons = (
-    interfaces: readonly DeviceInterface[],
-  ): ReactNode[] =>
-    interfaces
-      .filter((intf) => intf.configtype === "ACCESS_UPLINK")
-      .map((intf) => (
-        <Button
-          compact
-          icon="arrow up"
-          key={intf.name}
-          onClick={() =>
-            findAction(
-              { hostname: intf.data.neighbor ?? "" },
-              intf.data.neighbor_id ?? null,
-            )
-          }
-          title="Go to uplink device"
-          content={`${intf.name}: Uplink to ${intf.data.neighbor}`}
-        />
-      ));
-
-  const getMgmtDomainsForHostname = (hostname: string) =>
-    mgmtDomainsData.filter(
-      (data) => hostname === data.device_a || hostname === data.device_b,
-    );
-
-  const renderMgmtDomainButton = (device: Device): ReactNode => {
-    const includeCore = process.env.MGMT_DOMAIN_CORE_ENABLED === "true";
-    const owned = getMgmtDomainsForHostname(device.hostname);
-
-    if (owned.length === 0) {
-      const isCorrectType = (d: Device) =>
-        d.device_type === "DIST" || (includeCore && d.device_type === "CORE");
-      const candidates = deviceData
-        .filter(isCorrectType)
-        .filter((d) => getMgmtDomainsForHostname(d.hostname).length === 0);
-      return (
-        <Button
-          compact
-          icon="plus"
-          key={`${device.id}_mgmgt_add`}
-          onClick={() =>
-            handleMgmtAddModalOpen(device.hostname, [...candidates])
-          }
-          content="Add management domain"
-        />
-      );
-    }
-
-    if (owned.length > 1) {
-      throw new Error("multiple mgmt domains for device");
-    }
-
-    return (
-      <Button
-        compact
-        icon="arrow up"
-        key={`${device.id}_mgmgt_add`}
-        onClick={() => handleMgmtUpdateModalOpen(owned[0])}
-        content="Management domain"
-      />
-    );
-  };
-
-  const buildButtonsExtra = (device: Device): ReactNode => {
-    const buttons: ReactNode[] = [];
-    const interfaces = deviceInterfaceData[device.id];
-    if (interfaces) {
-      buttons.push(
-        ...renderMlagButtons(interfaces),
-        ...renderUplinkButtons(interfaces),
-      );
-    }
-
-    const includeCore = process.env.MGMT_DOMAIN_CORE_ENABLED === "true";
-    if (isDistDevice(device) || (includeCore && isCoreDevice(device))) {
-      buttons.push(renderMgmtDomainButton(device));
-    }
-
-    if (buttons.length === 0) return null;
-    return (
-      <div key="btngroup">
-        <Button.Group vertical labeled icon>
-          {buttons}
-        </Button.Group>
-      </div>
-    );
   };
 
   const buildLog = (deviceId: number): { [id: string]: string[] } => {
@@ -343,10 +212,18 @@ export function useDeviceListActions(): DeviceListActions {
   return {
     addDeviceJob,
     buildLog,
-    buildMenuActions,
-    buildButtonsExtra,
     buildNetboxLookups,
+    changeStateAction,
     changeStateLocally,
+    configurePortsAction,
+    handleDeleteModalOpen,
+    handleDeviceStateModalOpen,
     handleHostnameModalOpen,
+    handleMgmtAddModalOpen,
+    handleMgmtUpdateModalOpen,
+    handleShowConfigModalOpen,
+    syncDeviceAction,
+    updateFactsAction,
+    upgradeDeviceAction,
   };
 }

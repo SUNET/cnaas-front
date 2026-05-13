@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Device } from "../../../../types/device";
 import { useDeviceList } from "../../stores/DeviceListContext";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
+import { DeviceActionsMenu } from "../DeviceActionsMenu";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 import { DeviceInitForm } from "../DeviceInitForm";
 
@@ -22,8 +23,7 @@ type ZtpDeviceProps = {
  */
 export function ZtpDevice({ device }: ZtpDeviceProps): ReactNode {
   const { state } = useDeviceList();
-  const { addDeviceJob, buildMenuActions, buildLog, buildNetboxLookups } =
-    useDeviceListActions();
+  const { addDeviceJob, buildLog, buildNetboxLookups } = useDeviceListActions();
   const { model, netboxDevice } = buildNetboxLookups(device);
 
   let extra: ReactNode = null;
@@ -45,7 +45,7 @@ export function ZtpDevice({ device }: ZtpDeviceProps): ReactNode {
   return (
     <DeviceInfoBlock
       device={device}
-      menuActions={buildMenuActions(device)}
+      menuActions={<DeviceActionsMenu device={device} />}
       deviceStateExtra={extra}
       log={buildLog(device.id)}
       model={model}

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import type { Device } from "../../../../types/device";
 import { useDeviceListActions } from "../../hooks/useDeviceListActions";
+import { DeviceActionsMenu } from "../DeviceActionsMenu";
 import { DeviceInfoBlock } from "../DeviceInfoBlock";
 
 type PreConfiguredDeviceProps = {
@@ -19,13 +20,12 @@ type PreConfiguredDeviceProps = {
 export function PreConfiguredDevice({
   device,
 }: PreConfiguredDeviceProps): ReactNode {
-  const { buildMenuActions, buildLog, buildNetboxLookups } =
-    useDeviceListActions();
+  const { buildLog, buildNetboxLookups } = useDeviceListActions();
   const { model, netboxDevice } = buildNetboxLookups(device);
   return (
     <DeviceInfoBlock
       device={device}
-      menuActions={buildMenuActions(device)}
+      menuActions={<DeviceActionsMenu device={device} />}
       log={buildLog(device.id)}
       model={model}
       netboxDevice={netboxDevice}
