@@ -22,18 +22,24 @@ export function useNetboxModel(model: string | null | undefined): unknown {
   useEffect(() => {
     if (model == null) return;
     if (cached !== undefined) return;
+    const modelName = model;
     const controller = new AbortController();
-    (async () => {
+    async function loadNetboxModel() {
       try {
-        const data = await fetchNetboxModel(model, token ?? "");
+        const data = await fetchNetboxModel(modelName, token ?? "");
         if (controller.signal.aborted) return;
         if (data) {
-          dispatch({ type: actions.CACHE_NETBOX_MODEL, model, data });
+          dispatch({
+            type: actions.CACHE_NETBOX_MODEL,
+            model: modelName,
+            data,
+          });
         }
       } catch {
         // Swallow — leaves render without netbox model data.
       }
-    })();
+    }
+    loadNetboxModel();
     return () => controller.abort();
   }, [model, token, cached, dispatch]);
 

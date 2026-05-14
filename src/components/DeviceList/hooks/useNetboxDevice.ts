@@ -18,7 +18,7 @@ export function useNetboxDevice(deviceId: number, hostname: string): unknown {
   useEffect(() => {
     if (cached !== undefined) return;
     const controller = new AbortController();
-    (async () => {
+    async function loadNetboxDevice() {
       try {
         const data = await fetchNetboxDevice(hostname, token ?? "");
         if (controller.signal.aborted) return;
@@ -32,7 +32,8 @@ export function useNetboxDevice(deviceId: number, hostname: string): unknown {
       } catch {
         // Swallow — leaves render without netbox data.
       }
-    })();
+    }
+    loadNetboxDevice();
     return () => controller.abort();
   }, [deviceId, hostname, token, cached, dispatch]);
 

@@ -23,7 +23,7 @@ export function useDeviceInterfaces(
   useEffect(() => {
     if (cached) return;
     const controller = new AbortController();
-    (async () => {
+    async function loadDeviceInterfaces() {
       try {
         const interfaces = await fetchDeviceInterfaces(hostname, token);
         if (controller.signal.aborted) return;
@@ -37,7 +37,8 @@ export function useDeviceInterfaces(
       } catch {
         // Swallow — leaves render without interfaces; rerender on retry.
       }
-    })();
+    }
+    loadDeviceInterfaces();
     return () => controller.abort();
   }, [deviceId, hostname, token, cached, dispatch]);
 

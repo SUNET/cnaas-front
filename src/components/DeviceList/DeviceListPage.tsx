@@ -5,13 +5,13 @@ import {
   COLUMN_MAP,
   isDeviceColumnKey,
   type DeviceColumnKey,
+  type FilterData,
 } from "./types/table";
 import { DeviceListProvider } from "./stores/DeviceListContext";
 import type {
   InitialSettings,
   StoredSettings,
 } from "./stores/deviceListReducer";
-import type { FilterData } from "./types/table";
 import { DeviceList } from "./components/DeviceList";
 
 const DEFAULT_ACTIVE_COLUMNS: readonly DeviceColumnKey[] = [

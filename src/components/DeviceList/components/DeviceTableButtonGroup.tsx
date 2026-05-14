@@ -6,8 +6,12 @@ import {
   Popup,
   Select,
 } from "semantic-ui-react";
-import { COLUMN_MAP, type DeviceColumnKey } from "../types/table";
-import type { FilterData, SortDirection } from "../types/table";
+import {
+  COLUMN_MAP,
+  type DeviceColumnKey,
+  type FilterData,
+  type SortDirection,
+} from "../types/table";
 
 const PER_PAGE_OPTIONS = [
   { key: 20, value: 20, text: "20" },

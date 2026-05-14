@@ -1,6 +1,5 @@
 import type { Device, DeviceState } from "../../../types/device";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
-import type { DeviceColumnKey } from "../types/table";
 import type { DeviceInterface } from "../types/deviceInterface";
 import type {
   AddMgmtDomainModal,
@@ -10,7 +9,11 @@ import type {
   ShowConfigModal,
   UpdateMgmtDomainModal,
 } from "../types/modals";
-import type { FilterData, SortDirection } from "../types/table";
+import type {
+  DeviceColumnKey,
+  FilterData,
+  SortDirection,
+} from "../types/table";
 
 // --- Types ---
 
