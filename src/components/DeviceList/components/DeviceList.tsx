@@ -15,7 +15,13 @@ import {
   useDeviceList,
 } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";
-import type { FilterData, SortDirection } from "../types/table";
+import {
+  COLUMN_MAP,
+  isDeviceColumnKey,
+  type DeviceColumnKey,
+  type FilterData,
+  type SortDirection,
+} from "../types/table";
 import {
   fetchDeviceById,
   fetchDeviceInterfaces,
@@ -32,12 +38,6 @@ import { DeleteModal } from "./actionModals/DeleteModal";
 import { HostnameModal } from "./actionModals/HostnameModal";
 import { ShowConfigModal } from "./actionModals/ShowConfigModal";
 import { DeviceStateModal } from "./actionModals/DeviceStateModal";
-
-import {
-  COLUMN_MAP,
-  isDeviceColumnKey,
-  type DeviceColumnKey,
-} from "../types/columns";
 
 export function DeviceList() {
   const { token } = useAuthToken();

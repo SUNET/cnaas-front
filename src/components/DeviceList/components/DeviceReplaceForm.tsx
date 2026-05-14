@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Select,
-  Loader,
-  type DropdownProps,
-  type SemanticICONS,
-} from "semantic-ui-react";
+import { Select, Loader, type DropdownProps } from "semantic-ui-react";
 import {
   fetchDiscoveredDevices,
   fetchLldpNeighbors,
@@ -63,11 +58,6 @@ export function DeviceReplaceForm({
   jobIdCallback,
   clearCandidate,
 }: DeviceReplaceFormProps) {
-  const [submitDisabled, setSubmitDisabled] = useState(false);
-  const [submitIcon, setSubmitIcon] = useState<SemanticICONS>(
-    "window restore outline",
-  );
-  const [submitText, setSubmitText] = useState("Initialize...");
   const [replacementCandidates, setReplacementCandidates] = useState<
     readonly CandidateOption[]
   >([]);
@@ -140,10 +130,6 @@ export function DeviceReplaceForm({
 
   const submitInit = () => {
     if (replacementCandidateId === null) return;
-    setSubmitDisabled(true);
-    setSubmitIcon("cog");
-    setSubmitText("Initializing...");
-
     submitInitJob(
       token,
       replacementCandidateId,
@@ -180,9 +166,6 @@ export function DeviceReplaceForm({
       />
       {replacementCandidateId !== null && (
         <DeviceInitCheckModal
-          submitDisabled={submitDisabled}
-          submitText={submitText}
-          submitIcon={submitIcon}
           submitInit={submitInit}
           deviceId={replacementCandidateId}
           hostname={hostname}

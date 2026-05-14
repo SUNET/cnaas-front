@@ -1,6 +1,6 @@
 import type { Device, DeviceState } from "../../../types/device";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
-import type { DeviceColumnKey } from "../types/columns";
+import type { DeviceColumnKey } from "../types/table";
 import type { DeviceInterface } from "../types/deviceInterface";
 import type {
   AddMgmtDomainModal,

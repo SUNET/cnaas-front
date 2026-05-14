@@ -4,7 +4,6 @@ import {
   Modal,
   Accordion,
   type AccordionTitleProps,
-  type SemanticICONS,
 } from "semantic-ui-react";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -13,9 +12,7 @@ import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import type { DeviceType } from "../../../../types/device";
 
 type DeviceInitCheckModalProps = {
-  readonly submitDisabled?: boolean;
-  readonly submitText: string;
-  readonly submitIcon?: SemanticICONS;
+  readonly disabled?: boolean;
   readonly submitInit: () => void;
   readonly deviceId: number;
   readonly hostname: string;
@@ -49,9 +46,7 @@ async function extractErrorMessage(error: unknown): Promise<string> {
 }
 
 export function DeviceInitCheckModal({
-  submitDisabled,
-  submitText,
-  submitIcon,
+  disabled = false,
   submitInit,
   deviceId,
   hostname,
@@ -62,6 +57,7 @@ export function DeviceInitCheckModal({
   const [initcheckOutput, setInitcheckOutput] = useState<InitCheckOutput>(null);
   const [accordionActiveIndex, setAccordionActiveIndex] = useState<number>(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { token } = useAuthToken();
 
   useEffect(() => {
@@ -202,13 +198,13 @@ export function DeviceInitCheckModal({
       open={isOpen}
       trigger={
         <Button
-          disabled={submitDisabled}
+          disabled={disabled || submitting}
           icon
           labelPosition="right"
           onClick={() => setIsOpen(true)}
         >
-          {submitText}
-          <Icon name={submitIcon} />
+          {submitting ? "Initializing..." : "Initialize..."}
+          <Icon name={submitting ? "cog" : "window restore outline"} />
         </Button>
       }
     >
@@ -223,6 +219,7 @@ export function DeviceInitCheckModal({
         <Button
           key="submit"
           onClick={() => {
+            setSubmitting(true);
             setIsOpen(false);
             submitInit();
           }}

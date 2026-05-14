@@ -1,8 +1,11 @@
 import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
-import { COLUMN_MAP, isDeviceColumnKey } from "./types/columns";
-import type { DeviceColumnKey } from "./types/columns";
+import {
+  COLUMN_MAP,
+  isDeviceColumnKey,
+  type DeviceColumnKey,
+} from "./types/table";
 import { DeviceListProvider } from "./stores/DeviceListContext";
 import type {
   InitialSettings,

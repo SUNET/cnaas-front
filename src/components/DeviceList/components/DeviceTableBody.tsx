@@ -1,5 +1,5 @@
 import { Loader, TableBody, TableCell, TableRow } from "semantic-ui-react";
-import type { DeviceColumnKey } from "../types/columns";
+import type { DeviceColumnKey } from "../types/table";
 import type { Device } from "../../../types/device";
 import { DeviceTableBodyRow } from "./DeviceTableBodyRow";
 

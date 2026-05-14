@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Input, Popup, Select, type DropdownProps } from "semantic-ui-react";
 
-import { COLUMN_MAP, type DeviceColumnKey } from "../types/columns";
+import { COLUMN_MAP, type DeviceColumnKey } from "../types/table";
 import type { FilterData } from "../types/table";
 import { DEVICE_STATES, DEVICE_TYPES } from "../../../types/device";
 

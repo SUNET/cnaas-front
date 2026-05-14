@@ -6,7 +6,7 @@ import {
   Popup,
   Select,
 } from "semantic-ui-react";
-import { COLUMN_MAP, type DeviceColumnKey } from "../types/columns";
+import { COLUMN_MAP, type DeviceColumnKey } from "../types/table";
 import type { FilterData, SortDirection } from "../types/table";
 
 const PER_PAGE_OPTIONS = [

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Icon } from "semantic-ui-react";
 
-import type { DeviceColumnKey } from "../types/columns";
+import type { DeviceColumnKey } from "../types/table";
 import type { Device } from "../../../types/device";
 import { isAccessDevice, isManaged } from "../../../types/device";
 
@@ -18,7 +18,7 @@ export function DeviceTableBodyRowCellContent({
   open,
 }: DeviceTableBodyRowCellContentProps): ReactNode {
   if (column === "state" && device.deleted) return "DELETED";
-  if (column === "synchronized" && device.state !== "MANAGED") return null;
+  if (column === "synchronized" && !isManaged(device)) return null;
 
   if (column === "synchronized") {
     const synchronized = Boolean(device.synchronized);

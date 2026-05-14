@@ -18,9 +18,7 @@ const mockSubmitInit = jest.fn();
 
 function renderComponent(props = {}) {
   const defaultProps = {
-    submitDisabled: false,
-    submitText: "Initialize...",
-    submitIcon: "window restore outline",
+    disabled: false,
     submitInit: mockSubmitInit,
     deviceId: 10,
     hostname: "test-switch",
@@ -59,8 +57,8 @@ test("renders trigger button with provided text", () => {
   expect(triggerButton).toBeEnabled();
 });
 
-test("trigger button is disabled when submitDisabled is true", () => {
-  renderComponent({ submitDisabled: true });
+test("trigger button is disabled when disabled prop is true", () => {
+  renderComponent({ disabled: true });
 
   expect(
     screen.getByRole("button", { name: /initialize\.\.\./i }),

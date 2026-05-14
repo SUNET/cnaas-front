@@ -1,10 +1,5 @@
 import { useState, type ChangeEvent } from "react";
-import {
-  Select,
-  Input,
-  type DropdownProps,
-  type SemanticICONS,
-} from "semantic-ui-react";
+import { Select, Input, type DropdownProps } from "semantic-ui-react";
 import { fetchDiscoveredDevices, initDevice } from "../api/deviceListApi";
 import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
@@ -50,11 +45,6 @@ export function DeviceInitForm({
   jobIdCallback,
 }: DeviceInitFormProps) {
   const [hostname, setHostname] = useState("");
-  const [submitDisabled, setSubmitDisabled] = useState(false);
-  const [submitIcon, setSubmitIcon] = useState<SemanticICONS>(
-    "window restore outline",
-  );
-  const [submitText, setSubmitText] = useState("Initialize...");
   const [deviceType, setDeviceType] = useState<DeviceType | null>(null);
   const [mlagInit, setMlagInit] = useState(false);
   const [mlagPeerHostname, setMlagPeerHostname] = useState<string | null>(null);
@@ -106,10 +96,6 @@ export function DeviceInitForm({
 
   const submitInit = () => {
     if (!deviceType) return;
-    setSubmitDisabled(true);
-    setSubmitIcon("cog");
-    setSubmitText("Initializing...");
-
     if (mlagInit) {
       submitInitJob(
         deviceId,
@@ -160,13 +146,10 @@ export function DeviceInitForm({
       )}
       {deviceType && (
         <DeviceInitCheckModal
-          submitDisabled={
-            submitDisabled ||
+          disabled={
             !hostname.trim() ||
             (mlagInit && (!mlagPeerHostname?.trim() || mlagPeerId == null))
           }
-          submitText={submitText}
-          submitIcon={submitIcon}
           submitInit={submitInit}
           deviceId={deviceId}
           hostname={hostname}
