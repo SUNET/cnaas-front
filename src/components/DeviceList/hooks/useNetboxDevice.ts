@@ -8,7 +8,9 @@ import { actions } from "../stores/deviceListReducer";
 /**
  * Cache-aware fetch of Netbox device data, keyed by deviceId.
  *
- * Returns the cached value or `undefined` while pending. Aborts on unmount.
+ * Returns the cached value or `undefined` while pending. On unmount the
+ * in-flight request still runs to completion server-side; the controller
+ * flag only prevents a stale dispatch.
  */
 export function useNetboxDevice(deviceId: number, hostname: string): unknown {
   const { token } = useAuthToken();

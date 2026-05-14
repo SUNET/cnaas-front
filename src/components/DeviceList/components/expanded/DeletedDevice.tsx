@@ -13,8 +13,8 @@ type DeletedDeviceProps = {
  * Expanded panel for soft-deleted devices (`device.deleted === true`).
  *
  * Menu shows "No actions allowed" — device is in a recoverable trash
- * state and NMS cannot operate on it until restored. No state-extra,
- * no logs.
+ * state and NMS cannot operate on it until restored. No state-extra.
+ * Existing log entries (from before deletion) are still shown.
  */
 export function DeletedDevice({ device }: DeletedDeviceProps): ReactNode {
   const { buildLog } = useDeviceListActions();

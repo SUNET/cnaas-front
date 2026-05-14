@@ -10,6 +10,8 @@ import { actions } from "../stores/deviceListReducer";
  *
  * Multiple devices may share a model, so the cache lives by model string
  * (not deviceId). Returns the cached value or `undefined` while pending.
+ * On unmount the in-flight request still runs to completion server-side;
+ * the controller flag only prevents a stale dispatch.
  */
 export function useNetboxModel(model: string | null | undefined): unknown {
   const { token } = useAuthToken();

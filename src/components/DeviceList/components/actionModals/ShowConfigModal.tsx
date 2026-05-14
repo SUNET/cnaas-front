@@ -15,7 +15,6 @@ import {
   GridColumn,
   Segment,
   Dropdown,
-  type DropdownProps,
   DropdownDivider,
   DropdownHeader,
   DropdownItem,
@@ -185,70 +184,71 @@ export function ShowConfigModal({
     return () => controller.abort();
   }, []);
 
-  const leftColumnOptions = [
-    <DropdownHeader key="device_header" content="Device config" />,
-    <DropdownItem
-      key="running_config"
-      value="running_config"
-      text="Running config"
-    />,
-    <DropdownDivider key="divider" />,
-    <DropdownHeader key="nms_header" content="NMS generated" />,
-    <DropdownItem
-      key="generate_config"
-      value="generate_config"
-      text="Generate config from latest templates"
-    />,
-    <DropdownItem
-      key="previous_0"
-      value="previous_0"
-      text="Last syncto job generated config (0)"
-    />,
-    <DropdownItem
-      key="previous_1"
-      value="previous_1"
-      text="Second from last syncto job generated config (-1)"
-    />,
-    <DropdownItem
-      key="previous_2"
-      value="previous_2"
-      text="Third from last syncto job generated config (-2)"
-    />,
-    <DropdownItem
-      key="previous_3"
-      value="previous_3"
-      text="Fourth from last syncto job generated config (-3)"
-    />,
-    <DropdownItem
-      key="available_variables"
-      value="available_variables"
-      text="Available variables for templates"
-    />,
-  ];
-
-  const rightColumnOptions = [
-    ...leftColumnOptions,
-    <DropdownDivider key="right_only_divider" />,
-    <DropdownItem key="hide" value="hide" text="Hide column" />,
-  ];
-
-  function updateColumn(_e: unknown, data: DropdownProps) {
-    const colName = data.name;
-    const val = data.value;
-    if (
-      typeof val !== "string" ||
-      (colName !== "left" && colName !== "right")
-    ) {
-      return;
+  // Builds the menu children for a column dropdown. Children form is required
+  // because semantic-ui-react's `options` prop expects option objects, not
+  // rendered DropdownHeader/DropdownItem/DropdownDivider elements — those
+  // belong inside <Dropdown.Menu>.
+  function buildColumnItems(side: "left" | "right") {
+    const selectColumn = (val: string) => {
+      if (val.startsWith("previous_")) {
+        const number = Number.parseInt(val.replace("previous_", ""), 10);
+        getPreviousConfig(number);
+      }
+      if (val !== columnValues[side]) {
+        setColumnValues((current) => ({ ...current, [side]: val }));
+      }
+    };
+    const items = [
+      <DropdownHeader key="device_header" content="Device config" />,
+      <DropdownItem
+        key="running_config"
+        text="Running config"
+        onClick={() => selectColumn("running_config")}
+      />,
+      <DropdownDivider key="divider" />,
+      <DropdownHeader key="nms_header" content="NMS generated" />,
+      <DropdownItem
+        key="generate_config"
+        text="Generate config from latest templates"
+        onClick={() => selectColumn("generate_config")}
+      />,
+      <DropdownItem
+        key="previous_0"
+        text="Last syncto job generated config (0)"
+        onClick={() => selectColumn("previous_0")}
+      />,
+      <DropdownItem
+        key="previous_1"
+        text="Second from last syncto job generated config (-1)"
+        onClick={() => selectColumn("previous_1")}
+      />,
+      <DropdownItem
+        key="previous_2"
+        text="Third from last syncto job generated config (-2)"
+        onClick={() => selectColumn("previous_2")}
+      />,
+      <DropdownItem
+        key="previous_3"
+        text="Fourth from last syncto job generated config (-3)"
+        onClick={() => selectColumn("previous_3")}
+      />,
+      <DropdownItem
+        key="available_variables"
+        text="Available variables for templates"
+        onClick={() => selectColumn("available_variables")}
+      />,
+    ];
+    if (side === "right") {
+      items.push(
+        <DropdownDivider key="right_only_divider" />,
+        <DropdownItem
+          key="hide"
+          text="Hide column"
+          onClick={() => selectColumn("hide")}
+        />,
+      );
     }
-    const key: "left" | "right" = colName;
-    if (val.startsWith("previous_")) {
-      const number = Number.parseInt(val.replace("previous_", ""), 10);
-      getPreviousConfig(number);
-    }
-    if (val !== columnValues[key]) {
-      setColumnValues((current) => ({ ...current, [key]: val }));
-    }
+    return items;
   }
 
   const columnHeaders: Record<string, string> = {
@@ -376,24 +376,12 @@ export function ShowConfigModal({
       <ModalContent>
         <ModalDescription>
           <Segment>
-            <Dropdown
-              key="left"
-              name="left"
-              text="Left column"
-              button
-              options={leftColumnOptions}
-              defaultValue="running_config"
-              onChange={updateColumn}
-            />
-            <Dropdown
-              key="right"
-              name="right"
-              text="Right column"
-              button
-              options={rightColumnOptions}
-              defaultValue="generate_config"
-              onChange={updateColumn}
-            />
+            <Dropdown key="left" text="Left column" button>
+              <Dropdown.Menu>{buildColumnItems("left")}</Dropdown.Menu>
+            </Dropdown>
+            <Dropdown key="right" text="Right column" button>
+              <Dropdown.Menu>{buildColumnItems("right")}</Dropdown.Menu>
+            </Dropdown>
           </Segment>
           <Grid columns="equal">
             <GridRow>{columnContents}</GridRow>

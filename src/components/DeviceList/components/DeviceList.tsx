@@ -145,6 +145,7 @@ export function DeviceList() {
       );
       dispatch({ type: actions.SET_TOTAL_PAGES, pages });
       dispatch({ type: actions.SET_DEVICES, devices });
+      setError(null);
     } catch (err) {
       if (signal?.aborted) return;
       setError(err instanceof Error ? err : new Error(String(err)));

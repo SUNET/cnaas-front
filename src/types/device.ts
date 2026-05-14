@@ -8,9 +8,10 @@
 export type DeviceType = "UNKNOWN" | "ACCESS" | "DIST" | "CORE" | "FIREWALL";
 
 /**
- * Runtime arrays for the literal unions above. `as const satisfies …` keeps
- * them in sync with the type at compile time: removing a literal from the
- * union without updating the array is a type error, and vice versa.
+ * Runtime arrays for the literal unions above. `as const satisfies …`
+ * verifies every entry is a valid member, but does NOT require the array
+ * to contain every literal — adding a new member to the union is not
+ * a type error here.
  */
 export const DEVICE_TYPES = [
   "UNKNOWN",

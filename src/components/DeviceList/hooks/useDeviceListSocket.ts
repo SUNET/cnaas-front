@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch } from "react";
+import { useEffect, useRef, type Dispatch } from "react";
 
 import type { Device } from "../../../types/device";
 import { useFreshRef } from "../../../hooks/useFreshRef";
@@ -51,7 +51,9 @@ export function useDeviceListSocket(
 ): void {
   // Fresh refs let socket handlers see latest values without re-subscribing.
   const filterDataRef = useFreshRef(filterData);
-  const discoveredIdsRef = useFreshRef<Set<number>>(new Set());
+  // Stable Set across renders — using useFreshRef would replace it every
+  // render, defeating the discovered-id de-duplication.
+  const discoveredIdsRef = useRef<Set<number>>(new Set());
   const callbacksRef = useFreshRef(callbacks);
 
   useEffect(() => {

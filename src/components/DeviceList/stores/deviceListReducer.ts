@@ -318,7 +318,14 @@ export function deviceListReducer(
       };
 
     case actions.SET_FILTER:
-      return { ...state, filterData: action.filterData };
+      return {
+        ...state,
+        filterData: action.filterData,
+        // Keep filter row visibility in sync with whether any filter is set.
+        // Without this, browser back/forward can desync the URL filters from
+        // the filter UI.
+        filterActive: Object.keys(action.filterData).length > 0,
+      };
 
     case actions.SET_FILTER_ACTIVE:
       return { ...state, filterActive: action.active };

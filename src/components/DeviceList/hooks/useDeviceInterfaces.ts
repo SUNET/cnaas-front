@@ -10,7 +10,9 @@ import type { DeviceInterface } from "../types/deviceInterface";
  * Cache-aware fetch of a device's interfaces, keyed by deviceId.
  *
  * Returns the cached interfaces or `undefined` while a fetch is in flight
- * (or never triggered). Aborts on unmount or when the device changes.
+ * (or never triggered). On unmount/dep-change the in-flight request still
+ * runs to completion server-side; the controller flag only prevents a
+ * stale dispatch.
  */
 export function useDeviceInterfaces(
   deviceId: number,
