@@ -18,7 +18,12 @@ export function UplinkButtons({ interfaces }: UplinkButtonsProps) {
     <>
       {interfaces
         .filter(
-          (intf) => intf.configtype === "ACCESS_UPLINK" && intf.data !== null,
+          (intf) =>
+            intf.configtype === "ACCESS_UPLINK" &&
+            intf.data != null &&
+            typeof intf.data.neighbor === "string" &&
+            intf.data.neighbor.length > 0 &&
+            typeof intf.data.neighbor_id === "number",
         )
         .map((intf) => (
           <Button

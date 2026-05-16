@@ -191,9 +191,10 @@ export function useDeviceListActions(): DeviceListActions {
     if (!jobIds || jobIds.length === 0) return {};
     const lines: string[] = [];
     for (const jobId of jobIds) {
-      const needle = `job #${jobId}`;
+      // Delimiter-aware match: avoid "job #10" picking up "job #100" lines.
+      const needle = new RegExp(`job #${jobId}(?!\\d)`, "i");
       for (const line of logLines) {
-        if (line.toLowerCase().includes(needle)) {
+        if (needle.test(line)) {
           lines.push(line);
         }
       }

@@ -95,7 +95,10 @@ export function DeviceList() {
       dispatch({ type: actions.SET_MGMT_DOMAINS, mgmtDomains: mgmtdomains });
     } catch (err) {
       if (signal?.aborted) return;
-      setError(err instanceof Error ? err : new Error(String(err)));
+      // Mgmt domains are auxiliary expanded-row data; a failure here must
+      // not hide the device table. Log and degrade silently — the mgmt-domain
+      // widget already handles empty data gracefully.
+      console.warn("Failed to load management domains:", err);
     }
   };
 
@@ -126,6 +129,7 @@ export function DeviceList() {
       const match = /^filter\[(.+)\]$/.exec(key);
       if (!match) continue;
       const matchedKey = match[1];
+      if (!isDeviceColumnKey(matchedKey)) continue;
       const operator = operatorMap[matchedKey] ?? "[contains]";
       urlParams[`filter[${matchedKey}]${operator}`] = value;
     }

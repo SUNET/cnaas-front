@@ -17,7 +17,12 @@ export function MlagButtons({ interfaces }: MlagButtonsProps) {
   return (
     <>
       {interfaces
-        .filter((intf) => intf.configtype === "MLAG_PEER" && intf.data !== null)
+        .filter(
+          (intf) =>
+            intf.configtype === "MLAG_PEER" &&
+            intf.data != null &&
+            typeof intf.data.neighbor_id === "number",
+        )
         .map((intf) => (
           <Button
             compact

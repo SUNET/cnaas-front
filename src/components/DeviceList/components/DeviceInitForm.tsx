@@ -34,7 +34,15 @@ async function submitInitJob(
   };
   try {
     const response = await initDevice(deviceId, payload, token);
-    jobIdCallback(deviceId, response.job_id);
+    const jobId = response.job_id;
+    if (typeof jobId !== "number" || !Number.isFinite(jobId)) {
+      console.error(
+        "Device init succeeded without a valid numeric job_id",
+        response,
+      );
+      return;
+    }
+    jobIdCallback(deviceId, jobId);
   } catch (error) {
     console.error("Error submitting device init job:", error);
   }

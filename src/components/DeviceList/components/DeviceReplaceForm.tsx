@@ -43,8 +43,16 @@ async function submitInitJob(
       },
       token,
     );
-    jobIdCallback(deviceId, response.job_id);
-    jobIdCallback(candidateDeviceId, response.job_id);
+    const jobId = response.job_id;
+    if (typeof jobId !== "number" || !Number.isFinite(jobId)) {
+      console.error(
+        "Device replace succeeded without a valid numeric job_id",
+        response,
+      );
+      return;
+    }
+    jobIdCallback(deviceId, jobId);
+    jobIdCallback(candidateDeviceId, jobId);
   } catch (error) {
     console.error("Error submitting device init job:", error);
   }

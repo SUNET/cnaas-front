@@ -53,6 +53,51 @@ describe("deviceListReducer", () => {
     expect(next.deviceData[1].hostname).toBe("renamed");
   });
 
+  test("UPDATE_DEVICE drops hostname-keyed caches when hostname changes", () => {
+    let state = deviceListReducer(baseState(), {
+      type: actions.SET_DEVICES,
+      devices: [dev(1, { hostname: "old" })],
+    });
+    state = deviceListReducer(state, {
+      type: actions.CACHE_INTERFACES,
+      deviceId: 1,
+      interfaces: [],
+    });
+    state = deviceListReducer(state, {
+      type: actions.CACHE_NETBOX_DEVICE,
+      deviceId: 1,
+      data: { stale: true },
+    });
+    expect(state.deviceInterfaceData[1]).toBeDefined();
+    expect(state.netboxDeviceData[1]).toBeDefined();
+
+    const next = deviceListReducer(state, {
+      type: actions.UPDATE_DEVICE,
+      deviceId: 1,
+      device: dev(1, { hostname: "new" }),
+    });
+    expect(next.deviceInterfaceData[1]).toBeUndefined();
+    expect(next.netboxDeviceData[1]).toBeUndefined();
+  });
+
+  test("UPDATE_DEVICE preserves caches when hostname unchanged", () => {
+    let state = deviceListReducer(baseState(), {
+      type: actions.SET_DEVICES,
+      devices: [dev(1, { hostname: "same" })],
+    });
+    state = deviceListReducer(state, {
+      type: actions.CACHE_NETBOX_DEVICE,
+      deviceId: 1,
+      data: { kept: true },
+    });
+    const next = deviceListReducer(state, {
+      type: actions.UPDATE_DEVICE,
+      deviceId: 1,
+      device: dev(1, { hostname: "same", state: "MANAGED" }),
+    });
+    expect(next.netboxDeviceData[1]).toEqual({ kept: true });
+  });
+
   test("MARK_DEVICE_DELETED flips deleted flag", () => {
     const start = deviceListReducer(baseState(), {
       type: actions.SET_DEVICES,
@@ -79,6 +124,34 @@ describe("deviceListReducer", () => {
     expect(next.deviceData[0].hostname).toBe("host-1");
   });
 
+  test("PATCH_DEVICE_STATE also updates synchronized when provided", () => {
+    const start = deviceListReducer(baseState(), {
+      type: actions.SET_DEVICES,
+      devices: [dev(1, { state: "UNMANAGED", synchronized: true })],
+    });
+    const next = deviceListReducer(start, {
+      type: actions.PATCH_DEVICE_STATE,
+      deviceId: 1,
+      state: "MANAGED",
+      synchronized: false,
+    });
+    expect(next.deviceData[0].state).toBe("MANAGED");
+    expect(next.deviceData[0].synchronized).toBe(false);
+  });
+
+  test("PATCH_DEVICE_STATE leaves synchronized untouched when omitted", () => {
+    const start = deviceListReducer(baseState(), {
+      type: actions.SET_DEVICES,
+      devices: [dev(1, { state: "UNMANAGED", synchronized: true })],
+    });
+    const next = deviceListReducer(start, {
+      type: actions.PATCH_DEVICE_STATE,
+      deviceId: 1,
+      state: "MANAGED",
+    });
+    expect(next.deviceData[0].synchronized).toBe(true);
+  });
+
   test("SET_FILTER and SET_FILTER_ACTIVE", () => {
     let state = deviceListReducer(baseState(), {
       type: actions.SET_FILTER,
@@ -90,6 +163,27 @@ describe("deviceListReducer", () => {
       active: true,
     });
     expect(state.filterActive).toBe(true);
+  });
+
+  test("SET_FILTER auto-syncs filterActive: true when non-empty", () => {
+    const state = deviceListReducer(baseState(), {
+      type: actions.SET_FILTER,
+      filterData: { hostname: "abc" },
+    });
+    expect(state.filterActive).toBe(true);
+  });
+
+  test("SET_FILTER auto-syncs filterActive: false when empty", () => {
+    let state = deviceListReducer(baseState(), {
+      type: actions.SET_FILTER,
+      filterData: { hostname: "abc" },
+    });
+    expect(state.filterActive).toBe(true);
+    state = deviceListReducer(state, {
+      type: actions.SET_FILTER,
+      filterData: {},
+    });
+    expect(state.filterActive).toBe(false);
   });
 
   test("SET_SORT writes both column and direction", () => {
