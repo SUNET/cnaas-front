@@ -10,7 +10,6 @@ import {
   COLUMN_MAP,
   type DeviceColumnKey,
   type FilterData,
-  type SortDirection,
 } from "../types/table";
 
 const PER_PAGE_OPTIONS = [
@@ -41,8 +40,7 @@ type DeviceTableButtonGroupProps = {
   readonly resultsPerPage: number;
   readonly setActivePage: (page: number) => void;
   readonly setResultsPerPage: (perPage: number) => void;
-  readonly setSortColumn: (column: string | null) => void;
-  readonly setSortDirection: (direction: SortDirection) => void;
+  readonly clearSort: () => void;
 };
 
 export function DeviceTableButtonGroup({
@@ -53,8 +51,7 @@ export function DeviceTableButtonGroup({
   resultsPerPage,
   setActivePage,
   setResultsPerPage,
-  setSortColumn,
-  setSortDirection,
+  clearSort,
 }: DeviceTableButtonGroupProps) {
   return (
     <ButtonGroup icon>
@@ -74,8 +71,7 @@ export function DeviceTableButtonGroup({
         onClick={() => {
           setFilterActive(false);
           handleFilterChange({});
-          setSortColumn(null);
-          setSortDirection(null);
+          clearSort();
         }}
         title="Clear Filter and Sorting"
       >

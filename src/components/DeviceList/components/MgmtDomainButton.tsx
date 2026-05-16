@@ -35,6 +35,7 @@ export function MgmtDomainButton({ device }: MgmtDomainButtonProps) {
       d.device_type === "DIST" || (includeCore && d.device_type === "CORE");
     const candidates = deviceData
       .filter(isCorrectType)
+      .filter((d) => d.id !== device.id)
       .filter(
         (d) =>
           !mgmtDomainsData.some(

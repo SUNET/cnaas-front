@@ -48,6 +48,7 @@ export function DeviceTableBodyRow({
       {open && (
         <TableRow>
           <TableCell
+            colSpan={activeColumns.length}
             style={{
               display: "flex",
               flexDirection: "column",

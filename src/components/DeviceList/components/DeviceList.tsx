@@ -284,18 +284,11 @@ export function DeviceList() {
                 setResultsPerPage={(perPage) =>
                   dispatch({ type: actions.SET_RESULTS_PER_PAGE, perPage })
                 }
-                setSortColumn={(column) =>
+                clearSort={() =>
                   dispatch({
                     type: actions.SET_SORT,
-                    column,
-                    direction: sortDirection,
-                  })
-                }
-                setSortDirection={(direction) =>
-                  dispatch({
-                    type: actions.SET_SORT,
-                    column: sortColumn,
-                    direction,
+                    column: null,
+                    direction: null,
                   })
                 }
               />
@@ -378,13 +371,11 @@ export function DeviceList() {
                 newHostname,
                 token,
               );
-              if (interfaces.length > 0) {
-                dispatch({
-                  type: actions.CACHE_INTERFACES,
-                  deviceId,
-                  interfaces,
-                });
-              }
+              dispatch({
+                type: actions.CACHE_INTERFACES,
+                deviceId,
+                interfaces,
+              });
             } catch {
               // Swallow — UI keeps stale row; user can retry.
             }

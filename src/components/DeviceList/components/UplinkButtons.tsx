@@ -17,7 +17,9 @@ export function UplinkButtons({ interfaces }: UplinkButtonsProps) {
   return (
     <>
       {interfaces
-        .filter((intf) => intf.configtype === "ACCESS_UPLINK")
+        .filter(
+          (intf) => intf.configtype === "ACCESS_UPLINK" && intf.data !== null,
+        )
         .map((intf) => (
           <Button
             compact
@@ -25,13 +27,13 @@ export function UplinkButtons({ interfaces }: UplinkButtonsProps) {
             key={intf.name}
             onClick={() => {
               handleFilterChange(
-                { hostname: intf.data.neighbor ?? "" },
-                intf.data.neighbor_id ?? null,
+                { hostname: intf.data?.neighbor ?? "" },
+                intf.data?.neighbor_id ?? null,
               );
               globalThis.scrollTo(0, 0);
             }}
             title="Go to uplink device"
-            content={`${intf.name}: Uplink to ${intf.data.neighbor}`}
+            content={`${intf.name}: Uplink to ${intf.data?.neighbor}`}
           />
         ))}
     </>

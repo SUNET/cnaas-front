@@ -29,13 +29,11 @@ export function useDeviceInterfaces(
       try {
         const interfaces = await fetchDeviceInterfaces(hostname, token);
         if (controller.signal.aborted) return;
-        if (interfaces.length > 0) {
-          dispatch({
-            type: actions.CACHE_INTERFACES,
-            deviceId,
-            interfaces,
-          });
-        }
+        dispatch({
+          type: actions.CACHE_INTERFACES,
+          deviceId,
+          interfaces,
+        });
       } catch {
         // Swallow — leaves render without interfaces; rerender on retry.
       }

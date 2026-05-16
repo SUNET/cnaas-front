@@ -12,8 +12,7 @@ const baseProps = () => ({
   resultsPerPage: 20,
   setActivePage: jest.fn(),
   setResultsPerPage: jest.fn(),
-  setSortColumn: jest.fn(),
-  setSortDirection: jest.fn(),
+  clearSort: jest.fn(),
 });
 
 describe("DeviceTableButtonGroup", () => {
@@ -42,7 +41,6 @@ describe("DeviceTableButtonGroup", () => {
 
     expect(props.setFilterActive).toHaveBeenCalledWith(false);
     expect(props.handleFilterChange).toHaveBeenCalledWith({});
-    expect(props.setSortColumn).toHaveBeenCalledWith(null);
-    expect(props.setSortDirection).toHaveBeenCalledWith(null);
+    expect(props.clearSort).toHaveBeenCalledTimes(1);
   });
 });

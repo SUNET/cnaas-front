@@ -99,6 +99,7 @@ export type Action =
       type: typeof actions.PATCH_DEVICE_STATE;
       deviceId: number;
       state: DeviceState;
+      synchronized?: boolean;
     }
   | { type: typeof actions.SET_FILTER; filterData: FilterData }
   | { type: typeof actions.SET_FILTER_ACTIVE; active: boolean }
@@ -285,6 +286,17 @@ export function buildInitialState(settings: InitialSettings): DeviceListState {
 
 const MAX_LOG_LINES = 1000;
 
+function omitKey<V>(
+  record: Readonly<Record<number, V>>,
+  key: number,
+): Readonly<Record<number, V>> {
+  const next: Record<number, V> = {};
+  for (const [k, v] of Object.entries(record)) {
+    if (Number(k) !== key) next[Number(k)] = v;
+  }
+  return next;
+}
+
 export function deviceListReducer(
   state: DeviceListState,
   action: Action,
@@ -293,13 +305,29 @@ export function deviceListReducer(
     case actions.SET_DEVICES:
       return { ...state, deviceData: action.devices };
 
-    case actions.UPDATE_DEVICE:
-      return {
+    case actions.UPDATE_DEVICE: {
+      const prior = state.deviceData.find((dev) => dev.id === action.deviceId);
+      const hostnameChanged =
+        prior !== undefined && prior.hostname !== action.device.hostname;
+      const next: DeviceListState = {
         ...state,
         deviceData: state.deviceData.map((dev) =>
           dev.id === action.deviceId ? action.device : dev,
         ),
       };
+      if (!hostnameChanged) return next;
+      // Hostname changed → drop hostname-derived caches for this device.
+      // fetchDeviceInterfaces and fetchNetboxDevice key by hostname, so the
+      // deviceId-keyed caches would otherwise serve stale data.
+      return {
+        ...next,
+        deviceInterfaceData: omitKey(
+          state.deviceInterfaceData,
+          action.deviceId,
+        ),
+        netboxDeviceData: omitKey(state.netboxDeviceData, action.deviceId),
+      };
+    }
 
     case actions.MARK_DEVICE_DELETED:
       return {
@@ -313,7 +341,15 @@ export function deviceListReducer(
       return {
         ...state,
         deviceData: state.deviceData.map((dev) =>
-          dev.id === action.deviceId ? { ...dev, state: action.state } : dev,
+          dev.id === action.deviceId
+            ? {
+                ...dev,
+                state: action.state,
+                ...(action.synchronized !== undefined && {
+                  synchronized: action.synchronized,
+                }),
+              }
+            : dev,
         ),
       };
 
@@ -404,7 +440,9 @@ export function deviceListReducer(
       const updated: { [deviceId: string]: readonly number[] } = {};
       for (const [deviceId, jobs] of Object.entries(state.deviceJobs)) {
         updated[deviceId] =
-          jobs[0] === action.jobId ? [action.jobId, action.nextJobId] : jobs;
+          jobs[0] === action.jobId
+            ? [action.jobId, action.nextJobId, ...jobs.slice(1)]
+            : jobs;
       }
       return { ...state, deviceJobs: updated };
     }

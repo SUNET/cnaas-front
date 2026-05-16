@@ -173,6 +173,25 @@ describe("deviceListReducer", () => {
     expect(state.deviceJobs[2]).toEqual([200]);
   });
 
+  test("CHAIN_DEVICE_NEXT_JOB preserves later queued jobs after the chained one", () => {
+    let state = deviceListReducer(baseState(), {
+      type: actions.ADD_DEVICE_JOB,
+      deviceId: 1,
+      jobId: 100,
+    });
+    state = deviceListReducer(state, {
+      type: actions.ADD_DEVICE_JOB,
+      deviceId: 1,
+      jobId: 102,
+    });
+    state = deviceListReducer(state, {
+      type: actions.CHAIN_DEVICE_NEXT_JOB,
+      jobId: 100,
+      nextJobId: 101,
+    });
+    expect(state.deviceJobs[1]).toEqual([100, 101, 102]);
+  });
+
   test("APPEND_LOG caps at 1000 lines", () => {
     let state = baseState();
     for (let i = 0; i < 1005; i++) {

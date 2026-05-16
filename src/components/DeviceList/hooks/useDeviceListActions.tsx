@@ -105,10 +105,13 @@ export function useDeviceListActions(): DeviceListActions {
       return;
     }
     // Reducer-pushing: API confirmed truth, write directly.
+    // The PUT also sets synchronized:false, so mirror it locally to avoid
+    // a stale "synchronized" flag until the next refetch/socket update.
     dispatch({
       type: actions.PATCH_DEVICE_STATE,
       deviceId,
       state: deviceState,
+      synchronized: false,
     });
   };
 

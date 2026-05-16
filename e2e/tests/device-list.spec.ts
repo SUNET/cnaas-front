@@ -8,7 +8,7 @@ import { test, expect } from "@playwright/test";
  *   - eosaccess           — MANAGED ACCESS (initialized by ztp-init.spec.js)
  */
 
-test("user finds the access switch by filtering and inspects it", async ({
+test("@ztp user finds the access switch by filtering and inspects it", async ({
   page,
 }) => {
   await page.goto("/devices");
@@ -93,11 +93,10 @@ test("user opens a rename dialog, validates the form, and cancels", async ({
 
   // expand eosdist1 and open its Actions menu
   // (every row pre-renders a hidden expanded section, so scope to the
-  // visible "Actions" indicator)
+  // visible Actions button)
   await page.getByRole("cell", { name: "eosdist1", exact: true }).click();
   await page
-    .getByRole("alert")
-    .filter({ hasText: "Actions" })
+    .getByRole("button", { name: "Actions" })
     .filter({ visible: true })
     .click();
   await page.getByRole("option", { name: /change hostname/i }).click();

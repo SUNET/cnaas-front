@@ -17,7 +17,7 @@ export function MlagButtons({ interfaces }: MlagButtonsProps) {
   return (
     <>
       {interfaces
-        .filter((intf) => intf.configtype === "MLAG_PEER")
+        .filter((intf) => intf.configtype === "MLAG_PEER" && intf.data !== null)
         .map((intf) => (
           <Button
             compact
@@ -25,8 +25,8 @@ export function MlagButtons({ interfaces }: MlagButtonsProps) {
             key={intf.name}
             onClick={() => {
               handleFilterChange(
-                { id: String(intf.data.neighbor_id ?? "") },
-                intf.data.neighbor_id ?? null,
+                { id: String(intf.data?.neighbor_id ?? "") },
+                intf.data?.neighbor_id ?? null,
               );
               globalThis.scrollTo(0, 0);
             }}
