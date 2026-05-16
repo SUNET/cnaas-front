@@ -92,13 +92,9 @@ test("user opens a rename dialog, validates the form, and cancels", async ({
   await page.goto("/devices");
 
   // expand eosdist1 and open its Actions menu
-  // (every row pre-renders a hidden expanded section, so scope to the
-  // visible Actions button)
+  // (Semantic UI Dropdown renders as a div, not role="button", so match by text)
   await page.getByRole("cell", { name: "eosdist1", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Actions" })
-    .filter({ visible: true })
-    .click();
+  await page.getByText("Actions", { exact: true }).click();
   await page.getByRole("option", { name: /change hostname/i }).click();
 
   // rename form for eosdist1
