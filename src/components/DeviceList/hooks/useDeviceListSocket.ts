@@ -9,6 +9,7 @@ import {
   showDeviceDiscoveredToast,
   showDeviceCreatedToast,
 } from "../components/toasts";
+import { formatJobLogLine } from "../utils";
 
 type DeviceEvent = {
   readonly device_id: number;
@@ -100,10 +101,7 @@ export function useDeviceListSocket(
     };
 
     const handleJobEvent = (data: JobEvent) => {
-      const line =
-        data.status === "EXCEPTION"
-          ? `job #${data.job_id} changed status to ${data.status}: ${data.exception}\n`
-          : `job #${data.job_id} changed status to ${data.status}\n`;
+      const line = formatJobLogLine(data.job_id, data.status, data.exception);
       dispatch({ type: actions.APPEND_LOG, line });
 
       if (typeof data.next_job_id === "number") {

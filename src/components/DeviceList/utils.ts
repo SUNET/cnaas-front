@@ -211,3 +211,25 @@ function readMessage(value: unknown): string | null {
   const message = value.message;
   return typeof message === "string" ? message : null;
 }
+
+// --- Job log lines ---
+//
+// The socket emits one log line per job status change. Lines are stored in
+// `state.logLines` and later grouped per-device by matching the job id.
+// Producer (`formatJobLogLine`) and consumer (`jobLineMatcher`) MUST stay
+// in lock-step — the matcher's regex parses the producer's format.
+
+export function formatJobLogLine(
+  jobId: number,
+  status: string,
+  exception?: string,
+): string {
+  return status === "EXCEPTION"
+    ? `job #${jobId} changed status to ${status}: ${exception}\n`
+    : `job #${jobId} changed status to ${status}\n`;
+}
+
+// Delimiter-aware match: avoid "job #10" picking up "job #100" lines.
+export function jobLineMatcher(jobId: number): RegExp {
+  return new RegExp(`job #${jobId}(?!\\d)`, "i");
+}

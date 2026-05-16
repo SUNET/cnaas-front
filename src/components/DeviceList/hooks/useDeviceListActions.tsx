@@ -6,6 +6,7 @@ import { useDeviceList } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";
 import type { Device, DeviceState } from "../../../types/device";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
+import { jobLineMatcher } from "../utils";
 
 export type DeviceListActions = {
   readonly addDeviceJob: (deviceId: number, jobId: number) => void;
@@ -101,7 +102,7 @@ export function useDeviceListActions(): DeviceListActions {
         token,
       );
     } catch (err) {
-      console.log("error when updating state:", err);
+      console.warn("error when updating state:", err);
       return;
     }
     // Reducer-pushing: API confirmed truth, write directly.
@@ -191,8 +192,7 @@ export function useDeviceListActions(): DeviceListActions {
     if (!jobIds || jobIds.length === 0) return {};
     const lines: string[] = [];
     for (const jobId of jobIds) {
-      // Delimiter-aware match: avoid "job #10" picking up "job #100" lines.
-      const needle = new RegExp(`job #${jobId}(?!\\d)`, "i");
+      const needle = jobLineMatcher(jobId);
       for (const line of logLines) {
         if (needle.test(line)) {
           lines.push(line);

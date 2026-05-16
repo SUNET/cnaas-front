@@ -31,10 +31,14 @@ export function MgmtDomainButton({ device }: MgmtDomainButtonProps) {
   );
 
   if (owned.length === 0) {
-    const isCorrectType = (d: Device) =>
-      d.device_type === "DIST" || (includeCore && d.device_type === "CORE");
+    // Same-type peering: a DIST pairs with DIST, a CORE with CORE.
+    // CORE pairing is gated by MGMT_DOMAIN_CORE_ENABLED.
+    const isEligiblePeer = (d: Device) =>
+      d.device_type === device.device_type &&
+      (device.device_type === "DIST" ||
+        (includeCore && device.device_type === "CORE"));
     const candidates = deviceData
-      .filter(isCorrectType)
+      .filter(isEligiblePeer)
       .filter((d) => d.id !== device.id)
       .filter(
         (d) =>

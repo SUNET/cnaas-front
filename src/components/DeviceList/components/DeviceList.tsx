@@ -168,8 +168,7 @@ export function DeviceList() {
     const controller = new AbortController();
     getAllMgmtDomainsData(controller.signal);
     return () => controller.abort();
-    // Mount-only fetch; helper closes over `token` but it's stable enough for initial load.
-  }, []);
+  }, [token]);
 
   // Update deviceData on changes
   useEffect(() => {
@@ -385,8 +384,9 @@ export function DeviceList() {
                 deviceId,
                 interfaces,
               });
-            } catch {
-              // Swallow — UI keeps stale row; user can retry.
+            } catch (err) {
+              // UI keeps stale row; user can retry. Log for diagnostics.
+              console.warn("Failed to refresh device after rename:", err);
             }
           }}
         />
