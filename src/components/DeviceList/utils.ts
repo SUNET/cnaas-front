@@ -105,7 +105,7 @@ export function getMenuActionsConfig(
         ),
       condition: isAccessDevice(device),
     },
-    replaceDeviceUnmanged: {
+    replaceDeviceUnmanaged: {
       key: "replacedevice",
       text: "Replace device...",
       onClick: () =>
@@ -145,7 +145,7 @@ export function getMenuActionsConfig(
       deviceActions.makeManaged,
       deviceActions.showConfig,
       deviceActions.changeHostname,
-      deviceActions.replaceDeviceUnmanged,
+      deviceActions.replaceDeviceUnmanaged,
       deviceActions.delete,
     ],
   };

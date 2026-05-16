@@ -368,6 +368,10 @@ export function deviceListReducer(
         // Without this, browser back/forward can desync the URL filters from
         // the filter UI.
         filterActive: Object.keys(action.filterData).length > 0,
+        // Filter changes invalidate the current page index; without this
+        // reset, a URL-driven filter change while on page >1 would fetch
+        // the wrong page.
+        activePage: 1,
       };
 
     case actions.SET_FILTER_ACTIVE:
@@ -446,10 +450,9 @@ export function deviceListReducer(
     case actions.CHAIN_DEVICE_NEXT_JOB: {
       const updated: { [deviceId: string]: readonly number[] } = {};
       for (const [deviceId, jobs] of Object.entries(state.deviceJobs)) {
-        updated[deviceId] =
-          jobs[0] === action.jobId
-            ? [action.jobId, action.nextJobId, ...jobs.slice(1)]
-            : jobs;
+        updated[deviceId] = jobs.includes(action.jobId)
+          ? [...jobs, action.nextJobId]
+          : jobs;
       }
       return { ...state, deviceJobs: updated };
     }

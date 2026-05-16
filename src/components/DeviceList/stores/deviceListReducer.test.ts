@@ -186,6 +186,19 @@ describe("deviceListReducer", () => {
     expect(state.filterActive).toBe(false);
   });
 
+  test("SET_FILTER resets activePage to 1", () => {
+    let state = deviceListReducer(baseState(), {
+      type: actions.SET_ACTIVE_PAGE,
+      page: 5,
+    });
+    expect(state.activePage).toBe(5);
+    state = deviceListReducer(state, {
+      type: actions.SET_FILTER,
+      filterData: { hostname: "abc" },
+    });
+    expect(state.activePage).toBe(1);
+  });
+
   test("SET_SORT writes both column and direction", () => {
     const next = deviceListReducer(baseState(), {
       type: actions.SET_SORT,
@@ -247,7 +260,7 @@ describe("deviceListReducer", () => {
     expect(state.deviceJobs[1]).toEqual([100, 101]);
   });
 
-  test("CHAIN_DEVICE_NEXT_JOB only chains devices whose first job matches", () => {
+  test("CHAIN_DEVICE_NEXT_JOB only chains devices whose job list contains the completed job", () => {
     let state = deviceListReducer(baseState(), {
       type: actions.ADD_DEVICE_JOB,
       deviceId: 1,
@@ -267,7 +280,7 @@ describe("deviceListReducer", () => {
     expect(state.deviceJobs[2]).toEqual([200]);
   });
 
-  test("CHAIN_DEVICE_NEXT_JOB preserves later queued jobs after the chained one", () => {
+  test("CHAIN_DEVICE_NEXT_JOB appends the next job after any existing queued jobs", () => {
     let state = deviceListReducer(baseState(), {
       type: actions.ADD_DEVICE_JOB,
       deviceId: 1,
@@ -282,6 +295,28 @@ describe("deviceListReducer", () => {
       type: actions.CHAIN_DEVICE_NEXT_JOB,
       jobId: 100,
       nextJobId: 101,
+    });
+    expect(state.deviceJobs[1]).toEqual([100, 102, 101]);
+  });
+
+  test("CHAIN_DEVICE_NEXT_JOB still matches a job that is no longer the head of the list", () => {
+    // After a previous chain, the original job sits at index 0 and the
+    // chained job at index 1. A later completion event for the chained
+    // job must still match and append its successor.
+    let state = deviceListReducer(baseState(), {
+      type: actions.ADD_DEVICE_JOB,
+      deviceId: 1,
+      jobId: 100,
+    });
+    state = deviceListReducer(state, {
+      type: actions.CHAIN_DEVICE_NEXT_JOB,
+      jobId: 100,
+      nextJobId: 101,
+    });
+    state = deviceListReducer(state, {
+      type: actions.CHAIN_DEVICE_NEXT_JOB,
+      jobId: 101,
+      nextJobId: 102,
     });
     expect(state.deviceJobs[1]).toEqual([100, 101, 102]);
   });

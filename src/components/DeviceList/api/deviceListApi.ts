@@ -101,7 +101,11 @@ export async function fetchDeviceById(
   const url = `${API}/api/v1.0/device/${deviceId}`;
   const data: ApiSuccess<{ readonly devices: readonly Device[] }> =
     await getData(url, token, signal);
-  return data.data.devices[0];
+  const device = data.data.devices[0];
+  if (device === undefined) {
+    throw new Error(`Device ${deviceId} not found`);
+  }
+  return device;
 }
 
 export async function fetchDeviceInterfaces(

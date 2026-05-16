@@ -109,7 +109,7 @@ describe("getMenuActionsConfig", () => {
     expect(noopHandlers.changeStateAction).toHaveBeenCalledWith(1, "MANAGED");
   });
 
-  test("UNMANAGED replaceDeviceUnmanged uses changeStateLocally", () => {
+  test("UNMANAGED replaceDeviceUnmanaged uses changeStateLocally", () => {
     const dev = device({ state: "UNMANAGED" });
     const actions = getMenuActionsConfig(dev, noopHandlers);
     const action = actions.find((a) => a.key === "replacedevice");

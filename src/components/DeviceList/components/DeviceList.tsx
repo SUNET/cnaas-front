@@ -203,12 +203,7 @@ export function DeviceList() {
     nextFilterData: FilterData,
     expandDeviceId: number | null = null,
   ) => {
-    dispatch({ type: actions.SET_ACTIVE_PAGE, page: 1 });
     dispatch({ type: actions.SET_FILTER, filterData: nextFilterData });
-    dispatch({
-      type: actions.SET_FILTER_ACTIVE,
-      active: Object.values(nextFilterData).some((v) => v),
-    });
 
     const filterParams: { [key: string]: string } = Object.fromEntries(
       Object.entries(nextFilterData)
