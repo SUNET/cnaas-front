@@ -8,7 +8,7 @@ import { test, expect } from "@playwright/test";
  *   - eosaccess           — MANAGED ACCESS (initialized by ztp-init.spec.js)
  */
 
-test("@ztp user finds the access switch by filtering and inspects it", async ({
+test("@needs-ztp user finds the access switch by filtering and inspects it", async ({
   page,
 }) => {
   await page.goto("/devices");

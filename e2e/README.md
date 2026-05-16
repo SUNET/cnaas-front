@@ -108,10 +108,12 @@ environment — it initializes the access switch, which cannot be undone
 without redeploying containerlab (`--reconfigure`) and restarting the
 backend (to clear the database volume).
 
-**Important:** The ZTP test (`@ztp` tag) must complete successfully before
-running the interface-config tests, since those tests require a MANAGED
-ACCESS device (`eosaccess`) that is created during the ZTP initialization
-flow.
+**Important:** The ZTP test (`@ztp-setup` tag) must complete successfully
+before running tests that depend on a MANAGED ACCESS device (`eosaccess`)
+— for example, `interface-config.spec.ts` and any test tagged
+`@needs-ztp`. The two-step CI flow runs `test:e2e:ztp` first to populate
+eosaccess, then `test:e2e` (which excludes `@ztp-setup`) for everything
+else.
 
 What happens automatically:
 
