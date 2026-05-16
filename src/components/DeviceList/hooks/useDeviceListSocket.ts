@@ -92,6 +92,10 @@ export function useDeviceListSocket(
         }
       } else if (data.action === "CREATED") {
         showDeviceCreatedToast(data, callbacksRef.current.onGoToDevice);
+        // The new device might belong in the current view (filter+page);
+        // trigger a refetch so the table reflects backend reality. The
+        // toast already lets users jump straight to it.
+        dispatch({ type: actions.REQUEST_REFETCH });
       }
     };
 

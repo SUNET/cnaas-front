@@ -25,6 +25,7 @@ import {
   fetchRunningConfig,
 } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { extractErrorMessageAsync } from "../../utils";
 import type { DeviceState } from "../../../../types/device";
 
 type ShowConfigModalProps = {
@@ -112,9 +113,10 @@ export function ShowConfigModal({
       setRunningConfig({ status: "loaded", config: resp.data.config });
     } catch (error: unknown) {
       if (signal?.aborted) return;
-      const err = error instanceof Error ? error : new Error(String(error));
+      const message = await extractErrorMessageAsync(error);
+      const err = new Error(message);
       setErrors([err]);
-      setRunningConfig({ status: "error", config: "", error: err.message });
+      setRunningConfig({ status: "error", config: "", error: message });
     }
   }
 
@@ -131,12 +133,13 @@ export function ShowConfigModal({
       });
     } catch (error: unknown) {
       if (signal?.aborted) return;
-      const err = error instanceof Error ? error : new Error(String(error));
+      const message = await extractErrorMessageAsync(error);
+      const err = new Error(message);
       setErrors([err]);
       setGeneratedConfig({
         status: "error",
         generated_config: "",
-        error: err.message,
+        error: message,
       });
     }
   }
@@ -158,7 +161,8 @@ export function ShowConfigModal({
         },
       }));
     } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error(String(error));
+      const message = await extractErrorMessageAsync(error);
+      const err = new Error(message);
       setErrors([err]);
       setPreviousConfig((current) => ({
         ...current,
@@ -166,7 +170,7 @@ export function ShowConfigModal({
           status: "error",
           config: "",
           job_id: 0,
-          error: err.message,
+          error: message,
         },
       }));
     }

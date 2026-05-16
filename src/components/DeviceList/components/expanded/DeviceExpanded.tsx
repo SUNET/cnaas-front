@@ -34,11 +34,13 @@ export function DeviceExpanded({ device }: DeviceExpandedProps): ReactNode {
   useNetboxDevice(device.id, device.hostname);
   useNetboxModel(device.model);
 
-  if (isInZtp(device)) {
-    return <ZtpDevice device={device} />;
-  }
+  // Deleted check first: a deleted device in any state (incl. DHCP_BOOT /
+  // DISCOVERED / INIT) must show the deleted panel, not the ZTP init UI.
   if (device.deleted) {
     return <DeletedDevice device={device} />;
+  }
+  if (isInZtp(device)) {
+    return <ZtpDevice device={device} />;
   }
   if (device.state === "PRE_CONFIGURED") {
     return <PreConfiguredDevice device={device} />;

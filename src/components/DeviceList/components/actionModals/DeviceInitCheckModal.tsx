@@ -9,6 +9,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { initCheckDevice, type InitCheckResult } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { extractErrorMessageAsync } from "../../utils";
 import type { DeviceType } from "../../../../types/device";
 
 type DeviceInitCheckModalProps = {
@@ -22,28 +23,6 @@ type DeviceInitCheckModalProps = {
 };
 
 type InitCheckOutput = InitCheckResult | string | null;
-
-async function extractErrorMessage(error: unknown): Promise<string> {
-  if (typeof Response !== "undefined" && error instanceof Response) {
-    try {
-      const body = await error.clone().json();
-      if (body && typeof body === "object" && "message" in body) {
-        return String((body as { message: unknown }).message);
-      }
-      return JSON.stringify(body, null, 2);
-    } catch {
-      try {
-        const text = await error.text();
-        if (text) return text;
-      } catch {
-        /* ignore */
-      }
-      return `HTTP ${error.status} ${error.statusText}`;
-    }
-  }
-  if (error instanceof Error) return error.message;
-  return String(error);
-}
 
 export function DeviceInitCheckModal({
   disabled = false,
@@ -77,7 +56,7 @@ export function DeviceInitCheckModal({
         const response = await initCheckDevice(deviceId, payload, token);
         if (!cancelled) setInitcheckOutput(response.data);
       } catch (error: unknown) {
-        const message = await extractErrorMessage(error);
+        const message = await extractErrorMessageAsync(error);
         if (!cancelled) setInitcheckOutput(message);
       }
     }

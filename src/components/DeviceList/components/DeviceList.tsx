@@ -15,6 +15,7 @@ import {
   useDeviceList,
 } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";
+import { extractErrorMessageAsync } from "../utils";
 import {
   COLUMN_MAP,
   isDeviceColumnKey,
@@ -58,6 +59,7 @@ export function DeviceList() {
     updateMgmtDomainModal,
     showConfigModal,
     changeHostnameModal,
+    refetchTrigger,
   } = deviceListState;
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -152,7 +154,8 @@ export function DeviceList() {
       setError(null);
     } catch (err) {
       if (signal?.aborted) return;
-      setError(err instanceof Error ? err : new Error(String(err)));
+      const message = await extractErrorMessageAsync(err);
+      setError(new Error(message));
       dispatch({ type: actions.SET_DEVICES, devices: [] });
     } finally {
       if (!signal?.aborted) {
@@ -173,7 +176,14 @@ export function DeviceList() {
     const controller = new AbortController();
     getDevices(controller.signal);
     return () => controller.abort();
-  }, [sortColumn, sortDirection, searchParams, activePage, resultsPerPage]);
+  }, [
+    sortColumn,
+    sortDirection,
+    searchParams,
+    activePage,
+    resultsPerPage,
+    refetchTrigger,
+  ]);
 
   const sortClick = (column: string) => {
     let direction: SortDirection;

@@ -56,6 +56,10 @@ export type DeviceListState = {
   readonly updateMgmtDomainModal: UpdateMgmtDomainModal;
   readonly showConfigModal: ShowConfigModal;
   readonly changeHostnameModal: ChangeHostnameModal;
+  // Bumped whenever the device list must be refetched (e.g. socket
+  // CREATED event for a device we don't yet have). Consumers add this
+  // to their fetch effect deps to trigger a reload.
+  readonly refetchTrigger: number;
 };
 
 // --- Action types ---
@@ -89,6 +93,7 @@ export const actions = {
   TOGGLE_UPDATE_MGMT_DOMAIN_MODAL: "TOGGLE_UPDATE_MGMT_DOMAIN_MODAL",
   TOGGLE_SHOW_CONFIG_MODAL: "TOGGLE_SHOW_CONFIG_MODAL",
   TOGGLE_CHANGE_HOSTNAME_MODAL: "TOGGLE_CHANGE_HOSTNAME_MODAL",
+  REQUEST_REFETCH: "REQUEST_REFETCH",
 } as const;
 
 export type Action =
@@ -187,7 +192,8 @@ export type Action =
       isOpen: boolean;
       deviceId?: number;
       hostname?: string;
-    };
+    }
+  | { type: typeof actions.REQUEST_REFETCH };
 
 // --- Initial state ---
 
@@ -279,6 +285,7 @@ export function buildInitialState(settings: InitialSettings): DeviceListState {
     updateMgmtDomainModal: CLOSED_UPDATE_MGMT_DOMAIN,
     showConfigModal: CLOSED_SHOW_CONFIG,
     changeHostnameModal: CLOSED_CHANGE_HOSTNAME,
+    refetchTrigger: 0,
   };
 }
 
@@ -557,6 +564,9 @@ export function deviceListReducer(
             }
           : CLOSED_CHANGE_HOSTNAME,
       };
+
+    case actions.REQUEST_REFETCH:
+      return { ...state, refetchTrigger: state.refetchTrigger + 1 };
 
     default:
       return state;

@@ -25,7 +25,19 @@ const DEFAULT_RESULTS_PER_PAGE = 20;
 
 function readStoredSettings(): StoredSettings {
   try {
-    return JSON.parse(localStorage.getItem("deviceList") || "{}");
+    const parsed: unknown = JSON.parse(
+      localStorage.getItem("deviceList") || "{}",
+    );
+    // JSON.parse("null") / "42" / "[1,2]" are all valid; reject anything
+    // that isn't a plain object so callers can safely read named keys.
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      return {};
+    }
+    return parsed as StoredSettings;
   } catch (error) {
     console.warn("Failed to parse localStorage deviceList settings:", error);
     return {};
