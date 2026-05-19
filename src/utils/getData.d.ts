@@ -17,4 +17,5 @@ export function getDataToken(
 export function getResponse(
   url: string,
   credentials?: string,
+  signal?: AbortSignal,
 ): Promise<Response>;

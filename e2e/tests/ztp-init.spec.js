@@ -53,7 +53,7 @@ async function waitForDevice(page, timeoutMs = 600_000) {
   );
 }
 
-test.describe("Device initialization", { tag: "@ztp" }, () => {
+test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
   // This test can take a long time — ZTP boot + discovery + init + config push.
   test.setTimeout(600_000); // 10 minutes
 
@@ -74,7 +74,10 @@ test.describe("Device initialization", { tag: "@ztp" }, () => {
       await page.goto("/devices");
 
       // The device shows up with its MAC-based hostname (e.g. "mac-0C00C5232589")
-      const deviceRow = page.getByRole("cell", { name: device.hostname });
+      const deviceRow = page.getByRole("cell", {
+        name: device.hostname,
+        exact: true,
+      });
       await expect(deviceRow).toBeVisible({ timeout: 15000 });
 
       // ── Step 3: Expand the device row ──────────────────────────────
@@ -198,22 +201,38 @@ test.describe("Device initialization", { tag: "@ztp" }, () => {
     console.log("Verifying jobs on /jobs...");
     await page.goto("/jobs");
 
-    // The ZTP flow creates a discover_device job when the switch is found.
-    const discoverJobRow = page
-      .locator("tr", { hasText: "discover_device" })
-      .filter({ hasText: "FINISHED" })
-      .first();
-    await expect(
-      discoverJobRow.getByRole("cell", { name: "discover_device" }),
-    ).toBeVisible({ timeout: 15000 });
+    // Filter the JobList by function_name so we don't depend on pagination —
+    // a real test environment can accumulate many scheduled jobs (e.g.
+    // periodic sync_devices) that push the ZTP jobs off page 1.
+    const searchInput = page.getByPlaceholder("Search...");
+    const searchFieldDropdown = page.locator("form .ui.selection.dropdown");
 
-    // The device init creates a job with function_name "init_access_device_step1".
-    const initJobRow = page
-      .locator("tr", { hasText: "init_access_device_step1" })
-      .filter({ hasText: "FINISHED" })
-      .first();
-    await expect(
-      initJobRow.getByRole("cell", { name: "init_access_device_step1" }),
-    ).toBeVisible();
+    await test.step("Verify discover_device job FINISHED", async () => {
+      await searchFieldDropdown.click();
+      await page.getByRole("option", { name: "Function name" }).click();
+      await searchInput.fill("discover_device");
+      await page.getByRole("button", { name: "Search" }).click();
+
+      const discoverJobRow = page
+        .locator("tr", { hasText: "discover_device" })
+        .filter({ hasText: "FINISHED" })
+        .first();
+      await expect(
+        discoverJobRow.getByRole("cell", { name: "discover_device" }),
+      ).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step("Verify init_access_device_step1 job FINISHED", async () => {
+      await searchInput.fill("init_access_device_step1");
+      await page.getByRole("button", { name: "Search" }).click();
+
+      const initJobRow = page
+        .locator("tr", { hasText: "init_access_device_step1" })
+        .filter({ hasText: "FINISHED" })
+        .first();
+      await expect(
+        initJobRow.getByRole("cell", { name: "init_access_device_step1" }),
+      ).toBeVisible({ timeout: 15000 });
+    });
   });
 });

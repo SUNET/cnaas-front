@@ -6,7 +6,7 @@ import { Panel } from "./components/Panel";
 import { Callback } from "./components/Callback";
 import { ConfigChangePage } from "./components/ConfigChange/ConfigChangePage";
 import Dashboard from "./components/Dashboard";
-import { DeviceList } from "./components/DeviceList/DeviceList";
+import { DeviceListPage } from "./components/DeviceList/DeviceListPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import FirmwareCopy from "./components/FirmwareCopy";
 import { FirmwareUpgrade } from "./components/FirmwareUpgrade";
@@ -26,7 +26,7 @@ const router = createBrowserRouter([
         element: <ErrorBoundary />,
         children: [
           { path: "/dashboard", element: <Dashboard /> },
-          { path: "/devices", element: <DeviceList /> },
+          { path: "/devices", element: <DeviceListPage /> },
           { path: "/jobs", element: <JobListPage /> },
           { path: "/groups", element: <GroupList /> },
           { path: "/config-change", element: <ConfigChangePage /> },
