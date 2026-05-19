@@ -74,7 +74,10 @@ test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
       await page.goto("/devices");
 
       // The device shows up with its MAC-based hostname (e.g. "mac-0C00C5232589")
-      const deviceRow = page.getByRole("cell", { name: device.hostname });
+      const deviceRow = page.getByRole("cell", {
+        name: device.hostname,
+        exact: true,
+      });
       await expect(deviceRow).toBeVisible({ timeout: 15000 });
 
       // ── Step 3: Expand the device row ──────────────────────────────

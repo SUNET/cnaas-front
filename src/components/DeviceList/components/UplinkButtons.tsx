@@ -22,8 +22,7 @@ export function UplinkButtons({ interfaces }: UplinkButtonsProps) {
             intf.configtype === "ACCESS_UPLINK" &&
             intf.data != null &&
             typeof intf.data.neighbor === "string" &&
-            intf.data.neighbor.length > 0 &&
-            typeof intf.data.neighbor_id === "number",
+            intf.data.neighbor.length > 0,
         )
         .map((intf) => (
           <Button
@@ -33,7 +32,9 @@ export function UplinkButtons({ interfaces }: UplinkButtonsProps) {
             onClick={() => {
               handleFilterChange(
                 { hostname: intf.data?.neighbor ?? "" },
-                intf.data?.neighbor_id ?? null,
+                typeof intf.data?.neighbor_id === "number"
+                  ? intf.data.neighbor_id
+                  : null,
               );
               globalThis.scrollTo(0, 0);
             }}

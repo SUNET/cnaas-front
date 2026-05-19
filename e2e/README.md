@@ -128,6 +128,9 @@ What happens automatically:
 3. **Tests run:**
    - `sanity-check.spec.js` — Smoke test (page loads)
    - `devices.spec.js` — Verifies device table shows all 3 devices
+   - `device-list.spec.js` — User stories for the Devices page: filter,
+     column selection, rename validation, and mutation flows (rename,
+     state change, delete) on throwaway `eostest-*` devices
    - `ztp-init.spec.js` — ZTP:
      - Waits for eosaccess to reach DISCOVERED state (via ZTP)
      - Opens /devices, expands the discovered device row
@@ -216,6 +219,19 @@ tests:
 └── e2e/
     ├── compose.yaml       ← Backend Docker Compose stack
     ├── public.pem         ← JWT public key for backend auth
-    ├── setup.spec.js      ← Setup project (seeds DIST devices)
+    ├── constants.js       ← Shared JWT_TOKEN, API_BASE
+    ├── helpers/
+    │   └── api.js         ← apiRequest, createTestDevice, cleanup
+    ├── tests/
+    │   ├── setup.spec.js  ← Setup project (seeds DIST devices)
+    │   └── ...
     └── ...
+
+### Test device convention
+
+Mutation tests create plain DB-only devices (no clab container) via the
+backend API. Such devices are always prefixed `eostest-` so they can be
+identified and reaped. `helpers/api.js` exposes `createTestDevice`,
+`deleteTestDeviceIfExists`, and `cleanupAllTestDevices` for this; the
+latter runs in `afterAll` as a safety net for crashed tests.
 ```
