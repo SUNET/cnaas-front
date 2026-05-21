@@ -13,6 +13,16 @@ import { actions } from "../../../store/interfaceConfig/interfaceConfigReducer";
 
 const VLAN_RANGE_RE = /^\d+-\d+$/;
 
+interface VlanDropdownOption {
+  text: string;
+  value: string;
+  description: string;
+}
+
+function rangeToOption(range: string): VlanDropdownOption {
+  return { text: `R:${range}`, value: range, description: range };
+}
+
 // Shared search filter for VLAN dropdowns — searches both text and description
 const vlanSearchFilter = ((
   filteredOptions: Array<{ text: string; description?: unknown }>,
@@ -57,10 +67,13 @@ export function VlanColumn({
   const {
     settings,
     device,
-    vlans: vlanOptions,
+    vlans,
+    vlanRanges,
     untaggedVlans: untaggedVlanOptions,
     interfaceToggleUntagged,
   } = state;
+
+  const vlanOptions = [...vlans, ...Array.from(vlanRanges, rangeToOption)];
 
   const [rangeError, setRangeError] = useState<string | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

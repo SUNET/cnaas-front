@@ -100,7 +100,7 @@ describe("interfaceConfigReducer", () => {
       const state = { ...initialState, tags: [{ text: "old", value: "old" }] };
       const result = reducer(state, {
         type: actions.INTERFACES_LOADED,
-        interfaces: [{ name: "Ethernet1", configtype: "ACCESS_AUTO" }] as any,
+        interfaces: [{ name: "Ethernet1", configtype: "ACCESS_AUTO" }],
         tags: [{ text: "new", value: "new" }],
       });
 
@@ -141,6 +141,29 @@ describe("interfaceConfigReducer", () => {
       });
 
       expect(result.portTemplates).toHaveLength(1);
+    });
+
+    test("seeds vlanRanges from payload, deduplicating against existing", () => {
+      const state = { ...initialState, vlanRanges: new Set(["100-200"]) };
+      const result = reducer(state, {
+        type: actions.INTERFACES_LOADED,
+        interfaces: [],
+        tags: [],
+        vlanRanges: new Set(["100-200", "300-400"]),
+      });
+
+      expect(result.vlanRanges).toEqual(new Set(["100-200", "300-400"]));
+    });
+
+    test("leaves vlanRanges untouched when payload omits them", () => {
+      const state = { ...initialState, vlanRanges: new Set(["100-200"]) };
+      const result = reducer(state, {
+        type: actions.INTERFACES_LOADED,
+        interfaces: [],
+        tags: [],
+      });
+
+      expect(result.vlanRanges).toEqual(new Set(["100-200"]));
     });
   });
 
@@ -328,6 +351,27 @@ describe("interfaceConfigReducer", () => {
     });
   });
 
+  describe("ADD_VLAN_RANGE_OPTION", () => {
+    test("appends a new range", () => {
+      const result = reducer(initialState, {
+        type: actions.ADD_VLAN_RANGE_OPTION,
+        range: "100-200",
+      });
+
+      expect(result.vlanRanges).toEqual(new Set(["100-200"]));
+    });
+
+    test("ignores duplicate range", () => {
+      const state = { ...initialState, vlanRanges: new Set(["100-200"]) };
+      const result = reducer(state, {
+        type: actions.ADD_VLAN_RANGE_OPTION,
+        range: "100-200",
+      });
+
+      expect(result).toBe(state);
+    });
+  });
+
   describe("ADD_PORT_TEMPLATE_OPTION", () => {
     test("appends a new port template", () => {
       const result = reducer(initialState, {
@@ -345,7 +389,7 @@ describe("interfaceConfigReducer", () => {
     test("appends a stub custom interface", () => {
       const state = {
         ...initialState,
-        interfaces: [{ name: "Ethernet1", ifclass: "downlink" }] as any,
+        interfaces: [{ name: "Ethernet1", ifclass: "downlink" }],
       };
       const result = reducer(state, {
         type: actions.ADD_NEW_INTERFACE,

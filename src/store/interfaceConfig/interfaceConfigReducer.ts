@@ -72,6 +72,7 @@ export interface InterfaceConfigState {
 
   vlans: DropdownOption[];
   untaggedVlans: DropdownOption[];
+  vlanRanges: ReadonlySet<string>;
   tags: DropdownOption[];
   portTemplates: DropdownOption[];
 
@@ -150,7 +151,7 @@ export type Action =
       tags: DropdownOption[];
       mlagPeerHostname?: string | null;
       portTemplates?: DropdownOption[];
-      vlanRanges?: string[];
+      vlanRanges?: ReadonlySet<string>;
     }
   | {
       type: typeof actions.INTERFACE_STATUS_LOADED;
@@ -220,6 +221,7 @@ export const initialState: InterfaceConfigState = {
   // Field options (dropdowns)
   vlans: [],
   untaggedVlans: [],
+  vlanRanges: new Set(),
   tags: [],
   portTemplates: [],
 
@@ -277,15 +279,11 @@ export function interfaceConfigReducer(
       };
 
     case actions.INTERFACES_LOADED: {
-      let vlans = state.vlans;
-      if (action.vlanRanges && action.vlanRanges.length > 0) {
-        const existing = new Set(vlans.map((o) => o.value));
-        const newRanges = action.vlanRanges
-          .filter((r) => !existing.has(r))
-          .map((r) => ({ text: `R:${r}`, value: r, description: r }));
-        if (newRanges.length > 0) {
-          vlans = [...vlans, ...newRanges];
-        }
+      let vlanRanges = state.vlanRanges;
+      if (action.vlanRanges && action.vlanRanges.size > 0) {
+        const merged = new Set(vlanRanges);
+        for (const r of action.vlanRanges) merged.add(r);
+        vlanRanges = merged;
       }
       return {
         ...state,
@@ -293,7 +291,7 @@ export function interfaceConfigReducer(
         tags: mergeTags(state.tags, action.tags),
         portTemplates: action.portTemplates ?? state.portTemplates,
         mlagPeerHostname: action.mlagPeerHostname ?? state.mlagPeerHostname,
-        vlans,
+        vlanRanges,
       };
     }
 
@@ -356,19 +354,12 @@ export function interfaceConfigReducer(
       };
 
     case actions.ADD_VLAN_RANGE_OPTION:
-      if (state.vlans.some((o) => o.value === action.range)) {
+      if (state.vlanRanges.has(action.range)) {
         return state;
       }
       return {
         ...state,
-        vlans: [
-          ...state.vlans,
-          {
-            text: `R:${action.range}`,
-            value: action.range,
-            description: action.range,
-          },
-        ],
+        vlanRanges: new Set(state.vlanRanges).add(action.range),
       };
 
     case actions.ADD_PORT_TEMPLATE_OPTION:
