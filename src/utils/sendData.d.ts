@@ -14,3 +14,8 @@ export function postData(
   token: string | null,
   data: any,
 ): Promise<any>;
+export function deleteData(
+  url: string,
+  token: string | null,
+  data?: any,
+): Promise<any>;

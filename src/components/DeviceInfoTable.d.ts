@@ -1,5 +1,7 @@
+import type { Device } from "../types/device";
+
 export function DeviceInfoTable(props: {
-  device: Record<string, unknown>;
-  model?: Record<string, unknown> | null;
-  netboxDevice?: Record<string, unknown> | null;
+  device: Device | Record<string, unknown>;
+  model?: unknown;
+  netboxDevice?: unknown;
 }): JSX.Element;

@@ -6,7 +6,9 @@ test("update facts on a MANAGED device", async ({ page }, testInfo) => {
   await page.goto("/devices");
 
   // Wait for the seeded DIST device to appear
-  await expect(page.getByRole("cell", { name: "eosdist1" })).toBeVisible({
+  await expect(
+    page.getByRole("cell", { name: "eosdist1", exact: true }),
+  ).toBeVisible({
     timeout: 10000,
   });
 
