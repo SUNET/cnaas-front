@@ -20,17 +20,33 @@ export function fetchLldpNeighbors(
   token: string | null,
 ): Promise<Record<string, unknown>>;
 
+import type {
+  AccessInterfaceItem,
+  DistInterfaceItem,
+  DropdownOption,
+} from "../store/interfaceConfig/interfaceConfigReducer";
+
+export interface AccessInterfacesResult {
+  interfaces: AccessInterfaceItem[];
+  tags: { text: string; value: string }[];
+  mlagPeerHostname: string | null;
+}
+
 export function fetchAccessInterfaces(
   hostname: string,
   token: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any>;
+): Promise<AccessInterfacesResult | null>;
+
+export interface DistInterfacesResult {
+  interfaces: DistInterfaceItem[];
+  tags: { text: string; value: string }[];
+  portTemplates: DropdownOption[];
+}
 
 export function fetchDistInterfaces(
   hostname: string,
   token: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any>;
+): Promise<DistInterfacesResult | null>;
 
 export function fetchDeviceById(
   deviceId: number,

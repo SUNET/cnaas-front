@@ -20,7 +20,8 @@ import { PortTypeCellAccess } from "./PortTypeCellAccess";
 import { PortTypeCellDist } from "./PortTypeCellDist";
 import { useInterfaceConfig } from "../../../store/interfaceConfig/InterfaceConfigContext";
 import type {
-  InterfaceItem,
+  AccessInterfaceItem,
+  DistInterfaceItem,
   DropdownOption,
 } from "../../../store/interfaceConfig/interfaceConfigReducer";
 
@@ -150,7 +151,7 @@ function OptionalColumn({
 // --- Props ---
 
 interface InterfaceTableRowProps {
-  readonly item: InterfaceItem;
+  readonly item: AccessInterfaceItem | DistInterfaceItem;
   readonly index: number;
   readonly updateFieldData: (
     e: SyntheticEvent,
@@ -211,6 +212,11 @@ export function InterfaceTableRow({
   const hostname = device?.hostname ?? null;
   const deviceType = device?.device_type;
 
+  // Narrow item type based on device type
+  const accessItem =
+    deviceType === "ACCESS" ? (item as AccessInterfaceItem) : null;
+  const distItem = deviceType === "DIST" ? (item as DistInterfaceItem) : null;
+
   const ifDataUpdated =
     item.name in interfaceDataUpdated ? interfaceDataUpdated[item.name] : null;
   const updated = item.name in interfaceDataUpdated;
@@ -218,12 +224,12 @@ export function InterfaceTableRow({
   // Determine if editing is disabled
   let editDisabled = true;
   if (deviceType === "ACCESS") {
-    editDisabled = !CONFIG_TYPES_ENABLED.has(item.configtype ?? "");
+    editDisabled = !CONFIG_TYPES_ENABLED.has(accessItem!.configtype ?? "");
   } else if (deviceType === "DIST") {
-    if (item.ifclass?.startsWith("port_template")) {
+    if (distItem!.ifclass?.startsWith("port_template")) {
       editDisabled = false;
     } else {
-      editDisabled = !IF_CLASSES_ENABLED.has(item.ifclass ?? "");
+      editDisabled = !IF_CLASSES_ENABLED.has(distItem!.ifclass ?? "");
     }
   }
 
@@ -260,10 +266,10 @@ export function InterfaceTableRow({
   if (deviceType === "DIST") {
     ifData = {};
     Object.entries(fields).forEach(([key, value]) => {
-      ifData![key] = (item as Record<string, unknown>)[key] ?? value;
+      ifData![key] = (item as unknown as Record<string, unknown>)[key] ?? value;
     });
-    if (item.peer_hostname) {
-      ifData.description = item.peer_hostname;
+    if (accessItem?.peer_hostname) {
+      ifData.description = accessItem.peer_hostname;
     }
   }
 
@@ -331,7 +337,7 @@ export function InterfaceTableRow({
 
   if (deviceType === "ACCESS") {
     currentConfigtype =
-      (ifDataUpdated?.configtype as string) ?? item.configtype ?? null;
+      (ifDataUpdated?.configtype as string) ?? accessItem!.configtype ?? null;
 
     if (currentConfigtype === "ACCESS_TAGGED") {
       displayVlanTagged = true;
@@ -350,9 +356,9 @@ export function InterfaceTableRow({
       currentEnabled = ifDataUpdated.enabled;
     }
   } else if (deviceType === "DIST") {
-    currentIfClass = item.ifclass?.startsWith("port_template")
+    currentIfClass = distItem!.ifclass?.startsWith("port_template")
       ? "port_template"
-      : (item.ifclass ?? null);
+      : (distItem!.ifclass ?? null);
 
     if (ifDataUpdated?.ifclass) {
       currentIfClass = ifDataUpdated.ifclass as string;
@@ -361,7 +367,7 @@ export function InterfaceTableRow({
     if (currentIfClass?.startsWith("port_template")) {
       portTemplate =
         (ifDataUpdated?.port_template as string) ??
-        item.ifclass?.substring("port_template_".length) ??
+        distItem!.ifclass?.substring("port_template_".length) ??
         null;
 
       const dropDownEntry = portTemplateOptions.find(
@@ -552,7 +558,7 @@ export function InterfaceTableRow({
       </Table.Cell>
       {deviceType === "ACCESS" && (
         <PortTypeCellAccess
-          item={item as Record<string, unknown>}
+          item={item as unknown as Record<string, unknown>}
           currentConfigtype={currentConfigtype}
           fields={fields}
           editDisabled={editDisabled}
@@ -561,7 +567,7 @@ export function InterfaceTableRow({
       )}
       {deviceType === "DIST" && (
         <PortTypeCellDist
-          item={item as Record<string, unknown>}
+          item={item as unknown as Record<string, unknown>}
           currentIfClass={currentIfClass}
           portTemplate={portTemplate}
           editDisabled={editDisabled}

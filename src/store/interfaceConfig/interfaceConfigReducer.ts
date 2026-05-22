@@ -18,14 +18,20 @@ export interface DropdownOption {
 
 export interface InterfaceItem {
   name: string;
-  configtype?: string;
-  ifclass?: string;
   data?: Record<string, unknown>;
   config?: string;
-  peer_hostname?: string;
   model?: string;
   tags?: string[] | null;
-  [key: string]: unknown;
+}
+
+export interface AccessInterfaceItem extends InterfaceItem {
+  configtype: string;
+  peer_hostname?: string;
+}
+
+export interface DistInterfaceItem extends InterfaceItem {
+  ifclass: string;
+  tagged_vlan_list?: string[];
 }
 
 export interface Device {
@@ -59,13 +65,14 @@ export interface InterfaceConfigState {
   device: Device | null;
 
   settings: Record<string, unknown> | null;
-  interfaces: InterfaceItem[];
+  interfaces: (AccessInterfaceItem | DistInterfaceItem)[];
   interfaceStatus: Record<string, Record<string, unknown>>;
   lldpNeighbors: Record<string, unknown>;
   mlagPeerHostname: string | null;
 
   vlans: DropdownOption[];
   untaggedVlans: DropdownOption[];
+  vlanRanges: ReadonlySet<string>;
   tags: DropdownOption[];
   portTemplates: DropdownOption[];
 
@@ -103,6 +110,7 @@ export const actions = {
   UPDATE_FIELD: "UPDATE_FIELD",
   TOGGLE_UNTAGGED: "TOGGLE_UNTAGGED",
   ADD_TAG_OPTION: "ADD_TAG_OPTION",
+  ADD_VLAN_RANGE_OPTION: "ADD_VLAN_RANGE_OPTION",
   ADD_PORT_TEMPLATE_OPTION: "ADD_PORT_TEMPLATE_OPTION",
   ADD_NEW_INTERFACE: "ADD_NEW_INTERFACE",
   SET_DISPLAY_COLUMNS: "SET_DISPLAY_COLUMNS",
@@ -139,10 +147,11 @@ export type Action =
     }
   | {
       type: typeof actions.INTERFACES_LOADED;
-      interfaces: InterfaceItem[];
+      interfaces: (AccessInterfaceItem | DistInterfaceItem)[];
       tags: DropdownOption[];
-      mlagPeerHostname?: string;
+      mlagPeerHostname?: string | null;
       portTemplates?: DropdownOption[];
+      vlanRanges?: ReadonlySet<string>;
     }
   | {
       type: typeof actions.INTERFACE_STATUS_LOADED;
@@ -171,6 +180,7 @@ export type Action =
       untagged: boolean;
     }
   | { type: typeof actions.ADD_TAG_OPTION; tag: string }
+  | { type: typeof actions.ADD_VLAN_RANGE_OPTION; range: string }
   | { type: typeof actions.ADD_PORT_TEMPLATE_OPTION; template: string }
   | { type: typeof actions.ADD_NEW_INTERFACE; interfaceName: string }
   | { type: typeof actions.SET_DISPLAY_COLUMNS; columns: string[] }
@@ -211,6 +221,7 @@ export const initialState: InterfaceConfigState = {
   // Field options (dropdowns)
   vlans: [],
   untaggedVlans: [],
+  vlanRanges: new Set(),
   tags: [],
   portTemplates: [],
 
@@ -267,14 +278,22 @@ export function interfaceConfigReducer(
         tags: mergeTags(state.tags, action.tags),
       };
 
-    case actions.INTERFACES_LOADED:
+    case actions.INTERFACES_LOADED: {
+      let vlanRanges = state.vlanRanges;
+      if (action.vlanRanges && action.vlanRanges.size > 0) {
+        const merged = new Set(vlanRanges);
+        for (const r of action.vlanRanges) merged.add(r);
+        vlanRanges = merged;
+      }
       return {
         ...state,
         interfaces: action.interfaces,
         tags: mergeTags(state.tags, action.tags),
         portTemplates: action.portTemplates ?? state.portTemplates,
         mlagPeerHostname: action.mlagPeerHostname ?? state.mlagPeerHostname,
+        vlanRanges,
       };
+    }
 
     case actions.INTERFACE_STATUS_LOADED:
       return { ...state, interfaceStatus: action.interfaceStatus };
@@ -332,6 +351,15 @@ export function interfaceConfigReducer(
       return {
         ...state,
         tags: [...state.tags, { text: action.tag, value: action.tag }],
+      };
+
+    case actions.ADD_VLAN_RANGE_OPTION:
+      if (state.vlanRanges.has(action.range)) {
+        return state;
+      }
+      return {
+        ...state,
+        vlanRanges: new Set(state.vlanRanges).add(action.range),
       };
 
     case actions.ADD_PORT_TEMPLATE_OPTION:
