@@ -12,6 +12,7 @@
  */
 import { test, expect } from "@playwright/test";
 import { openActionsMenu } from "../helpers/ui.js";
+import { apiRequest, waitForJob, getDeviceByHostname } from "../helpers/api.js";
 
 /**
  * Expand a device row by clicking on its hostname cell.
@@ -31,6 +32,16 @@ test.describe("Show configuration", () => {
     page,
   }) => {
     const hostname = "eosdist1";
+
+    // Needed so the NMS generated config pane has real content to display.
+    const device = await getDeviceByHostname(hostname);
+    if (device && device.os_version == null) {
+      const result = await apiRequest("POST", "/device_update_facts", {
+        hostname,
+      });
+      const jobId = result?.job_id ?? result?.data?.job_id;
+      if (jobId) await waitForJob(jobId, 60_000);
+    }
 
     await page.goto("/devices");
     await expandDeviceRow(page, hostname);
