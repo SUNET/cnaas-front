@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
 import { DryRun } from "./DryRun";
+import type { DeviceSyncOptions } from "../../api/configChangeApi";
+import type { DryRunProgress } from "../../stores/configChangeReducer";
 
 jest.mock("./DryRunError", () => ({
   DryRunError: function MockDryRunError() {
@@ -30,11 +32,13 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-function renderComponent(props = {}) {
-  const defaultProps = {
+type DryRunProps = React.ComponentProps<typeof DryRun>;
+
+function renderComponent(props: Partial<DryRunProps> = {}) {
+  const defaultProps: DryRunProps = {
     dryRunDisable: false,
-    dryRunSyncStart: mockDryRunSyncStart,
-    dryRunProgressData: {},
+    dryRunSyncStart: mockDryRunSyncStart as (opts: DeviceSyncOptions) => void,
+    dryRunProgressData: {} as DryRunProgress,
     dryRunJobStatus: "",
     jobId: "NA",
     devices: {},

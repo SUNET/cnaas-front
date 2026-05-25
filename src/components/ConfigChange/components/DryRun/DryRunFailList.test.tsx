@@ -3,15 +3,15 @@ import "@testing-library/jest-dom";
 
 import { DryRunFailList } from "./DryRunFailList";
 
-function renderComponent(props = {}) {
-  const defaultProps = {
-    devices: {},
-  };
+type FailListDevices = Record<string, { readonly failed: boolean }>;
+
+function renderComponent(props: { readonly devices?: FailListDevices } = {}) {
+  const defaultProps = { devices: {} as FailListDevices };
   return render(<DryRunFailList {...defaultProps} {...props} />);
 }
 
 test("displays failed device names and not devices that have not failed", () => {
-  const devices = {
+  const devices: FailListDevices = {
     "switch-01": { failed: true },
     "switch-02": { failed: false },
     "router-01": { failed: true },
@@ -25,7 +25,7 @@ test("displays failed device names and not devices that have not failed", () => 
 });
 
 test("displays nothing when no devices have failed", () => {
-  const devices = {
+  const devices: FailListDevices = {
     "switch-01": { failed: false },
     "switch-02": { failed: false },
   };

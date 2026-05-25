@@ -1,17 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-import { VerifyDiffResult } from "./VerifyDiffResult";
+import { VerifyDiffResult, type Device } from "./VerifyDiffResult";
 
 // Mock SyntaxHighlight component
 jest.mock("../../../SyntaxHighlight", () => {
-  return function MockSyntaxHighlight({ code }) {
+  return function MockSyntaxHighlight({ code }: { readonly code: string }) {
     return <pre data-testid="syntax-highlight">{code}</pre>;
   };
 });
 
-function renderComponent(props = {}) {
-  const defaultProps = { devices: [] };
+function renderComponent(props: { readonly devices?: Device[] } = {}) {
+  const defaultProps = { devices: [] as Device[] };
   return render(<VerifyDiffResult {...defaultProps} {...props} />);
 }
 

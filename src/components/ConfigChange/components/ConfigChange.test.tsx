@@ -3,14 +3,14 @@ import "@testing-library/jest-dom";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
 import { ConfigChangePage } from "./ConfigChangePage";
-import { getData as mockGetData } from "../../../utils/getData";
+import { getData as getDataImport } from "../../../utils/getData";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../contexts/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 jest.mock("../../../hooks/useFreshRef.js", () => ({
-  useFreshRef: (value) => ({ current: value }),
+  useFreshRef: <T,>(value: T) => ({ current: value }),
 }));
 jest.mock("../../../contexts/PermissionsContext", () => ({
   usePermissions: () => ({ permissionsCheck: () => true }),
@@ -52,10 +52,12 @@ jest.mock("./ConfigChangeStep4", () => ({
   },
 }));
 
+const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
+
 beforeEach(() => {
   jest.clearAllMocks();
 
-  mockGetData.mockImplementation((url) => {
+  mockGetData.mockImplementation((url: string) => {
     if (url.includes("/devices")) {
       return Promise.resolve({
         data: {
@@ -101,7 +103,7 @@ test("targets all unsynchronized devices when no query params", async () => {
 });
 
 test("targets group from query params", async () => {
-  mockGetData.mockImplementation((url) => {
+  mockGetData.mockImplementation((url: string) => {
     if (url.includes("/devices")) {
       return Promise.resolve({
         data: {

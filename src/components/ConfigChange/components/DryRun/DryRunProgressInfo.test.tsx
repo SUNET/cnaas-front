@@ -2,10 +2,11 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
+import type { JobProgress } from "../../stores/configChangeReducer";
 
 // Mock LogViewer to avoid testing its internals (Prism highlighting, etc.)
 jest.mock("../../../LogViewer", () => {
-  return function MockLogViewer({ logs }) {
+  return function MockLogViewer({ logs }: { readonly logs: string[] }) {
     return (
       <section aria-label="log viewer">
         {logs.map((log) => (
@@ -16,12 +17,19 @@ jest.mock("../../../LogViewer", () => {
   };
 });
 
-function renderComponent(props = {}) {
+type RenderProps = {
+  readonly dryRunJobStatus?: string;
+  readonly dryRunProgressData?: JobProgress;
+  readonly jobId?: number | string;
+  readonly logLines?: string[];
+};
+
+function renderComponent(props: RenderProps = {}) {
   const defaultProps = {
     dryRunJobStatus: "RUNNING",
-    dryRunProgressData: {},
+    dryRunProgressData: {} as JobProgress,
     jobId: 123,
-    logLines: [],
+    logLines: [] as string[],
   };
   return render(<DryRunProgressInfo {...defaultProps} {...props} />);
 }
