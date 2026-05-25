@@ -81,6 +81,20 @@ export function isDevicesJobResult(value: unknown): value is DevicesJobResult {
   return devices !== null && typeof devices === "object";
 }
 
+/**
+ * Live-run result shape: a string summary instead of per-device tasks.
+ * BE: `cnaas_nms.devicehandler.sync_devices:sync_devices` with `dry_run=False`.
+ */
+export type LiveRunResult = {
+  readonly devices: string;
+};
+
+/** Runtime guard for live-run result shape. */
+export function isLiveRunResult(value: unknown): value is LiveRunResult {
+  if (value === null || typeof value !== "object") return false;
+  return typeof (value as { devices?: unknown }).devices === "string";
+}
+
 // --- Job-kind guards ---
 //
 // Narrow a Job by status + function_name + result shape in one check.
