@@ -2,14 +2,14 @@ import type { ChangeEvent, FormEvent, SyntheticEvent } from "react";
 import { useState } from "react";
 import { Button, Select, Input, Icon } from "semantic-ui-react";
 
-interface SearchActionOptions {
+type SearchActionOptions = {
   readonly filterField?: string | null;
   readonly filterValue?: string | null;
-}
+};
 
-interface JobSearchFormProps {
+type JobSearchFormProps = {
   readonly searchAction: (options: SearchActionOptions) => void;
-}
+};
 
 const searchOptions = [
   { key: "id", value: "id", text: "ID" },

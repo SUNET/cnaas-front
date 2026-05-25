@@ -1,34 +1,19 @@
 // --- Types ---
 
-export interface Job {
-  readonly id: number;
-  readonly function_name: string | null;
-  readonly status: string;
-  readonly scheduled_by: string | null;
-  readonly start_time: string | null;
-  readonly finish_time: string | null;
-  readonly comment: string | null;
-  readonly ticket_ref: string | null;
-  readonly start_arguments: Record<string, unknown> | null;
-  readonly next_job_id: number | null;
-  readonly change_score: number | null;
-  readonly finished_devices: string[] | null;
-  readonly result: unknown;
-  readonly exception: { message?: string; traceback?: string } | null;
-}
+import type { Job } from "../../../types/job";
 
-export interface SortState {
+export type SortState = {
   readonly column: string;
   readonly direction: "asc" | "desc";
   readonly field: string;
-}
+};
 
-export interface FilterState {
+export type FilterState = {
   readonly field: string | null;
   readonly value: string | null;
-}
+};
 
-export interface JobListState {
+export type JobListState = {
   readonly jobs: Job[];
   readonly loading: boolean;
   readonly error: string | null;
@@ -38,7 +23,7 @@ export interface JobListState {
   readonly totalPages: number;
   readonly expandedRows: Set<number>;
   readonly logLines: string[];
-}
+};
 
 // --- Action types ---
 

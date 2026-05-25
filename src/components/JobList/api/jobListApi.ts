@@ -1,18 +1,18 @@
 import { getResponse } from "../../../utils/getData";
 import checkJsonResponse from "../../../utils/checkJsonResponse";
-import type { Job } from "../stores/jobListReducer";
+import type { Job } from "../../../types/job";
 
-export interface FetchJobsResult {
+export type FetchJobsResult = {
   readonly jobs: Job[];
   readonly totalPages: number;
   readonly error?: undefined;
-}
+};
 
-export interface FetchJobsError {
+export type FetchJobsError = {
   readonly jobs?: undefined;
   readonly totalPages?: undefined;
   readonly error: string;
-}
+};
 
 const PER_PAGE = 20;
 

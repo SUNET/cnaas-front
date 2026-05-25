@@ -10,13 +10,13 @@ import {
 } from "semantic-ui-react";
 import { formatISODate } from "../../../utils/formatters";
 import { JobDetails } from "./JobDetails";
-import type { Job } from "../stores/jobListReducer";
+import type { Job } from "../../../types/job";
 
-interface JobRowProps {
+type JobRowProps = {
   readonly job: Job;
   readonly isExpanded: boolean;
   readonly onToggle: () => void;
-}
+};
 
 /**
  * Renders a single job row in the jobs table, including the expandable details section.
@@ -52,10 +52,10 @@ export function JobRow({ job, isExpanded, onToggle }: JobRowProps) {
   );
 }
 
-interface JobMetadataTableProps {
+type JobMetadataTableProps = {
   readonly job: Job;
   readonly finishedDevices: string;
-}
+};
 
 function JobMetadataTable({
   job,

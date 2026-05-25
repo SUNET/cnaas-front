@@ -32,12 +32,12 @@ jest.mock("../../../contexts/AuthTokenContext", () => ({
 
 // Mock useFreshRef
 jest.mock("../../../hooks/useFreshRef", () => ({
-  useFreshRef: (val) => ({ current: val }),
+  useFreshRef: (val: unknown) => ({ current: val }),
 }));
 
 // Mock LogViewer
 jest.mock("../../LogViewer", () => {
-  return function MockLogViewer({ logs }) {
+  return function MockLogViewer({ logs }: { logs?: string[] }) {
     if (!logs || logs.length === 0) return null;
     return (
       <section aria-label="log viewer">
@@ -51,7 +51,11 @@ jest.mock("../../LogViewer", () => {
 
 // Mock VerifyDiffResult
 jest.mock("../../ConfigChange/VerifyDiff/VerifyDiffResult", () => ({
-  VerifyDiffResult: function MockVerifyDiffResult({ devices }) {
+  VerifyDiffResult: function MockVerifyDiffResult({
+    devices,
+  }: {
+    devices: { name: string; jobTasks?: unknown[] }[];
+  }) {
     return (
       <div data-testid="verify-diff-result">
         {devices.map((device) => (
@@ -64,7 +68,12 @@ jest.mock("../../ConfigChange/VerifyDiff/VerifyDiffResult", () => ({
   },
 }));
 
-import { fetchJobs } from "../api/jobListApi";
+import { fetchJobs as fetchJobsImport } from "../api/jobListApi";
+import type { Job } from "../../../types/job";
+
+const fetchJobs = fetchJobsImport as jest.MockedFunction<
+  typeof fetchJobsImport
+>;
 
 const mockJobs = [
   {
@@ -97,8 +106,8 @@ const mockJobs = [
   },
 ];
 
-function createMockResult(jobs, totalPages = 1) {
-  return Promise.resolve({ jobs, totalPages });
+function createMockResult(jobs: readonly unknown[], totalPages = 1) {
+  return Promise.resolve({ jobs: jobs as Job[], totalPages });
 }
 
 function renderJobList() {
@@ -704,7 +713,7 @@ test("clearing search resets filter and reloads data", async () => {
 
   // Click clear icon
   const clearIcon = container.querySelector("i.delete.icon");
-  await userEvent.click(clearIcon);
+  await userEvent.click(clearIcon as Element);
 
   // Should call API without filter params
   expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", null, null, 1);
@@ -737,7 +746,7 @@ test("clicking page 2 triggers API call with page=2", async () => {
 
   const nav = screen.getByRole("navigation", { name: "Pagination Navigation" });
   const page2Link = nav.querySelector('a[value="2"]');
-  await userEvent.click(page2Link);
+  await userEvent.click(page2Link as Element);
 
   await waitFor(() => {
     expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", null, null, 2);
@@ -783,7 +792,7 @@ test("expanded rows collapse when changing page", async () => {
 
   const nav = screen.getByRole("navigation", { name: "Pagination Navigation" });
   const page2Link = nav.querySelector('a[value="2"]');
-  await userEvent.click(page2Link);
+  await userEvent.click(page2Link as Element);
 
   await waitFor(() => {
     detailsRow = container.querySelector(".device_details_row");
