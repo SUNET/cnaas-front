@@ -9,16 +9,16 @@ import {
   type ReactNode,
 } from "react";
 import { useSearchParams } from "react-router";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { useFreshRef } from "../../hooks/useFreshRef";
-import { useBeforeUnloadWarning } from "../../hooks/useBeforeUnloadWarning";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useFreshRef } from "../../../hooks/useFreshRef";
+import { useBeforeUnloadWarning } from "../../../hooks/useBeforeUnloadWarning";
 import {
   fetchDeviceList,
   fetchJobStatus,
   fetchSyncHistory,
   startDeviceSync,
   type DeviceSyncOptions,
-} from "../../services/configChangeApi";
+} from "../api/configChangeApi";
 import {
   configChangeReducer,
   initialState,
@@ -30,7 +30,7 @@ import {
   type ConfirmRunProgress,
   type JobTask,
 } from "./configChangeReducer";
-import { useConfigChangeSocket } from "./useConfigChangeSocket";
+import { useConfigChangeSocket } from "../hooks/useConfigChangeSocket";
 
 // --- Derived state ---
 

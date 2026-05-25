@@ -1,7 +1,7 @@
 import { Checkbox } from "semantic-ui-react";
 import type { CheckboxProps } from "semantic-ui-react";
 import { DryRunFailList } from "./DryRunFailList";
-import type { DeviceSyncOptions } from "../../../services/configChangeApi";
+import type { DeviceSyncOptions } from "../../api/configChangeApi";
 
 interface DryRunErrorProps {
   readonly devices: Record<string, unknown>;

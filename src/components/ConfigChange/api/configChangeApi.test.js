@@ -1,10 +1,7 @@
-import {
-  fetchDeviceList,
-  fetchSyncHistory,
-} from "../../services/configChangeApi";
-import { getData } from "../../utils/getData";
+import { fetchDeviceList, fetchSyncHistory } from "./configChangeApi";
+import { getData } from "../../../utils/getData";
 
-jest.mock("../../utils/getData");
+jest.mock("../../../utils/getData");
 
 describe("fetchDeviceList", () => {
   it("returns devices from API when target.hostname is provided", async () => {

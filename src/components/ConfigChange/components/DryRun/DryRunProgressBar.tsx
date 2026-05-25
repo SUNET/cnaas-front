@@ -1,5 +1,5 @@
-import ProgressBar from "../../ProgressBar";
-import type { JobProgress } from "../../../store/configChange/configChangeReducer";
+import ProgressBar from "../../../ProgressBar";
+import type { JobProgress } from "../../stores/configChangeReducer";
 
 interface DryRunProgressBarProps {
   readonly dryRunProgressData: JobProgress;

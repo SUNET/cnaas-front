@@ -4,7 +4,7 @@ import "@testing-library/jest-dom";
 import { VerifyDiffResult } from "./VerifyDiffResult";
 
 // Mock SyntaxHighlight component
-jest.mock("../../SyntaxHighlight", () => {
+jest.mock("../../../SyntaxHighlight", () => {
   return function MockSyntaxHighlight({ code }) {
     return <pre data-testid="syntax-highlight">{code}</pre>;
   };

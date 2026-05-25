@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from "react";
 import { Popup, Table, Icon } from "semantic-ui-react";
-import { formatISODate } from "../../utils/formatters";
+import { formatISODate } from "../../../utils/formatters";
 import type {
   CommitTarget,
   Device,
   SyncHistory,
-} from "../../store/configChange/configChangeReducer";
+} from "../stores/configChangeReducer";
 
 interface SyncEvent {
   readonly cause: string;

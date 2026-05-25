@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Checkbox, Form, Icon, Popup } from "semantic-ui-react";
 import type { CheckboxProps } from "semantic-ui-react";
-import permissionsCheck from "../../../utils/permissions/permissionsCheck";
+import permissionsCheck from "../../../../utils/permissions/permissionsCheck";
 import { DryRunError } from "./DryRunError";
 import { DryRunProgressBar } from "./DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
-import type { DeviceSyncOptions } from "../../../services/configChangeApi";
-import type { DryRunProgress } from "../../../store/configChange/configChangeReducer";
+import type { DeviceSyncOptions } from "../../api/configChangeApi";
+import type { DryRunProgress } from "../../stores/configChangeReducer";
 
 interface DryRunProps {
   readonly devices: Record<string, unknown>;

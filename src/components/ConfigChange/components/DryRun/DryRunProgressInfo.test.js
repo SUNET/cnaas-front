@@ -4,7 +4,7 @@ import "@testing-library/jest-dom";
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
 
 // Mock LogViewer to avoid testing its internals (Prism highlighting, etc.)
-jest.mock("../../LogViewer", () => {
+jest.mock("../../../LogViewer", () => {
   return function MockLogViewer({ logs }) {
     return (
       <section aria-label="log viewer">

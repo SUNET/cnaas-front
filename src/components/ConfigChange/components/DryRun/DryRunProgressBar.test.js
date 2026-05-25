@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 
 import { DryRunProgressBar } from "./DryRunProgressBar";
 
-jest.mock("../../ProgressBar", () => {
+jest.mock("../../../ProgressBar", () => {
   return function MockProgressBar({ value, total, jobStatus, hidden }) {
     return (
       <div

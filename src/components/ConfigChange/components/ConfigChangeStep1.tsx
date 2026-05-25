@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { usePermissions } from "../../contexts/PermissionsContext";
-import { getData } from "../../utils/getData";
-import { putData } from "../../utils/sendData";
-import LogViewer from "../LogViewer";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { usePermissions } from "../../../contexts/PermissionsContext";
+import { getData } from "../../../utils/getData";
+import { putData } from "../../../utils/sendData";
+import LogViewer from "../../LogViewer";
 
 function filterLogLinesByJobIds(jobIds: number[]) {
   return function (logLine: string) {

@@ -1,4 +1,4 @@
-import { ConfigChangeProvider } from "../../store/configChange/ConfigChangeContext";
+import { ConfigChangeProvider } from "../stores/ConfigChangeContext";
 import { ConfigChange } from "./ConfigChange";
 
 export function ConfigChangePage() {

@@ -4,11 +4,11 @@ import userEvent from "@testing-library/user-event";
 
 import { ConfigChangeStep4 } from "./ConfigChangeStep4";
 
-import { useAuthToken as mockUseAuthToken } from "../../contexts/AuthTokenContext";
-import { getData as mockGetData } from "../../utils/getData";
+import { useAuthToken as mockUseAuthToken } from "../../../contexts/AuthTokenContext";
+import { getData as mockGetData } from "../../../utils/getData";
 
-jest.mock("../../utils/getData");
-jest.mock("../../contexts/AuthTokenContext");
+jest.mock("../../../utils/getData");
+jest.mock("../../../contexts/AuthTokenContext");
 
 mockGetData.mockResolvedValue({ api: { COMMIT_CONFIRMED_MODE: 1 } });
 mockUseAuthToken.mockReturnValue({
