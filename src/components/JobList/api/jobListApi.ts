@@ -5,12 +5,9 @@ import type { Job } from "../../../types/job";
 export type FetchJobsResult = {
   readonly jobs: Job[];
   readonly totalPages: number;
-  readonly error?: undefined;
 };
 
 export type FetchJobsError = {
-  readonly jobs?: undefined;
-  readonly totalPages?: undefined;
   readonly error: string;
 };
 
@@ -58,7 +55,7 @@ export async function fetchJobs(
       error != null &&
       typeof error === "object" &&
       "json" in error &&
-      typeof (error as { json: unknown }).json === "function"
+      typeof error.json === "function"
     ) {
       const responseError = error as Response;
       try {
@@ -67,9 +64,9 @@ export async function fetchJobs(
           jsonError != null &&
           typeof jsonError === "object" &&
           "message" in jsonError &&
-          typeof (jsonError as { message: unknown }).message === "string"
+          typeof jsonError.message === "string"
         ) {
-          message = (jsonError as { message: string }).message;
+          message = jsonError.message;
         } else if (
           "status" in responseError &&
           typeof responseError.status === "number"
@@ -97,7 +94,7 @@ export async function fetchJobs(
       typeof error === "object" &&
       "message" in error
     ) {
-      message = String((error as { message: unknown }).message);
+      message = String(error.message);
     }
     console.error("Failed to fetch jobs:", message);
     return { error: message };
