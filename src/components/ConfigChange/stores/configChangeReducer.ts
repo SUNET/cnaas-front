@@ -1,5 +1,7 @@
 // --- Types ---
 
+import type { SyncHistory } from "../../../types/syncHistory";
+
 export interface JobTask {
   readonly task_name: string;
   readonly result: string | undefined;
@@ -11,10 +13,6 @@ export interface Device {
   readonly hostname: string;
   readonly synchronized: boolean;
   readonly state: string;
-}
-
-export interface SyncHistory {
-  readonly [hostname: string]: unknown;
 }
 
 export interface CommitTarget {

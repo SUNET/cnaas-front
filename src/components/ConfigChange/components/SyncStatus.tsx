@@ -1,17 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { Popup, Table, Icon } from "semantic-ui-react";
 import { formatISODate } from "../../../utils/formatters";
-import type {
-  CommitTarget,
-  Device,
-  SyncHistory,
-} from "../stores/configChangeReducer";
+import type { SyncEvent, SyncHistory } from "../../../types/syncHistory";
+import type { CommitTarget, Device } from "../stores/configChangeReducer";
 
-interface SyncEvent {
+type FormattedSyncEvent = {
   readonly cause: string;
   readonly by: string;
   readonly date: string;
-}
+};
 
 function NoEventsContent() {
   return (
@@ -22,14 +19,14 @@ function NoEventsContent() {
   );
 }
 
-interface CauseColumn {
+type CauseColumn = {
   readonly cause: string;
   readonly devices: ReactNode;
-}
+};
 
-interface EventsTableProps {
+type EventsTableProps = {
   readonly columns: CauseColumn[];
-}
+};
 
 function EventsTable({ columns }: EventsTableProps) {
   return (
@@ -57,10 +54,10 @@ function EventsTable({ columns }: EventsTableProps) {
   );
 }
 
-interface DeviceEntryProps {
+type DeviceEntryProps = {
   readonly hostname: string;
-  readonly eventList: SyncEvent[];
-}
+  readonly eventList: FormattedSyncEvent[];
+};
 
 function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
   return (
@@ -87,12 +84,6 @@ function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
   );
 }
 
-interface RawSyncEvent {
-  readonly cause: string;
-  readonly by: string;
-  readonly timestamp: number;
-}
-
 function getCauses(devices: Device[], synchistory: SyncHistory) {
   if (!synchistory || !devices.length) {
     return {};
@@ -102,25 +93,24 @@ function getCauses(devices: Device[], synchistory: SyncHistory) {
   const causeTypes = new Set<string>();
 
   devices.forEach((device) => {
-    if (device.hostname in synchistory) {
+    const events = synchistory[device.hostname];
+    if (events) {
       const deviceCauses = new Set<string>();
-      const eventList = (synchistory[device.hostname] as RawSyncEvent[]).map(
-        (e) => {
-          if (!causeTypes.has(e.cause)) {
-            byCause[e.cause] = [];
-            causeTypes.add(e.cause);
-          }
-          const timestamp = new Date();
-          timestamp.setTime(e.timestamp * 1000);
-          deviceCauses.add(e.cause);
+      const eventList = events.map((e: SyncEvent) => {
+        if (!causeTypes.has(e.cause)) {
+          byCause[e.cause] = [];
+          causeTypes.add(e.cause);
+        }
+        const timestamp = new Date();
+        timestamp.setTime(e.timestamp * 1000);
+        deviceCauses.add(e.cause);
 
-          return {
-            cause: e.cause,
-            by: e.by,
-            date: formatISODate(timestamp.toISOString()),
-          };
-        },
-      );
+        return {
+          cause: e.cause,
+          by: e.by,
+          date: formatISODate(timestamp.toISOString()),
+        };
+      });
 
       const deviceEntry = (
         <DeviceEntry
@@ -139,11 +129,11 @@ function getCauses(devices: Device[], synchistory: SyncHistory) {
   return byCause;
 }
 
-interface SyncStatusProps {
+type SyncStatusProps = {
   readonly devices: Device[];
   readonly synchistory: SyncHistory;
   readonly target: CommitTarget;
-}
+};
 
 export function SyncStatus({ devices, synchistory, target }: SyncStatusProps) {
   const [expanded, setExpanded] = useState(false);

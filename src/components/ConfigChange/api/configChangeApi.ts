@@ -1,12 +1,12 @@
 import { getData } from "../../../utils/getData";
 import { post } from "../../../utils/sendData";
+import type { SyncHistory } from "../../../types/syncHistory";
 import type {
   CommitTarget,
   ConfirmRunProgress,
   Device,
   DryRunProgress,
   LiveRunProgress,
-  SyncHistory,
 } from "../stores/configChangeReducer";
 
 export async function fetchDeviceList(
