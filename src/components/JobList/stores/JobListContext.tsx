@@ -24,7 +24,7 @@ import { useJobListSocket } from "../hooks/useJobListSocket";
 
 // --- Context shape ---
 
-export interface JobListContextValue {
+export type JobListContextValue = {
   readonly state: JobListState;
   readonly dispatch: Dispatch<Action>;
 
@@ -37,7 +37,7 @@ export interface JobListContextValue {
   readonly setFilter: (filter: FilterState) => void;
   readonly setPage: (page: number) => void;
   readonly toggleRow: (jobId: number) => void;
-}
+};
 
 // --- Context ---
 
@@ -53,9 +53,9 @@ export function useJobList(): JobListContextValue {
 
 // --- Provider ---
 
-interface JobListProviderProps {
+type JobListProviderProps = {
   readonly children: ReactNode;
-}
+};
 
 export function JobListProvider({ children }: JobListProviderProps) {
   const { token } = useAuthToken();

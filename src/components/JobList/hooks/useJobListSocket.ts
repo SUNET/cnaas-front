@@ -3,11 +3,11 @@ import { socket } from "../stores/socket";
 import { actions, type Action } from "../stores/jobListReducer";
 import type { Dispatch } from "react";
 
-interface JobEventData {
+type JobEventData = {
   job_id?: number;
   status?: string;
   exception?: string;
-}
+};
 
 /**
  * Connects the socket on mount, subscribes to job and log events,

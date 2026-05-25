@@ -83,7 +83,7 @@ test("clears search and calls searchAction with nulls when clear icon is clicked
 
   // Click the clear icon (Semantic UI Icon with link prop renders as <i> with aria-hidden)
   const clearIcon = container.querySelector("i.delete.icon");
-  await userEvent.click(clearIcon);
+  await userEvent.click(clearIcon as Element);
 
   expect(input).toHaveValue("");
   expect(mockSearchAction).toHaveBeenCalledWith({

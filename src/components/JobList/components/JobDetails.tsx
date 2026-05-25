@@ -3,11 +3,16 @@ import {
   VerifyDiffResult,
   type Device,
 } from "../../ConfigChange/VerifyDiff/VerifyDiffResult";
-import type { Job } from "../stores/jobListReducer";
+import {
+  isInitDeviceJob,
+  isSyncDevicesJob,
+  type DevicesJob,
+  type Job,
+} from "../../../types/job";
 
-interface JobDetailsProps {
+type JobDetailsProps = {
   readonly job: Job;
-}
+};
 
 /**
  * Renders job-specific details based on job status and function type.
@@ -17,23 +22,12 @@ export function JobDetails({ job }: JobDetailsProps): ReactNode {
   if (job.status === "EXCEPTION") {
     return <ExceptionDetails job={job} />;
   }
-
-  if (job.status === "FINISHED") {
-    if (
-      typeof job.function_name === "string" &&
-      job.function_name.startsWith("sync_devices")
-    ) {
-      return <SyncDevicesResult job={job} />;
-    }
-
-    if (
-      job.function_name === "init_access_device_step1" ||
-      job.function_name === "init_fabric_device_step1"
-    ) {
-      return <InitDeviceResult job={job} />;
-    }
+  if (isSyncDevicesJob(job)) {
+    return <SyncDevicesResult job={job} />;
   }
-
+  if (isInitDeviceJob(job)) {
+    return <InitDeviceResult job={job} />;
+  }
   // Default: show raw JSON result
   return <pre>{JSON.stringify(job.result, null, 2)}</pre>;
 }
@@ -54,37 +48,40 @@ function ExceptionDetails({ job }: JobDetailsProps): ReactNode {
   );
 }
 
-interface SyncResult {
-  devices: Record<string, { job_tasks: Device["jobTasks"] }>;
-}
+type DevicesJobProps = {
+  readonly job: DevicesJob;
+};
 
-function SyncDevicesResult({ job }: JobDetailsProps): ReactNode {
-  const result = job.result as SyncResult;
-  const devices: Device[] = Object.entries(result.devices).map(
-    ([name, { job_tasks: jobTasks }]) => ({ name, jobTasks }),
-  );
-
+function SyncDevicesResult({ job }: DevicesJobProps): ReactNode {
   return (
     <>
       <p>Diff results:</p>
-      <VerifyDiffResult devices={devices} />
+      <VerifyDiffResult devices={toVerifyDiffDevices(job.result)} />
     </>
   );
 }
 
-interface InitTaskResult {
-  task_name: string;
-  result: unknown;
-  failed?: boolean;
+// Bridge to ConfigChange's JobTask shape (TODO: drop after ConfigChange migrates).
+function toVerifyDiffDevices(result: DevicesJob["result"]): Device[] {
+  return Object.entries(result.devices).map(
+    ([name, { job_tasks: jobTasks }]) => ({
+      name,
+      jobTasks: jobTasks.map(
+        ({ task_name: taskName, result: r, diff, failed }) => ({
+          task_name: taskName,
+          result: typeof r === "string" ? r : undefined,
+          diff: typeof diff === "string" ? diff : "",
+          failed,
+        }),
+      ),
+    }),
+  );
 }
 
-interface InitResult {
-  devices: Record<string, { job_tasks: InitTaskResult[] }>;
-}
+function InitDeviceResult({ job }: DevicesJobProps): ReactNode {
+  const deviceResult = Object.values(job.result.devices);
+  if (deviceResult.length === 0) return null;
 
-function InitDeviceResult({ job }: JobDetailsProps): ReactNode {
-  const result = job.result as InitResult;
-  const deviceResult = Object.values(result.devices);
   const results = deviceResult[0].job_tasks
     .map((task): { key: string; text: string } | undefined => {
       if (task.task_name === "napalm_get") {
@@ -105,7 +102,7 @@ function InitDeviceResult({ job }: JobDetailsProps): ReactNode {
         if (task.failed === true) {
           return {
             key: task.task_name,
-            text: `Error: Failed to generate configuration from template: ${task.result}`,
+            text: `Error: Failed to generate configuration from template: ${String(task.result)}`,
           };
         }
         return {
