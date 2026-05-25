@@ -4,33 +4,48 @@ import userEvent from "@testing-library/user-event";
 
 import { ConfigChangeStep4 } from "./ConfigChangeStep4";
 
-import { useAuthToken as mockUseAuthToken } from "../../../contexts/AuthTokenContext";
-import { getData as mockGetData } from "../../../utils/getData";
+import { useAuthToken as useAuthTokenImport } from "../../../contexts/AuthTokenContext";
+import { getData as getDataImport } from "../../../utils/getData";
+import type {
+  ConfirmRunProgress,
+  LiveRunProgress,
+} from "../stores/configChangeReducer";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../contexts/AuthTokenContext");
 
+const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
+const mockUseAuthToken = useAuthTokenImport as jest.MockedFunction<
+  typeof useAuthTokenImport
+>;
+
 mockGetData.mockResolvedValue({ api: { COMMIT_CONFIRMED_MODE: 1 } });
 mockUseAuthToken.mockReturnValue({
   token: "mockToken",
+  username: "test-user",
 });
 
 const mockLiveRunSyncStart = jest.fn();
 
+type RenderProps = {
+  readonly dryRunJobStatus?: string;
+  readonly liveRunJobStatus?: string;
+};
+
 function renderConfigChangeStep4Component({
   dryRunJobStatus = "FINISHED",
   liveRunJobStatus = "RUNNING",
-} = {}) {
+}: RenderProps = {}) {
   render(
     <ConfigChangeStep4
       confirmJobId="1"
       confirmRunJobStatus="RUNNING"
-      confirmRunProgressData={{}}
+      confirmRunProgressData={{} as ConfirmRunProgress}
       dryRunChangeScore={0}
       dryRunJobStatus={dryRunJobStatus}
       jobId="1"
       liveRunJobStatus={liveRunJobStatus}
-      liveRunProgressData={{ finished_devices: ["dev1"] }}
+      liveRunProgressData={{ finished_devices: ["dev1"] } as LiveRunProgress}
       liveRunSyncStart={mockLiveRunSyncStart}
       logLines={["job #1 line1", "job #1 line2"]}
       synctoForce={false}

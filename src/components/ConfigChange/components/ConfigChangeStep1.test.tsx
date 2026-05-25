@@ -4,13 +4,20 @@ import "@testing-library/jest-dom";
 
 import { ConfigChangeStep1 } from "./ConfigChangeStep1";
 
-import { getData as mockGetData } from "../../../utils/getData";
-import { putData as mockPutData } from "../../../utils/sendData";
-import { usePermissions as mockUsePermissions } from "../../../contexts/PermissionsContext";
+import { getData as getDataImport } from "../../../utils/getData";
+import { putData as putDataImport } from "../../../utils/sendData";
+import { usePermissions as usePermissionsImport } from "../../../contexts/PermissionsContext";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../utils/sendData");
 jest.mock("../../../contexts/PermissionsContext");
+
+const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
+const mockPutData = putDataImport as jest.MockedFunction<typeof putDataImport>;
+const mockUsePermissions = usePermissionsImport as jest.MockedFunction<
+  typeof usePermissionsImport
+>;
+
 mockGetData.mockResolvedValue({ data: "repo_name_mock" });
 mockPutData.mockResolvedValue(true);
 

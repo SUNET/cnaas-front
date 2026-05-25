@@ -2,9 +2,22 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 import { DryRunProgressBar } from "./DryRunProgressBar";
+import type { JobProgress } from "../../stores/configChangeReducer";
+
+type MockProgressBarProps = {
+  readonly value: number;
+  readonly total: number;
+  readonly jobStatus: string | null;
+  readonly hidden?: boolean;
+};
 
 jest.mock("../../../ProgressBar", () => {
-  return function MockProgressBar({ value, total, jobStatus, hidden }) {
+  return function MockProgressBar({
+    value,
+    total,
+    jobStatus,
+    hidden,
+  }: MockProgressBarProps) {
     return (
       <div
         data-testid="progress-bar"
@@ -19,9 +32,15 @@ jest.mock("../../../ProgressBar", () => {
   };
 });
 
-function renderComponent(props = {}) {
+type RenderProps = {
+  readonly dryRunProgressData?: JobProgress;
+  readonly dryRunJobStatus?: string | null;
+  readonly totalDevices?: number;
+};
+
+function renderComponent(props: RenderProps = {}) {
   const defaultProps = {
-    dryRunProgressData: {},
+    dryRunProgressData: {} as JobProgress,
     dryRunJobStatus: null,
     totalDevices: 5,
   };

@@ -1,7 +1,9 @@
 import { fetchDeviceList, fetchSyncHistory } from "./configChangeApi";
-import { getData } from "../../../utils/getData";
+import { getData as getDataImport } from "../../../utils/getData";
 
 jest.mock("../../../utils/getData");
+
+const getData = getDataImport as jest.MockedFunction<typeof getDataImport>;
 
 describe("fetchDeviceList", () => {
   it("returns devices from API when target.hostname is provided", async () => {
@@ -41,7 +43,7 @@ describe("fetchDeviceList", () => {
   });
 
   it("filters unsynchronized devices by group membership", async () => {
-    getData.mockImplementation((url) => {
+    getData.mockImplementation((url: string) => {
       if (url.includes("/devices")) {
         return Promise.resolve({
           data: {
