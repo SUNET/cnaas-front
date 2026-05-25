@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { socket } from "./socket";
-import { actions, type Action } from "./jobListReducer";
+import { socket } from "../stores/socket";
+import { actions, type Action } from "../stores/jobListReducer";
 import type { Dispatch } from "react";
 
 interface JobEventData {

@@ -1,4 +1,4 @@
-import { JobListProvider } from "../../store/jobList/JobListContext";
+import { JobListProvider } from "../stores/JobListContext";
 import { JobList } from "./JobList";
 
 /**

@@ -12,7 +12,7 @@ import FirmwareCopy from "./components/FirmwareCopy";
 import { FirmwareUpgrade } from "./components/FirmwareUpgrade";
 import GroupList from "./components/GroupList";
 import { InterfaceConfigPage } from "./components/InterfaceConfig/InterfaceConfigPage";
-import { JobListPage } from "./components/JobList/JobListPage";
+import { JobListPage } from "./components/JobList";
 import Login from "./components/Login/Login";
 import Settings from "./components/Settings";
 
