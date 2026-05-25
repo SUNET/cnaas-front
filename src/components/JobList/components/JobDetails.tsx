@@ -4,8 +4,8 @@ import {
   type Device,
 } from "../../ConfigChange/components/VerifyDiff/VerifyDiffResult";
 import {
+  isDeviceSyncJob,
   isInitDeviceJob,
-  isSyncDevicesJob,
   type DevicesJob,
   type Job,
 } from "../../../types/job";
@@ -22,7 +22,7 @@ export function JobDetails({ job }: JobDetailsProps): ReactNode {
   if (job.status === "EXCEPTION") {
     return <ExceptionDetails job={job} />;
   }
-  if (isSyncDevicesJob(job)) {
+  if (isDeviceSyncJob(job)) {
     return <SyncDevicesResult job={job} />;
   }
   if (isInitDeviceJob(job)) {
