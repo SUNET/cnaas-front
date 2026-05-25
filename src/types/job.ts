@@ -88,14 +88,31 @@ export function isDevicesJobResult(value: unknown): value is DevicesJobResult {
 /** Job whose `result` is narrowed to `DevicesJobResult`. */
 export type DevicesJob = Job & { readonly result: DevicesJobResult };
 
-/** True for finished sync_devices* jobs with a per-device result. */
-export function isSyncDevicesJob(job: Job): job is DevicesJob {
+/** Shared finish+shape check for device-sync guards. */
+function isFinishedDevicesJob(job: Job): job is DevicesJob {
+  return job.status === "FINISHED" && isDevicesJobResult(job.result);
+}
+
+/** Finished dry-run sync (`sync_devices (dry_run)`) — preview, no device writes. */
+export function isDryRunSyncJob(job: Job): job is DevicesJob {
   return (
-    job.status === "FINISHED" &&
-    typeof job.function_name === "string" &&
-    job.function_name.startsWith("sync_devices") &&
-    isDevicesJobResult(job.result)
+    job.function_name === "sync_devices (dry_run)" && isFinishedDevicesJob(job)
   );
+}
+
+/** Finished live-run sync (`sync_devices`) — applied to devices. */
+export function isLiveRunSyncJob(job: Job): job is DevicesJob {
+  return job.function_name === "sync_devices" && isFinishedDevicesJob(job);
+}
+
+/** Finished confirm-run (`confirm_devices`) — two-phase commit follow-up. */
+export function isConfirmRunJob(job: Job): job is DevicesJob {
+  return job.function_name === "confirm_devices" && isFinishedDevicesJob(job);
+}
+
+/** Parent guard: any finished device-sync job (dry-run, live-run, or confirm-run). */
+export function isDeviceSyncJob(job: Job): job is DevicesJob {
+  return isDryRunSyncJob(job) || isLiveRunSyncJob(job) || isConfirmRunJob(job);
 }
 
 /** True for finished init_{access,fabric}_device_step1 jobs with a per-device result. */
