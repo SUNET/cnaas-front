@@ -124,7 +124,7 @@ export function JobListProvider({ children }: JobListProviderProps) {
       // Ignore stale responses from earlier requests
       if (thisRequestId !== requestIdRef.current) return;
 
-      if (result.error != null) {
+      if ("error" in result) {
         dispatch({ type: actions.FETCH_FAILED, error: result.error });
       } else {
         dispatch({
