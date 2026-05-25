@@ -3,10 +3,10 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
 import { JobList } from "./JobList";
-import { JobListProvider } from "../../store/jobList/JobListContext";
+import { JobListProvider } from "../stores/JobListContext";
 
 // Mock socket module
-jest.mock("../../store/jobList/socket", () => ({
+jest.mock("../stores/socket", () => ({
   socket: {
     io: { opts: { query: {} } },
     on: jest.fn(),
@@ -18,25 +18,25 @@ jest.mock("../../store/jobList/socket", () => ({
 }));
 
 // Get reference to the mocked socket for assertions
-const { socket: mockSocket } = jest.requireMock("../../store/jobList/socket");
+const { socket: mockSocket } = jest.requireMock("../stores/socket");
 
 // Mock fetchJobs service
-jest.mock("../../services/jobApi", () => ({
+jest.mock("../api/jobListApi", () => ({
   fetchJobs: jest.fn(),
 }));
 
 // Mock useAuthToken
-jest.mock("../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../contexts/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 
 // Mock useFreshRef
-jest.mock("../../hooks/useFreshRef", () => ({
+jest.mock("../../../hooks/useFreshRef", () => ({
   useFreshRef: (val) => ({ current: val }),
 }));
 
 // Mock LogViewer
-jest.mock("../LogViewer", () => {
+jest.mock("../../LogViewer", () => {
   return function MockLogViewer({ logs }) {
     if (!logs || logs.length === 0) return null;
     return (
@@ -50,7 +50,7 @@ jest.mock("../LogViewer", () => {
 });
 
 // Mock VerifyDiffResult
-jest.mock("../ConfigChange/VerifyDiff/VerifyDiffResult", () => ({
+jest.mock("../../ConfigChange/VerifyDiff/VerifyDiffResult", () => ({
   VerifyDiffResult: function MockVerifyDiffResult({ devices }) {
     return (
       <div data-testid="verify-diff-result">
@@ -64,7 +64,7 @@ jest.mock("../ConfigChange/VerifyDiff/VerifyDiffResult", () => ({
   },
 }));
 
-import { fetchJobs } from "../../services/jobApi";
+import { fetchJobs } from "../api/jobListApi";
 
 const mockJobs = [
   {

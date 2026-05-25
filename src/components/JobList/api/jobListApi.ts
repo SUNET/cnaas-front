@@ -1,6 +1,6 @@
-import { getResponse } from "../utils/getData";
-import checkJsonResponse from "../utils/checkJsonResponse";
-import type { Job } from "../store/jobList/jobListReducer";
+import { getResponse } from "../../../utils/getData";
+import checkJsonResponse from "../../../utils/checkJsonResponse";
+import type { Job } from "../stores/jobListReducer";
 
 export interface FetchJobsResult {
   readonly jobs: Job[];

@@ -1,2 +1,2 @@
-export { JobList } from "./JobList";
-export { JobListPage } from "./JobListPage";
+export { JobList } from "./components/JobList";
+export { JobListPage } from "./components/JobListPage";

@@ -9,9 +9,9 @@ import {
   type Dispatch,
   type ReactNode,
 } from "react";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { useFreshRef } from "../../hooks/useFreshRef";
-import { fetchJobs } from "../../services/jobApi";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useFreshRef } from "../../../hooks/useFreshRef";
+import { fetchJobs } from "../api/jobListApi";
 import {
   jobListReducer,
   initialState,
@@ -20,7 +20,7 @@ import {
   type Action,
   type FilterState,
 } from "./jobListReducer";
-import { useJobListSocket } from "./useJobListSocket";
+import { useJobListSocket } from "../hooks/useJobListSocket";
 
 // --- Context shape ---
 

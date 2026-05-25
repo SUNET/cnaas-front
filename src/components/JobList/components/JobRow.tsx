@@ -8,9 +8,9 @@ import {
   TableCell,
   TableRow,
 } from "semantic-ui-react";
-import { formatISODate } from "../../utils/formatters";
+import { formatISODate } from "../../../utils/formatters";
 import { JobDetails } from "./JobDetails";
-import type { Job } from "../../store/jobList/jobListReducer";
+import type { Job } from "../stores/jobListReducer";
 
 interface JobRowProps {
   readonly job: Job;

@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import {
   VerifyDiffResult,
   type Device,
-} from "../ConfigChange/VerifyDiff/VerifyDiffResult";
-import type { Job } from "../../store/jobList/jobListReducer";
+} from "../../ConfigChange/VerifyDiff/VerifyDiffResult";
+import type { Job } from "../stores/jobListReducer";
 
 interface JobDetailsProps {
   readonly job: Job;
