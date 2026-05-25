@@ -1,13 +1,13 @@
 import { useEffect, type Dispatch } from "react";
-import { useFreshRef } from "../../hooks/useFreshRef";
-import { socket } from "./socket";
-import { actions, type Action } from "./configChangeReducer";
+import { useFreshRef } from "../../../hooks/useFreshRef";
+import { socket } from "../stores/socket";
+import { actions, type Action } from "../stores/configChangeReducer";
 import {
   showSyncToast,
   showSyncWarningToast,
   showAnotherSessionDidRefreshToast,
   clearToastTimers,
-} from "./toasts";
+} from "../stores/toasts";
 
 interface JobEventData {
   readonly job_id: number;

@@ -4,7 +4,7 @@ import AuthContextProvider from "./contexts/AuthContext";
 import { Footer } from "./components/Footer";
 import { Panel } from "./components/Panel";
 import { Callback } from "./components/Callback";
-import { ConfigChangePage } from "./components/ConfigChange/ConfigChangePage";
+import { ConfigChangePage } from "./components/ConfigChange/components/ConfigChangePage";
 import Dashboard from "./components/Dashboard";
 import { DeviceListPage } from "./components/DeviceList/DeviceListPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";

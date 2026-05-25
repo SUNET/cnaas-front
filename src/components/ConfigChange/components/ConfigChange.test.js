@@ -3,20 +3,20 @@ import "@testing-library/jest-dom";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
 import { ConfigChangePage } from "./ConfigChangePage";
-import { getData as mockGetData } from "../../utils/getData";
+import { getData as mockGetData } from "../../../utils/getData";
 
-jest.mock("../../utils/getData");
-jest.mock("../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../utils/getData");
+jest.mock("../../../contexts/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
-jest.mock("../../hooks/useFreshRef.js", () => ({
+jest.mock("../../../hooks/useFreshRef.js", () => ({
   useFreshRef: (value) => ({ current: value }),
 }));
-jest.mock("../../contexts/PermissionsContext", () => ({
+jest.mock("../../../contexts/PermissionsContext", () => ({
   usePermissions: () => ({ permissionsCheck: () => true }),
 }));
 
-jest.mock("../../store/configChange/socket", () => ({
+jest.mock("../stores/socket", () => ({
   socket: {
     io: { opts: {} },
     on: jest.fn(),

@@ -1,5 +1,5 @@
-import { getData } from "../utils/getData";
-import { post } from "../utils/sendData";
+import { getData } from "../../../utils/getData";
+import { post } from "../../../utils/sendData";
 import type {
   CommitTarget,
   ConfirmRunProgress,
@@ -7,7 +7,7 @@ import type {
   DryRunProgress,
   LiveRunProgress,
   SyncHistory,
-} from "../store/configChange/configChangeReducer";
+} from "../stores/configChangeReducer";
 
 export async function fetchDeviceList(
   token: string | null,

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import {
   VerifyDiffResult,
   type Device,
-} from "../../ConfigChange/VerifyDiff/VerifyDiffResult";
+} from "../../ConfigChange/components/VerifyDiff/VerifyDiffResult";
 import {
   isInitDeviceJob,
   isSyncDevicesJob,

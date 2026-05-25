@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import SyntaxHighlight from "../../SyntaxHighlight";
-import type { JobTask } from "../../../store/configChange/configChangeReducer";
+import SyntaxHighlight from "../../../SyntaxHighlight";
+import type { JobTask } from "../../stores/configChangeReducer";
 
 export type { JobTask };
 

@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
 import type { InputOnChangeData } from "semantic-ui-react";
 
-import { getData } from "../../utils/getData";
+import { getData } from "../../../utils/getData";
 import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRun/DryRunProgressInfo";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
-import type { DeviceSyncOptions } from "../../services/configChangeApi";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import type { DeviceSyncOptions } from "../api/configChangeApi";
 import type {
   ConfirmRunProgress,
   LiveRunProgress,
-} from "../../store/configChange/configChangeReducer";
+} from "../stores/configChangeReducer";
 
 interface ConfirmModeOption {
   readonly value: number;

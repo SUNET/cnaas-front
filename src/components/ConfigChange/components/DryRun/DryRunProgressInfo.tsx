@@ -1,5 +1,5 @@
-import LogViewer from "../../LogViewer";
-import type { JobProgress } from "../../../store/configChange/configChangeReducer";
+import LogViewer from "../../../LogViewer";
+import type { JobProgress } from "../../stores/configChangeReducer";
 
 interface DryRunProgressInfoProps {
   readonly dryRunJobStatus: string;
