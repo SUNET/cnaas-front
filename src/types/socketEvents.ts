@@ -13,6 +13,6 @@ export function isJobEvent(data: unknown): data is JobEvent {
     data != null &&
     typeof data === "object" &&
     "job_id" in data &&
-    typeof (data as { job_id: unknown }).job_id === "number"
+    typeof data.job_id === "number"
   );
 }
