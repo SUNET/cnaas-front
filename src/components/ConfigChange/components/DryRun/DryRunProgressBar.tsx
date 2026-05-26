@@ -1,13 +1,13 @@
 import ProgressBar from "../../../ProgressBar";
-import type { JobProgress } from "../../stores/configChangeReducer";
+import type { Job } from "../../../../types/job";
 
-interface DryRunProgressBarProps {
-  readonly dryRunProgressData: JobProgress;
+type DryRunProgressBarProps = {
+  readonly dryRunProgressData: Job | null;
   readonly dryRunJobStatus: string | null;
   readonly hidden?: boolean;
   readonly totalDevices: number;
   readonly keyNum?: number;
-}
+};
 
 export function DryRunProgressBar({
   dryRunProgressData,

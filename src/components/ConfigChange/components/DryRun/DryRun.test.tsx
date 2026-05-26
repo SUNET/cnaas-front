@@ -4,7 +4,6 @@ import "@testing-library/jest-dom";
 
 import { DryRun } from "./DryRun";
 import type { DeviceSyncOptions } from "../../api/configChangeApi";
-import type { DryRunProgress } from "../../stores/configChangeReducer";
 
 jest.mock("./DryRunError", () => ({
   DryRunError: function MockDryRunError() {
@@ -38,7 +37,7 @@ function renderComponent(props: Partial<DryRunProps> = {}) {
   const defaultProps: DryRunProps = {
     dryRunDisable: false,
     dryRunSyncStart: mockDryRunSyncStart as (opts: DeviceSyncOptions) => void,
-    dryRunProgressData: {} as DryRunProgress,
+    dryRunProgressData: null,
     dryRunJobStatus: "",
     jobId: "NA",
     devices: {},

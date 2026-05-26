@@ -25,69 +25,79 @@ import {
   actions,
   type ConfigChangeState,
   type CommitTarget,
-  type DryRunProgress,
-  type LiveRunProgress,
-  type ConfirmRunProgress,
-  type JobTask,
 } from "./configChangeReducer";
+import {
+  isDevicesJobResult,
+  isLiveRunResult,
+  type DeviceResult,
+  type Job,
+} from "../../../types/job";
 import { useConfigChangeSocket } from "../hooks/useConfigChangeSocket";
 
 // --- Derived state ---
 
-export interface DryRunDerived {
+export type DryRunDerived = {
   readonly status: string;
-  readonly results: Record<string, { job_tasks: JobTask[] }>;
-  readonly changeScore: string;
+  readonly results: Readonly<Record<string, DeviceResult>>;
+  readonly changeScore: number | null;
   readonly jobId: number | string;
-}
+};
 
-export interface LiveRunDerived {
+export type LiveRunDerived = {
   readonly status: string;
-  readonly results: string | Record<string, unknown>;
+  readonly results: string;
   readonly jobId: number | string;
-}
+};
 
-export interface ConfirmRunDerived {
+export type ConfirmRunDerived = {
   readonly status: string;
   readonly jobId: number | string;
-}
+};
 
-function deriveDryRun(data: DryRunProgress): DryRunDerived {
-  if (data.id == null) {
-    return { status: "", results: {}, changeScore: "", jobId: "NA" };
+function deriveDryRun(job: Job | null): DryRunDerived {
+  if (job == null) {
+    return { status: "", results: {}, changeScore: null, jobId: "NA" };
   }
+  const results =
+    job.status === "FINISHED" && isDevicesJobResult(job.result)
+      ? job.result.devices
+      : {};
   return {
-    status: data.status ?? "",
-    changeScore: data.change_score ?? "",
-    jobId: data.id,
-    results: data.status === "FINISHED" ? (data.result?.devices ?? {}) : {},
+    status: job.status,
+    changeScore: job.change_score,
+    jobId: job.id,
+    results,
   };
 }
 
-function deriveLiveRun(data: LiveRunProgress): LiveRunDerived {
-  if (data.id == null) {
+function deriveLiveRun(job: Job | null): LiveRunDerived {
+  if (job == null) {
     return { status: "", results: "", jobId: "NA" };
   }
+  const results =
+    job.status === "FINISHED" && isLiveRunResult(job.result)
+      ? job.result.devices
+      : "";
   return {
-    status: data.status ?? "",
-    jobId: data.id,
-    results: data.status === "FINISHED" ? (data.result?.devices ?? "") : "",
+    status: job.status,
+    jobId: job.id,
+    results,
   };
 }
 
-function deriveConfirmRun(data: ConfirmRunProgress): ConfirmRunDerived {
-  if (data.id == null) {
+function deriveConfirmRun(job: Job | null): ConfirmRunDerived {
+  if (job == null) {
     return { status: "", jobId: "NA" };
   }
   return {
-    status: data.status ?? "",
-    jobId: data.id,
+    status: job.status,
+    jobId: job.id,
   };
 }
 
 // --- Context shape ---
 
-interface ConfigChangeContextValue {
+type ConfigChangeContextValue = {
   readonly state: ConfigChangeState;
   readonly dryRun: DryRunDerived;
   readonly liveRun: LiveRunDerived;
@@ -100,7 +110,7 @@ interface ConfigChangeContextValue {
   readonly handleDryRunReady: () => void;
   readonly resetState: () => Promise<void>;
   readonly setSynctoForce: (force: boolean) => void;
-}
+};
 
 const ConfigChangeContext = createContext<ConfigChangeContextValue | null>(
   null,
@@ -116,9 +126,9 @@ export function useConfigChange(): ConfigChangeContextValue {
 
 // --- Provider ---
 
-interface ProviderProps {
+type ProviderProps = {
   readonly children: ReactNode;
-}
+};
 
 export function ConfigChangeProvider({ children }: ProviderProps) {
   const { token, username } = useAuthToken();
@@ -174,26 +184,23 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
 
   const POLL_INTERVAL_MS = 1000;
 
-  const dispatchProgress = useCallback(
-    (jobType: JobType, payload: DryRunProgress & LiveRunProgress) => {
-      switch (jobType) {
-        case "dry_run":
-          dispatch({ type: actions.SET_DRY_RUN_PROGRESS, data: payload });
-          break;
-        case "live_run":
-          dispatch({ type: actions.SET_LIVE_RUN_PROGRESS, data: payload });
-          break;
-        case "confirm_run":
-          dispatch({ type: actions.SET_CONFIRM_RUN_PROGRESS, data: payload });
-          break;
-        default: {
-          const exhaustive: never = jobType;
-          throw new Error(`Unknown jobtype: ${exhaustive}`);
-        }
+  const dispatchProgress = useCallback((jobType: JobType, payload: Job) => {
+    switch (jobType) {
+      case "dry_run":
+        dispatch({ type: actions.SET_DRY_RUN_PROGRESS, data: payload });
+        break;
+      case "live_run":
+        dispatch({ type: actions.SET_LIVE_RUN_PROGRESS, data: payload });
+        break;
+      case "confirm_run":
+        dispatch({ type: actions.SET_CONFIRM_RUN_PROGRESS, data: payload });
+        break;
+      default: {
+        const exhaustive: never = jobType;
+        throw new Error(`Unknown jobtype: ${exhaustive}`);
       }
-    },
-    [],
-  );
+    }
+  }, []);
 
   // Poll a single job until it stops or is aborted. Returns the final payload
   // so callers can chain (e.g. live_run → confirm_run).
@@ -202,7 +209,7 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
       jobId: number,
       jobType: JobType,
       signal: AbortSignal,
-    ): Promise<(DryRunProgress & LiveRunProgress) | null> => {
+    ): Promise<Job | null> => {
       while (!signal.aborted) {
         const { payload, stopped } = await fetchJobStatus(
           jobId,
@@ -210,8 +217,8 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
           signal,
         );
         if (signal.aborted) return null;
-        dispatchProgress(jobType, payload as DryRunProgress & LiveRunProgress);
-        if (stopped) return payload as DryRunProgress & LiveRunProgress;
+        dispatchProgress(jobType, payload);
+        if (stopped) return payload;
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
       }
       return null;

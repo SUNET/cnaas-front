@@ -6,12 +6,12 @@ import { DryRunError } from "./DryRunError";
 import { DryRunProgressBar } from "./DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
 import type { DeviceSyncOptions } from "../../api/configChangeApi";
-import type { DryRunProgress } from "../../stores/configChangeReducer";
+import type { Job } from "../../../../types/job";
 
-interface DryRunProps {
+type DryRunProps = {
   readonly devices: Record<string, unknown>;
   readonly dryRunSyncStart: (options: DeviceSyncOptions) => void;
-  readonly dryRunProgressData: DryRunProgress;
+  readonly dryRunProgressData: Job | null;
   readonly dryRunJobStatus: string;
   readonly jobId: number | string;
   readonly repoWorkingState: boolean;
@@ -21,7 +21,7 @@ interface DryRunProps {
   readonly resetState: () => void;
   readonly totalCount: number;
   readonly logLines: string[];
-}
+};
 
 export function DryRun({
   devices,

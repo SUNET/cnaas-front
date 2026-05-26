@@ -7,35 +7,32 @@ import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRun/DryRunProgressInfo";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import type { DeviceSyncOptions } from "../api/configChangeApi";
-import type {
-  ConfirmRunProgress,
-  LiveRunProgress,
-} from "../stores/configChangeReducer";
+import type { Job } from "../../../types/job";
 
-interface ConfirmModeOption {
+type ConfirmModeOption = {
   readonly value: number;
   readonly text: string;
-}
+};
 
-interface ConfigChangeStep4Props {
+type ConfigChangeStep4Props = {
   readonly confirmJobId: number | string;
   readonly confirmRunJobStatus: string;
-  readonly confirmRunProgressData: ConfirmRunProgress;
-  readonly dryRunChangeScore: string | number;
+  readonly confirmRunProgressData: Job | null;
+  readonly dryRunChangeScore: number | null;
   readonly dryRunJobStatus: string;
   readonly jobId: number | string;
   readonly liveRunJobStatus: string;
-  readonly liveRunProgressData: LiveRunProgress;
+  readonly liveRunProgressData: Job | null;
   readonly liveRunSyncStart: (options: DeviceSyncOptions) => void;
   readonly logLines: string[];
   readonly synctoForce: boolean;
   readonly totalCount: number;
-}
+};
 
 function createWarningPopups(
   jobTicketRef: string,
   jobComment: string,
-  dryRunChangeScore: string | number,
+  dryRunChangeScore: number | null,
   synctoForce: boolean,
 ) {
   const warnings = [];
@@ -52,7 +49,7 @@ function createWarningPopups(
     );
   }
   const warnChangeScore = 90;
-  if (dryRunChangeScore && Number(dryRunChangeScore) > warnChangeScore) {
+  if (dryRunChangeScore != null && dryRunChangeScore > warnChangeScore) {
     warnings.push(
       <Popup
         key="popup2"

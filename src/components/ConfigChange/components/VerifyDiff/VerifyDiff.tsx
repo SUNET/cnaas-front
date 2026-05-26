@@ -2,11 +2,12 @@ import { useMemo, useState } from "react";
 import { Popup, Icon } from "semantic-ui-react";
 import { VerifyDiffInfo } from "./VerifyDiffInfo";
 import { VerifyDiffResult, type Device } from "./VerifyDiffResult";
+import type { DevicesJobResult } from "../../../../types/job";
 
-interface VerifyDiffProps {
-  readonly devices: Record<string, { job_tasks: Device["jobTasks"] }>;
-  readonly dryRunChangeScore: string | number;
-}
+type VerifyDiffProps = {
+  readonly devices: DevicesJobResult["devices"];
+  readonly dryRunChangeScore: number | null;
+};
 
 export function VerifyDiff({ devices, dryRunChangeScore }: VerifyDiffProps) {
   const [expanded, setExpanded] = useState(true);

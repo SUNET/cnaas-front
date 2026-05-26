@@ -1,14 +1,14 @@
 import LogViewer from "../../../LogViewer";
-import type { JobProgress } from "../../stores/configChangeReducer";
+import type { Job } from "../../../../types/job";
 
-interface DryRunProgressInfoProps {
+type DryRunProgressInfoProps = {
   readonly dryRunJobStatus: string;
-  readonly dryRunProgressData: JobProgress;
+  readonly dryRunProgressData: Job | null;
   readonly jobId: number | string;
   readonly logLines?: string[];
   readonly hidden?: boolean;
   readonly keyNum?: number;
-}
+};
 
 export function DryRunProgressInfo({
   dryRunJobStatus,

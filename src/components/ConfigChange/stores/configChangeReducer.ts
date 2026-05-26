@@ -1,63 +1,36 @@
 // --- Types ---
 
+import type { Job } from "../../../types/job";
 import type { SyncHistory } from "../../../types/syncHistory";
 
-export interface JobTask {
-  readonly task_name: string;
-  readonly result: string | undefined;
-  readonly failed: boolean;
-  readonly diff: string;
-}
-
-export interface Device {
+export type Device = {
   readonly hostname: string;
   readonly synchronized: boolean;
   readonly state: string;
-}
+};
 
-export interface CommitTarget {
+export type CommitTarget = {
   readonly hostname?: string;
   readonly group?: string;
   readonly all?: true;
-}
+};
 
-export interface JobProgress {
-  readonly id?: number;
-  readonly status?: string;
-  readonly finished_devices?: string[];
-  readonly start_time?: string;
-  readonly finish_time?: string;
-  readonly exception?: { readonly message?: string };
-}
-
-export interface DryRunProgress extends JobProgress {
-  readonly change_score?: string;
-  readonly result?: { devices: Record<string, { job_tasks: JobTask[] }> };
-}
-
-export interface LiveRunProgress extends JobProgress {
-  readonly next_job_id?: number;
-  readonly result?: { devices: string };
-}
-
-export type ConfirmRunProgress = JobProgress;
-
-export interface ConfigChangeState {
+export type ConfigChangeState = {
   readonly devices: Device[];
   readonly syncHistory: SyncHistory;
   readonly blockNavigation: boolean;
   readonly dryRunDisable: boolean;
-  readonly dryRunProgressData: DryRunProgress;
+  readonly dryRunProgressData: Job | null;
   readonly dryRunTotalCount: number;
-  readonly liveRunProgressData: LiveRunProgress;
+  readonly liveRunProgressData: Job | null;
   readonly liveRunTotalCount: number;
-  readonly confirmRunProgressData: ConfirmRunProgress;
+  readonly confirmRunProgressData: Job | null;
   readonly logLines: string[];
   readonly synctoForce: boolean;
   readonly isRepoRefreshing: boolean;
   readonly repoJobId: number | null;
   readonly stoppedRepoJobs: readonly number[];
-}
+};
 
 // --- Action types ---
 
@@ -84,11 +57,11 @@ export type Action =
   | { type: typeof actions.SET_SYNC_HISTORY; syncHistory: SyncHistory }
   | { type: typeof actions.SET_BLOCK_NAVIGATION; blocked: boolean }
   | { type: typeof actions.SET_DRY_RUN_DISABLE; disabled: boolean }
-  | { type: typeof actions.SET_DRY_RUN_PROGRESS; data: DryRunProgress }
+  | { type: typeof actions.SET_DRY_RUN_PROGRESS; data: Job | null }
   | { type: typeof actions.SET_DRY_RUN_TOTAL_COUNT; count: number }
-  | { type: typeof actions.SET_LIVE_RUN_PROGRESS; data: LiveRunProgress }
+  | { type: typeof actions.SET_LIVE_RUN_PROGRESS; data: Job | null }
   | { type: typeof actions.SET_LIVE_RUN_TOTAL_COUNT; count: number }
-  | { type: typeof actions.SET_CONFIRM_RUN_PROGRESS; data: ConfirmRunProgress }
+  | { type: typeof actions.SET_CONFIRM_RUN_PROGRESS; data: Job | null }
   | { type: typeof actions.SET_SYNCTO_FORCE; force: boolean }
   | { type: typeof actions.APPEND_LOG; line: string }
   | { type: typeof actions.RESET_STATE }
@@ -103,11 +76,11 @@ export const initialState: ConfigChangeState = {
   syncHistory: {},
   blockNavigation: false,
   dryRunDisable: false,
-  dryRunProgressData: {},
+  dryRunProgressData: null,
   dryRunTotalCount: 0,
-  liveRunProgressData: {},
+  liveRunProgressData: null,
   liveRunTotalCount: 0,
-  confirmRunProgressData: {},
+  confirmRunProgressData: null,
   logLines: [],
   synctoForce: false,
   isRepoRefreshing: false,

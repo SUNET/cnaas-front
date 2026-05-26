@@ -1,7 +1,7 @@
-interface VerifyDiffInfoProps {
+type VerifyDiffInfoProps = {
   readonly deviceNames: string[];
-  readonly dryRunChangeScore: string | number;
-}
+  readonly dryRunChangeScore: number | null;
+};
 
 export function VerifyDiffInfo({
   deviceNames,
@@ -10,7 +10,7 @@ export function VerifyDiffInfo({
   return (
     <>
       <p>Total devices affected: {deviceNames.length}</p>
-      <p>Total change score: {dryRunChangeScore}</p>
+      <p>Total change score: {dryRunChangeScore ?? ""}</p>
     </>
   );
 }

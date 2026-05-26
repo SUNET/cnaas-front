@@ -1,13 +1,8 @@
 import { getData } from "../../../utils/getData";
 import { post } from "../../../utils/sendData";
+import type { Job } from "../../../types/job";
 import type { SyncHistory } from "../../../types/syncHistory";
-import type {
-  CommitTarget,
-  ConfirmRunProgress,
-  Device,
-  DryRunProgress,
-  LiveRunProgress,
-} from "../stores/configChangeReducer";
+import type { CommitTarget, Device } from "../stores/configChangeReducer";
 
 export async function fetchDeviceList(
   token: string | null,
@@ -57,19 +52,19 @@ export async function fetchSyncHistory(
   }
 }
 
-export interface DeviceSyncOptions {
+export type DeviceSyncOptions = {
   readonly dry_run?: boolean;
   readonly resync?: boolean;
   readonly comment?: string;
   readonly ticket_ref?: string;
   readonly confirm_mode?: number;
   readonly force?: boolean;
-}
+};
 
-export interface DeviceSyncResult {
+export type DeviceSyncResult = {
   readonly job_id: number;
   readonly totalCount: number;
-}
+};
 
 export async function startDeviceSync(
   token: string | null,
@@ -110,15 +105,10 @@ export async function startDeviceSync(
 
 const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
 
-export type JobStatusPayload =
-  | DryRunProgress
-  | LiveRunProgress
-  | ConfirmRunProgress;
-
-export interface FetchJobStatusResult {
-  readonly payload: JobStatusPayload;
+export type FetchJobStatusResult = {
+  readonly payload: Job;
   readonly stopped: boolean;
-}
+};
 
 export async function fetchJobStatus(
   jobId: number,
@@ -127,7 +117,7 @@ export async function fetchJobStatus(
 ): Promise<FetchJobStatusResult> {
   const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
   const response = await getData(url, token, signal);
-  const payload: JobStatusPayload = response.data.jobs[0];
+  const payload: Job = response.data.jobs[0];
   return {
     payload,
     stopped: STATUS_STOPPED.has(payload.status ?? ""),

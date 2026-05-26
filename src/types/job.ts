@@ -95,46 +95,67 @@ export function isLiveRunResult(value: unknown): value is LiveRunResult {
   return typeof (value as { devices?: unknown }).devices === "string";
 }
 
-// --- Job-kind guards ---
+// --- Job-kind variants ---
 //
-// Narrow a Job by status + function_name + result shape in one check.
+// Variants narrow `Job` by `function_name` only — the kind is set at scheduling
+// and never changes, independent of lifecycle state. Use the result-shape
+// guards (`isDevicesJobResult`, `isLiveRunResult`) separately when reading
+// `job.result`, and `isFinished` when status matters.
 
-/** Job whose `result` is narrowed to `DevicesJobResult`. */
-export type DevicesJob = Job & { readonly result: DevicesJobResult };
+/** Dry-run sync (`sync_devices (dry_run)`) — preview, no device writes. */
+export type DryRunSyncJob = Job & {
+  readonly function_name: "sync_devices (dry_run)";
+};
 
-/** Shared finish+shape check for device-sync guards. */
-function isFinishedDevicesJob(job: Job): job is DevicesJob {
-  return job.status === "FINISHED" && isDevicesJobResult(job.result);
+/** Live-run sync (`sync_devices`) — applied to devices; result is a string summary when finished. */
+export type LiveRunSyncJob = Job & {
+  readonly function_name: "sync_devices";
+};
+
+/** Confirm-run (`confirm_devices`) — two-phase commit follow-up. */
+export type ConfirmRunJob = Job & {
+  readonly function_name: "confirm_devices";
+};
+
+/** init_{access,fabric}_device_step1 — per-device init. */
+export type InitDeviceJob = Job & {
+  readonly function_name:
+    | "init_access_device_step1"
+    | "init_fabric_device_step1";
+};
+
+/** Union of variants whose finished `result` is `DevicesJobResult`. Use where
+ * the exact variant is irrelevant (e.g. rendering a per-device task table). */
+export type DevicesJob = DryRunSyncJob | ConfirmRunJob | InitDeviceJob;
+
+export function isDryRunSyncJob(job: Job): job is DryRunSyncJob {
+  return job.function_name === "sync_devices (dry_run)";
 }
 
-/** Finished dry-run sync (`sync_devices (dry_run)`) — preview, no device writes. */
-export function isDryRunSyncJob(job: Job): job is DevicesJob {
-  return (
-    job.function_name === "sync_devices (dry_run)" && isFinishedDevicesJob(job)
-  );
+export function isLiveRunSyncJob(job: Job): job is LiveRunSyncJob {
+  return job.function_name === "sync_devices";
 }
 
-/** Finished live-run sync (`sync_devices`) — applied to devices. */
-export function isLiveRunSyncJob(job: Job): job is DevicesJob {
-  return job.function_name === "sync_devices" && isFinishedDevicesJob(job);
+export function isConfirmRunJob(job: Job): job is ConfirmRunJob {
+  return job.function_name === "confirm_devices";
 }
 
-/** Finished confirm-run (`confirm_devices`) — two-phase commit follow-up. */
-export function isConfirmRunJob(job: Job): job is DevicesJob {
-  return job.function_name === "confirm_devices" && isFinishedDevicesJob(job);
-}
-
-/** Parent guard: any finished device-sync job (dry-run, live-run, or confirm-run). */
-export function isDeviceSyncJob(job: Job): job is DevicesJob {
+/** Parent guard: any device-sync job kind (dry-run, live-run, or confirm-run). */
+export function isDeviceSyncJob(
+  job: Job,
+): job is DryRunSyncJob | LiveRunSyncJob | ConfirmRunJob {
   return isDryRunSyncJob(job) || isLiveRunSyncJob(job) || isConfirmRunJob(job);
 }
 
-/** True for finished init_{access,fabric}_device_step1 jobs with a per-device result. */
-export function isInitDeviceJob(job: Job): job is DevicesJob {
+export function isInitDeviceJob(job: Job): job is InitDeviceJob {
   return (
-    job.status === "FINISHED" &&
-    (job.function_name === "init_access_device_step1" ||
-      job.function_name === "init_fabric_device_step1") &&
-    isDevicesJobResult(job.result)
+    job.function_name === "init_access_device_step1" ||
+    job.function_name === "init_fabric_device_step1"
   );
+}
+
+/** True once the job reached the terminal `FINISHED` state. Use alongside
+ * a result-shape guard before reading typed fields on `job.result`. */
+export function isFinished(job: Job): boolean {
+  return job.status === "FINISHED";
 }

@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
-import type { JobProgress } from "../../stores/configChangeReducer";
+import type { Job } from "../../../../types/job";
+import { makeJob } from "../../../../test-utils/makeJob";
 
 // Mock LogViewer to avoid testing its internals (Prism highlighting, etc.)
 jest.mock("../../../LogViewer", () => {
@@ -19,7 +20,7 @@ jest.mock("../../../LogViewer", () => {
 
 type RenderProps = {
   readonly dryRunJobStatus?: string;
-  readonly dryRunProgressData?: JobProgress;
+  readonly dryRunProgressData?: Job | null;
   readonly jobId?: number | string;
   readonly logLines?: string[];
 };
@@ -27,7 +28,7 @@ type RenderProps = {
 function renderComponent(props: RenderProps = {}) {
   const defaultProps = {
     dryRunJobStatus: "RUNNING",
-    dryRunProgressData: {} as JobProgress,
+    dryRunProgressData: null,
     jobId: 123,
     logLines: [] as string[],
   };
@@ -42,10 +43,10 @@ test("displays job status and ID", () => {
 
 test("displays start and finish times when progress data exists", () => {
   renderComponent({
-    dryRunProgressData: {
+    dryRunProgressData: makeJob({
       start_time: "2024-01-15 10:30:00",
       finish_time: "2024-01-15 10:35:00",
-    },
+    }),
   });
 
   expect(
@@ -57,7 +58,7 @@ test("displays start and finish times when progress data exists", () => {
 });
 
 test("displays empty times when progress data is empty", () => {
-  renderComponent({ dryRunProgressData: {} });
+  renderComponent({ dryRunProgressData: null });
 
   expect(screen.getByText("start time:")).toBeInTheDocument();
   expect(screen.getByText("finish time:")).toBeInTheDocument();
@@ -66,10 +67,10 @@ test("displays empty times when progress data is empty", () => {
 test("displays exception message when job status is EXCEPTION", () => {
   renderComponent({
     dryRunJobStatus: "EXCEPTION",
-    dryRunProgressData: {
+    dryRunProgressData: makeJob({
       start_time: "2024-01-15 10:30:00",
       exception: { message: "Something went wrong" },
-    },
+    }),
   });
 
   expect(screen.getByText("Something went wrong")).toBeInTheDocument();

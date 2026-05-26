@@ -1,31 +1,39 @@
 import { useMemo } from "react";
 import SyntaxHighlight from "../../../SyntaxHighlight";
-import type { JobTask } from "../../stores/configChangeReducer";
+import type { DeviceTaskResult } from "../../../../types/job";
 
-export type { JobTask };
-
-export interface Device {
+export type Device = {
   readonly name: string;
-  readonly jobTasks: JobTask[];
-}
+  readonly jobTasks: readonly DeviceTaskResult[];
+};
 
-interface VerifyDiffResultProps {
+type VerifyDiffResultProps = {
   readonly devices: Device[];
-}
+};
 
 const ignoreTaskNames = new Set(["push_sync_device"]);
 
-interface DeviceDiff {
+type DeviceDiff = {
   readonly name: string;
   readonly diff: string;
-}
+};
 
-interface DeviceException {
+type DeviceException = {
   readonly name: string;
   readonly tasks: {
     readonly task_name: string;
     readonly result: string | undefined;
   }[];
+};
+
+/** BE Nornir `diff` is `Any`; in practice always a string for sync_devices. */
+function diffAsString(diff: unknown): string {
+  return typeof diff === "string" ? diff : "";
+}
+
+/** BE Nornir `result` is `Any`; failed tasks return string tracebacks. */
+function resultAsString(result: unknown): string | undefined {
+  return typeof result === "string" ? result : undefined;
 }
 
 export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
@@ -34,7 +42,7 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
       devices
         .map(({ name, jobTasks }) => {
           const diff = jobTasks
-            .map((task) => task.diff)
+            .map((task) => diffAsString(task.diff))
             .filter((d) => d !== "")
             .join("");
           return diff ? { name, diff } : null;
@@ -56,7 +64,7 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
             name,
             tasks: failedTasks.map((task) => ({
               task_name: task.task_name,
-              result: task.result,
+              result: resultAsString(task.result),
             })),
           };
         })
