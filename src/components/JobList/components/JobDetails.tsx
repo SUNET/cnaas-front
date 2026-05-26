@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+// TODO: VerifyDiffResult is a generic diff renderer used by both ConfigChange
+// and JobList; promote to a shared location (or duplicate) to remove this
+// cross-feature import. Tracked for JobList migration follow-up.
 import {
   VerifyDiffResult,
   type DeviceJobTaskDiff,
