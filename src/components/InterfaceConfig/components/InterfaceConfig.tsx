@@ -7,7 +7,15 @@ import {
   type ReactNode,
 } from "react";
 import { Link, useNavigate } from "react-router";
-import { Button, Checkbox, Icon, Modal, Popup, Table } from "semantic-ui-react";
+import {
+  type AccordionTitleProps,
+  Button,
+  Checkbox,
+  Icon,
+  Modal,
+  Popup,
+  Table,
+} from "semantic-ui-react";
 import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
 import { DeviceInfoTable } from "../../DeviceInfoTable";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
@@ -193,12 +201,11 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   );
 
   const handleAccordionClick = (
-    _e: SyntheticEvent,
-    titleProps: { index: number },
+    _e: React.MouseEvent<HTMLDivElement>,
+    titleProps: AccordionTitleProps,
   ) => {
-    setAccordionActiveIndex((prev) =>
-      prev === titleProps.index ? -1 : titleProps.index,
-    );
+    const index = Number(titleProps.index);
+    setAccordionActiveIndex((prev) => (prev === index ? -1 : index));
   };
 
   const handleColumnChange = (

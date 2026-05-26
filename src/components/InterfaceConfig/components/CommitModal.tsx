@@ -1,13 +1,23 @@
-import PropTypes from "prop-types";
-import { Accordion, Button, Icon, Modal, Popup } from "semantic-ui-react";
+import { type ReactNode } from "react";
+import {
+  Accordion,
+  type AccordionTitleProps,
+  Button,
+  Icon,
+  Modal,
+  Popup,
+} from "semantic-ui-react";
 import YAML from "yaml";
 
-CommitModalAccess.propTypes = {
-  accordionActiveIndex: PropTypes.number,
-  accordionClick: PropTypes.func,
-  autoPushJobsHTML: PropTypes.array,
-  errorMessage: PropTypes.array,
-  interfaceDataUpdatedJSON: PropTypes.object,
+type CommitModalAccessProps = {
+  readonly accordionActiveIndex: number;
+  readonly accordionClick: (
+    e: React.MouseEvent<HTMLDivElement>,
+    titleProps: AccordionTitleProps,
+  ) => void;
+  readonly autoPushJobsHTML: ReactNode[];
+  readonly errorMessage: string | null;
+  readonly interfaceDataUpdatedJSON: Record<string, unknown>;
 };
 
 export function CommitModalAccess({
@@ -16,7 +26,7 @@ export function CommitModalAccess({
   autoPushJobsHTML,
   errorMessage,
   interfaceDataUpdatedJSON,
-}) {
+}: CommitModalAccessProps) {
   return (
     <Modal.Content>
       <Modal.Description>
@@ -60,14 +70,18 @@ export function CommitModalAccess({
   );
 }
 
-CommitModalDist.propTypes = {
-  hostname: PropTypes.string,
-  ifDataYaml: PropTypes.object,
-};
-
-export function CommitModalDist({ hostname, ifDataYaml }) {
-  const editUrl = process.env.SETTINGS_WEB_URL.split("/").slice(0, 5).join("/");
-  const yaml = YAML.stringify(ifDataYaml, null, 2);
+export function CommitModalDist({
+  hostname,
+  ifDataYaml,
+}: {
+  readonly hostname: string | null;
+  readonly ifDataYaml: Record<string, unknown>;
+}) {
+  const settingsWebUrl = process.env.SETTINGS_WEB_URL;
+  const editUrl = settingsWebUrl
+    ? settingsWebUrl.split("/").slice(0, 5).join("/")
+    : null;
+  const yaml = YAML.stringify(ifDataYaml, { indent: 2 });
 
   return (
     <Modal.Content>
@@ -95,14 +109,18 @@ export function CommitModalDist({ hostname, ifDataYaml }) {
               position="bottom right"
             />
             <p>
-              <a
-                href={`${editUrl}/_edit/main/devices/${hostname}/interfaces.yml`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Edit in Git
-              </a>{" "}
-              (edit and commit the file in git before starting dry run)
+              {editUrl ? (
+                <>
+                  <a
+                    href={`${editUrl}/_edit/main/devices/${hostname}/interfaces.yml`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Edit in Git
+                  </a>{" "}
+                  (edit and commit the file in git before starting dry run)
+                </>
+              ) : null}
             </p>
           </Accordion.Content>
         </Accordion>

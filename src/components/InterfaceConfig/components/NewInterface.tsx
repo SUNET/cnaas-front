@@ -1,17 +1,27 @@
 import { useMemo, useState } from "react";
+import {
+  Button,
+  Modal,
+  Icon,
+  Dropdown,
+  type DropdownProps,
+} from "semantic-ui-react";
 
-import { Button, Modal, Icon, Dropdown } from "semantic-ui-react";
-
-import PropTypes from "prop-types";
-
-export function NewInterface({ suggestedInterfaces, addNewInterface }) {
+export function NewInterface({
+  suggestedInterfaces,
+  addNewInterface,
+}: {
+  readonly suggestedInterfaces: string[];
+  readonly addNewInterface: (interfaceName: string) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [interfaceName, setInterfaceName] = useState("");
 
-  const handleSetInterfaceName = (_, { value }) => setInterfaceName(value);
+  const handleSetInterfaceName = (_: unknown, { value }: DropdownProps) =>
+    setInterfaceName(String(value ?? ""));
 
   const handleAdd = () => {
-    interfaceName && addNewInterface(interfaceName);
+    if (interfaceName) addNewInterface(interfaceName);
     setOpen(false);
   };
 
@@ -74,10 +84,3 @@ export function NewInterface({ suggestedInterfaces, addNewInterface }) {
     </Modal>
   );
 }
-
-NewInterface.propTypes = {
-  suggestedInterfaces: PropTypes.arrayOf(PropTypes.string).isRequired,
-  addNewInterface: PropTypes.func.isRequired,
-};
-
-export default NewInterface;
