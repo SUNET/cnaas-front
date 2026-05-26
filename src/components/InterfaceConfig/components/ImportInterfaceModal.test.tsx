@@ -4,19 +4,21 @@ import "@testing-library/jest-dom";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
-import { putData as mockPutData } from "../../../utils/sendData";
+import { putData } from "../../../utils/sendData";
 
 jest.mock("../../../utils/sendData");
 jest.mock("../../../contexts/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 
+const mockPutData = putData as jest.MockedFunction<typeof putData>;
+
 // JSDOM's File doesn't have .text(), polyfill it for tests
 if (!File.prototype.text) {
   File.prototype.text = function () {
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
+      reader.onload = () => resolve(String(reader.result ?? ""));
       reader.onerror = reject;
       reader.readAsText(this);
     });
@@ -62,6 +64,7 @@ test("navigates to config-change with hostname on save and dry run", async () =>
   });
 
   const fileInput = document.getElementById("import-file");
+  if (!(fileInput instanceof HTMLInputElement)) throw new Error("no input");
   await userEvent.upload(fileInput, file);
 
   // Wait for "Save and dry run" button to become enabled (proves file was parsed)
@@ -75,7 +78,9 @@ test("navigates to config-change with hostname on save and dry run", async () =>
   await userEvent.click(dryRunButton);
 
   await waitFor(() => {
-    expect(globalThis.mockNavigate).toHaveBeenCalledWith(
+    expect(
+      (globalThis as unknown as { mockNavigate: jest.Mock }).mockNavigate,
+    ).toHaveBeenCalledWith(
       "/config-change?hostname=test-switch&scrollTo=refreshrepo",
     );
   });
@@ -95,6 +100,7 @@ test("calls onClose and getInterfaceData on save and edit", async () => {
   });
 
   const fileInput = document.getElementById("import-file");
+  if (!(fileInput instanceof HTMLInputElement)) throw new Error("no input");
   await userEvent.upload(fileInput, file);
 
   // Wait for the parsed JSON to appear
@@ -131,6 +137,7 @@ test("shows error for invalid JSON file", async () => {
   });
 
   const fileInput = document.getElementById("import-file");
+  if (!(fileInput instanceof HTMLInputElement)) throw new Error("no input");
   await userEvent.upload(fileInput, file);
 
   await waitFor(() => {

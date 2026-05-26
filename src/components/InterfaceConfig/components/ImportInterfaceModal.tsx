@@ -1,35 +1,39 @@
-import PropTypes from "prop-types";
 import { Modal, Button } from "semantic-ui-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { putData } from "../../../utils/sendData";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 
-ImportInterfaceModal.propTypes = {
-  hostname: PropTypes.string.isRequired,
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  getInterfaceData: PropTypes.func,
+type ImportInterfaceModalProps = {
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly hostname: string;
+  readonly getInterfaceData?: () => Promise<void> | void;
 };
+
+type ImportedFile = { interfaces: unknown } & Record<string, unknown>;
 
 export function ImportInterfaceModal({
   hostname,
   open,
   onClose,
   getInterfaceData,
-}) {
-  const [fileContent, setFileContent] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
+}: ImportInterfaceModalProps) {
+  const [fileContent, setFileContent] = useState<ImportedFile | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { token } = useAuthToken();
   const navigate = useNavigate();
 
   async function handleUpload() {
     const fileInput = document.getElementById("import-file");
+    if (!(fileInput instanceof HTMLInputElement) || !fileInput.files?.[0]) {
+      return;
+    }
     const file = fileInput.files[0];
 
     try {
       const content = await file.text();
-      const jsonData = JSON.parse(content);
+      const jsonData = JSON.parse(content) as ImportedFile;
       console.log("Imported JSON data:", jsonData);
       if (!jsonData.interfaces) {
         throw new Error("Invalid format: 'interfaces' key not found");
@@ -37,25 +41,32 @@ export function ImportInterfaceModal({
       setFileContent(jsonData);
       setErrorMessage(null);
     } catch (error) {
-      setErrorMessage(`Error parsing JSON: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      setErrorMessage(`Error parsing JSON: ${message}`);
       setFileContent(null);
     }
   }
 
-  const sendInterfaceData = async () => {
+  const sendInterfaceData = async (): Promise<boolean> => {
     try {
       const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces`;
-      const data = await putData(url, token, fileContent);
+      // TODO(I2): extract to api/interfaceConfigApi.ts with type guard; remove cast
+      const data = (await putData(url, token, fileContent)) as {
+        status?: string;
+        message?: string;
+      };
 
       if (data.status === "success") {
         return true;
-      } else {
-        console.log(data.message);
-        setErrorMessage(data.message);
       }
+      console.log(data.message);
+      setErrorMessage(data.message ?? null);
     } catch (error) {
       console.log(error);
-      setErrorMessage(error?.message?.errors?.join(", "));
+      // TODO(I2): typed error shape from putData; remove cast
+      const errs = (error as { message?: { errors?: string[] } })?.message
+        ?.errors;
+      setErrorMessage(errs?.join(", ") ?? null);
     }
 
     return false;
@@ -103,7 +114,7 @@ export function ImportInterfaceModal({
           onClick={async () => {
             const success = await sendInterfaceData();
             if (success) {
-              getInterfaceData();
+              await getInterfaceData?.();
               onClose();
             }
             setFileContent(null);
