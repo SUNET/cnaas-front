@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import {
   VerifyDiffResult,
-  type Device,
+  type DeviceJobTaskDiff,
 } from "../../ConfigChange/components/VerifyDiff/VerifyDiffResult";
 import {
   isDryRunSyncJob,
@@ -67,7 +67,7 @@ function SyncDevicesResult({
 }: {
   readonly result: DevicesJobResult;
 }): ReactNode {
-  const devices: Device[] = Object.entries(result.devices).map(
+  const devices: DeviceJobTaskDiff[] = Object.entries(result.devices).map(
     ([name, { job_tasks: jobTasks }]) => ({ name, jobTasks }),
   );
   return (
