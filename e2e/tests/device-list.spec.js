@@ -24,7 +24,7 @@ import {
   deleteTestDeviceIfExists,
   cleanupAllTestDevices,
 } from "../helpers/api.js";
-import { openActionsMenu } from "../helpers/ui.js";
+import { openActionsMenu, dismissToasts } from "../helpers/ui.js";
 
 test.describe.configure({ mode: "serial" });
 
@@ -45,6 +45,7 @@ test("user finds a device by filtering on device type", async ({ page }) => {
   ).toBeVisible();
 
   // open the filter row and pick Device type = DIST
+  await dismissToasts(page);
   await page.getByRole("button", { name: "Search / Filter" }).click();
   await page
     .getByRole("columnheader")
@@ -76,6 +77,7 @@ test("user adds an extra column to see more device details", async ({
   ).toBeHidden();
 
   // open the column selector and add Management IP
+  await dismissToasts(page);
   await page.getByRole("button", { name: "Select Columns" }).click();
   const managementIpLabel = page
     .getByRole("listitem")
