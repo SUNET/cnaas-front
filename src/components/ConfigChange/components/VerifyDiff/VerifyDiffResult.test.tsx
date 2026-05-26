@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-import { VerifyDiffResult, type Device } from "./VerifyDiffResult";
+import { VerifyDiffResult, type DeviceJobTaskDiff } from "./VerifyDiffResult";
 
 // Mock SyntaxHighlight component
 jest.mock("../../../SyntaxHighlight", () => {
@@ -10,8 +10,10 @@ jest.mock("../../../SyntaxHighlight", () => {
   };
 });
 
-function renderComponent(props: { readonly devices?: Device[] } = {}) {
-  const defaultProps = { devices: [] as Device[] };
+function renderComponent(
+  props: { readonly devices?: DeviceJobTaskDiff[] } = {},
+) {
+  const defaultProps = { devices: [] as DeviceJobTaskDiff[] };
   return render(<VerifyDiffResult {...defaultProps} {...props} />);
 }
 

@@ -2,13 +2,13 @@ import { useMemo } from "react";
 import SyntaxHighlight from "../../../SyntaxHighlight";
 import type { DeviceTaskResult } from "../../../../types/job";
 
-export type Device = {
+export type DeviceJobTaskDiff = {
   readonly name: string;
   readonly jobTasks: readonly DeviceTaskResult[];
 };
 
 type VerifyDiffResultProps = {
-  readonly devices: Device[];
+  readonly devices: DeviceJobTaskDiff[];
 };
 
 const ignoreTaskNames = new Set(["push_sync_device"]);

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Popup, Icon } from "semantic-ui-react";
 import { VerifyDiffInfo } from "./VerifyDiffInfo";
-import { VerifyDiffResult, type Device } from "./VerifyDiffResult";
+import { VerifyDiffResult, type DeviceJobTaskDiff } from "./VerifyDiffResult";
 import type { DevicesJobResult } from "../../../../types/job";
 
 type VerifyDiffProps = {
@@ -12,7 +12,7 @@ type VerifyDiffProps = {
 export function VerifyDiff({ devices, dryRunChangeScore }: VerifyDiffProps) {
   const [expanded, setExpanded] = useState(true);
 
-  const deviceList: Device[] = useMemo(
+  const deviceList: DeviceJobTaskDiff[] = useMemo(
     () =>
       Object.entries(devices).map(([name, { job_tasks: jobTasks }]) => ({
         name,
