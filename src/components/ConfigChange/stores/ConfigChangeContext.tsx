@@ -36,25 +36,25 @@ import { useConfigChangeSocket } from "../hooks/useConfigChangeSocket";
 
 // --- Derived state ---
 
-export type DryRunDerived = {
+export type DryRunState = {
   readonly status: string;
   readonly results: Readonly<Record<string, DeviceResult>>;
   readonly changeScore: number | null;
   readonly jobId: number | string;
 };
 
-export type LiveRunDerived = {
+export type LiveRunState = {
   readonly status: string;
   readonly results: string;
   readonly jobId: number | string;
 };
 
-export type ConfirmRunDerived = {
+export type ConfirmRunState = {
   readonly status: string;
   readonly jobId: number | string;
 };
 
-function deriveDryRun(job: Job | null): DryRunDerived {
+function deriveDryRun(job: Job | null): DryRunState {
   if (job == null) {
     return { status: "", results: {}, changeScore: null, jobId: "NA" };
   }
@@ -70,7 +70,7 @@ function deriveDryRun(job: Job | null): DryRunDerived {
   };
 }
 
-function deriveLiveRun(job: Job | null): LiveRunDerived {
+function deriveLiveRun(job: Job | null): LiveRunState {
   if (job == null) {
     return { status: "", results: "", jobId: "NA" };
   }
@@ -85,7 +85,7 @@ function deriveLiveRun(job: Job | null): LiveRunDerived {
   };
 }
 
-function deriveConfirmRun(job: Job | null): ConfirmRunDerived {
+function deriveConfirmRun(job: Job | null): ConfirmRunState {
   if (job == null) {
     return { status: "", jobId: "NA" };
   }
@@ -99,9 +99,9 @@ function deriveConfirmRun(job: Job | null): ConfirmRunDerived {
 
 type ConfigChangeContextValue = {
   readonly state: ConfigChangeState;
-  readonly dryRun: DryRunDerived;
-  readonly liveRun: LiveRunDerived;
-  readonly confirmRun: ConfirmRunDerived;
+  readonly dryRun: DryRunState;
+  readonly liveRun: LiveRunState;
+  readonly confirmRun: ConfirmRunState;
   readonly allRepoJobs: number[];
   readonly commitTarget: CommitTarget;
   readonly isRepoRefreshing: boolean;

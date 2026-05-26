@@ -6,7 +6,11 @@ import {
   type SyncNotification,
   isSyncNotification,
 } from "../stores/socketEvents";
-import { actions, type Action } from "../stores/configChangeReducer";
+import {
+  actions,
+  type Action,
+  type ConfigChangeState,
+} from "../stores/configChangeReducer";
 import {
   showSyncToast,
   showSyncWarningToast,
@@ -19,11 +23,10 @@ type EventData = JobEvent | SyncNotification | string;
 const STATUS_RUNNING = new Set(["RUNNING"]);
 const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
 
-type RepoJobState = {
-  readonly repoJobId: number | null;
-  readonly stoppedRepoJobs: readonly number[];
-  readonly isRepoRefreshing: boolean;
-};
+type RepoJobState = Pick<
+  ConfigChangeState,
+  "repoJobId" | "stoppedRepoJobs" | "isRepoRefreshing"
+>;
 
 export function useConfigChangeSocket(
   token: string | null,
