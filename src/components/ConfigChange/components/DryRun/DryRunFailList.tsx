@@ -1,6 +1,6 @@
-interface DryRunFailListProps {
+type DryRunFailListProps = {
   readonly devices: Record<string, unknown>;
-}
+};
 
 export function DryRunFailList({ devices }: DryRunFailListProps) {
   const failedDeviceNames = Object.entries(devices)

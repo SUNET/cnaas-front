@@ -3,13 +3,13 @@ import type { CheckboxProps } from "semantic-ui-react";
 import { DryRunFailList } from "./DryRunFailList";
 import type { DeviceSyncOptions } from "../../api/configChangeApi";
 
-interface DryRunErrorProps {
+type DryRunErrorProps = {
   readonly devices: Record<string, unknown>;
   readonly dryRunSyncStart: (options: DeviceSyncOptions) => void;
   readonly resync: boolean;
   readonly synctoForce: boolean;
   readonly setSynctoForce: (force: boolean) => void;
-}
+};
 
 export function DryRunError({
   devices,
