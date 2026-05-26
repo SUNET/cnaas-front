@@ -9,21 +9,21 @@ import {
   clearToastTimers,
 } from "../stores/toasts";
 
-interface JobEventData {
+type JobEventData = {
   readonly job_id: number;
   readonly status: string;
   readonly function_name?: string;
   readonly scheduled_by?: string;
-}
+};
 
-interface SyncEventData {
+type SyncEventData = {
   readonly syncevent_hostname: string;
   readonly syncevent_data: {
     readonly cause: string;
     readonly by: string;
     readonly job_id?: number;
   };
-}
+};
 
 type EventData = JobEventData | SyncEventData | string;
 
@@ -43,11 +43,11 @@ function isSyncEvent(data: EventData): data is SyncEventData {
 const STATUS_RUNNING = new Set(["RUNNING"]);
 const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
 
-interface RepoJobState {
+type RepoJobState = {
   readonly repoJobId: number | null;
   readonly stoppedRepoJobs: readonly number[];
   readonly isRepoRefreshing: boolean;
-}
+};
 
 export function useConfigChangeSocket(
   token: string | null,

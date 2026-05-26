@@ -2,7 +2,10 @@ import { useState, type ReactNode } from "react";
 import { Popup, Table, Icon } from "semantic-ui-react";
 import { formatISODate } from "../../../utils/formatters";
 import type { SyncEvent, SyncHistory } from "../../../types/syncHistory";
-import type { CommitTarget, Device } from "../stores/configChangeReducer";
+import type {
+  CommitTarget,
+  SyncTargetDevice,
+} from "../stores/configChangeReducer";
 
 type FormattedSyncEvent = {
   readonly cause: string;
@@ -84,7 +87,7 @@ function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
   );
 }
 
-function getCauses(devices: Device[], synchistory: SyncHistory) {
+function getCauses(devices: SyncTargetDevice[], synchistory: SyncHistory) {
   if (!synchistory || !devices.length) {
     return {};
   }
@@ -130,7 +133,7 @@ function getCauses(devices: Device[], synchistory: SyncHistory) {
 }
 
 type SyncStatusProps = {
-  readonly devices: Device[];
+  readonly devices: SyncTargetDevice[];
   readonly synchistory: SyncHistory;
   readonly target: CommitTarget;
 };

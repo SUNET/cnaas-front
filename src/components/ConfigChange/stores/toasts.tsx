@@ -46,14 +46,14 @@ export function showSyncToast(hostname: string): void {
 
 // --- Sync warning toast batching ---
 
-interface SyncEventData {
+type SyncEventData = {
   readonly syncevent_hostname: string;
   readonly syncevent_data: {
     readonly cause: string;
     readonly by: string;
     readonly job_id?: number;
   };
-}
+};
 
 let pendingSyncWarnings: SyncEventData[] = [];
 let syncWarningBatchTimer: ReturnType<typeof setTimeout> | null = null;

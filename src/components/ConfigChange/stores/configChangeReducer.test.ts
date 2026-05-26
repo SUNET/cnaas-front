@@ -37,7 +37,9 @@ describe("configChangeReducer", () => {
     test("returns to initial state", () => {
       const state = {
         ...initialState,
-        devices: [{ hostname: "sw1", synchronized: false, state: "MANAGED" }],
+        devices: [
+          { hostname: "sw1", synchronized: false, state: "MANAGED" as const },
+        ],
         logLines: ["some log"],
         blockNavigation: true,
         synctoForce: true,

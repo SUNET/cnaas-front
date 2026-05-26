@@ -1,13 +1,13 @@
 // --- Types ---
 
+import type { Device } from "../../../types/device";
 import type { Job } from "../../../types/job";
 import type { SyncHistory } from "../../../types/syncHistory";
 
-export type Device = {
-  readonly hostname: string;
-  readonly synchronized: boolean;
-  readonly state: string;
-};
+export type SyncTargetDevice = Pick<
+  Device,
+  "hostname" | "synchronized" | "state"
+>;
 
 export type CommitTarget = {
   readonly hostname?: string;
@@ -16,7 +16,7 @@ export type CommitTarget = {
 };
 
 export type ConfigChangeState = {
-  readonly devices: Device[];
+  readonly devices: SyncTargetDevice[];
   readonly syncHistory: SyncHistory;
   readonly blockNavigation: boolean;
   readonly dryRunDisable: boolean;
@@ -53,7 +53,7 @@ export const actions = {
 } as const;
 
 export type Action =
-  | { type: typeof actions.SET_DEVICES; devices: Device[] }
+  | { type: typeof actions.SET_DEVICES; devices: SyncTargetDevice[] }
   | { type: typeof actions.SET_SYNC_HISTORY; syncHistory: SyncHistory }
   | { type: typeof actions.SET_BLOCK_NAVIGATION; blocked: boolean }
   | { type: typeof actions.SET_DRY_RUN_DISABLE; disabled: boolean }

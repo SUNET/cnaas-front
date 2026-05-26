@@ -2,12 +2,15 @@ import { getData } from "../../../utils/getData";
 import { post } from "../../../utils/sendData";
 import type { Job } from "../../../types/job";
 import type { SyncHistory } from "../../../types/syncHistory";
-import type { CommitTarget, Device } from "../stores/configChangeReducer";
+import type {
+  CommitTarget,
+  SyncTargetDevice,
+} from "../stores/configChangeReducer";
 
 export async function fetchDeviceList(
   token: string | null,
   target: CommitTarget,
-): Promise<Device[]> {
+): Promise<SyncTargetDevice[]> {
   try {
     if (target.hostname) {
       const url = `${process.env.API_URL}/api/v1.0/devices?filter[hostname]=${target.hostname}&filter[state]=MANAGED&per_page=1`;
@@ -26,7 +29,7 @@ export async function fetchDeviceList(
       const groupHostnames: string[] =
         dataGroup.data.groups[target.group] ?? [];
       const hostnameSet = new Set(groupHostnames);
-      return dataDevices.data.devices.filter((dev: Device) =>
+      return dataDevices.data.devices.filter((dev: SyncTargetDevice) =>
         hostnameSet.has(dev.hostname),
       );
     }

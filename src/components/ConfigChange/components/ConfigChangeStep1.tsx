@@ -14,13 +14,13 @@ function filterLogLinesByJobIds(jobIds: number[]) {
   };
 }
 
-interface ConfigChangeStep1Props {
+type ConfigChangeStep1Props = {
   readonly setRepoWorking: (working: boolean) => void;
   readonly dryRunJobStatus?: string | null;
   readonly onDryRunReady: () => void;
   readonly repoJobs?: number[];
   readonly logLines?: string[];
-}
+};
 
 export function ConfigChangeStep1({
   setRepoWorking,
