@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 import { DryRunProgressBar } from "./DryRunProgressBar";
-import type { JobProgress } from "../../stores/configChangeReducer";
+import type { Job } from "../../../../types/job";
+import { makeJob } from "../../../../test-utils/makeJob";
 
 type MockProgressBarProps = {
   readonly value: number;
@@ -33,14 +34,14 @@ jest.mock("../../../ProgressBar", () => {
 });
 
 type RenderProps = {
-  readonly dryRunProgressData?: JobProgress;
+  readonly dryRunProgressData?: Job | null;
   readonly dryRunJobStatus?: string | null;
   readonly totalDevices?: number;
 };
 
 function renderComponent(props: RenderProps = {}) {
   const defaultProps = {
-    dryRunProgressData: {} as JobProgress,
+    dryRunProgressData: null,
     dryRunJobStatus: null,
     totalDevices: 5,
   };
@@ -48,9 +49,9 @@ function renderComponent(props: RenderProps = {}) {
 }
 
 test("displays finished device count when job is RUNNING", () => {
-  const progressData = {
+  const progressData = makeJob({
     finished_devices: ["switch-01", "switch-02", "switch-03"],
-  };
+  });
 
   renderComponent({
     dryRunProgressData: progressData,
@@ -62,7 +63,7 @@ test("displays finished device count when job is RUNNING", () => {
 });
 
 test("displays finished device count when job is FINISHED", () => {
-  const progressData = {
+  const progressData = makeJob({
     finished_devices: [
       "switch-01",
       "switch-02",
@@ -70,7 +71,7 @@ test("displays finished device count when job is FINISHED", () => {
       "switch-04",
       "switch-05",
     ],
-  };
+  });
 
   renderComponent({
     dryRunProgressData: progressData,
@@ -83,7 +84,7 @@ test("displays finished device count when job is FINISHED", () => {
 
 test("displays 0 finished when job status is SCHEDULED", () => {
   renderComponent({
-    dryRunProgressData: {},
+    dryRunProgressData: null,
     dryRunJobStatus: "SCHEDULED",
     totalDevices: 5,
   });
@@ -93,7 +94,7 @@ test("displays 0 finished when job status is SCHEDULED", () => {
 
 test("displays 0 finished when progressData is empty", () => {
   renderComponent({
-    dryRunProgressData: {},
+    dryRunProgressData: null,
     dryRunJobStatus: "RUNNING",
     totalDevices: 5,
   });

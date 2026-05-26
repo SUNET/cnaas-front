@@ -103,7 +103,7 @@ export function useConfigChangeSocket(
           (!usernameRef.current || data.scheduled_by !== usernameRef.current)
         ) {
           showAnotherSessionDidRefreshToast(data.job_id);
-          dispatch({ type: actions.SET_DRY_RUN_PROGRESS, data: {} });
+          dispatch({ type: actions.SET_DRY_RUN_PROGRESS, data: null });
         }
       }
 

@@ -6,10 +6,7 @@ import { ConfigChangeStep4 } from "./ConfigChangeStep4";
 
 import { useAuthToken as useAuthTokenImport } from "../../../contexts/AuthTokenContext";
 import { getData as getDataImport } from "../../../utils/getData";
-import type {
-  ConfirmRunProgress,
-  LiveRunProgress,
-} from "../stores/configChangeReducer";
+import { makeJob } from "../../../test-utils/makeJob";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../contexts/AuthTokenContext");
@@ -40,12 +37,12 @@ function renderConfigChangeStep4Component({
     <ConfigChangeStep4
       confirmJobId="1"
       confirmRunJobStatus="RUNNING"
-      confirmRunProgressData={{} as ConfirmRunProgress}
+      confirmRunProgressData={null}
       dryRunChangeScore={0}
       dryRunJobStatus={dryRunJobStatus}
       jobId="1"
       liveRunJobStatus={liveRunJobStatus}
-      liveRunProgressData={{ finished_devices: ["dev1"] } as LiveRunProgress}
+      liveRunProgressData={makeJob({ finished_devices: ["dev1"] })}
       liveRunSyncStart={mockLiveRunSyncStart}
       logLines={["job #1 line1", "job #1 line2"]}
       synctoForce={false}

@@ -4,9 +4,15 @@ import {
   type Device,
 } from "../../ConfigChange/components/VerifyDiff/VerifyDiffResult";
 import {
-  isDeviceSyncJob,
+  isDryRunSyncJob,
+  isConfirmRunJob,
+  isLiveRunSyncJob,
   isInitDeviceJob,
-  type DevicesJob,
+  isFinished,
+  isDevicesJobResult,
+  isLiveRunResult,
+  type DevicesJobResult,
+  type LiveRunResult,
   type Job,
 } from "../../../types/job";
 
@@ -22,11 +28,19 @@ export function JobDetails({ job }: JobDetailsProps): ReactNode {
   if (job.status === "EXCEPTION") {
     return <ExceptionDetails job={job} />;
   }
-  if (isDeviceSyncJob(job)) {
-    return <SyncDevicesResult job={job} />;
-  }
-  if (isInitDeviceJob(job)) {
-    return <InitDeviceResult job={job} />;
+  if (isFinished(job)) {
+    if (
+      (isDryRunSyncJob(job) || isConfirmRunJob(job)) &&
+      isDevicesJobResult(job.result)
+    ) {
+      return <SyncDevicesResult result={job.result} />;
+    }
+    if (isLiveRunSyncJob(job) && isLiveRunResult(job.result)) {
+      return <LiveRunResultView result={job.result} />;
+    }
+    if (isInitDeviceJob(job) && isDevicesJobResult(job.result)) {
+      return <InitDeviceResult jobId={job.id} result={job.result} />;
+    }
   }
   // Default: show raw JSON result
   return <pre>{JSON.stringify(job.result, null, 2)}</pre>;
@@ -48,38 +62,43 @@ function ExceptionDetails({ job }: JobDetailsProps): ReactNode {
   );
 }
 
-type DevicesJobProps = {
-  readonly job: DevicesJob;
-};
-
-function SyncDevicesResult({ job }: DevicesJobProps): ReactNode {
+function SyncDevicesResult({
+  result,
+}: {
+  readonly result: DevicesJobResult;
+}): ReactNode {
+  const devices: Device[] = Object.entries(result.devices).map(
+    ([name, { job_tasks: jobTasks }]) => ({ name, jobTasks }),
+  );
   return (
     <>
       <p>Diff results:</p>
-      <VerifyDiffResult devices={toVerifyDiffDevices(job.result)} />
+      <VerifyDiffResult devices={devices} />
     </>
   );
 }
 
-// Bridge to ConfigChange's JobTask shape (TODO: drop after ConfigChange migrates).
-function toVerifyDiffDevices(result: DevicesJob["result"]): Device[] {
-  return Object.entries(result.devices).map(
-    ([name, { job_tasks: jobTasks }]) => ({
-      name,
-      jobTasks: jobTasks.map(
-        ({ task_name: taskName, result: r, diff, failed }) => ({
-          task_name: taskName,
-          result: typeof r === "string" ? r : undefined,
-          diff: typeof diff === "string" ? diff : "",
-          failed,
-        }),
-      ),
-    }),
+function LiveRunResultView({
+  result,
+}: {
+  readonly result: LiveRunResult;
+}): ReactNode {
+  return (
+    <>
+      <p>Live-run summary:</p>
+      <pre>{result.devices}</pre>
+    </>
   );
 }
 
-function InitDeviceResult({ job }: DevicesJobProps): ReactNode {
-  const deviceResult = Object.values(job.result.devices);
+function InitDeviceResult({
+  jobId,
+  result,
+}: {
+  readonly jobId: number;
+  readonly result: DevicesJobResult;
+}): ReactNode {
+  const deviceResult = Object.values(result.devices);
   if (deviceResult.length === 0) return null;
 
   const results = deviceResult[0].job_tasks
@@ -132,7 +151,7 @@ function InitDeviceResult({ job }: DevicesJobProps): ReactNode {
   return (
     <>
       {results.map((item) => (
-        <p key={`${job.id}-${item.key}`}>{item.text}</p>
+        <p key={`${jobId}-${item.key}`}>{item.text}</p>
       ))}
     </>
   );

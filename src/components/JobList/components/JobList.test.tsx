@@ -899,10 +899,10 @@ test("search with ticket_ref field uses correct params", async () => {
 });
 
 // VerifyDiffResult for sync_devices job test
-test("displays VerifyDiffResult for finished sync_devices job with diffs", async () => {
+test("displays VerifyDiffResult for finished sync_devices (dry_run) job with diffs", async () => {
   const syncJob = {
     id: 104,
-    function_name: "sync_devices",
+    function_name: "sync_devices (dry_run)",
     status: "FINISHED",
     scheduled_by: "admin",
     start_time: "2025-01-20T10:00:00",
