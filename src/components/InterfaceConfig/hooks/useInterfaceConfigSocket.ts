@@ -1,11 +1,11 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject } from "react";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { socket } from "./socket";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { socket } from "../stores/socket";
 import {
   actions,
   type Action,
   type InterfaceConfigState,
-} from "./interfaceConfigReducer";
+} from "../stores/interfaceConfigReducer";
 
 /**
  * Manages the Socket.IO connection for InterfaceConfig.

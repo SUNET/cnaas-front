@@ -11,7 +11,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import FirmwareCopy from "./components/FirmwareCopy";
 import { FirmwareUpgrade } from "./components/FirmwareUpgrade";
 import GroupList from "./components/GroupList";
-import { InterfaceConfigPage } from "./components/InterfaceConfig/InterfaceConfigPage";
+import { InterfaceConfigPage } from "./components/InterfaceConfig/components/InterfaceConfigPage";
 import { JobListPage } from "./components/JobList";
 import Login from "./components/Login/Login";
 import Settings from "./components/Settings";

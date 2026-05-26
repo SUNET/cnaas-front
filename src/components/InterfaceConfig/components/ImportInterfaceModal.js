@@ -2,8 +2,8 @@ import PropTypes from "prop-types";
 import { Modal, Button } from "semantic-ui-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { putData } from "../../utils/sendData";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { putData } from "../../../utils/sendData";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
 
 ImportInterfaceModal.propTypes = {
   hostname: PropTypes.string.isRequired,
