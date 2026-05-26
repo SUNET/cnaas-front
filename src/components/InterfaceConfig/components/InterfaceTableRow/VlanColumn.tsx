@@ -8,8 +8,8 @@ import {
   Loader,
   Popup,
 } from "semantic-ui-react";
-import { useInterfaceConfig } from "../../../store/interfaceConfig/InterfaceConfigContext";
-import { actions } from "../../../store/interfaceConfig/interfaceConfigReducer";
+import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
+import { actions } from "../../stores/interfaceConfigReducer";
 
 const VLAN_RANGE_RE = /^\d+-\d+$/;
 

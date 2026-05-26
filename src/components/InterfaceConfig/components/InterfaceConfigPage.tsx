@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router";
-import { InterfaceConfigProvider } from "../../store/interfaceConfig/InterfaceConfigContext";
+import { InterfaceConfigProvider } from "../stores/InterfaceConfigContext";
 import { InterfaceConfig } from "./InterfaceConfig";
 
 /**

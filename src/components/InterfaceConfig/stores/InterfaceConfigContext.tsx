@@ -10,8 +10,8 @@ import {
   type MutableRefObject,
   type Dispatch,
 } from "react";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { useFreshRef } from "../../hooks/useFreshRef";
+import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useFreshRef } from "../../../hooks/useFreshRef";
 import {
   fetchDevice,
   fetchDeviceById,
@@ -21,13 +21,13 @@ import {
   fetchAccessInterfaces,
   fetchDistInterfaces,
   fetchLinknets,
-} from "../../services/deviceApi";
+} from "../../../services/deviceApi";
 import {
   fetchNetboxDevice,
   fetchNetboxInterfaces,
   fetchNetboxModel,
-} from "../../services/netbox";
-import { putData, postData } from "../../utils/sendData";
+} from "../../../services/netbox";
+import { putData, postData } from "../../../utils/sendData";
 import {
   interfaceConfigReducer,
   initialState,

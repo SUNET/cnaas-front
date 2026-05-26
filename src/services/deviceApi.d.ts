@@ -24,7 +24,7 @@ import type {
   AccessInterfaceItem,
   DistInterfaceItem,
   DropdownOption,
-} from "../store/interfaceConfig/interfaceConfigReducer";
+} from "../components/InterfaceConfig/stores/interfaceConfigReducer";
 
 export interface AccessInterfacesResult {
   interfaces: AccessInterfaceItem[];

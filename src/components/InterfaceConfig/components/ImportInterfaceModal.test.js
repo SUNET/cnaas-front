@@ -4,10 +4,10 @@ import "@testing-library/jest-dom";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
-import { putData as mockPutData } from "../../utils/sendData";
+import { putData as mockPutData } from "../../../utils/sendData";
 
-jest.mock("../../utils/sendData");
-jest.mock("../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../utils/sendData");
+jest.mock("../../../contexts/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 
