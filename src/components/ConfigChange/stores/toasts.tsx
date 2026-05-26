@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Button } from "semantic-ui-react";
 import { toast } from "react-semantic-toasts-2";
+import type { SyncNotification } from "./socketEvents";
 
 const BATCH_INTERVAL_MS = 1000;
 
@@ -46,19 +47,10 @@ export function showSyncToast(hostname: string): void {
 
 // --- Sync warning toast batching ---
 
-type SyncEventData = {
-  readonly syncevent_hostname: string;
-  readonly syncevent_data: {
-    readonly cause: string;
-    readonly by: string;
-    readonly job_id?: number;
-  };
-};
-
-let pendingSyncWarnings: SyncEventData[] = [];
+let pendingSyncWarnings: SyncNotification[] = [];
 let syncWarningBatchTimer: ReturnType<typeof setTimeout> | null = null;
 
-export function showSyncWarningToast(data: SyncEventData): void {
+export function showSyncWarningToast(data: SyncNotification): void {
   pendingSyncWarnings.push(data);
 
   if (syncWarningBatchTimer) {

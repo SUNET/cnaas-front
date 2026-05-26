@@ -1,6 +1,11 @@
 import { useEffect, type Dispatch } from "react";
 import { useFreshRef } from "../../../hooks/useFreshRef";
+import { type JobEvent, isJobEvent } from "../../../types/socketEvents";
 import { socket } from "../stores/socket";
+import {
+  type SyncNotification,
+  isSyncNotification,
+} from "../stores/socketEvents";
 import { actions, type Action } from "../stores/configChangeReducer";
 import {
   showSyncToast,
@@ -9,36 +14,7 @@ import {
   clearToastTimers,
 } from "../stores/toasts";
 
-type JobEventData = {
-  readonly job_id: number;
-  readonly status: string;
-  readonly function_name?: string;
-  readonly scheduled_by?: string;
-};
-
-type SyncEventData = {
-  readonly syncevent_hostname: string;
-  readonly syncevent_data: {
-    readonly cause: string;
-    readonly by: string;
-    readonly job_id?: number;
-  };
-};
-
-type EventData = JobEventData | SyncEventData | string;
-
-function isJobEvent(data: EventData): data is JobEventData {
-  return data != null && typeof data === "object" && "job_id" in data;
-}
-
-function isSyncEvent(data: EventData): data is SyncEventData {
-  return (
-    data != null &&
-    typeof data === "object" &&
-    "syncevent_hostname" in data &&
-    "syncevent_data" in data
-  );
-}
+type EventData = JobEvent | SyncNotification | string;
 
 const STATUS_RUNNING = new Set(["RUNNING"]);
 const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
@@ -84,14 +60,14 @@ export function useConfigChangeSocket(
     const handleEvents = (data: EventData) => {
       if (isJobEvent(data)) {
         handleJobEvent(data);
-      } else if (isSyncEvent(data)) {
+      } else if (isSyncNotification(data)) {
         handleSyncEvent(data);
       } else if (typeof data === "string") {
         dispatch({ type: actions.APPEND_LOG, line: `${data}\n` });
       }
     };
 
-    const handleJobEvent = (data: JobEventData) => {
+    const handleJobEvent = (data: JobEvent) => {
       if (STATUS_RUNNING.has(data.status)) {
         if (
           (repoJobIdRef.current === null && isRepoRefreshingRef.current) ||
@@ -112,7 +88,7 @@ export function useConfigChangeSocket(
       }
     };
 
-    const handleSyncEvent = (data: SyncEventData) => {
+    const handleSyncEvent = (data: SyncNotification) => {
       const eventJobId = data.syncevent_data.job_id;
       let showWarning = true;
 

@@ -1,13 +1,8 @@
 import { useEffect, useRef } from "react";
+import { type JobEvent, isJobEvent } from "../../../types/socketEvents";
 import { socket } from "../stores/socket";
 import { actions, type Action } from "../stores/jobListReducer";
 import type { Dispatch } from "react";
-
-type JobEventData = {
-  job_id?: number;
-  status?: string;
-  exception?: string;
-};
 
 /**
  * Connects the socket on mount, subscribes to job and log events,
@@ -41,12 +36,8 @@ export function useJobListSocket(
       });
     };
 
-    const handleEvents = (data: JobEventData | string) => {
-      if (
-        data != null &&
-        typeof data === "object" &&
-        typeof data.job_id === "number"
-      ) {
+    const handleEvents = (data: JobEvent | string) => {
+      if (isJobEvent(data)) {
         const status = data.status ?? "UNKNOWN";
         const line =
           status === "EXCEPTION"
