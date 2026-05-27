@@ -25,7 +25,7 @@ import {
   fetchRunningConfig,
 } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
-import { extractErrorMessageAsync } from "../../utils";
+import { extractErrorMessageAsync } from "../../../../utils/extractErrorMessage";
 import type { DeviceState } from "../../../../types/device";
 
 type ShowConfigModalProps = {

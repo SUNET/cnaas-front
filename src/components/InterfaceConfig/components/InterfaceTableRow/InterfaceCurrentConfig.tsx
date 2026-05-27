@@ -1,6 +1,6 @@
 import { Icon } from "semantic-ui-react";
 import { useEffect, useState } from "react";
-import { getData } from "../../../../utils/getData";
+import { fetchRunningConfig } from "../../api/interfaceConfigApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 
 export function InterfaceCurrentConfig({
@@ -15,23 +15,23 @@ export function InterfaceCurrentConfig({
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const fetchConfig = async () => {
+    if (!hostname) return;
+    const load = async () => {
       try {
-        const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/running_config?interface=${interfaceName}`;
-        // TODO(I2): typed API response in api/interfaceConfigApi.ts
-        const resp = (await getData(url, token)) as {
-          data: { config: string };
-        };
-        const fetchedConfig = resp.data.config;
-        setConfig(fetchedConfig);
-        if (!fetchedConfig) setError(true);
+        const fetched = await fetchRunningConfig(
+          hostname,
+          interfaceName,
+          token,
+        );
+        setConfig(fetched);
+        if (!fetched) setError(true);
       } catch (error) {
         console.warn("Failed to fetch config", error);
         setError(true);
       }
     };
 
-    fetchConfig();
+    load();
   }, [hostname, interfaceName, token]);
 
   if (error) {

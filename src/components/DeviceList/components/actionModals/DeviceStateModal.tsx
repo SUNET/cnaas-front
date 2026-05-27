@@ -3,7 +3,7 @@ import { Button, Modal, Loader, Icon } from "semantic-ui-react";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import type { DeviceState } from "../../../../types/device";
 import { updateDevice } from "../../api/deviceListApi";
-import { extractErrorMessage } from "../../utils";
+import { extractErrorMessage } from "../../../../utils/extractErrorMessage";
 
 type DeviceStateModalProps = {
   readonly isOpen: boolean;

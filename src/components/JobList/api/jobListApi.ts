@@ -1,5 +1,6 @@
 import { getResponse } from "../../../utils/getData";
 import checkJsonResponse from "../../../utils/checkJsonResponse";
+import { extractErrorMessageAsync } from "../../../utils/extractErrorMessage";
 import type { Job } from "../../../types/job";
 
 export type FetchJobsResult = {
@@ -38,7 +39,7 @@ export async function fetchJobs(
     const data = await checkJsonResponse(response);
     return { jobs: data.data.jobs, totalPages };
   } catch (error: unknown) {
-    const message = await extractErrorMessage(error);
+    const message = await extractErrorMessageAsync(error);
     console.error("Failed to fetch jobs:", message);
     return { error: message };
   }
@@ -61,57 +62,4 @@ function buildJobsUrl(
 function parseTotalPages(header: string | null): number {
   if (header == null || Number.isNaN(Number(header))) return 1;
   return Math.ceil(Number(header) / PER_PAGE);
-}
-
-async function extractErrorMessage(error: unknown): Promise<string> {
-  if (isResponseLike(error)) {
-    return extractResponseMessage(error);
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (hasMessageField(error)) {
-    return String(error.message);
-  }
-  return "Unknown error";
-}
-
-function isResponseLike(error: unknown): error is Response {
-  return (
-    error != null &&
-    typeof error === "object" &&
-    "json" in error &&
-    typeof error.json === "function"
-  );
-}
-
-function hasMessageField(error: unknown): error is { message: unknown } {
-  return error != null && typeof error === "object" && "message" in error;
-}
-
-async function extractResponseMessage(response: Response): Promise<string> {
-  try {
-    const jsonError: unknown = await response.json();
-    if (hasStringMessage(jsonError)) return jsonError.message;
-  } catch {
-    // fall through to status fallback
-  }
-  return formatStatusFallback(response);
-}
-
-function hasStringMessage(value: unknown): value is { message: string } {
-  return (
-    value != null &&
-    typeof value === "object" &&
-    "message" in value &&
-    typeof value.message === "string"
-  );
-}
-
-function formatStatusFallback(response: Response): string {
-  if (typeof response.status !== "number") return "Unknown error";
-  if (response.statusText != null && response.statusText !== "") {
-    return `${response.status} ${response.statusText}`;
-  }
-  return String(response.status);
 }
