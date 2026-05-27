@@ -1,7 +1,7 @@
 import { Modal, Button } from "semantic-ui-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { putData } from "../../../utils/sendData";
+import { importInterfaces } from "../api/interfaceConfigApi";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 
 type ImportInterfaceModalProps = {
@@ -48,27 +48,10 @@ export function ImportInterfaceModal({
   }
 
   const sendInterfaceData = async (): Promise<boolean> => {
-    try {
-      const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces`;
-      // TODO(I2): extract to api/interfaceConfigApi.ts with type guard; remove cast
-      const data = (await putData(url, token, fileContent)) as {
-        status?: string;
-        message?: string;
-      };
-
-      if (data.status === "success") {
-        return true;
-      }
-      console.log(data.message);
-      setErrorMessage(data.message ?? null);
-    } catch (error) {
-      console.log(error);
-      // TODO(I2): typed error shape from putData; remove cast
-      const errs = (error as { message?: { errors?: string[] } })?.message
-        ?.errors;
-      setErrorMessage(errs?.join(", ") ?? null);
-    }
-
+    const result = await importInterfaces(hostname, fileContent, token);
+    if (result.success) return true;
+    console.log(result.error);
+    setErrorMessage(result.error);
     return false;
   };
 

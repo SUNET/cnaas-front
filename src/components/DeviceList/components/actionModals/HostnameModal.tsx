@@ -3,7 +3,7 @@ import { Button, Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
 import { useNavigate } from "react-router";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 import { updateDevice } from "../../api/deviceListApi";
-import { extractErrorMessage } from "../../utils";
+import { extractErrorMessage } from "../../../../utils/extractErrorMessage";
 
 type HostnameModalProps = {
   readonly closeAction: () => void;

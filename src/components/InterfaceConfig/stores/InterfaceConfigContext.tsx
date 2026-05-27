@@ -27,7 +27,12 @@ import {
   fetchNetboxInterfaces,
   fetchNetboxModel,
 } from "../../../services/netbox";
-import { putData, postData } from "../../../utils/sendData";
+import {
+  saveInterfaces as apiSaveInterfaces,
+  startAutoPush as apiStartAutoPush,
+  bounceInterface as apiBounceInterface,
+  exportInterfaces as apiExportInterfaces,
+} from "../api/interfaceConfigApi";
 import {
   interfaceConfigReducer,
   initialState,
@@ -331,35 +336,21 @@ export function InterfaceConfigProvider({
       sendData: unknown,
     ): Promise<{ success: boolean; error?: string }> => {
       dispatch({ type: actions.SAVE_STARTED });
-      try {
-        const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interfaces`;
-        const data = await putData(url, tokenRef.current, sendData);
-        if (data.status === "success") {
-          return { success: true };
-        }
-        dispatch({ type: actions.SAVE_FAILED });
-        return { success: false, error: data.message };
-      } catch (error: unknown) {
-        dispatch({ type: actions.SAVE_FAILED });
-        const errObj = error as { message?: { errors?: string[] } };
-        const errors = errObj?.message?.errors?.join(", ") ?? String(error);
-        return { success: false, error: errors };
-      }
+      const result = await apiSaveInterfaces(
+        hostname ?? "",
+        sendData,
+        tokenRef.current,
+      );
+      if (!result.success) dispatch({ type: actions.SAVE_FAILED });
+      return result;
     },
     [hostname, tokenRef],
   );
 
   const startAutoPush = useCallback(async () => {
     try {
-      const url = `${process.env.API_URL}/api/v1.0/device_syncto`;
-      const body = {
-        dry_run: true,
-        comment: "interface update via WebUI",
-        hostname,
-        auto_push: true,
-      };
-      const data = await postData(url, tokenRef.current, body);
-      dispatch({ type: actions.JOB_STARTED, jobId: data.job_id });
+      const { jobId } = await apiStartAutoPush(hostname, tokenRef.current);
+      dispatch({ type: actions.JOB_STARTED, jobId });
     } catch (error) {
       console.error("Failed to start autopush:", error);
       dispatch({ type: actions.SAVE_FAILED });
@@ -369,20 +360,16 @@ export function InterfaceConfigProvider({
   const bounceInterface = useCallback(
     async (interfaceName: string) => {
       dispatch({ type: actions.BOUNCE_STARTED, interfaceName });
-      try {
-        const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interface_status`;
-        const body = { bounce_interfaces: [interfaceName] };
-        const data = await putData(url, tokenRef.current, body);
-        const result =
-          data.status === "success" ? "finished" : `error: ${data.data}`;
-        dispatch({ type: actions.BOUNCE_FINISHED, interfaceName, result });
-      } catch (error) {
-        dispatch({
-          type: actions.BOUNCE_FINISHED,
-          interfaceName,
-          result: `error: ${error}`,
-        });
-      }
+      const result = await apiBounceInterface(
+        hostname,
+        interfaceName,
+        tokenRef.current,
+      );
+      dispatch({
+        type: actions.BOUNCE_FINISHED,
+        interfaceName,
+        result: result.success ? "finished" : `error: ${result.error}`,
+      });
     },
     [hostname, tokenRef],
   );
@@ -390,11 +377,10 @@ export function InterfaceConfigProvider({
   const exportInterfaces = useCallback(
     async (exportHostname: string) => {
       try {
-        const response = await fetch(
-          `${process.env.API_URL}/api/v1.0/device/${exportHostname}/interfaces_export`,
-          { headers: { Authorization: `Bearer ${tokenRef.current}` } },
+        const blob = await apiExportInterfaces(
+          exportHostname,
+          tokenRef.current,
         );
-        const blob = await response.blob();
         const url = globalThis.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
