@@ -1,17 +1,15 @@
-import PropTypes from "prop-types";
+import { type ReactNode } from "react";
 import { Icon, Popup } from "semantic-ui-react";
 import { GraphiteInterface } from "./GraphiteInterface";
-
-InterfaceStatusAdminDisabled.propTypes = {
-  hostname: PropTypes.string,
-  name: PropTypes.string,
-  toggleEnabled: PropTypes.node,
-};
 
 export function InterfaceStatusAdminDisabled({
   hostname,
   name,
   toggleEnabled,
+}: {
+  readonly hostname: string | null;
+  readonly name: string;
+  readonly toggleEnabled: ReactNode;
 }) {
   const graphiteHtml = (
     <GraphiteInterface

@@ -1,15 +1,6 @@
-import PropTypes from "prop-types";
+import { type ReactNode } from "react";
 import { Icon, Popup } from "semantic-ui-react";
 import { GraphiteInterface } from "./GraphiteInterface";
-
-InterfaceStatusUp.propTypes = {
-  bounceInterfaceButton: PropTypes.object,
-  hostname: PropTypes.string,
-  name: PropTypes.string,
-  speed: PropTypes.number,
-  statusMessage: PropTypes.node,
-  toggleEnabled: PropTypes.object,
-};
 
 export function InterfaceStatusUp({
   bounceInterfaceButton,
@@ -18,6 +9,13 @@ export function InterfaceStatusUp({
   speed,
   statusMessage,
   toggleEnabled,
+}: {
+  readonly bounceInterfaceButton: ReactNode;
+  readonly hostname: string | null;
+  readonly name: string;
+  readonly speed: number | undefined;
+  readonly statusMessage: ReactNode;
+  readonly toggleEnabled: ReactNode;
 }) {
   const graphiteHtml = (
     <GraphiteInterface

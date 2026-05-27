@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import { type SyntheticEvent } from "react";
 import { Dropdown, Table, Popup, Checkbox } from "semantic-ui-react";
 
 const CONFIG_TYPE_OPTIONS = [
@@ -10,20 +10,21 @@ const CONFIG_TYPE_OPTIONS = [
   { value: "MLAG_PEER", text: "MLAG peer interface", disabled: true },
 ];
 
-PortTypeCellAccess.propTypes = {
-  currentConfigtype: PropTypes.string,
-  editDisabled: PropTypes.bool,
-  fields: PropTypes.object,
-  item: PropTypes.object,
-  updateFieldData: PropTypes.func,
-};
-
 export function PortTypeCellAccess({
   currentConfigtype,
   editDisabled,
   fields,
   item,
   updateFieldData,
+}: {
+  readonly item: Record<string, unknown>;
+  readonly currentConfigtype: string | null;
+  readonly fields: Record<string, unknown>;
+  readonly editDisabled: boolean;
+  readonly updateFieldData: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
 }) {
   return (
     <Table.Cell>
@@ -32,7 +33,7 @@ export function PortTypeCellAccess({
         name={`configtype|${item.name}`}
         selection
         options={CONFIG_TYPE_OPTIONS}
-        defaultValue={item.configtype}
+        defaultValue={item.configtype as string | undefined}
         disabled={editDisabled}
         onChange={updateFieldData}
       />
@@ -47,7 +48,7 @@ export function PortTypeCellAccess({
             <Checkbox
               key={`redundant_link|${item.name}`}
               name={`redundant_link|${item.name}`}
-              defaultChecked={fields.redundant_link}
+              defaultChecked={Boolean(fields.redundant_link)}
               disabled={editDisabled}
               onChange={updateFieldData}
             />
