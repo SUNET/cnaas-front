@@ -1,16 +1,13 @@
-import PropTypes from "prop-types";
 import { Icon, Button } from "semantic-ui-react";
-
-BounceInterfaceButton.propTypes = {
-  handleClick: PropTypes.func,
-  editDisabled: PropTypes.bool,
-  bounceDisabled: PropTypes.bool,
-};
 
 export function BounceInterfaceButton({
   handleClick,
   editDisabled,
   bounceDisabled,
+}: {
+  readonly handleClick: () => void;
+  readonly editDisabled: boolean;
+  readonly bounceDisabled: boolean;
 }) {
   return (
     <Button
@@ -21,7 +18,7 @@ export function BounceInterfaceButton({
       onClick={handleClick}
       size="small"
     >
-      Bounce interface {<Icon name="retweet" />}
+      Bounce interface <Icon name="retweet" />
     </Button>
   );
 }

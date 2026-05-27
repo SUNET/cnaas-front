@@ -1,26 +1,34 @@
-import PropTypes from "prop-types";
 import { useMemo } from "react";
 import { Popup, Button } from "semantic-ui-react";
 
-function InterfaceType({ type }) {
+type NetboxType = { readonly label?: string };
+type NetboxCable = { readonly display?: string };
+type NetboxNeighbor = {
+  readonly device: { readonly name: string; readonly url: string };
+  readonly url: string;
+  readonly name: string;
+};
+type NetboxInterface = {
+  readonly type?: NetboxType;
+  readonly cable?: NetboxCable;
+  readonly connected_endpoints?: NetboxNeighbor[];
+};
+
+function InterfaceType({ type }: { readonly type: NetboxType | undefined }) {
   if (!type) return null;
   return <p>Interface type: {type.label}</p>;
 }
 
-InterfaceType.propTypes = {
-  type: PropTypes.shape({ label: PropTypes.string }),
-};
-
-function CableInfo({ cable }) {
+function CableInfo({ cable }: { readonly cable: NetboxCable | undefined }) {
   if (!cable) return null;
   return <p>Cable: {cable.display}</p>;
 }
 
-CableInfo.propTypes = {
-  cable: PropTypes.shape({ display: PropTypes.string }),
-};
-
-function NeighborInfoList({ neighbors }) {
+function NeighborInfoList({
+  neighbors,
+}: {
+  readonly neighbors: NetboxNeighbor[] | undefined;
+}) {
   if (!Array.isArray(neighbors)) return null;
 
   return neighbors.map((neighbor) => (
@@ -51,20 +59,11 @@ function NeighborInfoList({ neighbors }) {
   ));
 }
 
-NeighborInfoList.propTypes = {
-  neighbors: PropTypes.arrayOf(
-    PropTypes.shape({
-      device: PropTypes.shape({
-        name: PropTypes.string,
-        url: PropTypes.string,
-      }),
-      url: PropTypes.string,
-      name: PropTypes.string,
-    }),
-  ),
-};
-
-export function NetboxInterfacePopup({ netboxInterface }) {
+export function NetboxInterfacePopup({
+  netboxInterface = {},
+}: {
+  readonly netboxInterface?: NetboxInterface;
+}) {
   const content = useMemo(() => {
     const {
       type,
@@ -96,17 +95,3 @@ export function NetboxInterfacePopup({ netboxInterface }) {
     />
   );
 }
-
-NetboxInterfacePopup.propTypes = {
-  netboxInterface: PropTypes.shape({
-    type: PropTypes.object,
-    cable: PropTypes.object,
-    connected_endpoints: PropTypes.object,
-  }),
-};
-
-NetboxInterfacePopup.defaultProps = {
-  netboxInterface: {},
-};
-
-export default NetboxInterfacePopup;

@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import { type SyntheticEvent } from "react";
 import { Dropdown, Table } from "semantic-ui-react";
 
 const IF_CLASS_OPTIONS = [
@@ -8,16 +8,6 @@ const IF_CLASS_OPTIONS = [
   { value: "port_template", text: "Port template" },
 ];
 
-PortTypeCellDist.propTypes = {
-  addPortTemplateOption: PropTypes.func,
-  currentIfClass: PropTypes.string,
-  editDisabled: PropTypes.bool,
-  item: PropTypes.object,
-  portTemplate: PropTypes.string,
-  portTemplateOptions: PropTypes.array,
-  updateFieldData: PropTypes.func,
-};
-
 export function PortTypeCellDist({
   addPortTemplateOption,
   currentIfClass,
@@ -26,6 +16,20 @@ export function PortTypeCellDist({
   portTemplate,
   portTemplateOptions,
   updateFieldData,
+}: {
+  readonly item: Record<string, unknown>;
+  readonly currentIfClass: string | null;
+  readonly portTemplate: string | null;
+  readonly editDisabled: boolean;
+  readonly portTemplateOptions: { text: string; value: string }[];
+  readonly updateFieldData: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
+  readonly addPortTemplateOption: (
+    e: SyntheticEvent,
+    data: Record<string, unknown>,
+  ) => void;
 }) {
   return (
     <Table.Cell>
@@ -34,7 +38,7 @@ export function PortTypeCellDist({
         name={`ifclass|${item.name}`}
         selection
         options={IF_CLASS_OPTIONS}
-        defaultValue={currentIfClass}
+        defaultValue={currentIfClass ?? undefined}
         disabled={editDisabled}
         onChange={updateFieldData}
       />
@@ -47,7 +51,7 @@ export function PortTypeCellDist({
           search
           allowAdditions
           options={portTemplateOptions}
-          defaultValue={portTemplate}
+          defaultValue={portTemplate ?? undefined}
           disabled={editDisabled}
           onAddItem={addPortTemplateOption}
           onChange={updateFieldData}

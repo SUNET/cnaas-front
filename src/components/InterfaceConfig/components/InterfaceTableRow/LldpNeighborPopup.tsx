@@ -1,8 +1,16 @@
-import PropTypes from "prop-types";
 import { useMemo } from "react";
 import { Popup, Button } from "semantic-ui-react";
 
-function NeighborInfo({ neighbor }) {
+export type LldpNeighbor = {
+  readonly remote_system_name?: string;
+  readonly remote_chassis_id?: string;
+  readonly remote_port?: string;
+  readonly remote_port_description?: string;
+  readonly remote_system_description?: string;
+  readonly remote_system_capab?: string[];
+};
+
+function NeighborInfo({ neighbor }: { readonly neighbor: LldpNeighbor }) {
   return (
     <p>
       Neighbor: {neighbor.remote_system_name || neighbor.remote_chassis_id}
@@ -19,18 +27,11 @@ function NeighborInfo({ neighbor }) {
   );
 }
 
-NeighborInfo.propTypes = {
-  neighbor: PropTypes.shape({
-    remote_system_name: PropTypes.string,
-    remote_chassis_id: PropTypes.string,
-    remote_port: PropTypes.string,
-    remote_port_description: PropTypes.string,
-    remote_system_description: PropTypes.string,
-    remote_system_capab: PropTypes.array,
-  }),
-};
-
-export function LldpNeighborPopup({ lldpNeighborData }) {
+export function LldpNeighborPopup({
+  lldpNeighborData = [],
+}: {
+  readonly lldpNeighborData?: LldpNeighbor[];
+}) {
   const neighborTable = useMemo(
     () =>
       lldpNeighborData.map((neigh) => (
@@ -53,20 +54,3 @@ export function LldpNeighborPopup({ lldpNeighborData }) {
     />
   );
 }
-
-LldpNeighborPopup.propTypes = {
-  lldpNeighborData: PropTypes.arrayOf(
-    PropTypes.shape({
-      remote_system_name: PropTypes.string,
-      remote_chassis_id: PropTypes.string,
-      remote_port: PropTypes.string,
-      remote_port_description: PropTypes.string,
-      remote_system_description: PropTypes.string,
-      remote_system_capab: PropTypes.array,
-    }),
-  ),
-};
-
-LldpNeighborPopup.defaultProps = {
-  lldpNeighborData: [],
-};

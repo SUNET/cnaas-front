@@ -9,7 +9,7 @@ import {
 } from "./columns";
 import { ConfigColumn } from "./ConfigColumn";
 import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
-import { LldpNeighborPopup } from "./LldpNeighborPopup";
+import { LldpNeighborPopup, type LldpNeighbor } from "./LldpNeighborPopup";
 import { LinknetWarningPopup } from "./LinknetWarningPopup";
 import { LinknetOkButton } from "./LinknetOkButton";
 import { InterfaceStatusUp } from "./InterfaceStatusUp";
@@ -474,7 +474,7 @@ export function InterfaceTableRow({
           bounceInterfaceButton={bounceInterfaceButton}
           hostname={hostname}
           name={item.name}
-          speed={itemInterfaceStatusData.speed}
+          speed={itemInterfaceStatusData.speed as number | undefined}
           statusMessage={statusMessage}
           toggleEnabled={toggleEnabled}
         />
@@ -517,7 +517,10 @@ export function InterfaceTableRow({
   if (Object.hasOwn(lldpNeighborData, item.name.toLowerCase())) {
     lldpNeighborPopup = (
       <LldpNeighborPopup
-        lldpNeighborData={lldpNeighborData[item.name.toLowerCase()]}
+        // TODO(I4): type lldpNeighborData at reducer level (currently Record<string, unknown>)
+        lldpNeighborData={
+          lldpNeighborData[item.name.toLowerCase()] as LldpNeighbor[]
+        }
       />
     );
   }
