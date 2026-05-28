@@ -12,12 +12,12 @@ import {
 } from "react";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import { useFreshRef } from "../../../hooks/useFreshRef";
-import { fetchDevice } from "../../../services/deviceApi";
+import { fetchDevice } from "../../../api/deviceApi";
 import {
   fetchNetboxDevice,
   fetchNetboxInterfaces,
   fetchNetboxModel,
-} from "../../../services/netbox";
+} from "../../../api/netboxApi";
 import {
   fetchDeviceById,
   fetchInterfaceStatus,

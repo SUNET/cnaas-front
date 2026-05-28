@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuthToken } from "../contexts/AuthTokenContext";
 import { useFreshRef } from "./useFreshRef";
-import { fetchDevice } from "../services/deviceApi";
+import { fetchDevice } from "../api/deviceApi";
 
 /**
  * Hook that fetches a single device by hostname from the API.
