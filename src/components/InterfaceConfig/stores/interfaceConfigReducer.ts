@@ -13,7 +13,8 @@ import type {
   DistInterfaceItem,
 } from "../types/interfaces";
 import type { LldpNeighbor } from "../types/lldp";
-import type { DropdownOption } from "../types/dropdown";
+import type { Vlan } from "../types/vlan";
+import type { PortTemplate } from "../types/portTemplate";
 import type { Device } from "../../../types/device";
 import type { LinknetMismatch } from "../types/linknet";
 
@@ -34,11 +35,10 @@ export type InterfaceConfigState = {
   lldpNeighbors: Record<string, LldpNeighbor[]>;
   mlagPeerHostname: string | null;
 
-  vlans: DropdownOption[];
-  untaggedVlans: DropdownOption[];
+  vlans: Vlan[];
   vlanRanges: ReadonlySet<string>;
-  tags: DropdownOption[];
-  portTemplates: DropdownOption[];
+  tags: string[];
+  portTemplates: PortTemplate[];
 
   netboxDevice: Record<string, unknown> | null;
   netboxInterfaces: Record<string, unknown>[];
@@ -105,16 +105,15 @@ export type Action =
   | {
       type: typeof actions.SETTINGS_LOADED;
       settings: Record<string, unknown>;
-      vlans: DropdownOption[];
-      untaggedVlans: DropdownOption[];
-      tags: DropdownOption[];
+      vlans: Vlan[];
+      tags: string[];
     }
   | {
       type: typeof actions.INTERFACES_LOADED;
       interfaces: (AccessInterfaceItem | DistInterfaceItem)[];
-      tags: DropdownOption[];
+      tags: string[];
       mlagPeerHostname?: string | null;
-      portTemplates?: DropdownOption[];
+      portTemplates?: PortTemplate[];
       vlanRanges?: ReadonlySet<string>;
     }
   | {
@@ -184,7 +183,6 @@ export const initialState: InterfaceConfigState = {
 
   // Field options (dropdowns)
   vlans: [],
-  untaggedVlans: [],
   vlanRanges: new Set(),
   tags: [],
   portTemplates: [],
@@ -238,7 +236,6 @@ export function interfaceConfigReducer(
         ...state,
         settings: action.settings,
         vlans: action.vlans,
-        untaggedVlans: action.untaggedVlans,
         tags: mergeTags(state.tags, action.tags),
       };
 
@@ -314,7 +311,9 @@ export function interfaceConfigReducer(
     case actions.ADD_TAG_OPTION:
       return {
         ...state,
-        tags: [...state.tags, { text: action.tag, value: action.tag }],
+        tags: state.tags.includes(action.tag)
+          ? state.tags
+          : [...state.tags, action.tag],
       };
 
     case actions.ADD_VLAN_RANGE_OPTION:
@@ -329,10 +328,11 @@ export function interfaceConfigReducer(
     case actions.ADD_PORT_TEMPLATE_OPTION:
       return {
         ...state,
-        portTemplates: [
-          ...state.portTemplates,
-          { text: action.template, value: action.template },
-        ],
+        portTemplates: state.portTemplates.some(
+          (pt) => pt.name === action.template,
+        )
+          ? state.portTemplates
+          : [...state.portTemplates, { name: action.template }],
       };
 
     case actions.ADD_NEW_INTERFACE:
@@ -486,15 +486,13 @@ export function interfaceConfigReducer(
 // --- Helpers ---
 
 function mergeTags(
-  existing: DropdownOption[],
-  incoming: DropdownOption[] | undefined,
-): DropdownOption[] {
+  existing: string[],
+  incoming: string[] | undefined,
+): string[] {
   if (!incoming?.length) return existing;
   const merged = existing.slice();
   incoming.forEach((tag) => {
-    if (!merged.some((e) => e.text === tag.text)) {
-      merged.push(tag);
-    }
+    if (!merged.includes(tag)) merged.push(tag);
   });
   return merged;
 }

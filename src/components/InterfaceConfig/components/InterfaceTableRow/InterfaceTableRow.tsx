@@ -1,4 +1,4 @@
-import { type SyntheticEvent, type ReactNode } from "react";
+import { type SyntheticEvent, type ReactNode, useMemo } from "react";
 import { ButtonGroup, Checkbox, Icon, Input, Table } from "semantic-ui-react";
 import { VlanColumn } from "./VlanColumn";
 import {
@@ -23,7 +23,7 @@ import type {
   AccessInterfaceItem,
   DistInterfaceItem,
 } from "../../types/interfaces";
-import type { DropdownOption } from "../../types/dropdown";
+import type { Vlan } from "../../types/vlan";
 
 const CONFIG_TYPES_ENABLED = new Set([
   "ACCESS_AUTO",
@@ -34,10 +34,10 @@ const CONFIG_TYPES_ENABLED = new Set([
 
 const IF_CLASSES_ENABLED = new Set(["custom", "downlink"]);
 
-function mapVlanToName(vlan: unknown, vlanOptions: DropdownOption[]): unknown {
+function mapVlanToName(vlan: unknown, vlans: Vlan[]): unknown {
   if (typeof vlan === "number") {
-    const mapped = vlanOptions.find((opt) => opt.description === vlan);
-    return mapped ? mapped.value : vlan;
+    const mapped = vlans.find((v) => v.id === vlan);
+    return mapped ? mapped.name : vlan;
   }
   return vlan;
 }
@@ -205,9 +205,14 @@ export function InterfaceTableRow({
     linknetMismatches,
     linknetCheckedPorts,
     netboxInterfaces: netboxInterfaceData,
-    portTemplates: portTemplateOptions,
-    vlans: vlanOptions,
+    portTemplates,
+    vlans,
   } = state;
+
+  const portTemplateDropdownOptions = useMemo(
+    () => portTemplates.map((pt) => ({ text: pt.name, value: pt.name })),
+    [portTemplates],
+  );
 
   const hostname = device?.hostname ?? null;
   const deviceType = device?.device_type;
@@ -302,7 +307,7 @@ export function InterfaceTableRow({
     if (ifDataUpdated?.untagged_vlan !== undefined) {
       fields.untagged_vlan = ifDataUpdated.untagged_vlan;
     } else if (ifData.untagged_vlan !== undefined) {
-      fields.untagged_vlan = mapVlanToName(ifData.untagged_vlan, vlanOptions);
+      fields.untagged_vlan = mapVlanToName(ifData.untagged_vlan, vlans);
     }
 
     if (ifDataUpdated?.tagged_vlan_list !== undefined) {
@@ -310,7 +315,7 @@ export function InterfaceTableRow({
     } else if (ifData.tagged_vlan_list) {
       fields.tagged_vlan_list = (ifData.tagged_vlan_list as unknown[]).map(
         (vlanItem) => {
-          return mapVlanToName(vlanItem, vlanOptions);
+          return mapVlanToName(vlanItem, vlans);
         },
       );
     }
@@ -374,14 +379,14 @@ export function InterfaceTableRow({
         distItem!.ifclass?.substring("port_template_".length) ??
         null;
 
-      const dropDownEntry = portTemplateOptions.find(
-        (obj) => obj.text === portTemplate,
+      const dropDownEntry = portTemplates.find(
+        (pt) => pt.name === portTemplate,
       );
 
-      if (dropDownEntry?.vlan_config === "untagged") {
+      if (dropDownEntry?.vlanConfig === "untagged") {
         displayVlan = true;
         displayVlanTagged = false;
-      } else if (dropDownEntry?.vlan_config === "tagged") {
+      } else if (dropDownEntry?.vlanConfig === "tagged") {
         displayVlan = true;
         displayVlanTagged = true;
         displayTaggedToggle = true;
@@ -575,7 +580,7 @@ export function InterfaceTableRow({
           currentIfClass={currentIfClass}
           portTemplate={portTemplate}
           editDisabled={editDisabled}
-          portTemplateOptions={portTemplateOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+          portTemplateOptions={portTemplateDropdownOptions}
           updateFieldData={updateFieldData}
           addPortTemplateOption={addPortTemplateOption}
         />

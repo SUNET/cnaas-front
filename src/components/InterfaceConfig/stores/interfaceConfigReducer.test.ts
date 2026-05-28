@@ -63,41 +63,34 @@ describe("interfaceConfigReducer", () => {
       const result = reducer(initialState, {
         type: actions.SETTINGS_LOADED,
         settings: { vxlans: {} },
-        vlans: [{ value: "vlan10", text: "vlan10" }],
-        untaggedVlans: [{ value: "vlan10", text: "vlan10" }],
-        tags: [{ text: "tagA", value: "tagA" }],
+        vlans: [{ vni: 10, name: "vlan10", id: 10 }],
+        tags: ["tagA"],
       });
 
       expect(result.settings).toEqual({ vxlans: {} });
       expect(result.vlans).toHaveLength(1);
-      expect(result.untaggedVlans).toHaveLength(1);
-      expect(result.tags).toEqual([{ text: "tagA", value: "tagA" }]);
+      expect(result.tags).toEqual(["tagA"]);
     });
 
     test("merges tags with existing tags", () => {
       const state = {
         ...initialState,
-        tags: [{ text: "existing", value: "existing" }],
+        tags: ["existing"],
       };
       const result = reducer(state, {
         type: actions.SETTINGS_LOADED,
         settings: {},
         vlans: [],
-        untaggedVlans: [],
-        tags: [
-          { text: "existing", value: "existing" },
-          { text: "new", value: "new" },
-        ],
+        tags: ["existing", "new"],
       });
 
-      expect(result.tags).toHaveLength(2);
-      expect(result.tags.map((t) => t.text)).toEqual(["existing", "new"]);
+      expect(result.tags).toEqual(["existing", "new"]);
     });
   });
 
   describe("INTERFACES_LOADED", () => {
     test("sets interfaces and merges tags", () => {
-      const state = { ...initialState, tags: [{ text: "old", value: "old" }] };
+      const state = { ...initialState, tags: ["old"] };
       const result = reducer(state, {
         type: actions.INTERFACES_LOADED,
         interfaces: [
@@ -108,7 +101,7 @@ describe("interfaceConfigReducer", () => {
             data: null,
           },
         ],
-        tags: [{ text: "new", value: "new" }],
+        tags: ["new"],
       });
 
       expect(result.interfaces).toEqual([
@@ -119,7 +112,7 @@ describe("interfaceConfigReducer", () => {
           data: null,
         },
       ]);
-      expect(result.tags).toHaveLength(2);
+      expect(result.tags).toEqual(["old", "new"]);
     });
 
     test("sets mlagPeerHostname when provided", () => {
@@ -149,10 +142,10 @@ describe("interfaceConfigReducer", () => {
         type: actions.INTERFACES_LOADED,
         interfaces: [],
         tags: [],
-        portTemplates: [{ text: "tmpl", value: "tmpl" }],
+        portTemplates: [{ name: "tmpl" }],
       });
 
-      expect(result.portTemplates).toHaveLength(1);
+      expect(result.portTemplates).toEqual([{ name: "tmpl" }]);
     });
 
     test("seeds vlanRanges from payload, deduplicating against existing", () => {
@@ -359,7 +352,7 @@ describe("interfaceConfigReducer", () => {
         tag: "newTag",
       });
 
-      expect(result.tags).toEqual([{ text: "newTag", value: "newTag" }]);
+      expect(result.tags).toEqual(["newTag"]);
     });
   });
 
@@ -391,9 +384,7 @@ describe("interfaceConfigReducer", () => {
         template: "newTmpl",
       });
 
-      expect(result.portTemplates).toEqual([
-        { text: "newTmpl", value: "newTmpl" },
-      ]);
+      expect(result.portTemplates).toEqual([{ name: "newTmpl" }]);
     });
   });
 
