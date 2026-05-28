@@ -1,5 +1,6 @@
 /**
- * LLDP neighbor wire shape returned by GET /api/v1.0/device/<hostname>/lldp_neighbors.
+ * LLDP neighbor wire shape — entries of `lldp_neighbors_detail` returned by
+ * GET /api/v1.0/device/<hostname>/lldp_neighbors_detail.
  * Keyed by interface name (lowercased): Record<string, LldpNeighbor[]>.
  */
 export type LldpNeighbor = {

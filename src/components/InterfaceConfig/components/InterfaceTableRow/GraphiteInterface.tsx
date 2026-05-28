@@ -49,15 +49,13 @@ export function GraphiteInterface({
     };
 
     load();
-
-    // Cleanup blob URL on unmount or when dependencies change
-    return () => {
-      if (imageBlob) {
-        URL.revokeObjectURL(imageBlob);
-        setImageBlob(null);
-      }
-    };
   }, [hostname, interfaceName, token]);
+
+  // Revoke blob URL when it changes or on unmount
+  useEffect(() => {
+    if (!imageBlob) return;
+    return () => URL.revokeObjectURL(imageBlob);
+  }, [imageBlob]);
 
   const toMbit = (value: number) => (value / 1000 / 1000).toFixed(2);
 
