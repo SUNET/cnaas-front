@@ -58,7 +58,7 @@ export type LinknetVerificationResult = {
 export function computeLinknetMismatches(
   deviceId: number,
   interfaces: (AccessInterfaceItem | DistInterfaceItem)[],
-  lldpNeighbors: Record<string, unknown>,
+  lldpNeighbors: Record<string, LldpNeighbor[]>,
   linknets: Linknet[],
   deviceMap: Map<number, string>,
 ): LinknetVerificationResult {
@@ -77,9 +77,7 @@ export function computeLinknetMismatches(
       deviceMap.get(remoteDeviceId) ?? `ID:${remoteDeviceId}`;
     const expectedPort = remotePort;
 
-    const lldpData = lldpNeighbors[localPort.toLowerCase()] as
-      | LldpNeighbor[]
-      | undefined;
+    const lldpData = lldpNeighbors[localPort.toLowerCase()];
 
     let actualHostname: string | null = null;
     let actualPort: string | null = null;
@@ -123,9 +121,7 @@ export function computeLinknetMismatches(
 
     const expectedHostname = deviceMap.get(neighborId) ?? `ID:${neighborId}`;
 
-    const lldpData = lldpNeighbors[iface.name.toLowerCase()] as
-      | LldpNeighbor[]
-      | undefined;
+    const lldpData = lldpNeighbors[iface.name.toLowerCase()];
 
     let actualHostname: string | null = null;
     let mismatch = false;
@@ -164,9 +160,7 @@ export function computeLinknetMismatches(
 
     checkedPorts.push(iface.name);
 
-    const lldpData = lldpNeighbors[iface.name.toLowerCase()] as
-      | LldpNeighbor[]
-      | undefined;
+    const lldpData = lldpNeighbors[iface.name.toLowerCase()];
 
     let actualHostname: string | null = null;
     let mismatch = false;

@@ -18,13 +18,14 @@ export function fetchInterfaceStatus(
 export function fetchLldpNeighbors(
   hostname: string,
   token: string | null,
-): Promise<Record<string, unknown>>;
+): Promise<Record<string, LldpNeighbor[]>>;
 
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
 } from "../components/InterfaceConfig/api/interfaceConfigApi";
 import type { DropdownOption } from "../components/InterfaceConfig/stores/interfaceConfigReducer";
+import type { LldpNeighbor } from "../components/InterfaceConfig/types/lldp";
 
 export interface AccessInterfacesResult {
   interfaces: AccessInterfaceItem[];
