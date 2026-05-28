@@ -50,7 +50,7 @@ jest.mock("../../../components/LogViewer", () => {
 });
 
 // Mock VerifyDiffResult
-jest.mock("../../config-change/components/VerifyDiff/VerifyDiffResult", () => ({
+jest.mock("../../../components/VerifyDiffResult", () => ({
   VerifyDiffResult: function MockVerifyDiffResult({
     devices,
   }: {

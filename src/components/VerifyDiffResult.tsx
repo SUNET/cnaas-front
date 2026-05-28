@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import SyntaxHighlight from "../../../../components/SyntaxHighlight";
-import type { DeviceTaskResult } from "../../../../types/job";
+import SyntaxHighlight from "./SyntaxHighlight";
+import type { DeviceTaskResult } from "../types/job";
 
 export type DeviceJobTaskDiff = {
   readonly name: string;
