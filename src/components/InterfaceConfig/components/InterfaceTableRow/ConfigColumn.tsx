@@ -2,7 +2,7 @@ import { type SyntheticEvent } from "react";
 import { Button, Icon, Popup, TextArea } from "semantic-ui-react";
 import { InterfaceCurrentConfig } from "./InterfaceCurrentConfig";
 
-interface ConfigColumnProps {
+type ConfigColumnProps = {
   readonly interfaceName: string;
   readonly hostname: string | null;
   readonly config: string | undefined;
@@ -11,7 +11,7 @@ interface ConfigColumnProps {
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-}
+};
 
 export function ConfigColumn({
   interfaceName,

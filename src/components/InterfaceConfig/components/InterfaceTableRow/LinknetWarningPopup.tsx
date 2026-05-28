@@ -1,9 +1,9 @@
 import { Popup, Button } from "semantic-ui-react";
 import type { LinknetMismatch } from "../../stores/interfaceConfigReducer";
 
-interface LinknetWarningPopupProps {
+type LinknetWarningPopupProps = {
   readonly mismatch: LinknetMismatch;
-}
+};
 
 export function LinknetWarningPopup({ mismatch }: LinknetWarningPopupProps) {
   const isLinknet = mismatch.linknetId !== 0;

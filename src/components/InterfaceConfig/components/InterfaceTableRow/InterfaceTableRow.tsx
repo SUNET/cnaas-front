@@ -44,7 +44,7 @@ function mapVlanToName(vlan: unknown, vlanOptions: DropdownOption[]): unknown {
 
 // --- OptionalColumn dispatcher ---
 
-interface OptionalColumnProps {
+type OptionalColumnProps = {
   readonly columnName: string;
   readonly interfaceName: string;
   readonly fields: Record<string, unknown>;
@@ -68,7 +68,7 @@ interface OptionalColumnProps {
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-}
+};
 
 function OptionalColumn({
   columnName,
@@ -150,7 +150,7 @@ function OptionalColumn({
 
 // --- Props ---
 
-interface InterfaceTableRowProps {
+type InterfaceTableRowProps = {
   readonly item: AccessInterfaceItem | DistInterfaceItem;
   readonly index: number;
   readonly updateFieldData: (
@@ -170,7 +170,7 @@ interface InterfaceTableRowProps {
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-}
+};
 
 /**
  * A single row in the interface config table.

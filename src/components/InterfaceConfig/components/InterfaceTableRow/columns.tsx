@@ -4,7 +4,7 @@ import type { DropdownOption } from "../../stores/interfaceConfigReducer";
 
 // --- Tags column ---
 
-interface TagsColumnProps {
+type TagsColumnProps = {
   readonly interfaceName: string;
   readonly tags: string[];
   readonly editDisabled: boolean;
@@ -17,7 +17,7 @@ interface TagsColumnProps {
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-}
+};
 
 export function TagsColumn({
   interfaceName,
@@ -46,9 +46,9 @@ export function TagsColumn({
 
 // --- JSON column ---
 
-interface JsonColumnProps {
+type JsonColumnProps = {
   readonly data: Record<string, unknown> | undefined;
-}
+};
 
 export function JsonColumn({ data }: JsonColumnProps) {
   if (!data) return null;
@@ -67,7 +67,7 @@ export function JsonColumn({ data }: JsonColumnProps) {
 
 // --- Aggregate ID column ---
 
-interface AggregateIdColumnProps {
+type AggregateIdColumnProps = {
   readonly interfaceName: string;
   readonly aggregateId: unknown;
   readonly editDisabled: boolean;
@@ -75,7 +75,7 @@ interface AggregateIdColumnProps {
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-}
+};
 
 export function AggregateIdColumn({
   interfaceName,
@@ -95,7 +95,7 @@ export function AggregateIdColumn({
 
 // --- BPDU filter column ---
 
-interface BpduFilterColumnProps {
+type BpduFilterColumnProps = {
   readonly interfaceName: string;
   readonly bpduFilter: boolean;
   readonly editDisabled: boolean;
@@ -103,7 +103,7 @@ interface BpduFilterColumnProps {
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-}
+};
 
 export function BpduFilterColumn({
   interfaceName,

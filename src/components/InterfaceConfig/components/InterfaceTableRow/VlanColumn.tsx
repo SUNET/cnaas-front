@@ -13,11 +13,11 @@ import { actions } from "../../stores/interfaceConfigReducer";
 
 const VLAN_RANGE_RE = /^\d+-\d+$/;
 
-interface VlanDropdownOption {
+type VlanDropdownOption = {
   text: string;
   value: string;
   description: string;
-}
+};
 
 function rangeToOption(range: string): VlanDropdownOption {
   return { text: `R:${range}`, value: range, description: range };
@@ -36,7 +36,7 @@ const vlanSearchFilter = ((
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }) as any;
 
-interface VlanColumnProps {
+type VlanColumnProps = {
   readonly interfaceName: string;
   readonly displayVlan: boolean;
   readonly displayVlanTagged: boolean;
@@ -51,7 +51,7 @@ interface VlanColumnProps {
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-}
+};
 
 export function VlanColumn({
   interfaceName,
@@ -178,14 +178,14 @@ export function VlanColumn({
 
 // --- Tagged/Untagged toggle buttons ---
 
-interface TaggedToggleProps {
+type TaggedToggleProps = {
   readonly interfaceName: string;
   readonly isUntagged: boolean;
   readonly untaggedClick: (
     e: SyntheticEvent,
     data: Record<string, unknown>,
   ) => void;
-}
+};
 
 function TaggedToggle({
   interfaceName,

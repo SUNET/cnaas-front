@@ -12,7 +12,7 @@ import type {
   LinknetMismatch,
 } from "./interfaceConfigReducer";
 
-export interface Linknet {
+export type Linknet = {
   id: number;
   ipv4_network: string;
   device_a_id: number;
@@ -23,16 +23,16 @@ export interface Linknet {
   device_b_port: string;
   site_id: number | null;
   description: string | null;
-}
+};
 
-export interface LldpNeighbor {
+export type LldpNeighbor = {
   remote_system_name?: string;
   remote_chassis_id?: string;
   remote_port?: string;
   remote_port_description?: string;
   remote_system_description?: string;
   remote_system_capab?: string[];
-}
+};
 
 /**
  * Compute linknet and neighbor mismatches for a device.
@@ -45,10 +45,10 @@ export interface LldpNeighbor {
  * An interface already flagged by a higher-priority check is not re-checked.
  */
 
-export interface LinknetVerificationResult {
+export type LinknetVerificationResult = {
   mismatches: Record<string, LinknetMismatch>;
   checkedPorts: string[];
-}
+};
 
 /**
  * Compute linknet and neighbor mismatches for a device.

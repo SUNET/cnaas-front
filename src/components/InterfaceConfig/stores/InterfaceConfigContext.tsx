@@ -44,7 +44,7 @@ import { computeLinknetMismatches, type Linknet } from "./linknetVerification";
 
 // --- Context shape ---
 
-export interface InterfaceConfigContextValue {
+export type InterfaceConfigContextValue = {
   state: InterfaceConfigState;
   dispatch: Dispatch<Action>;
   awaitingSync: MutableRefObject<boolean>;
@@ -72,7 +72,7 @@ export interface InterfaceConfigContextValue {
   bounceInterface: (interfaceName: string) => Promise<void>;
   exportInterfaces: (hostname: string) => Promise<void>;
   verifyLinknets: () => Promise<void>;
-}
+};
 
 // --- Context ---
 
@@ -91,10 +91,10 @@ export function useInterfaceConfig(): InterfaceConfigContextValue {
 
 // --- Provider ---
 
-interface InterfaceConfigProviderProps {
+type InterfaceConfigProviderProps = {
   readonly hostname: string | null;
   readonly children: ReactNode;
-}
+};
 
 export function InterfaceConfigProvider({
   hostname,
