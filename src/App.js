@@ -4,17 +4,17 @@ import AuthContextProvider from "./contexts/AuthContext";
 import { Footer } from "./components/Footer";
 import { Panel } from "./components/Panel";
 import { Callback } from "./components/Callback";
-import { ConfigChangePage } from "./components/ConfigChange/components/ConfigChangePage";
-import Dashboard from "./components/Dashboard";
-import { DeviceListPage } from "./components/DeviceList/DeviceListPage";
+import { ConfigChangePage } from "./pages/config-change";
+import { Dashboard } from "./pages/dashboard";
+import { DeviceListPage } from "./pages/devices";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import FirmwareCopy from "./components/FirmwareCopy";
-import { FirmwareUpgrade } from "./components/FirmwareUpgrade";
-import GroupList from "./components/GroupList";
-import { InterfaceConfigPage } from "./components/InterfaceConfig/components/InterfaceConfigPage";
-import { JobListPage } from "./components/JobList";
+import { FirmwareCopy } from "./pages/firmware-copy";
+import { FirmwareUpgrade } from "./pages/firmware-upgrade";
+import { GroupList } from "./pages/groups";
+import { InterfaceConfigPage } from "./pages/interface-config";
+import { JobListPage } from "./pages/jobs";
 import Login from "./components/Login/Login";
-import Settings from "./components/Settings";
+import { Settings } from "./pages/settings";
 
 const router = createBrowserRouter([
   {
