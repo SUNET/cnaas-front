@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { formatISODate } from "../utils/formatters";
-import { useAuthToken } from "../contexts/AuthTokenContext";
+import { useAuthToken } from "../stores/AuthTokenContext";
 import {
   fetchGraphiteImage,
   fetchGraphiteJson,

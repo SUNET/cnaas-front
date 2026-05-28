@@ -5,7 +5,7 @@ import type { InputOnChangeData } from "semantic-ui-react";
 import { getData } from "../../../utils/getData";
 import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRun/DryRunProgressInfo";
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import type { DeviceSyncOptions } from "../api/configChangeApi";
 import type { Job } from "../../../types/job";
 

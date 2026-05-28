@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { flushSync } from "react-dom";
-import AuthContextProvider from "./contexts/AuthContext";
+import AuthContextProvider from "./stores/AuthContext";
 import { Footer } from "./components/Footer";
 import { Panel } from "./components/Panel";
 import { Callback } from "./components/Callback";

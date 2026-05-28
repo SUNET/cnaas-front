@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Icon, Container } from "semantic-ui-react";
 
-import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { usePermissions } from "../../contexts/PermissionsContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
+import { usePermissions } from "../../stores/PermissionsContext";
 import LoginForm from "./LoginForm";
 import LoginOIDC from "./LoginOIDC";
 import { DashboardLinkgrid } from "../DashboardLinkgrid";

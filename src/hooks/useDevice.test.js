@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import { useDevice } from "./useDevice";
 import { fetchDevice } from "../api/deviceApi";
 
-jest.mock("../contexts/AuthTokenContext", () => ({
+jest.mock("../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 

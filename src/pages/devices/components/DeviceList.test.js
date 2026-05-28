@@ -13,10 +13,10 @@ import { deleteData as mockDeleteData } from "../../../utils/sendData";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../utils/sendData");
-jest.mock("../../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
-jest.mock("../../../contexts/PermissionsContext", () => ({
+jest.mock("../../../stores/PermissionsContext", () => ({
   usePermissions: () => ({ permissionsCheck: () => true }),
 }));
 jest.mock("../../../hooks/useFreshRef", () => ({

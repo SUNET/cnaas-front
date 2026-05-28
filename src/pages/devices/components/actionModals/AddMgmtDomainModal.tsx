@@ -15,7 +15,7 @@ import {
   ModalHeader,
 } from "semantic-ui-react";
 import { createMgmtDomain } from "../../api/deviceListApi";
-import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import type { Device } from "../../../../types/device";
 
 type AddMgmtDomainModalProps = {

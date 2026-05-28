@@ -4,7 +4,7 @@ import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { getData } from "../../utils/getData";
 import { FirmwareError } from "./FirmwareError";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
 import PropTypes from "prop-types";
 
 FirmwareStep2.propTypes = {

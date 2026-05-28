@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { getData } from "../../utils/getData";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
 
 FirmwareStep1.propTypes = {
   commitTarget: PropTypes.shape({

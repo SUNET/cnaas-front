@@ -6,11 +6,11 @@ import { ConfigChangeStep1 } from "./ConfigChangeStep1";
 
 import { getData as getDataImport } from "../../../utils/getData";
 import { putData as putDataImport } from "../../../utils/sendData";
-import { usePermissions as usePermissionsImport } from "../../../contexts/PermissionsContext";
+import { usePermissions as usePermissionsImport } from "../../../stores/PermissionsContext";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../utils/sendData");
-jest.mock("../../../contexts/PermissionsContext");
+jest.mock("../../../stores/PermissionsContext");
 
 const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
 const mockPutData = putDataImport as jest.MockedFunction<typeof putDataImport>;

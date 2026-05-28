@@ -7,7 +7,7 @@ import { ImportInterfaceModal } from "./ImportInterfaceModal";
 import { putData } from "../../../utils/sendData";
 
 jest.mock("../../../utils/sendData");
-jest.mock("../../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 

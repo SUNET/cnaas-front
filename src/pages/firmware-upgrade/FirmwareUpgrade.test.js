@@ -9,7 +9,7 @@ import { post as mockPost } from "../../utils/sendData";
 
 jest.mock("../../utils/getData");
 jest.mock("../../utils/sendData");
-jest.mock("../../contexts/AuthTokenContext", () => ({
+jest.mock("../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 jest.mock("../../hooks/useFreshRef.js", () => ({

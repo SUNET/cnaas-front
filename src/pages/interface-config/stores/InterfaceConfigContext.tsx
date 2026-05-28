@@ -10,7 +10,7 @@ import {
   type MutableRefObject,
   type Dispatch,
 } from "react";
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { useFreshRef } from "../../../hooks/useFreshRef";
 import { fetchDevice } from "../../../api/deviceApi";
 import {

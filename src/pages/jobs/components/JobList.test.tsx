@@ -26,7 +26,7 @@ jest.mock("../api/jobListApi", () => ({
 }));
 
 // Mock useAuthToken
-jest.mock("../../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 

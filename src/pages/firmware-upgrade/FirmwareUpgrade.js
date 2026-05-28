@@ -8,7 +8,7 @@ import { FirmwareStep2 } from "./FirmwareStep2";
 import { FirmwareStep3 } from "./FirmwareStep3";
 import { getData } from "../../utils/getData";
 import { useFreshRef } from "../../hooks/useFreshRef.js";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
 import { post, putData } from "../../utils/sendData";
 
 let socket = null;

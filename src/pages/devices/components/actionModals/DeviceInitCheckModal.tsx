@@ -8,7 +8,7 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 
 import { initCheckDevice, type InitCheckResult } from "../../api/deviceListApi";
-import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { extractErrorMessageAsync } from "../../../../utils/extractErrorMessage";
 import type { DeviceType } from "../../../../types/device";
 

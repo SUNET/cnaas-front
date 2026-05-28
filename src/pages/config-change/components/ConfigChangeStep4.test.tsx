@@ -4,12 +4,12 @@ import userEvent from "@testing-library/user-event";
 
 import { ConfigChangeStep4 } from "./ConfigChangeStep4";
 
-import { useAuthToken as useAuthTokenImport } from "../../../contexts/AuthTokenContext";
+import { useAuthToken as useAuthTokenImport } from "../../../stores/AuthTokenContext";
 import { getData as getDataImport } from "../../../utils/getData";
 import { makeJob } from "../../../test-utils/makeJob";
 
 jest.mock("../../../utils/getData");
-jest.mock("../../../contexts/AuthTokenContext");
+jest.mock("../../../stores/AuthTokenContext");
 
 const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
 const mockUseAuthToken = useAuthTokenImport as jest.MockedFunction<

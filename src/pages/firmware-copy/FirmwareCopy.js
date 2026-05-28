@@ -12,7 +12,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "semantic-ui-react";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
 import { getData } from "../../utils/getData";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { FirmwareCopyForm } from "./FirmwareCopyForm";

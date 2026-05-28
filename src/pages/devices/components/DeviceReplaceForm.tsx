@@ -6,7 +6,7 @@ import {
   initDevice,
 } from "../api/deviceListApi";
 import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import type { DeviceType } from "../../../types/device";
 
 type DeviceReplaceFormProps = {

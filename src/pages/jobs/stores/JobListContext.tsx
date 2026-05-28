@@ -9,7 +9,7 @@ import {
   type Dispatch,
   type ReactNode,
 } from "react";
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { useFreshRef } from "../../../hooks/useFreshRef";
 import { fetchJobs } from "../api/jobListApi";
 import {

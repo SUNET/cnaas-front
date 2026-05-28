@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Dropdown, Grid, GridColumn, GridRow } from "semantic-ui-react";
-import { usePermissions } from "../../../contexts/PermissionsContext";
+import { usePermissions } from "../../../stores/PermissionsContext";
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
 import LogViewer from "../../../components/LogViewer";
 import type { Device } from "../../../types/device";

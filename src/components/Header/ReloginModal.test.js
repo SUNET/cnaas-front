@@ -3,10 +3,10 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
 import ReloginModal from "./ReloginModal";
-import { useAuthToken as mockUseAuthToken } from "../../contexts/AuthTokenContext";
+import { useAuthToken as mockUseAuthToken } from "../../stores/AuthTokenContext";
 
-jest.mock("../../contexts/AuthTokenContext", () => {
-  const actual = jest.requireActual("../../contexts/AuthTokenContext");
+jest.mock("../../stores/AuthTokenContext", () => {
+  const actual = jest.requireActual("../../stores/AuthTokenContext");
   return {
     ...actual,
     useAuthToken: jest.fn(),

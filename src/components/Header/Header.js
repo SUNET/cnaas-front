@@ -1,6 +1,6 @@
 import { NavLink } from "react-router";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { usePermissions } from "../../contexts/PermissionsContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
+import { usePermissions } from "../../stores/PermissionsContext";
 import { JwtInfo } from "./JwtInfo";
 import ReloginModal from "./ReloginModal";
 

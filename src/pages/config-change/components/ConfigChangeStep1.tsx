@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon, Popup } from "semantic-ui-react";
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
-import { usePermissions } from "../../../contexts/PermissionsContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { usePermissions } from "../../../stores/PermissionsContext";
 import { getData } from "../../../utils/getData";
 import { putData } from "../../../utils/sendData";
 import LogViewer from "../../../components/LogViewer";
