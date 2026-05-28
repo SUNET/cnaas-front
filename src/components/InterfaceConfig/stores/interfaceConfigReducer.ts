@@ -12,6 +12,7 @@ import type {
   AccessInterfaceItem,
   DistInterfaceItem,
 } from "../api/interfaceConfigApi";
+import type { LldpNeighbor } from "../types/lldp";
 
 export type DropdownOption = {
   text: string;
@@ -54,7 +55,7 @@ export type InterfaceConfigState = {
   settings: Record<string, unknown> | null;
   interfaces: (AccessInterfaceItem | DistInterfaceItem)[];
   interfaceStatus: Record<string, Record<string, unknown>>;
-  lldpNeighbors: Record<string, unknown>;
+  lldpNeighbors: Record<string, LldpNeighbor[]>;
   mlagPeerHostname: string | null;
 
   vlans: DropdownOption[];
@@ -146,7 +147,7 @@ export type Action =
     }
   | {
       type: typeof actions.LLDP_LOADED;
-      lldpNeighbors: Record<string, unknown>;
+      lldpNeighbors: Record<string, LldpNeighbor[]>;
     }
   | {
       type: typeof actions.NETBOX_LOADED;

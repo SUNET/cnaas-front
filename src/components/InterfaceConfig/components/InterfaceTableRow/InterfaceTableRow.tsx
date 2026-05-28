@@ -10,7 +10,6 @@ import {
 import { ConfigColumn } from "./ConfigColumn";
 import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
 import { LldpNeighborPopup } from "./LldpNeighborPopup";
-import type { LldpNeighbor } from "../../types/lldp";
 import { LinknetWarningPopup } from "./LinknetWarningPopup";
 import { LinknetOkButton } from "./LinknetOkButton";
 import { InterfaceStatusUp } from "./InterfaceStatusUp";
@@ -522,10 +521,7 @@ export function InterfaceTableRow({
   if (Object.hasOwn(lldpNeighborData, item.name.toLowerCase())) {
     lldpNeighborPopup = (
       <LldpNeighborPopup
-        // TODO(I4): type lldpNeighborData at reducer level (currently Record<string, unknown>)
-        lldpNeighborData={
-          lldpNeighborData[item.name.toLowerCase()] as LldpNeighbor[]
-        }
+        lldpNeighborData={lldpNeighborData[item.name.toLowerCase()]}
       />
     );
   }

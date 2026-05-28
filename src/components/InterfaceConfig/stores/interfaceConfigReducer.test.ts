@@ -193,7 +193,7 @@ describe("interfaceConfigReducer", () => {
 
   describe("LLDP_LOADED", () => {
     test("sets lldp neighbors", () => {
-      const neighbors = { ethernet1: [{ neighbor: "sw2" }] };
+      const neighbors = { ethernet1: [{ remote_system_name: "sw2" }] };
       const result = reducer(initialState, {
         type: actions.LLDP_LOADED,
         lldpNeighbors: neighbors,
