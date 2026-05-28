@@ -1,5 +1,5 @@
 import { getData } from "../../../utils/getData";
-import type { DropdownOption } from "../stores/interfaceConfigReducer";
+import type { DropdownOption } from "../types/dropdown";
 
 export type DeviceSettingsResult = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

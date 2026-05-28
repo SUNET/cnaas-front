@@ -479,8 +479,8 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
           <span>
             <BgpNeighborModal
               hostname={device.hostname}
-              managementIp={(device.management_ip as string) ?? ""}
-              platform={(device.platform as string) ?? ""}
+              managementIp={device.management_ip ?? ""}
+              platform={device.platform ?? ""}
             />
           </span>
         )}

@@ -38,7 +38,8 @@ import {
   type InterfaceConfigState,
   type Action,
 } from "./interfaceConfigReducer";
-import { computeLinknetMismatches, type Linknet } from "./linknetVerification";
+import { computeLinknetMismatches } from "./linknetVerification";
+import type { Linknet } from "../../../types/linknet";
 
 // --- Context shape ---
 

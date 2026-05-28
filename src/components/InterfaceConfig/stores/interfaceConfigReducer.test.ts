@@ -2,10 +2,10 @@ import {
   interfaceConfigReducer as reducer,
   initialState,
   actions,
-  type Device,
   type InterfaceConfigState,
   type Action,
 } from "./interfaceConfigReducer";
+import type { Device } from "../../../types/device";
 
 describe("interfaceConfigReducer", () => {
   // --- Data loading ---

@@ -7,7 +7,7 @@ import type {
   DistInterfaceItem,
 } from "../types/interfaces";
 import type { LldpNeighbor } from "../types/lldp";
-import type { DropdownOption } from "../stores/interfaceConfigReducer";
+import type { DropdownOption } from "../types/dropdown";
 
 // --- Response helpers ---
 
