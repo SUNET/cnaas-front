@@ -17,28 +17,28 @@ import {
  * This hook manages connect/disconnect and event listeners.
  */
 
-interface UseInterfaceConfigSocketParams {
+type UseInterfaceConfigSocketParams = {
   dispatch: Dispatch<Action>;
   state: InterfaceConfigState;
   awaitingSync: MutableRefObject<boolean>;
   reloadAllData: () => void;
-}
+};
 
-interface DeviceUpdateData {
+type DeviceUpdateData = {
   device_id?: number;
   action?: string;
   object: {
     synchronized: boolean;
     confhash?: string;
   };
-}
+};
 
-interface JobUpdateData {
+type JobUpdateData = {
   job_id: number;
   scheduled_by?: string;
   status: string;
   next_job_id?: number;
-}
+};
 
 type SocketEventData = DeviceUpdateData & JobUpdateData;
 

@@ -8,13 +8,13 @@
 
 // --- Shared types ---
 
-export interface DropdownOption {
+export type DropdownOption = {
   text: string;
   value: string | null;
   description?: number | string;
   vlan_config?: string;
   key?: string;
-}
+};
 
 export interface InterfaceItem {
   name: string;
@@ -34,7 +34,7 @@ export interface DistInterfaceItem extends InterfaceItem {
   tagged_vlan_list?: string[];
 }
 
-export interface Device {
+export type Device = {
   id: number;
   hostname: string;
   device_type: "ACCESS" | "DIST";
@@ -42,26 +42,26 @@ export interface Device {
   confhash?: string;
   model?: string;
   [key: string]: unknown;
-}
+};
 
-export interface LinknetMismatch {
+export type LinknetMismatch = {
   expectedHostname: string;
   expectedPort: string;
   actualHostname: string | null;
   actualPort: string | null;
   linknetId: number;
   ipv4Network: string;
-}
+};
 
-export interface JobEntry {
+export type JobEntry = {
   job_id: number;
   status: string;
   next_job_id?: number;
-}
+};
 
 // --- State ---
 
-export interface InterfaceConfigState {
+export type InterfaceConfigState = {
   device: Device | null;
 
   settings: Record<string, unknown> | null;
@@ -95,7 +95,7 @@ export interface InterfaceConfigState {
   interfaceBounceRunning: Record<string, string>;
   linknetMismatches: Record<string, LinknetMismatch>;
   linknetCheckedPorts: string[];
-}
+};
 
 // --- Action types ---
 

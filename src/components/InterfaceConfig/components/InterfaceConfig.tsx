@@ -58,9 +58,9 @@ const COLUMN_WIDTHS: Record<string, number> = {
 
 // --- Props ---
 
-interface InterfaceConfigProps {
+type InterfaceConfigProps = {
   readonly hostname: string | null;
-}
+};
 
 // --- Component ---
 
