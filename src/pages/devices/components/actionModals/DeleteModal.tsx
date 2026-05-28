@@ -7,7 +7,7 @@ import {
   Loader,
   Modal,
 } from "semantic-ui-react";
-import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { deleteDevice } from "../../api/deviceListApi";
 import type { Device } from "../../../../types/device";
 import { isAccessDevice, isManaged } from "../../../../types/device";

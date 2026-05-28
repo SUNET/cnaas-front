@@ -14,7 +14,7 @@ import {
   ModalHeader,
 } from "semantic-ui-react";
 import { deleteMgmtDomain, updateMgmtDomain } from "../../api/deviceListApi";
-import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../../stores/AuthTokenContext";
 
 type UpdateMgmtDomainModalProps = {
   readonly mgmtId: number | null;

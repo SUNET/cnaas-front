@@ -2,7 +2,7 @@ import { Modal, Button } from "semantic-ui-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { importInterfaces } from "../api/deviceApi";
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 
 type ImportInterfaceModalProps = {
   readonly open: boolean;

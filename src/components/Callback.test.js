@@ -1,13 +1,13 @@
 import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
-import { useAuthToken } from "../contexts/AuthTokenContext";
-import { usePermissions } from "../contexts/PermissionsContext";
+import { useAuthToken } from "../stores/AuthTokenContext";
+import { usePermissions } from "../stores/PermissionsContext";
 import { getData } from "../utils/getData";
 import { Callback } from "./Callback";
 
-jest.mock("../contexts/AuthTokenContext");
-jest.mock("../contexts/PermissionsContext");
+jest.mock("../stores/AuthTokenContext");
+jest.mock("../stores/PermissionsContext");
 jest.mock("../utils/getData");
 
 const { PERMISSIONS_DISABLED } = process.env;

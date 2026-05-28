@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
-import { useAuthToken } from "../contexts/AuthTokenContext";
-import { usePermissions } from "../contexts/PermissionsContext";
+import { useAuthToken } from "../stores/AuthTokenContext";
+import { usePermissions } from "../stores/PermissionsContext";
 import { getData } from "../utils/getData";
 
 export function Callback() {

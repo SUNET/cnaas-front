@@ -1,4 +1,4 @@
-import { findPermission } from "../../contexts/PermissionsContext";
+import { findPermission } from "../../stores/PermissionsContext";
 
 // To be deprecated. This utility is used by class components that dont't have
 // access to PermissionsContext.

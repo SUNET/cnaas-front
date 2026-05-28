@@ -6,13 +6,13 @@ import { ConfigChangePage } from "./ConfigChangePage";
 import { getData as getDataImport } from "../../../utils/getData";
 
 jest.mock("../../../utils/getData");
-jest.mock("../../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 jest.mock("../../../hooks/useFreshRef.js", () => ({
   useFreshRef: <T,>(value: T) => ({ current: value }),
 }));
-jest.mock("../../../contexts/PermissionsContext", () => ({
+jest.mock("../../../stores/PermissionsContext", () => ({
   usePermissions: () => ({ permissionsCheck: () => true }),
 }));
 

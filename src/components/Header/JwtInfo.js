@@ -4,7 +4,7 @@ import { Button, Icon, Popup } from "semantic-ui-react";
 import {
   getSecondsUntilExpiry,
   useAuthToken,
-} from "../../contexts/AuthTokenContext";
+} from "../../stores/AuthTokenContext";
 import { secondsToText } from "../../utils/formatters";
 
 export function JwtInfo() {

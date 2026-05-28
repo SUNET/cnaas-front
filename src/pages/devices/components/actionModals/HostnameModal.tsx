@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
 import { useNavigate } from "react-router";
-import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { updateDevice } from "../../api/deviceListApi";
 import { extractErrorMessage } from "../../../../utils/extractErrorMessage";
 

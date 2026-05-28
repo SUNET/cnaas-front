@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { updateDevice, updateDeviceFacts } from "../api/deviceListApi";
 import { useDeviceList } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";

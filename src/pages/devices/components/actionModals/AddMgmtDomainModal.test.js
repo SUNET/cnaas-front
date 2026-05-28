@@ -7,7 +7,7 @@ import { AddMgmtDomainModal } from "./AddMgmtDomainModal";
 import { createMgmtDomain as mockCreateMgmtDomain } from "../../api/deviceListApi";
 
 jest.mock("../../api/deviceListApi");
-jest.mock("../../../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 

@@ -1,4 +1,4 @@
-import { findPermission } from "../../contexts/PermissionsContext";
+import { findPermission } from "../../stores/PermissionsContext";
 import permissionsCheck from "./permissionsCheck";
 
 const mockPermissions = [

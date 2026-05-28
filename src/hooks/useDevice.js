@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useAuthToken } from "../contexts/AuthTokenContext";
+import { useAuthToken } from "../stores/AuthTokenContext";
 import { useFreshRef } from "./useFreshRef";
 import { fetchDevice } from "../api/deviceApi";
 

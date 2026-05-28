@@ -9,7 +9,7 @@ import {
   Table,
 } from "semantic-ui-react";
 
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import {
   DeviceListPageActionsProvider,
   useDeviceList,

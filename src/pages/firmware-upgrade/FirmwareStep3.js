@@ -15,7 +15,7 @@ import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { FirmwareError } from "./FirmwareError";
 import { postData } from "../../utils/sendData";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
 
 const dateRegEx = new RegExp(
   "^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?$",

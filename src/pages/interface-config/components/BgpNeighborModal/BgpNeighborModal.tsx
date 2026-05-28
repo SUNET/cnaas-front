@@ -9,7 +9,7 @@ import {
   Message,
   Popup,
 } from "semantic-ui-react";
-import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { formatISODate } from "../../../../utils/formatters";
 import { fetchBgpSettings } from "../../api/settingsApi";
 import { fetchBgpNeighbors } from "../../api/gnmiApi";

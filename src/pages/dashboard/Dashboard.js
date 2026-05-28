@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Container, Grid, Popup } from "semantic-ui-react";
 import { getResponse, getData } from "../../utils/getData";
-import { useAuthToken } from "../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
 import { DashboardLinkgrid } from "../../components/DashboardLinkgrid";
 import { DashboardInterfaceStatus } from "./DashboardInterfacestatus";
 import { DashboardNetboxTenant } from "./DashboardNetboxTenant";

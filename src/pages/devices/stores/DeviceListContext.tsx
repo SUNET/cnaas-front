@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import {
   buildInitialState,
   deviceListReducer,

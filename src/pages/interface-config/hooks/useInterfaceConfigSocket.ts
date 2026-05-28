@@ -1,5 +1,5 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject } from "react";
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { socket } from "../stores/socket";
 import {
   actions,

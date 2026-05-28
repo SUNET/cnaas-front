@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useSearchParams } from "react-router";
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { useFreshRef } from "../../../hooks/useFreshRef";
 import { useBeforeUnloadWarning } from "../../../hooks/useBeforeUnloadWarning";
 import {

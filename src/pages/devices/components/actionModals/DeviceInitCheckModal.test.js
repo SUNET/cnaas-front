@@ -6,7 +6,7 @@ import { DeviceInitCheckModal } from "./DeviceInitCheckModal";
 import { initCheckDevice as mockInitCheckDevice } from "../../api/deviceListApi";
 
 jest.mock("../../api/deviceListApi");
-jest.mock("../../../../contexts/AuthTokenContext", () => ({
+jest.mock("../../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 

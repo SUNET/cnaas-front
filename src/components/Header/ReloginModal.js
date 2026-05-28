@@ -11,7 +11,7 @@ import {
 import {
   getSecondsUntilExpiry,
   useAuthToken,
-} from "../../contexts/AuthTokenContext";
+} from "../../stores/AuthTokenContext";
 import { secondsToText } from "../../utils/formatters";
 
 ReloginModal.propTypes = {

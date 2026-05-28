@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useAuthToken } from "../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { fetchDeviceInterfaces } from "../api/deviceListApi";
 import { useDeviceList } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";

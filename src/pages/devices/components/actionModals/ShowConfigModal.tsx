@@ -24,7 +24,7 @@ import {
   fetchPreviousConfig,
   fetchRunningConfig,
 } from "../../api/deviceListApi";
-import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { extractErrorMessageAsync } from "../../../../utils/extractErrorMessage";
 import type { DeviceState } from "../../../../types/device";
 
