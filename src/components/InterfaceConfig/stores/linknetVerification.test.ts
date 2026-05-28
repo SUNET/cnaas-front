@@ -1,4 +1,5 @@
-import { computeLinknetMismatches, type Linknet } from "./linknetVerification";
+import { computeLinknetMismatches } from "./linknetVerification";
+import type { Linknet } from "../../../types/linknet";
 import type { LldpNeighbor } from "../types/lldp";
 import type {
   AccessInterfaceItem,
@@ -12,9 +13,11 @@ function makeLinknet(overrides: Partial<Linknet> = {}): Linknet {
     id: 1,
     ipv4_network: "10.0.0.0/31",
     device_a_id: 100,
+    device_a_hostname: "sw-a",
     device_a_ip: "10.0.0.0",
     device_a_port: "Ethernet49/1",
     device_b_id: 200,
+    device_b_hostname: "sw-b",
     device_b_ip: "10.0.0.1",
     device_b_port: "Ethernet1/1",
     site_id: null,

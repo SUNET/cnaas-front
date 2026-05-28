@@ -1,6 +1,6 @@
 import { type SyntheticEvent } from "react";
 import { Checkbox, Dropdown, Icon, Input, Popup } from "semantic-ui-react";
-import type { DropdownOption } from "../../stores/interfaceConfigReducer";
+import type { DropdownOption } from "../../types/dropdown";
 
 // --- Tags column ---
 

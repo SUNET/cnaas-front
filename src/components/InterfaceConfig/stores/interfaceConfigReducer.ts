@@ -13,33 +13,9 @@ import type {
   DistInterfaceItem,
 } from "../types/interfaces";
 import type { LldpNeighbor } from "../types/lldp";
-
-export type DropdownOption = {
-  text: string;
-  value: string | number | null;
-  description?: number | string;
-  vlan_config?: unknown;
-  key?: string | number;
-};
-
-export type Device = {
-  id: number;
-  hostname: string;
-  device_type: "ACCESS" | "DIST";
-  synchronized: boolean;
-  confhash?: string;
-  model?: string;
-  [key: string]: unknown;
-};
-
-export type LinknetMismatch = {
-  expectedHostname: string;
-  expectedPort: string;
-  actualHostname: string | null;
-  actualPort: string | null;
-  linknetId: number;
-  ipv4Network: string;
-};
+import type { DropdownOption } from "../types/dropdown";
+import type { Device } from "../../../types/device";
+import type { LinknetMismatch } from "../types/linknet";
 
 export type JobEntry = {
   job_id: number;

@@ -23,7 +23,7 @@ import type {
   AccessInterfaceItem,
   DistInterfaceItem,
 } from "../../types/interfaces";
-import type { DropdownOption } from "../../stores/interfaceConfigReducer";
+import type { DropdownOption } from "../../types/dropdown";
 
 const CONFIG_TYPES_ENABLED = new Set([
   "ACCESS_AUTO",

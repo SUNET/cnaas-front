@@ -10,21 +10,9 @@ import type {
   AccessInterfaceItem,
   DistInterfaceItem,
 } from "../types/interfaces";
-import type { LinknetMismatch } from "./interfaceConfigReducer";
 import type { LldpNeighbor } from "../types/lldp";
-
-export type Linknet = {
-  id: number;
-  ipv4_network: string;
-  device_a_id: number;
-  device_a_ip: string;
-  device_a_port: string;
-  device_b_id: number;
-  device_b_ip: string;
-  device_b_port: string;
-  site_id: number | null;
-  description: string | null;
-};
+import type { Linknet } from "../../../types/linknet";
+import type { LinknetMismatch } from "../types/linknet";
 
 /**
  * Compute linknet and neighbor mismatches for a device.
@@ -105,7 +93,7 @@ export function computeLinknetMismatches(
         actualHostname,
         actualPort,
         linknetId: ln.id,
-        ipv4Network: ln.ipv4_network,
+        ipv4Network: ln.ipv4_network ?? "",
       };
     }
   }
