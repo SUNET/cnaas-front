@@ -124,7 +124,7 @@ export function InterfaceConfigProvider({
     dispatch({
       type: actions.SETTINGS_LOADED,
       ...result,
-    } as Action);
+    });
   }, [hostname, tokenRef]);
 
   const loadInterfaceStatus = useCallback(async () => {

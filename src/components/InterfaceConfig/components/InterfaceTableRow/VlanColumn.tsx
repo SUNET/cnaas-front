@@ -1,5 +1,11 @@
 import _ from "lodash";
-import { type SyntheticEvent, useCallback, useRef, useState } from "react";
+import {
+  type SyntheticEvent,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Button,
   ButtonGroup,
@@ -10,14 +16,20 @@ import {
 } from "semantic-ui-react";
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import { actions } from "../../stores/interfaceConfigReducer";
+import type { Vlan } from "../../types/vlan";
 
 const VLAN_RANGE_RE = /^\d+-\d+$/;
 
 type VlanDropdownOption = {
+  key?: string | number;
   text: string;
-  value: string;
-  description: string;
+  value: string | null;
+  description?: string | number;
 };
+
+function vlanToOption(v: Vlan): VlanDropdownOption {
+  return { key: v.vni, text: v.name, value: v.name, description: v.id };
+}
 
 function rangeToOption(range: string): VlanDropdownOption {
   return { text: `R:${range}`, value: range, description: range };
@@ -64,16 +76,21 @@ export function VlanColumn({
   untaggedClick,
 }: VlanColumnProps) {
   const { state, dispatch } = useInterfaceConfig();
-  const {
-    settings,
-    device,
-    vlans,
-    vlanRanges,
-    untaggedVlans: untaggedVlanOptions,
-    interfaceToggleUntagged,
-  } = state;
+  const { settings, device, vlans, vlanRanges, interfaceToggleUntagged } =
+    state;
 
-  const vlanOptions = [...vlans, ...Array.from(vlanRanges, rangeToOption)];
+  const vlanOptions = useMemo<VlanDropdownOption[]>(
+    () => [
+      ...vlans.map(vlanToOption),
+      ...Array.from(vlanRanges, rangeToOption),
+    ],
+    [vlans, vlanRanges],
+  );
+
+  const untaggedVlanOptions = useMemo<VlanDropdownOption[]>(
+    () => [{ value: null, text: "None" }, ...vlans.map(vlanToOption)],
+    [vlans],
+  );
 
   const [rangeError, setRangeError] = useState<string | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

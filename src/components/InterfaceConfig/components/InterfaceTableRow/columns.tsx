@@ -1,6 +1,5 @@
 import { type SyntheticEvent } from "react";
 import { Checkbox, Dropdown, Icon, Input, Popup } from "semantic-ui-react";
-import type { DropdownOption } from "../../types/dropdown";
 
 // --- Tags column ---
 
@@ -8,7 +7,7 @@ type TagsColumnProps = {
   readonly interfaceName: string;
   readonly tags: string[];
   readonly editDisabled: boolean;
-  readonly tagOptions: DropdownOption[];
+  readonly tagOptions: string[];
   readonly updateFieldData: (
     e: SyntheticEvent,
     data: Record<string, unknown>,
@@ -27,6 +26,7 @@ export function TagsColumn({
   updateFieldData,
   addTagOption,
 }: TagsColumnProps) {
+  const options = tagOptions.map((tag) => ({ text: tag, value: tag }));
   return (
     <Dropdown
       name={`tags|${interfaceName}`}
@@ -35,7 +35,7 @@ export function TagsColumn({
       selection
       search
       allowAdditions
-      options={tagOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+      options={options}
       defaultValue={tags}
       onAddItem={addTagOption}
       onChange={updateFieldData}

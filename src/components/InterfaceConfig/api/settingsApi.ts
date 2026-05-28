@@ -1,17 +1,16 @@
 import { getData } from "../../../utils/getData";
-import type { DropdownOption } from "../types/dropdown";
+import type { Vlan } from "../types/vlan";
 
 export type DeviceSettingsResult = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings: any;
-  vlans: DropdownOption[];
-  untaggedVlans: DropdownOption[];
-  tags: { text: string; value: string }[];
+  vlans: Vlan[];
+  tags: string[];
 };
 
 /**
- * Fetch device settings and derive field options (vlans, tags).
- * Returns { settings, vlans, untaggedVlans, tags }, or null on failure.
+ * Fetch device settings and derive VLAN/tag domain entities.
+ * Returns { settings, vlans, tags }, or null on failure.
  */
 export async function fetchDeviceSettings(
   hostname: string,
@@ -32,30 +31,20 @@ export async function fetchDeviceSettings(
     };
     const dataSettings = resp.data.settings;
 
-    const vlans: DropdownOption[] = Object.entries(dataSettings.vxlans).map(
+    const vlans: Vlan[] = Object.entries(dataSettings.vxlans).map(
       ([, vxlanData]) => ({
-        key: vxlanData.vni,
-        value: vxlanData.vlan_name,
-        text: vxlanData.vlan_name,
-        description: vxlanData.vlan_id,
+        vni: vxlanData.vni,
+        name: vxlanData.vlan_name,
+        id: vxlanData.vlan_id,
       }),
     );
 
-    const untaggedVlans: DropdownOption[] = [
-      ...vlans,
-      { value: null, text: "None", description: "NA" },
-    ];
-
     const interfaceTagOptions = dataSettings.interface_tag_options;
-    let tags: { text: string; value: string }[] = [];
-    if (interfaceTagOptions) {
-      tags = Object.entries(interfaceTagOptions).map(([tagName]) => ({
-        text: tagName,
-        value: tagName,
-      }));
-    }
+    const tags: string[] = interfaceTagOptions
+      ? Object.keys(interfaceTagOptions)
+      : [];
 
-    return { settings: dataSettings, vlans, untaggedVlans, tags };
+    return { settings: dataSettings, vlans, tags };
   } catch (error) {
     console.log(error);
     return null;

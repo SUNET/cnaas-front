@@ -7,7 +7,7 @@ import type {
   DistInterfaceItem,
 } from "../types/interfaces";
 import type { LldpNeighbor } from "../types/lldp";
-import type { DropdownOption } from "../types/dropdown";
+import type { PortTemplate } from "../types/portTemplate";
 
 // --- Response helpers ---
 
@@ -35,14 +35,14 @@ export type BounceInterfaceResult =
 
 export type AccessInterfacesResult = {
   interfaces: AccessInterfaceItem[];
-  tags: { text: string; value: string }[];
+  tags: string[];
   mlagPeerHostname: string | null;
 };
 
 export type DistInterfacesResult = {
   interfaces: DistInterfaceItem[];
-  tags: { text: string; value: string }[];
-  portTemplates: DropdownOption[];
+  tags: string[];
+  portTemplates: PortTemplate[];
 };
 
 // --- Device lookups ---
@@ -116,14 +116,12 @@ export async function fetchAccessInterfaces(
     };
     const interfaces = resp.data.interfaces ?? [];
 
-    const tags: { text: string; value: string }[] = [];
+    const tags: string[] = [];
     interfaces.forEach((item) => {
       const ifData = item.data;
       if (ifData !== null && "tags" in ifData && ifData.tags) {
         ifData.tags.forEach((tag) => {
-          if (!tags.some((e) => e.text === tag)) {
-            tags.push({ text: tag, value: tag });
-          }
+          if (!tags.includes(tag)) tags.push(tag);
         });
       }
     });
@@ -180,34 +178,31 @@ export async function fetchDistInterfaces(
 
     const availablePortTemplateOptions =
       fetchedAvailableVariables.port_template_options;
-    const usedPortTemplates: DropdownOption[] = Object.entries(
+    const usedPortTemplates: PortTemplate[] = Object.entries(
       availablePortTemplateOptions ?? {},
     ).map(([templateName, templateData]) => ({
-      text: templateName,
-      value: templateName,
+      name: templateName,
       description: templateData.description,
-      vlan_config: templateData.vlan_config,
+      vlanConfig: templateData.vlan_config,
     }));
 
     const interfaces = fetchedAvailableVariables.interfaces;
 
-    const allPortTemplates: DropdownOption[] = [...usedPortTemplates];
+    const allPortTemplates: PortTemplate[] = [...usedPortTemplates];
     interfaces.forEach((item) => {
       if (item.ifclass.startsWith("port_template")) {
         const templateName = item.ifclass.substring("port_template_".length);
-        if (!allPortTemplates.some((e) => e.text === templateName)) {
-          allPortTemplates.push({ text: templateName, value: templateName });
+        if (!allPortTemplates.some((e) => e.name === templateName)) {
+          allPortTemplates.push({ name: templateName });
         }
       }
     });
 
-    const tags: { text: string; value: string }[] = [];
+    const tags: string[] = [];
     interfaces.forEach((item) => {
       if (tags.length === 0 && item.tags) {
         item.tags.forEach((tag) => {
-          if (!tags.some((e) => e.text === tag)) {
-            tags.push({ text: tag, value: tag });
-          }
+          if (!tags.includes(tag)) tags.push(tag);
         });
       }
     });
