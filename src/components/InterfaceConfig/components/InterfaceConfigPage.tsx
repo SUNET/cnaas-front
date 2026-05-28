@@ -10,7 +10,18 @@ import { InterfaceConfig } from "./InterfaceConfig";
  */
 export function InterfaceConfigPage() {
   const [searchParams] = useSearchParams();
-  const hostname = searchParams.get("hostname") ?? null;
+  const hostname = searchParams.get("hostname");
+
+  if (!hostname) {
+    return (
+      <section>
+        <h2>Interface configuration</h2>
+        <p>
+          Missing hostname in URL. Append <code>?hostname=&lt;device&gt;</code>.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <InterfaceConfigProvider hostname={hostname}>

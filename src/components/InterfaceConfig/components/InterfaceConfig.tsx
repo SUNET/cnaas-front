@@ -59,7 +59,7 @@ const COLUMN_WIDTHS: Record<string, number> = {
 // --- Props ---
 
 type InterfaceConfigProps = {
-  readonly hostname: string | null;
+  readonly hostname: string;
 };
 
 // --- Component ---
@@ -520,7 +520,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                     basic
                     size="small"
                     title="Export interface configuration"
-                    onClick={() => exportInterfaces(hostname!)}
+                    onClick={() => exportInterfaces(hostname)}
                   >
                     <Icon name="share square" />
                   </Button>
@@ -664,7 +664,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
           <ImportInterfaceModal
             open={importModalOpen}
             onClose={() => setImportModalOpen(false)}
-            hostname={hostname!}
+            hostname={hostname}
             getInterfaceData={loadInterfaces}
           />
         </div>

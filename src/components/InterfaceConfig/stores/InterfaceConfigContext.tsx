@@ -92,7 +92,7 @@ export function useInterfaceConfig(): InterfaceConfigContextValue {
 // --- Provider ---
 
 type InterfaceConfigProviderProps = {
-  readonly hostname: string | null;
+  readonly hostname: string;
   readonly children: ReactNode;
 };
 
