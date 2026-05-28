@@ -11,6 +11,7 @@ import type {
   DistInterfaceItem,
 } from "../api/interfaceConfigApi";
 import type { LinknetMismatch } from "./interfaceConfigReducer";
+import type { LldpNeighbor } from "../types/lldp";
 
 export type Linknet = {
   id: number;
@@ -23,15 +24,6 @@ export type Linknet = {
   device_b_port: string;
   site_id: number | null;
   description: string | null;
-};
-
-export type LldpNeighbor = {
-  remote_system_name?: string;
-  remote_chassis_id?: string;
-  remote_port?: string;
-  remote_port_description?: string;
-  remote_system_description?: string;
-  remote_system_capab?: string[];
 };
 
 /**

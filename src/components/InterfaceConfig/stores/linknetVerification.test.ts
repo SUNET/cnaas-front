@@ -1,8 +1,5 @@
-import {
-  computeLinknetMismatches,
-  type Linknet,
-  type LldpNeighbor,
-} from "./linknetVerification";
+import { computeLinknetMismatches, type Linknet } from "./linknetVerification";
+import type { LldpNeighbor } from "../types/lldp";
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,

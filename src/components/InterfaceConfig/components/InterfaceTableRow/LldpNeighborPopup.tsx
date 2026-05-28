@@ -1,14 +1,6 @@
 import { useMemo } from "react";
 import { Popup, Button } from "semantic-ui-react";
-
-export type LldpNeighbor = {
-  readonly remote_system_name?: string;
-  readonly remote_chassis_id?: string;
-  readonly remote_port?: string;
-  readonly remote_port_description?: string;
-  readonly remote_system_description?: string;
-  readonly remote_system_capab?: string[];
-};
+import type { LldpNeighbor } from "../../types/lldp";
 
 function NeighborInfo({ neighbor }: { readonly neighbor: LldpNeighbor }) {
   return (

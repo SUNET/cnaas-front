@@ -9,7 +9,8 @@ import {
 } from "./columns";
 import { ConfigColumn } from "./ConfigColumn";
 import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
-import { LldpNeighborPopup, type LldpNeighbor } from "./LldpNeighborPopup";
+import { LldpNeighborPopup } from "./LldpNeighborPopup";
+import type { LldpNeighbor } from "../../types/lldp";
 import { LinknetWarningPopup } from "./LinknetWarningPopup";
 import { LinknetOkButton } from "./LinknetOkButton";
 import { InterfaceStatusUp } from "./InterfaceStatusUp";
