@@ -32,7 +32,7 @@ jest.mock("../stores/socket", () => ({
     disconnect: jest.fn(),
   },
 }));
-jest.mock("../../../services/netbox", () => ({
+jest.mock("../../../api/netboxApi", () => ({
   fetchNetboxDevice: jest.fn().mockResolvedValue(null),
   fetchNetboxModel: jest.fn().mockResolvedValue(null),
 }));

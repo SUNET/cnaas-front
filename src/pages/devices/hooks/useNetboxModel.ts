@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
-import { fetchNetboxModel } from "../../../services/netbox";
+import { fetchNetboxModel } from "../../../api/netboxApi";
 import { useDeviceList } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";
 

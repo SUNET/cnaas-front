@@ -4,7 +4,7 @@ import { useAuthToken } from "../../contexts/AuthTokenContext";
 import {
   fetchNetboxTenant,
   fetchNetboxTenantContacts,
-} from "../../services/netbox";
+} from "../../api/netboxApi";
 
 export function DashboardNetboxTenant() {
   const { token } = useAuthToken();

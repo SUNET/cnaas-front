@@ -1,13 +1,13 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { useDevice } from "./useDevice";
-import { fetchDevice } from "../services/deviceApi";
+import { fetchDevice } from "../api/deviceApi";
 
 jest.mock("../contexts/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 
-jest.mock("../services/deviceApi");
+jest.mock("../api/deviceApi");
 
 const mockDevice = {
   id: 42,

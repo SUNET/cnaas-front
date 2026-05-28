@@ -3,7 +3,7 @@ import { getData } from "../../utils/getData";
 import { useEffect, useState } from "react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { GraphiteInterface } from "../../components/GraphiteInterface";
-import { fetchNetboxDashboardInterfaces } from "../../services/netbox";
+import { fetchNetboxDashboardInterfaces } from "../../api/netboxApi";
 
 export function DashboardInterfaceStatus() {
   const { token } = useAuthToken();
