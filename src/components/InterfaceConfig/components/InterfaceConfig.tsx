@@ -22,7 +22,7 @@ import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { NewInterface } from "./NewInterface";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
-import { BgpNeighborModal } from "../../BgpNeighborModal/BgpNeighborModal";
+import { BgpNeighborModal } from "./BgpNeighborModal/BgpNeighborModal";
 import { useInterfaceConfig } from "../stores/InterfaceConfigContext";
 import { useInterfaceConfigSocket } from "../hooks/useInterfaceConfigSocket";
 

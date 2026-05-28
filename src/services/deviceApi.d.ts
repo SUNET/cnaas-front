@@ -1,74 +1,9 @@
+/**
+ * Cross-page shared device helpers. Page-specific device fetchers live
+ * under src/components/<Page>/api/.
+ */
 export function fetchDevice(
   hostname: string,
-  token: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any>;
-
-export function fetchDeviceSettings(
-  hostname: string,
-  token: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any>;
-
-export function fetchInterfaceStatus(
-  hostname: string,
-  token: string | null,
-): Promise<Record<string, Record<string, unknown>>>;
-
-export function fetchLldpNeighbors(
-  hostname: string,
-  token: string | null,
-): Promise<Record<string, LldpNeighbor[]>>;
-
-import type {
-  AccessInterfaceItem,
-  DistInterfaceItem,
-} from "../components/InterfaceConfig/api/interfaceConfigApi";
-import type { DropdownOption } from "../components/InterfaceConfig/stores/interfaceConfigReducer";
-import type { LldpNeighbor } from "../components/InterfaceConfig/types/lldp";
-
-export interface AccessInterfacesResult {
-  interfaces: AccessInterfaceItem[];
-  tags: { text: string; value: string }[];
-  mlagPeerHostname: string | null;
-}
-
-export function fetchAccessInterfaces(
-  hostname: string,
-  token: string | null,
-): Promise<AccessInterfacesResult | null>;
-
-export interface DistInterfacesResult {
-  interfaces: DistInterfaceItem[];
-  tags: { text: string; value: string }[];
-  portTemplates: DropdownOption[];
-}
-
-export function fetchDistInterfaces(
-  hostname: string,
-  token: string | null,
-): Promise<DistInterfacesResult | null>;
-
-export function fetchDeviceById(
-  deviceId: number,
-  token: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any>;
-
-export function fetchLinknets(
-  token: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any[]>;
-
-export function fetchBgpSettings(
-  hostname: string,
-  token: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any[]>;
-
-export function fetchBgpNeighbors(
-  managementIp: string,
-  vrfName: string,
   token: string | null,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any>;
