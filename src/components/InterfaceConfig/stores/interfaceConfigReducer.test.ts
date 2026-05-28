@@ -100,12 +100,24 @@ describe("interfaceConfigReducer", () => {
       const state = { ...initialState, tags: [{ text: "old", value: "old" }] };
       const result = reducer(state, {
         type: actions.INTERFACES_LOADED,
-        interfaces: [{ name: "Ethernet1", configtype: "ACCESS_AUTO" }],
+        interfaces: [
+          {
+            name: "Ethernet1",
+            indexnum: 1,
+            configtype: "ACCESS_AUTO",
+            data: null,
+          },
+        ],
         tags: [{ text: "new", value: "new" }],
       });
 
       expect(result.interfaces).toEqual([
-        { name: "Ethernet1", configtype: "ACCESS_AUTO" },
+        {
+          name: "Ethernet1",
+          indexnum: 1,
+          configtype: "ACCESS_AUTO",
+          data: null,
+        },
       ]);
       expect(result.tags).toHaveLength(2);
     });
@@ -389,7 +401,7 @@ describe("interfaceConfigReducer", () => {
     test("appends a stub custom interface", () => {
       const state = {
         ...initialState,
-        interfaces: [{ name: "Ethernet1", ifclass: "downlink" }],
+        interfaces: [{ name: "Ethernet1", indexnum: 1, ifclass: "downlink" }],
       };
       const result = reducer(state, {
         type: actions.ADD_NEW_INTERFACE,
@@ -399,6 +411,7 @@ describe("interfaceConfigReducer", () => {
       expect(result.interfaces).toHaveLength(2);
       expect(result.interfaces[1]).toEqual({
         name: "Ethernet99",
+        indexnum: 0,
         ifclass: "custom",
         tags: null,
       });

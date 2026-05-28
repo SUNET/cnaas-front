@@ -8,6 +8,11 @@
 
 // --- Shared types ---
 
+import type {
+  AccessInterfaceItem,
+  DistInterfaceItem,
+} from "../api/interfaceConfigApi";
+
 export type DropdownOption = {
   text: string;
   value: string | null;
@@ -15,24 +20,6 @@ export type DropdownOption = {
   vlan_config?: string;
   key?: string;
 };
-
-export interface InterfaceItem {
-  name: string;
-  data?: Record<string, unknown>;
-  config?: string;
-  model?: string;
-  tags?: string[] | null;
-}
-
-export interface AccessInterfaceItem extends InterfaceItem {
-  configtype: string;
-  peer_hostname?: string;
-}
-
-export interface DistInterfaceItem extends InterfaceItem {
-  ifclass: string;
-  tagged_vlan_list?: string[];
-}
 
 export type Device = {
   id: number;
@@ -376,7 +363,12 @@ export function interfaceConfigReducer(
         ...state,
         interfaces: [
           ...state.interfaces,
-          { name: action.interfaceName, ifclass: "custom", tags: null },
+          {
+            name: action.interfaceName,
+            indexnum: 0,
+            ifclass: "custom",
+            tags: null,
+          },
         ],
       };
 
