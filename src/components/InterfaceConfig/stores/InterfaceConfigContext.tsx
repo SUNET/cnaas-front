@@ -12,27 +12,25 @@ import {
 } from "react";
 import { useAuthToken } from "../../../contexts/AuthTokenContext";
 import { useFreshRef } from "../../../hooks/useFreshRef";
-import {
-  fetchDevice,
-  fetchDeviceById,
-  fetchDeviceSettings,
-  fetchInterfaceStatus,
-  fetchLldpNeighbors,
-  fetchAccessInterfaces,
-  fetchDistInterfaces,
-  fetchLinknets,
-} from "../../../services/deviceApi";
+import { fetchDevice } from "../../../services/deviceApi";
 import {
   fetchNetboxDevice,
   fetchNetboxInterfaces,
   fetchNetboxModel,
 } from "../../../services/netbox";
 import {
+  fetchDeviceById,
+  fetchInterfaceStatus,
+  fetchLldpNeighbors,
+  fetchAccessInterfaces,
+  fetchDistInterfaces,
   saveInterfaces as apiSaveInterfaces,
   startAutoPush as apiStartAutoPush,
   bounceInterface as apiBounceInterface,
   exportInterfaces as apiExportInterfaces,
-} from "../api/interfaceConfigApi";
+} from "../api/deviceApi";
+import { fetchDeviceSettings } from "../api/settingsApi";
+import { fetchLinknets } from "../api/linknetsApi";
 import {
   interfaceConfigReducer,
   initialState,

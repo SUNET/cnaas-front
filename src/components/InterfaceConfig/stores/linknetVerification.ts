@@ -9,7 +9,7 @@
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
-} from "../api/interfaceConfigApi";
+} from "../types/interfaces";
 import type { LinknetMismatch } from "./interfaceConfigReducer";
 import type { LldpNeighbor } from "../types/lldp";
 

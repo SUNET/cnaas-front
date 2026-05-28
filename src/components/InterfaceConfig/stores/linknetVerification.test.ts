@@ -3,7 +3,7 @@ import type { LldpNeighbor } from "../types/lldp";
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
-} from "../api/interfaceConfigApi";
+} from "../types/interfaces";
 
 // --- Helpers ---
 

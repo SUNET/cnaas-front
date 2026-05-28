@@ -11,15 +11,15 @@
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
-} from "../api/interfaceConfigApi";
+} from "../types/interfaces";
 import type { LldpNeighbor } from "../types/lldp";
 
 export type DropdownOption = {
   text: string;
-  value: string | null;
+  value: string | number | null;
   description?: number | string;
-  vlan_config?: string;
-  key?: string;
+  vlan_config?: unknown;
+  key?: string | number;
 };
 
 export type Device = {

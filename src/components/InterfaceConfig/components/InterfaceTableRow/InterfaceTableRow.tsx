@@ -22,7 +22,7 @@ import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
-} from "../../api/interfaceConfigApi";
+} from "../../types/interfaces";
 import type { DropdownOption } from "../../stores/interfaceConfigReducer";
 
 const CONFIG_TYPES_ENABLED = new Set([

@@ -1,6 +1,6 @@
 import { Icon } from "semantic-ui-react";
 import { useEffect, useState } from "react";
-import { fetchRunningConfig } from "../../api/interfaceConfigApi";
+import { fetchRunningConfig } from "../../api/deviceApi";
 import { useAuthToken } from "../../../../contexts/AuthTokenContext";
 
 export function InterfaceCurrentConfig({

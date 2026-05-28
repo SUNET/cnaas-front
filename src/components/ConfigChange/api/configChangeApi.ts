@@ -74,7 +74,7 @@ export async function startDeviceSync(
   target: CommitTarget,
   options: DeviceSyncOptions = {},
 ): Promise<DeviceSyncResult> {
-  // TODO: device_syncto is also called from InterfaceConfig/api/interfaceConfigApi.ts; consider promoting to src/api/ if a third caller appears.
+  // TODO: device_syncto is also called from InterfaceConfig/api/deviceApi.ts; consider promoting to src/api/ if a third caller appears.
   const url = `${process.env.API_URL}/api/v1.0/device_syncto`;
   const dataToSend: Record<string, unknown> = {
     ...target,
