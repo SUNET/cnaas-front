@@ -5,7 +5,9 @@ import { useAuthToken } from "../../contexts/AuthTokenContext";
 import { usePermissions } from "../../contexts/PermissionsContext";
 import LoginForm from "./LoginForm";
 import LoginOIDC from "./LoginOIDC";
-import DashboardLinkgrid from "../DashboardLinkgrid";
+// TODO: cross-tier debt — Login (shared) imports a page-level widget.
+// Promote DashboardLinkgrid to src/components/ during Dashboard bulletproof migration.
+import { DashboardLinkgrid } from "../../pages/dashboard/DashboardLinkgrid";
 
 function Login() {
   const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuthToken();
