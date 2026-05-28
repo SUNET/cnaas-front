@@ -9,6 +9,45 @@ import tseslint from "typescript-eslint";
 import globals from "globals";
 import { defineConfig, globalIgnores } from "eslint/config";
 
+// Bulletproof React boundaries — pattern from
+// https://github.com/alan2207/bulletproof-react/blob/master/docs/project-structure.md
+// 1. No cross-page imports: src/pages/foo can't import from src/pages/bar.
+// 2. Unidirectional: shared layers (components/hooks/utils/types/contexts/
+//    api/stores) can't import from src/pages.
+const PAGES = [
+  "config-change",
+  "dashboard",
+  "devices",
+  "firmware-copy",
+  "firmware-upgrade",
+  "groups",
+  "interface-config",
+  "jobs",
+  "settings",
+];
+
+const SHARED_LAYERS = [
+  "./src/components",
+  "./src/hooks",
+  "./src/utils",
+  "./src/types",
+  "./src/contexts",
+  "./src/api",
+  "./src/stores",
+];
+
+const importBoundaryZones = [
+  ...PAGES.map((page) => ({
+    target: `./src/pages/${page}`,
+    from: "./src/pages",
+    except: [`./${page}`],
+  })),
+  {
+    target: SHARED_LAYERS,
+    from: "./src/pages",
+  },
+];
+
 const commonRules = {
   camelcase: ["error", { properties: "never" }],
   eqeqeq: ["error", "smart"],
@@ -34,6 +73,7 @@ const commonRules = {
   "react/prop-types": "error",
   "react/sort-comp": "error",
   "react-hooks/set-state-in-effect": "warn",
+  "import/no-restricted-paths": ["error", { zones: importBoundaryZones }],
 };
 
 export default defineConfig([

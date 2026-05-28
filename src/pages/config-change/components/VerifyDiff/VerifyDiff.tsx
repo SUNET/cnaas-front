@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { Popup, Icon } from "semantic-ui-react";
 import { VerifyDiffInfo } from "./VerifyDiffInfo";
-import { VerifyDiffResult, type DeviceJobTaskDiff } from "./VerifyDiffResult";
+import {
+  VerifyDiffResult,
+  type DeviceJobTaskDiff,
+} from "../../../../components/VerifyDiffResult";
 import type { DevicesJobResult } from "../../../../types/job";
 
 type VerifyDiffProps = {

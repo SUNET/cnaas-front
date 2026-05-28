@@ -2,7 +2,7 @@ import { Grid, Popup, Divider } from "semantic-ui-react";
 import { getData } from "../../utils/getData";
 import { useEffect, useState } from "react";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
-import { GraphiteInterface } from "../interface-config/components/InterfaceTableRow/GraphiteInterface";
+import { GraphiteInterface } from "../../components/GraphiteInterface";
 import { fetchNetboxDashboardInterfaces } from "../../services/netbox";
 
 export function DashboardInterfaceStatus() {

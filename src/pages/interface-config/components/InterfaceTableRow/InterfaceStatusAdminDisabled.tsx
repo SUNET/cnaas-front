@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { Icon, Popup } from "semantic-ui-react";
-import { GraphiteInterface } from "./GraphiteInterface";
+import { GraphiteInterface } from "../../../../components/GraphiteInterface";
 
 export function InterfaceStatusAdminDisabled({
   hostname,

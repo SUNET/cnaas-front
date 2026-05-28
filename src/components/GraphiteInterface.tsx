@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { formatISODate } from "../../../../utils/formatters";
-import { useAuthToken } from "../../../../contexts/AuthTokenContext";
+import { formatISODate } from "../utils/formatters";
+import { useAuthToken } from "../contexts/AuthTokenContext";
 import {
   fetchGraphiteImage,
   fetchGraphiteJson,
   type GraphiteJsonResult,
-} from "../../api/graphiteApi";
+} from "../api/graphiteApi";
 
 export function GraphiteInterface({
   hostname,
