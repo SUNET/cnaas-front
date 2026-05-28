@@ -22,8 +22,8 @@ import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
-  DropdownOption,
-} from "../../stores/interfaceConfigReducer";
+} from "../../api/interfaceConfigApi";
+import type { DropdownOption } from "../../stores/interfaceConfigReducer";
 
 const CONFIG_TYPES_ENABLED = new Set([
   "ACCESS_AUTO",
@@ -264,13 +264,14 @@ export function InterfaceTableRow({
   // Populate ifData
   let ifData = item.data;
   if (deviceType === "DIST") {
-    ifData = {};
+    const dist: Record<string, unknown> = {};
     Object.entries(fields).forEach(([key, value]) => {
-      ifData![key] = (item as unknown as Record<string, unknown>)[key] ?? value;
+      dist[key] = (item as unknown as Record<string, unknown>)[key] ?? value;
     });
-    if (accessItem?.peer_hostname) {
-      ifData.description = accessItem.peer_hostname;
+    if (distItem?.peer_hostname) {
+      dist.description = distItem.peer_hostname;
     }
+    ifData = dist;
   }
 
   // Populate fields from ifData
@@ -283,15 +284,18 @@ export function InterfaceTableRow({
       fields.description = "MLAG peer link";
     }
 
-    [
-      "aggregate_id",
-      "bpdu_filter",
-      "enabled",
-      "redundant_link",
-      "tags",
-    ].forEach((fieldName) => {
-      if (fieldName in ifData) {
-        fields[fieldName] = ifData[fieldName];
+    (
+      [
+        "aggregate_id",
+        "bpdu_filter",
+        "enabled",
+        "redundant_link",
+        "tags",
+      ] as const
+    ).forEach((fieldName) => {
+      const ifDataRecord = ifData as Record<string, unknown>;
+      if (fieldName in ifDataRecord) {
+        fields[fieldName] = ifDataRecord[fieldName];
       }
     });
 
@@ -410,8 +414,8 @@ export function InterfaceTableRow({
         displayVlanTagged={displayVlanTagged}
         displayTaggedToggle={displayTaggedToggle}
         hostname={hostname}
-        config={item.config}
-        data={item.data}
+        config={item.config ?? undefined}
+        data={item.data ?? undefined}
         currentIfClass={currentIfClass}
         updateFieldData={updateFieldData}
         addTagOption={addTagOption}

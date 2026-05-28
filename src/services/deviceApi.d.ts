@@ -23,8 +23,8 @@ export function fetchLldpNeighbors(
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
-  DropdownOption,
-} from "../components/InterfaceConfig/stores/interfaceConfigReducer";
+} from "../components/InterfaceConfig/api/interfaceConfigApi";
+import type { DropdownOption } from "../components/InterfaceConfig/stores/interfaceConfigReducer";
 
 export interface AccessInterfacesResult {
   interfaces: AccessInterfaceItem[];

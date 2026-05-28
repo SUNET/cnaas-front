@@ -6,7 +6,7 @@ import {
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
-} from "./interfaceConfigReducer";
+} from "../api/interfaceConfigApi";
 
 // --- Helpers ---
 
@@ -231,6 +231,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet50/1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor_id: 300 },
         },
@@ -258,6 +259,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet50/1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor_id: 300 },
         },
@@ -294,6 +296,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet50/1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor_id: 300 },
         },
@@ -316,6 +319,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet50/1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor_id: 999 },
         },
@@ -340,6 +344,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet50/1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor_id: 300 },
         },
@@ -372,6 +377,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor: "upstream-sw" },
         },
@@ -394,6 +400,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor: "upstream-sw" },
         },
@@ -421,6 +428,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor: "upstream-sw" },
         },
@@ -442,6 +450,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor_id: 300, neighbor: "upstream-sw" },
         },
@@ -469,6 +478,7 @@ describe("computeLinknetMismatches", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
         {
           name: "Ethernet1",
+          indexnum: 0,
           ifclass: "downlink",
           data: { neighbor: "upstream-sw" },
         },
@@ -494,7 +504,7 @@ describe("computeLinknetMismatches", () => {
     test("returns empty when no linknets and no neighbor data", () => {
       const result = computeLinknetMismatches(
         DEVICE_ID,
-        [{ name: "Ethernet1", ifclass: "downlink" }],
+        [{ name: "Ethernet1", indexnum: 0, ifclass: "downlink" }],
         {},
         [],
         new Map(),
@@ -506,8 +516,13 @@ describe("computeLinknetMismatches", () => {
 
     test("skips interfaces without data", () => {
       const interfaces: (AccessInterfaceItem | DistInterfaceItem)[] = [
-        { name: "Ethernet1", ifclass: "downlink" },
-        { name: "Ethernet2", ifclass: "downlink", data: undefined },
+        { name: "Ethernet1", indexnum: 0, ifclass: "downlink" },
+        {
+          name: "Ethernet2",
+          indexnum: 0,
+          ifclass: "downlink",
+          data: undefined,
+        },
       ];
 
       const result = computeLinknetMismatches(

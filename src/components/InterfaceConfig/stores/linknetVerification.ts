@@ -9,8 +9,8 @@
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
-  LinknetMismatch,
-} from "./interfaceConfigReducer";
+} from "../api/interfaceConfigApi";
+import type { LinknetMismatch } from "./interfaceConfigReducer";
 
 export type Linknet = {
   id: number;
