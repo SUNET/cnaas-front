@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Grid, Popup, Divider, Button } from "semantic-ui-react";
+import { Grid, Popup, Divider, Button, Icon } from "semantic-ui-react";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import {
   fetchNetboxTenant,
@@ -16,24 +16,30 @@ export function DashboardNetboxTenant() {
   const { token } = useAuthToken();
   const [netboxTenant, setNetboxTenant] = useState<NetboxTenant | null>(null);
   const [netboxContacts, setNetboxContacts] = useState<NetboxContact[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const getNetboxObjects = async () => {
     if (netboxTenant) return;
 
-    const tenant = toNetboxTenant(await fetchNetboxTenant(token));
-    if (tenant) setNetboxTenant(tenant);
+    try {
+      const tenant = toNetboxTenant(await fetchNetboxTenant(token));
+      if (tenant) setNetboxTenant(tenant);
 
-    const rawContacts = await fetchNetboxTenantContacts(token);
-    const contacts = rawContacts.flatMap((c) => {
-      const parsed = toNetboxContact(c);
-      return parsed ? [parsed] : [];
-    });
-    if (contacts.length > 0) setNetboxContacts(contacts);
+      const rawContacts = await fetchNetboxTenantContacts(token);
+      const contacts = rawContacts.flatMap((c) => {
+        const parsed = toNetboxContact(c);
+        return parsed ? [parsed] : [];
+      });
+      if (contacts.length > 0) setNetboxContacts(contacts);
+    } catch (error) {
+      console.error("Failed to load NetBox tenant data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     // Legitimate one-time initial fetch into component state on mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     getNetboxObjects();
   }, []);
 
@@ -129,7 +135,16 @@ export function DashboardNetboxTenant() {
               </div>
             </>
           ) : (
-            <p>Loading tenant data...</p>
+            <p>
+              {loading ? (
+                <>
+                  <Icon name="spinner" loading />
+                  Loading tenant data...
+                </>
+              ) : (
+                "No tenant data found."
+              )}
+            </p>
           )}
         </Grid.Column>
         <Grid.Column>
