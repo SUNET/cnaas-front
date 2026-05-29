@@ -59,17 +59,21 @@ export function DashboardInterfaceStatus() {
   useEffect(() => {
     if (netboxDeviceObjects.length === 0) return;
     async function loadStatuses() {
-      for (const device of netboxDeviceObjects) {
-        try {
+      const results = await Promise.allSettled(
+        netboxDeviceObjects.map(async (device) => {
           const status = await fetchInterfaceStatus(device.name, token);
-          setInterfaceStatusData((prev) => ({
-            ...prev,
-            [device.name]: status,
-          }));
-        } catch (error) {
-          console.log(error);
-        }
-      }
+          return [device.name, status] as const;
+        }),
+      );
+      const entries = results.flatMap((result) => {
+        if (result.status === "fulfilled") return [result.value];
+        console.log(result.reason);
+        return [];
+      });
+      setInterfaceStatusData((prev) => ({
+        ...prev,
+        ...Object.fromEntries(entries),
+      }));
       setIsLoading(false);
     }
     loadStatuses();
