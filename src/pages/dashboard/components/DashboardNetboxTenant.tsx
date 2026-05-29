@@ -1,37 +1,48 @@
-import { Grid, Popup, Divider, Button } from "semantic-ui-react";
 import { useEffect, useState } from "react";
+import { Grid, Popup, Divider, Button } from "semantic-ui-react";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import {
   fetchNetboxTenant,
   fetchNetboxTenantContacts,
 } from "../../../api/netboxApi";
+import {
+  toNetboxTenant,
+  toNetboxContact,
+  type NetboxTenant,
+  type NetboxContact,
+} from "../types/netbox";
 
 export function DashboardNetboxTenant() {
   const { token } = useAuthToken();
-  const [netboxTenant, setNetboxTenant] = useState(null);
-  const [netboxContacts, setNetboxContacts] = useState(null);
+  const [netboxTenant, setNetboxTenant] = useState<NetboxTenant | null>(null);
+  const [netboxContacts, setNetboxContacts] = useState<NetboxContact[]>([]);
 
   const getNetboxObjects = async () => {
     if (netboxTenant) return;
 
-    const tenant = await fetchNetboxTenant(token);
-    if (tenant) {
-      setNetboxTenant(tenant);
-    }
+    const tenant = toNetboxTenant(await fetchNetboxTenant(token));
+    if (tenant) setNetboxTenant(tenant);
 
-    const contacts = await fetchNetboxTenantContacts(token);
-    if (contacts.length > 0) {
-      setNetboxContacts(contacts);
-    }
+    const rawContacts = await fetchNetboxTenantContacts(token);
+    const contacts = rawContacts.flatMap((c) => {
+      const parsed = toNetboxContact(c);
+      return parsed ? [parsed] : [];
+    });
+    if (contacts.length > 0) setNetboxContacts(contacts);
   };
 
   useEffect(() => {
+    // Legitimate one-time initial fetch into component state on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     getNetboxObjects();
   }, []);
 
   if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {
     return null;
   }
+
+  const tenantBaseUrl = process.env.NETBOX_API_URL;
+  const tenantId = process.env.NETBOX_TENANT_ID;
 
   return (
     <>
@@ -67,7 +78,7 @@ export function DashboardNetboxTenant() {
                   <br />
                   <b>Sites:</b>{" "}
                   <a
-                    href={`${process.env.NETBOX_API_URL}dcim/sites/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                    href={`${tenantBaseUrl}dcim/sites/?tenant_id=${tenantId}`}
                     title="View sites in NetBox"
                     target="_blank"
                     rel="noreferrer"
@@ -77,7 +88,7 @@ export function DashboardNetboxTenant() {
                   <br />
                   <b>Devices:</b>{" "}
                   <a
-                    href={`${process.env.NETBOX_API_URL}dcim/devices/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                    href={`${tenantBaseUrl}dcim/devices/?tenant_id=${tenantId}`}
                     title="View devices in NetBox"
                     target="_blank"
                     rel="noreferrer"
@@ -87,7 +98,7 @@ export function DashboardNetboxTenant() {
                   <br />
                   <b>VRFs:</b>{" "}
                   <a
-                    href={`${process.env.NETBOX_API_URL}ipam/vrfs/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                    href={`${tenantBaseUrl}ipam/vrfs/?tenant_id=${tenantId}`}
                     title="View VRFs in NetBox"
                     target="_blank"
                     rel="noreferrer"
@@ -97,7 +108,7 @@ export function DashboardNetboxTenant() {
                   <br />
                   <b>Prefixes:</b>{" "}
                   <a
-                    href={`${process.env.NETBOX_API_URL}ipam/prefixes/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                    href={`${tenantBaseUrl}ipam/prefixes/?tenant_id=${tenantId}`}
                     title="View prefixes in NetBox"
                     target="_blank"
                     rel="noreferrer"
@@ -107,7 +118,7 @@ export function DashboardNetboxTenant() {
                   <br />
                   <b>VLANs:</b>{" "}
                   <a
-                    href={`${process.env.NETBOX_API_URL}ipam/vlans/?tenant_id=${process.env.NETBOX_TENANT_ID}`}
+                    href={`${tenantBaseUrl}ipam/vlans/?tenant_id=${tenantId}`}
                     title="View VLANs in NetBox"
                     target="_blank"
                     rel="noreferrer"
@@ -123,9 +134,9 @@ export function DashboardNetboxTenant() {
         </Grid.Column>
         <Grid.Column>
           <h3>Contacts</h3>
-          {netboxContacts?.length > 0 ? (
-            netboxContacts.map((contact, index) => (
-              <p key={index}>
+          {netboxContacts.length > 0 ? (
+            netboxContacts.map((contact) => (
+              <p key={`${contact.role.name}:${contact.contact.name}`}>
                 {contact.role.name}:{" "}
                 <Popup
                   trigger={
@@ -142,7 +153,7 @@ export function DashboardNetboxTenant() {
                           <Button
                             onClick={() =>
                               navigator.clipboard.writeText(
-                                contact.contact.email,
+                                contact.contact.email ?? "",
                               )
                             }
                             icon="copy"

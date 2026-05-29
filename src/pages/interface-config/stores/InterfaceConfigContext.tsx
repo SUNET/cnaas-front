@@ -12,7 +12,7 @@ import {
 } from "react";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { useFreshRef } from "../../../hooks/useFreshRef";
-import { fetchDevice } from "../../../api/deviceApi";
+import { fetchDevice, fetchInterfaceStatus } from "../../../api/deviceApi";
 import {
   fetchNetboxDevice,
   fetchNetboxInterfaces,
@@ -20,7 +20,6 @@ import {
 } from "../../../api/netboxApi";
 import {
   fetchDeviceById,
-  fetchInterfaceStatus,
   fetchLldpNeighbors,
   fetchAccessInterfaces,
   fetchDistInterfaces,

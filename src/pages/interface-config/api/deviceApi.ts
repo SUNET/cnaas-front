@@ -67,22 +67,6 @@ export async function fetchDeviceById(
 
 // --- Interface readers ---
 
-export async function fetchInterfaceStatus(
-  hostname: string,
-  token: string | null,
-): Promise<Record<string, Record<string, unknown>>> {
-  try {
-    const url = `${process.env.API_URL}/api/v1.0/device/${hostname}/interface_status`;
-    const data = (await getData(url, token)) as {
-      data: { interface_status: Record<string, Record<string, unknown>> };
-    };
-    return data.data.interface_status;
-  } catch (error) {
-    console.log(error);
-    return {};
-  }
-}
-
 export async function fetchLldpNeighbors(
   hostname: string,
   token: string | null,
