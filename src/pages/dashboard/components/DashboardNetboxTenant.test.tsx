@@ -67,3 +67,20 @@ test("renders nothing when NetBox env is not configured", () => {
 
   expect(container).toBeEmptyDOMElement();
 });
+
+test("shows fallback instead of staying on loading when the fetch fails", async () => {
+  const consoleErrorSpy = jest
+    .spyOn(console, "error")
+    .mockImplementation(() => {});
+  mockFetchNetboxTenant.mockRejectedValue(new Error("NetworkError"));
+  mockFetchNetboxTenantContacts.mockResolvedValue([]);
+
+  render(<DashboardNetboxTenant />);
+
+  await waitFor(() => {
+    expect(screen.getByText(/No tenant data found\./)).toBeInTheDocument();
+  });
+  expect(screen.queryByText(/Loading tenant data/)).not.toBeInTheDocument();
+
+  consoleErrorSpy.mockRestore();
+});
