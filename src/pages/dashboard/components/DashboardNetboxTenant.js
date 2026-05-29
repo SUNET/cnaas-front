@@ -1,10 +1,10 @@
 import { Grid, Popup, Divider, Button } from "semantic-ui-react";
 import { useEffect, useState } from "react";
-import { useAuthToken } from "../../stores/AuthTokenContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import {
   fetchNetboxTenant,
   fetchNetboxTenantContacts,
-} from "../../api/netboxApi";
+} from "../../../api/netboxApi";
 
 export function DashboardNetboxTenant() {
   const { token } = useAuthToken();
