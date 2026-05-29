@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Container, Grid, Popup } from "semantic-ui-react";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { DashboardLinkgrid } from "../../../components/DashboardLinkgrid";
@@ -14,32 +14,40 @@ import { DashboardNetboxTenant } from "./DashboardNetboxTenant";
 const REPO_DATA_REGEX =
   /Commit (?<commit_id>\w+) (?<branch>[-a-zA-Z0-9._]+) by (?<name>.+) at (?<date>[0-9- :]+)/;
 
-function buildRepoInfo(
-  label: string,
-  commit: string | undefined,
-  webUrl: string | undefined,
-): ReactNode {
+type RepoStatus = { branch: string; date: string; name: string };
+
+function parseRepoStatus(commit: string | undefined): RepoStatus | null {
   if (!commit) return null;
   const match = REPO_DATA_REGEX.exec(commit);
   if (!match?.groups) return null;
 
   const { branch, date, name } = match.groups;
-  const branchNode: ReactNode = webUrl ? (
-    <a href={webUrl} target="_blank" rel="noreferrer">
-      {branch}
-    </a>
-  ) : (
-    branch
-  );
+  return { branch, date: date.slice(0, -3), name };
+}
 
-  return [
-    `${label} (`,
-    branchNode,
-    ") updated at ",
-    date.slice(0, -3),
-    " by ",
-    name,
-  ];
+type RepoInfoProps = {
+  readonly label: string;
+  readonly commit: string | undefined;
+  readonly webUrl: string | undefined;
+};
+
+function RepoInfo({ label, commit, webUrl }: RepoInfoProps) {
+  const status = parseRepoStatus(commit);
+  if (!status) return <>Unknown</>;
+
+  return (
+    <>
+      {`${label} (`}
+      {webUrl ? (
+        <a href={webUrl} target="_blank" rel="noreferrer">
+          {status.branch}
+        </a>
+      ) : (
+        status.branch
+      )}
+      {`) updated at ${status.date} by ${status.name}`}
+    </>
+  );
 }
 
 export function Dashboard() {
@@ -49,8 +57,6 @@ export function Dashboard() {
   const [commitInfo, setCommitInfo] = useState<Record<string, string>>({});
   const [deviceCount, setDeviceCount] = useState<Record<string, number>>({});
   const [systemVersion, setSystemVersion] = useState<SystemVersion>({});
-  const [settingsInfo, setSettingsInfo] = useState<ReactNode>("Unknown");
-  const [templatesInfo, setTemplatesInfo] = useState<ReactNode>("Unknown");
 
   const getRepoStatus = async (repoName: string) => {
     try {
@@ -92,30 +98,25 @@ export function Dashboard() {
     setInitialized(true);
   }, [token]);
 
-  useEffect(() => {
-    setSettingsInfo(
-      buildRepoInfo(
-        "Settings",
-        commitInfo.settings,
-        process.env.SETTINGS_WEB_URL,
-      ),
-    );
-    setTemplatesInfo(
-      buildRepoInfo(
-        "Templates",
-        commitInfo.templates,
-        process.env.TEMPLATES_WEB_URL,
-      ),
-    );
-  }, [commitInfo]);
-
   return (
     <div>
       <Container>
         <Grid columns={2}>
           <Grid.Column width={8}>
-            <p>{settingsInfo}</p>
-            <p>{templatesInfo}</p>
+            <p>
+              <RepoInfo
+                label="Settings"
+                commit={commitInfo.settings}
+                webUrl={process.env.SETTINGS_WEB_URL}
+              />
+            </p>
+            <p>
+              <RepoInfo
+                label="Templates"
+                commit={commitInfo.templates}
+                webUrl={process.env.TEMPLATES_WEB_URL}
+              />
+            </p>
           </Grid.Column>
           <Grid.Column width={8}>
             <p>
