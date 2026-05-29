@@ -57,6 +57,7 @@ export function DashboardInterfaceStatus() {
   };
 
   useEffect(() => {
+    if (netboxDeviceObjects.length === 0) return;
     async function loadStatuses() {
       for (const device of netboxDeviceObjects) {
         try {
