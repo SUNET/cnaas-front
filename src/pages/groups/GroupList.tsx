@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import {
   Icon,
@@ -28,7 +27,7 @@ function GroupLoading() {
   );
 }
 
-function GroupError({ message }) {
+function GroupError({ message }: { readonly message: string }) {
   return (
     <TableBody>
       <TableRow key="error">
@@ -37,10 +36,6 @@ function GroupError({ message }) {
     </TableBody>
   );
 }
-
-GroupError.propTypes = {
-  message: PropTypes.string,
-};
 
 function GroupEmptyResult() {
   return (
@@ -52,7 +47,11 @@ function GroupEmptyResult() {
   );
 }
 
-function GroupResult({ groupData }) {
+function GroupResult({
+  groupData,
+}: {
+  readonly groupData: Record<string, string[]>;
+}) {
   return (
     <TableBody>
       {Object.entries(groupData).map(([group, devices]) => (
@@ -89,14 +88,10 @@ function GroupResult({ groupData }) {
   );
 }
 
-GroupResult.propTypes = {
-  groupData: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
-};
-
 function GroupTableBody() {
-  const [groupData, setGroupData] = useState({});
+  const [groupData, setGroupData] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const { token } = useAuthToken();
 
@@ -104,9 +99,9 @@ function GroupTableBody() {
     try {
       const data = await fetchGroups(token);
       setGroupData(data.groups);
-    } catch (error) {
+    } catch (err) {
       setGroupData({});
-      setError(error);
+      setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setLoading(false);
     }
