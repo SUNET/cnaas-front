@@ -94,7 +94,7 @@ GroupResult.propTypes = {
 };
 
 function GroupTableBody() {
-  const [groupData, setGroupData] = useState([]);
+  const [groupData, setGroupData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -112,7 +112,7 @@ function GroupTableBody() {
       setGroupData(data.data.groups);
       setLoading(false);
     } catch (error) {
-      setGroupData([]);
+      setGroupData({});
       setError(error);
       setLoading(false);
     }
@@ -130,7 +130,7 @@ function GroupTableBody() {
     return <GroupError message={error.message} />;
   }
 
-  if (groupData.length === 0) {
+  if (Object.keys(groupData).length === 0) {
     return <GroupEmptyResult />;
   }
 
