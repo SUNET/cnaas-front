@@ -11,6 +11,7 @@ import {
 } from "semantic-ui-react";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
+import { extractErrorMessage } from "../../utils/extractErrorMessage";
 import { fetchGroups } from "./groupsApi";
 
 function GroupLoading() {
@@ -91,7 +92,7 @@ function GroupResult({
 function GroupTableBody() {
   const [groupData, setGroupData] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { token } = useAuthToken();
 
@@ -101,7 +102,7 @@ function GroupTableBody() {
       setGroupData(data.groups);
     } catch (err) {
       setGroupData({});
-      setError(err instanceof Error ? err : new Error(String(err)));
+      setError(extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -116,7 +117,7 @@ function GroupTableBody() {
   }
 
   if (error) {
-    return <GroupError message={error.message} />;
+    return <GroupError message={error} />;
   }
 
   if (Object.keys(groupData).length === 0) {
