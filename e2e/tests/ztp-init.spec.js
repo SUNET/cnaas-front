@@ -53,6 +53,53 @@ async function waitForDevice(page, timeoutMs = 600_000) {
   );
 }
 
+/**
+ * Search the JobList by function name and assert a FINISHED job exists for our
+ * device.
+ *
+ * The JobList replaces its rows with a single "Loading jobs..." row on every
+ * refetch — including socket-driven refetches. To avoid acting on a transient
+ * loading/empty state, we wait for the loading row to clear after submitting
+ * the search.
+ *
+ * A reused test environment can hold FINISHED jobs of the same function from
+ * earlier runs, so function_name + FINISHED alone isn't proof our run
+ * succeeded. We don't rely on sort order: we expand every job row on the first
+ * page, find the one whose finished_devices lists our device, and assert that
+ * row's status is FINISHED.
+ */
+async function verifyJobFinished(page, functionName, expectedDevice) {
+  const searchInput = page.getByPlaceholder("Search...");
+
+  await searchInput.fill(functionName);
+  await page.getByRole("button", { name: "Search" }).click();
+
+  // Let the search request settle so we don't act on the transient loading row.
+  await expect(page.getByText("Loading jobs...")).toBeHidden({
+    timeout: 30_000,
+  });
+
+  // Expand every job row on the first page so each job's finished_devices is
+  // rendered. Scope to the outer striped jobs table — expanded rows contain
+  // nested tables whose <tr>s would otherwise pollute this locator.
+  const jobRows = page.locator(
+    ".ui.striped.table > tbody > tr:not(.device_details_row)",
+  );
+  const count = await jobRows.count();
+  for (let i = 0; i < count; i++) {
+    await jobRows.nth(i).click();
+  }
+
+  // The details row that lists our device belongs to our job; its immediately
+  // preceding sibling is that job's row, which must be FINISHED.
+  const ourDetails = page
+    .locator("tr.device_details_row")
+    .filter({ hasText: expectedDevice })
+    .first();
+  const ourJobRow = ourDetails.locator("xpath=preceding-sibling::tr[1]");
+  await expect(ourJobRow).toContainText("FINISHED", { timeout: 30_000 });
+}
+
 test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
   // This test can take a long time — ZTP boot + discovery + init + config push.
   test.setTimeout(600_000); // 10 minutes
@@ -200,39 +247,24 @@ test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
     // ── Step 9: Verify jobs appeared on the jobs page ────────────
     console.log("Verifying jobs on /jobs...");
     await page.goto("/jobs");
+    await page.waitForLoadState("networkidle");
 
     // Filter the JobList by function_name so we don't depend on pagination —
     // a real test environment can accumulate many scheduled jobs (e.g.
     // periodic sync_devices) that push the ZTP jobs off page 1.
-    const searchInput = page.getByPlaceholder("Search...");
     const searchFieldDropdown = page.locator("form .ui.selection.dropdown");
 
     await test.step("Verify discover_device job FINISHED", async () => {
+      // Switch the search field to function_name once; the second step reuses it.
       await searchFieldDropdown.click();
       await page.getByRole("option", { name: "Function name" }).click();
-      await searchInput.fill("discover_device");
-      await page.getByRole("button", { name: "Search" }).click();
-
-      const discoverJobRow = page
-        .locator("tr", { hasText: "discover_device" })
-        .filter({ hasText: "FINISHED" })
-        .first();
-      await expect(
-        discoverJobRow.getByRole("cell", { name: "discover_device" }),
-      ).toBeVisible({ timeout: 15000 });
+      // discover_device runs pre-naming, so finished_devices holds the
+      // MAC-based hostname (device.hostname), not "eosaccess".
+      await verifyJobFinished(page, "discover_device", device.hostname);
     });
 
     await test.step("Verify init_access_device_step1 job FINISHED", async () => {
-      await searchInput.fill("init_access_device_step1");
-      await page.getByRole("button", { name: "Search" }).click();
-
-      const initJobRow = page
-        .locator("tr", { hasText: "init_access_device_step1" })
-        .filter({ hasText: "FINISHED" })
-        .first();
-      await expect(
-        initJobRow.getByRole("cell", { name: "init_access_device_step1" }),
-      ).toBeVisible({ timeout: 15000 });
+      await verifyJobFinished(page, "init_access_device_step1", "eosaccess");
     });
   });
 });
