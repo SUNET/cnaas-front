@@ -11,8 +11,8 @@ import {
   TableRow,
 } from "semantic-ui-react";
 import { useAuthToken } from "../../stores/AuthTokenContext";
-import { getData } from "../../utils/getData";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
+import { fetchGroups } from "./groupsApi";
 
 function GroupLoading() {
   return (
@@ -102,13 +102,8 @@ function GroupTableBody() {
 
   const getGroupsData = async () => {
     try {
-      // Build filter part of the URL to only return specific devices from the API
-      // TODO: filterValue should probably be urlencoded?
-      const data = await getData(
-        `${process.env.API_URL}/api/v1.0/groups`,
-        token,
-      );
-      setGroupData(data.data.groups);
+      const data = await fetchGroups(token);
+      setGroupData(data.groups);
     } catch (error) {
       setGroupData({});
       setError(error);
