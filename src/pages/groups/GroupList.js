@@ -101,7 +101,6 @@ function GroupTableBody() {
   const { token } = useAuthToken();
 
   const getGroupsData = async () => {
-    setError(null);
     try {
       // Build filter part of the URL to only return specific devices from the API
       // TODO: filterValue should probably be urlencoded?
@@ -110,10 +109,10 @@ function GroupTableBody() {
         token,
       );
       setGroupData(data.data.groups);
-      setLoading(false);
     } catch (error) {
       setGroupData({});
       setError(error);
+    } finally {
       setLoading(false);
     }
   };
