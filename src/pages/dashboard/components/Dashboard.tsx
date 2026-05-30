@@ -53,7 +53,6 @@ function RepoInfo({ label, commit, webUrl }: RepoInfoProps) {
 export function Dashboard() {
   const { token } = useAuthToken();
 
-  const [initialized, setInitialized] = useState(false);
   const [commitInfo, setCommitInfo] = useState<Record<string, string>>({});
   const [deviceCount, setDeviceCount] = useState<Record<string, number>>({});
   const [systemVersion, setSystemVersion] = useState<SystemVersion>({});
@@ -85,8 +84,9 @@ export function Dashboard() {
   };
 
   useEffect(() => {
-    if (initialized || !token) return;
+    if (!token) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount effect; populating dashboard data is the point
     getRepoStatus("settings");
     getRepoStatus("templates");
     getDeviceCount("managed", "filter[state]=MANAGED");
@@ -95,7 +95,6 @@ export function Dashboard() {
       "filter[state]=MANAGED&filter[synchronized]=false",
     );
     getSystemVersion();
-    setInitialized(true);
   }, [token]);
 
   return (
