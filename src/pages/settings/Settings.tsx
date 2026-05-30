@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import {
   FormInput,
   FormGroup,
@@ -8,29 +8,39 @@ import {
   Container,
   Popup,
   Checkbox,
+  type InputOnChangeData,
+  type CheckboxProps,
 } from "semantic-ui-react";
 
+type SettingsForm = {
+  netboxToken: string;
+  distPortConfig: boolean;
+};
+
 export function Settings() {
-  const [formData, setFormData] = useState({
-    netboxToken: localStorage.getItem("netboxToken") || "",
-    distPortConfig: localStorage.getItem("distPortConfig") || false,
+  const [formData, setFormData] = useState<SettingsForm>({
+    netboxToken: localStorage.getItem("netboxToken") ?? "",
+    distPortConfig: localStorage.getItem("distPortConfig") === "true",
   });
   const { netboxToken, distPortConfig } = formData;
 
-  function handleChange(event) {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  function handleChange(
+    _event: ChangeEvent<HTMLInputElement>,
+    data: InputOnChangeData,
+  ) {
+    setFormData((prev) => ({ ...prev, netboxToken: data.value }));
   }
 
-  function handleCheckboxChange(event, data) {
-    const { name } = data;
-    const value = data.checked;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  function handleCheckboxChange(
+    _event: FormEvent<HTMLInputElement>,
+    data: CheckboxProps,
+  ) {
+    setFormData((prev) => ({ ...prev, distPortConfig: data.checked ?? false }));
   }
 
   function handleSave() {
     localStorage.setItem("netboxToken", netboxToken);
-    localStorage.setItem("distPortConfig", distPortConfig);
+    localStorage.setItem("distPortConfig", String(distPortConfig));
   }
 
   let netboxField = null;
@@ -46,7 +56,9 @@ export function Settings() {
               trigger={
                 <Icon
                   name="question circle"
-                  color={!localStorage.getItem("netboxToken") ? "orange" : null}
+                  color={
+                    localStorage.getItem("netboxToken") ? undefined : "orange"
+                  }
                 />
               }
             >
@@ -59,7 +71,7 @@ export function Settings() {
         }
         name="netboxToken"
         type="text"
-        value={netboxToken || ""}
+        value={netboxToken}
         onChange={handleChange}
       />
     );
@@ -77,7 +89,7 @@ export function Settings() {
               name="distPortConfig"
               toggle
               label='Enable experimental "configure ports" on DIST action dropdown menu'
-              defaultChecked={JSON.parse(distPortConfig)}
+              defaultChecked={distPortConfig}
               onChange={handleCheckboxChange}
             />
           </FormGroup>
