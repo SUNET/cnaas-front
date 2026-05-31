@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { getData } from "../../utils/getData";
+import {
+  fetchDeviceOsVersion,
+  fetchGroupOsVersion,
+} from "./firmwareUpgradeApi";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 
 FirmwareStep1.propTypes = {
@@ -16,13 +19,9 @@ export function FirmwareStep1({ commitTarget }) {
 
   const getFirmwareStatus = async (commitTarget) => {
     if (commitTarget.hostname) {
-      const url = `${process.env.API_URL}/api/v1.0/devices?filter[hostname]=${commitTarget.hostname}`;
-      const data = await getData(url, token);
-      return data.data;
+      return fetchDeviceOsVersion(commitTarget.hostname, token);
     } else if (commitTarget.group) {
-      const url = `${process.env.API_URL}/api/v1.0/groups/${commitTarget.group}/os_version`;
-      const data = await getData(url, token);
-      return data.data;
+      return fetchGroupOsVersion(commitTarget.group, token);
     }
   };
 

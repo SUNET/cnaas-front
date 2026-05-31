@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Form, Confirm, Select } from "semantic-ui-react";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
-import { getData } from "../../utils/getData";
+import { fetchFirmwareFiles } from "./firmwareUpgradeApi";
 import { FirmwareError } from "./FirmwareError";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import PropTypes from "prop-types";
@@ -66,9 +66,7 @@ export function FirmwareStep2({
   };
 
   const getFirmwareFiles = async () => {
-    const url = `${process.env.API_URL}/api/v1.0/firmware`;
-    const data = await getData(url, token);
-    const dataFiles = data.data.files;
+    const dataFiles = await fetchFirmwareFiles(token);
     const newFirmwareOptions = [];
     dataFiles.forEach((filename, index) => {
       if (
