@@ -1,17 +1,16 @@
-import PropTypes from "prop-types";
 import ProgressBar from "../../components/ProgressBar";
 
-FirmwareProgressBar.propTypes = {
-  jobFinishedDevices: PropTypes.array,
-  jobStatus: PropTypes.string,
-  totalCount: PropTypes.number,
+type FirmwareProgressBarProps = {
+  readonly jobFinishedDevices?: readonly string[] | null;
+  readonly jobStatus?: string | null;
+  readonly totalCount: number;
 };
 
 export function FirmwareProgressBar({
   jobFinishedDevices,
   jobStatus,
   totalCount,
-}) {
+}: FirmwareProgressBarProps) {
   const finishedDevicesNum =
     jobStatus === "RUNNING" || jobStatus === "FINISHED"
       ? (jobFinishedDevices?.length ?? 0)

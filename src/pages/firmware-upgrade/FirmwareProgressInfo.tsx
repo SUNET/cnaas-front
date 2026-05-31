@@ -1,22 +1,21 @@
 import LogViewer from "../../components/LogViewer";
-import PropTypes from "prop-types";
+import { type Job } from "../../types/job";
 
-FirmwareProgressInfo.propTypes = {
-  jobStatus: PropTypes.string,
-  jobId: PropTypes.number,
-  jobData: PropTypes.shape({
-    start_time: PropTypes.string,
-    finish_time: PropTypes.string,
-    exception: PropTypes.shape({
-      message: PropTypes.string,
-    }),
-  }),
-  logLines: PropTypes.arrayOf(PropTypes.string),
+type FirmwareProgressInfoProps = {
+  readonly jobStatus?: string | null;
+  readonly jobId?: number | null;
+  readonly jobData?: Job | null;
+  readonly logLines: readonly string[];
 };
 
-export function FirmwareProgressInfo({ jobStatus, jobId, jobData, logLines }) {
-  const hasJobId = (id) => {
-    return (logLine) => logLine.toLowerCase().includes(`job #${id}`);
+export function FirmwareProgressInfo({
+  jobStatus,
+  jobId,
+  jobData,
+  logLines,
+}: FirmwareProgressInfoProps) {
+  const hasJobId = (id: number | null | undefined) => {
+    return (logLine: string) => logLine.toLowerCase().includes(`job #${id}`);
   };
   const jobStartTime = jobData?.start_time ?? "";
   const jobFinishTime = jobData?.finish_time ?? "";
