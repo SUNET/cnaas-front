@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { Input } from "semantic-ui-react";
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import { NavigationBlocker } from "../../components/NavigationBlocker";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";

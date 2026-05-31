@@ -19,13 +19,13 @@ jest.mock("../../hooks/useFreshRef.js", () => ({
 const mockSocketOn = jest.fn();
 const mockSocketEmit = jest.fn();
 const mockSocketOff = jest.fn();
-jest.mock("socket.io-client", () => {
-  return jest.fn(() => ({
+jest.mock("socket.io-client", () => ({
+  io: jest.fn(() => ({
     on: mockSocketOn,
     emit: mockSocketEmit,
     off: mockSocketOff,
-  }));
-});
+  })),
+}));
 
 beforeEach(() => {
   jest.clearAllMocks();
