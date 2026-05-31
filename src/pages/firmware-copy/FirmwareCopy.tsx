@@ -140,7 +140,7 @@ function FirmwareTableRow({
               <FirmwareCopyForm
                 filename={firmware.filename}
                 sha1sum={firmware.sha1sum}
-                already_downloaded={firmware.already_downloaded}
+                alreadyDownloaded={firmware.already_downloaded}
                 defaultFirmware={firmware.default_to}
                 linkedTo={firmware.linked_to}
                 reloadFirmwareFiles={reloadFirmwareFiles}
