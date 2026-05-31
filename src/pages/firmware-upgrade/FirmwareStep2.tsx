@@ -8,7 +8,7 @@ import {
 } from "semantic-ui-react";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
-import { fetchFirmwareFiles } from "./firmwareUpgradeApi";
+import { fetchFirmwareFiles, getExceptionDevices } from "./firmwareUpgradeApi";
 import { FirmwareError } from "./FirmwareError";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import type { Job } from "../../types/job";
@@ -26,17 +26,6 @@ type FirmwareStep2Props = {
   readonly totalCount: number;
   readonly logLines: readonly string[];
 };
-
-/** Devices keyed by hostname, as found in an EXCEPTION job's `result`. */
-function getExceptionDevices(
-  result: unknown,
-): Readonly<Record<string, { readonly failed?: boolean }>> {
-  if (result && typeof result === "object" && "devices" in result) {
-    return (result as { devices: Record<string, { failed?: boolean }> })
-      .devices;
-  }
-  return {};
-}
 
 export function FirmwareStep2({
   skipStep2,

@@ -10,6 +10,22 @@ export type CommitTarget = {
   readonly group?: string;
 };
 
+/** Per-device status map extracted from an EXCEPTION job's `result`. */
+export type FailedDevices = Readonly<
+  Record<string, { readonly failed?: boolean }>
+>;
+
+/**
+ * Pull the per-device status map out of a job's `result` (typed `unknown`).
+ * Returns an empty map when the result has no `devices` field.
+ */
+export function getExceptionDevices(result: unknown): FailedDevices {
+  if (result && typeof result === "object" && "devices" in result) {
+    return (result as { devices: FailedDevices }).devices;
+  }
+  return {};
+}
+
 /** Body of the `data` envelope from GET /devices?filter[hostname]=. */
 export type DeviceOsVersionData = {
   readonly devices: readonly Device[];
