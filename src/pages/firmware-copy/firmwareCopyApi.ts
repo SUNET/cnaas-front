@@ -1,4 +1,5 @@
 import { getData } from "../../utils/getData";
+import { deleteData, postData } from "../../utils/sendData";
 
 const API = process.env.API_URL;
 
@@ -148,4 +149,42 @@ export function mergeFirmwareData(
   return [...merged, ...nmsOnly].sort((a, b) =>
     compareFirmwareFiles(a.filename, b.filename),
   );
+}
+
+// Kick off a background job that downloads `filename` from the central repo to
+// this NMS instance. Resolves with the job id to track over Socket.IO.
+export async function copyFirmware(
+  filename: string,
+  sha1sum: string | undefined,
+  token: string | null,
+): Promise<number> {
+  const data: { job_id?: unknown } = await postData(
+    `${API}/api/v1.0/firmware`,
+    token,
+    {
+      url: `${process.env.FIRMWARE_REPO_URL}${filename}`,
+      sha1: sha1sum,
+      verify_tls: true,
+    },
+  );
+  if (typeof data.job_id !== "number") {
+    throw new Error("No job_id returned when submitting firmware copy job");
+  }
+  return data.job_id;
+}
+
+// Remove a firmware image that has been downloaded to this NMS instance.
+export async function deleteFirmware(
+  filename: string,
+  token: string | null,
+): Promise<void> {
+  await deleteData(`${API}/api/v1.0/firmware/${filename}`, token);
+}
+
+// Point the EOS-stable symlink at `filename`, making it the ZTP default.
+export async function setDefaultFirmware(
+  filename: string,
+  token: string | null,
+): Promise<void> {
+  await postData(`${API}/api/v1.0/firmware/${filename}/set-default`, token, {});
 }

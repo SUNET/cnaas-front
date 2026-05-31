@@ -1,13 +1,25 @@
 import {
   type FirmwareFile,
+  copyFirmware,
+  deleteFirmware,
   fetchRepoFirmware,
   mergeFirmwareData,
+  setDefaultFirmware,
 } from "./firmwareCopyApi";
 import { getData as getDataImport } from "../../utils/getData";
+import {
+  deleteData as deleteDataImport,
+  postData as postDataImport,
+} from "../../utils/sendData";
 
 jest.mock("../../utils/getData");
+jest.mock("../../utils/sendData");
 
 const getData = getDataImport as jest.MockedFunction<typeof getDataImport>;
+const postData = postDataImport as jest.MockedFunction<typeof postDataImport>;
+const deleteData = deleteDataImport as jest.MockedFunction<
+  typeof deleteDataImport
+>;
 
 function repoFile(overrides: Partial<FirmwareFile> = {}): FirmwareFile {
   return {
@@ -178,5 +190,65 @@ describe("fetchRepoFirmware", () => {
 
     expect(result).toEqual({ firmwares: [] });
     expect(result.updated).toBeUndefined();
+  });
+});
+
+describe("copyFirmware", () => {
+  beforeEach(() => {
+    postData.mockReset();
+    process.env.FIRMWARE_REPO_URL = "http://repo.example/firmware/";
+  });
+
+  it("posts the repo URL + sha1 and returns the job id", async () => {
+    postData.mockResolvedValue({ job_id: 42 });
+
+    const jobId = await copyFirmware("EOS-4.30.0F.swi", "abc123", "tok");
+
+    expect(jobId).toBe(42);
+    expect(postData).toHaveBeenCalledWith(
+      `${process.env.API_URL}/api/v1.0/firmware`,
+      "tok",
+      {
+        url: "http://repo.example/firmware/EOS-4.30.0F.swi",
+        sha1: "abc123",
+        verify_tls: true,
+      },
+    );
+  });
+
+  it("throws when the response has no numeric job_id", async () => {
+    postData.mockResolvedValue({});
+
+    await expect(
+      copyFirmware("EOS-4.30.0F.swi", "abc123", "tok"),
+    ).rejects.toThrow(/job_id/);
+  });
+});
+
+describe("deleteFirmware", () => {
+  it("issues a DELETE to the firmware filename endpoint", async () => {
+    deleteData.mockResolvedValue(undefined);
+
+    await deleteFirmware("EOS-4.30.0F.swi", "tok");
+
+    expect(deleteData).toHaveBeenCalledWith(
+      `${process.env.API_URL}/api/v1.0/firmware/EOS-4.30.0F.swi`,
+      "tok",
+    );
+  });
+});
+
+describe("setDefaultFirmware", () => {
+  it("posts to the set-default endpoint", async () => {
+    postData.mockReset();
+    postData.mockResolvedValue({});
+
+    await setDefaultFirmware("EOS-4.30.0F.swi", "tok");
+
+    expect(postData).toHaveBeenCalledWith(
+      `${process.env.API_URL}/api/v1.0/firmware/EOS-4.30.0F.swi/set-default`,
+      "tok",
+      {},
+    );
   });
 });
