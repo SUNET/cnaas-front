@@ -21,6 +21,7 @@ import {
   fetchRepoFirmware,
   mergeFirmwareData,
 } from "./firmwareCopyApi";
+import { useFirmwareCopySocket } from "./useFirmwareCopySocket";
 
 function PopupPresentInRepo() {
   return (
@@ -159,6 +160,8 @@ export function FirmwareCopy() {
   const [loading, setLoading] = useState(true);
 
   const { token } = useAuthToken();
+
+  useFirmwareCopySocket(token);
 
   const reloadFirmwareFiles = async () => {
     try {
