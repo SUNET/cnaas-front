@@ -1,9 +1,9 @@
-import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import {
   Grid,
   GridColumn,
   Icon,
+  Loader,
   Popup,
   Table,
   TableBody,
@@ -13,9 +13,14 @@ import {
   TableRow,
 } from "semantic-ui-react";
 import { useAuthToken } from "../../stores/AuthTokenContext";
-import { getData } from "../../utils/getData";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { FirmwareCopyForm } from "./FirmwareCopyForm";
+import {
+  type FirmwareFile,
+  fetchNmsFirmware,
+  fetchRepoFirmware,
+  mergeFirmwareData,
+} from "./firmwareCopyApi";
 
 function PopupPresentInRepo() {
   return (
@@ -68,16 +73,19 @@ function PopupDefaultFirmware() {
   );
 }
 
-function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
+function FirmwareTableRow({
+  firmware,
+  reloadFirmwareFiles,
+}: {
+  readonly firmware: FirmwareFile;
+  readonly reloadFirmwareFiles: () => void;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <TableRow key={index} style={{ flexDirection: "column" }}>
-        <TableCell
-          key={`${index}_icon`}
-          onClick={() => setOpen((prev) => !prev)}
-        >
+      <TableRow style={{ flexDirection: "column" }}>
+        <TableCell onClick={() => setOpen((prev) => !prev)}>
           <Icon name={open ? "angle down" : "angle right"} />
           <label style={{ paddingRight: "5px" }}>{firmware.filename}</label>
           {firmware.present_in_repo && <PopupPresentInRepo />}
@@ -87,44 +95,40 @@ function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
           {firmware.default_to && <PopupDefaultFirmware />}
         </TableCell>
       </TableRow>
-      <TableRow
-        key={`${index}_content`}
-        hidden={!open}
-        style={{ flexDirection: "column" }}
-      >
+      <TableRow hidden={!open} style={{ flexDirection: "column" }}>
         <TableCell style={{ display: "block" }}>
           <Grid columns={2}>
             <GridColumn>
-              <Table compact basic={"very"} collapsing>
+              <Table compact basic="very" collapsing>
                 <TableBody>
-                  <TableRow key={`${index}_filename`}>
+                  <TableRow>
                     <TableCell>Filename</TableCell>
                     <TableCell>{firmware.filename}</TableCell>
                   </TableRow>
-                  <TableRow key={`${index}_os_version`}>
+                  <TableRow>
                     <TableCell>OS version</TableCell>
                     <TableCell>{firmware.os_version}</TableCell>
                   </TableRow>
-                  <TableRow key={`${index}_approved_by`}>
+                  <TableRow>
                     <TableCell>Approved by</TableCell>
                     <TableCell>{firmware.approved_by}</TableCell>
                   </TableRow>
-                  <TableRow key={`${index}_approved_date`}>
+                  <TableRow>
                     <TableCell>Approved date</TableCell>
                     <TableCell>{firmware.approved_date}</TableCell>
                   </TableRow>
-                  <TableRow key={`${index}_eol_date`}>
+                  <TableRow>
                     <TableCell>End of life date</TableCell>
                     <TableCell>{firmware.end_of_life_date}</TableCell>
                   </TableRow>
                   {firmware.linked_to && (
-                    <TableRow key={`${index}_linked_to`}>
+                    <TableRow>
                       <TableCell>Linked to</TableCell>
                       <TableCell>{firmware.linked_to}</TableCell>
                     </TableRow>
                   )}
                   {firmware.default_to && (
-                    <TableRow key={`${index}_default_to`}>
+                    <TableRow>
                       <TableCell>Default link</TableCell>
                       <TableCell>{firmware.default_to}</TableCell>
                     </TableRow>
@@ -149,116 +153,20 @@ function FirmwareTableRow({ firmware, index, reloadFirmwareFiles }) {
   );
 }
 
-FirmwareTableRow.propTypes = {
-  firmware: PropTypes.shape({
-    filename: PropTypes.string,
-    approved: PropTypes.bool,
-    sha1sum: PropTypes.string,
-    present_in_repo: PropTypes.bool,
-    approved_by: PropTypes.string,
-    approved_date: PropTypes.string,
-    end_of_life_date: PropTypes.string,
-    os_version: PropTypes.string,
-    already_downloaded: PropTypes.bool,
-    default_to: PropTypes.string,
-    linked_to: PropTypes.string,
-  }),
-  index: PropTypes.number,
-  reloadFirmwareFiles: PropTypes.func,
-};
-
 export function FirmwareCopy() {
-  const [firmwareData, setFirmwareData] = useState([]);
+  const [firmwareData, setFirmwareData] = useState<FirmwareFile[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const { token } = useAuthToken();
 
-  const mergeFirmwareData = (repoData, nmsData) => {
-    const newFirmwareData = [];
-    for (const firmware of repoData) {
-      // Check if file already exist in firmwareData
-      const nmsFirmware = nmsData.find(
-        (obj) => obj.filename === firmware.filename,
-      );
-
-      // if the nmsFirmware does not have already_downloaded we replace with the new one
-      if (nmsFirmware) {
-        firmware.present_in_repo = true;
-        firmware.already_downloaded =
-          firmware.already_downloaded || nmsFirmware.already_downloaded;
-        firmware.default_to = firmware.default_to || nmsFirmware.default_to;
-        firmware.approved = firmware.approved || nmsFirmware.approved;
-        firmware.linked_to = firmware.linked_to || nmsFirmware.linked_to;
-      }
-      newFirmwareData.push(firmware);
-    }
-
-    // filter out all files we have already added earlier
-    // concat them together
-    const filteredFirmwareData = nmsData.filter(
-      (firmware) => !repoData.some((f) => f.filename === firmware.filename),
-    );
-
-    return newFirmwareData
-      .concat(filteredFirmwareData)
-      .sort((a, b) => a.filename < b.filename);
-  };
-
-  const getFirmwareRepoData = async () => {
-    try {
-      const data = await getData(process.env.FIRMWARE_REPO_METADATA_URL);
-      const repoFirmwares = data.firmwares.map((firmware) => {
-        return {
-          ...firmware,
-          present_in_repo: true,
-        };
-      });
-      return repoFirmwares;
-    } catch {
-      return [];
-    }
-  };
-
-  const getFirmwareFiles = async () => {
-    try {
-      const { data } = await getData(
-        `${process.env.API_URL}/api/v1.0/firmware`,
-        token,
-      );
-
-      const files = data.files ? data.files : [];
-      const defaults = data.defaults ? data.defaults : [];
-
-      const mappedFirmwareData = files.map((firmware) => {
-        const defaultTo = defaults.find((d) => d.file === firmware)?.default;
-        const linkedTo = defaults.find((d) => d.default === firmware)?.file;
-
-        return {
-          filename: firmware,
-          approved: false,
-          present_in_repo: false,
-          approved_by: "",
-          approved_date: "",
-          end_of_life_date: "",
-          os_version: "",
-          already_downloaded: true,
-          default_to: defaultTo,
-          linked_to: linkedTo,
-        };
-      });
-      return mappedFirmwareData;
-    } catch {
-      return [];
-    }
-  };
-
   const reloadFirmwareFiles = async () => {
-    const firmwareRepoData = await getFirmwareRepoData();
-    const firmwareNmsData = await getFirmwareFiles();
-    const mergedFirmwareData = mergeFirmwareData(
-      firmwareRepoData,
-      firmwareNmsData,
-    );
-    setFirmwareData(mergedFirmwareData);
+    try {
+      const repoData = await fetchRepoFirmware();
+      const nmsData = await fetchNmsFirmware(token);
+      setFirmwareData(mergeFirmwareData(repoData, nmsData));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -277,14 +185,23 @@ export function FirmwareCopy() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {firmwareData.map((firmware, index) => (
-                <FirmwareTableRow
-                  key={firmware.filename || index}
-                  firmware={firmware}
-                  index={index}
-                  reloadFirmwareFiles={reloadFirmwareFiles}
-                />
-              ))}
+              {loading ? (
+                <TableRow>
+                  <TableCell>
+                    <Loader active inline="centered">
+                      Loading firmware...{" "}
+                    </Loader>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                firmwareData.map((firmware) => (
+                  <FirmwareTableRow
+                    key={firmware.filename}
+                    firmware={firmware}
+                    reloadFirmwareFiles={reloadFirmwareFiles}
+                  />
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
