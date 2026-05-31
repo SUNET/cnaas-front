@@ -2,10 +2,21 @@ import { useEffect, useRef } from "react";
 import { isJobEvent } from "../../types/socketEvents";
 import { socket } from "./stores/socket";
 
+// Terminal job states after which a copy job stops emitting updates.
+const TERMINAL_STATUSES = ["FINISHED", "EXCEPTION", "ABORTED"];
+
+// Each firmware row mounts its own watcher, but they all share the singleton
+// socket. We reference-count active watchers so the connection is opened for
+// the first one and only closed once the last one goes away — otherwise a
+// finishing job would disconnect the socket out from under other concurrent
+// copy jobs and they'd miss their completion events.
+let activeWatchers = 0;
+
 /**
  * Watch a running firmware-copy job over Socket.IO. While `jobId` is set, the
- * socket is connected and listening; when a matching job reports FINISHED or
- * EXCEPTION, `onComplete` fires. Disconnects on cleanup or when `jobId` clears.
+ * socket is connected and listening; when a matching job reaches a terminal
+ * state, `onComplete` fires. The shared connection is closed when the last
+ * active watcher unmounts or its `jobId` clears.
  */
 export function useFirmwareCopyJob(
   token: string | null,
@@ -30,7 +41,7 @@ export function useFirmwareCopyJob(
       if (
         isJobEvent(data) &&
         data.job_id === jobId &&
-        (data.status === "FINISHED" || data.status === "EXCEPTION")
+        TERMINAL_STATUSES.includes(data.status)
       ) {
         onCompleteRef.current();
       }
@@ -38,12 +49,23 @@ export function useFirmwareCopyJob(
 
     socket.on("connect", handleConnect);
     socket.on("events", handleEvents);
-    socket.connect();
+
+    activeWatchers += 1;
+    if (socket.connected) {
+      // Already open for another job — the connect event won't fire again, so
+      // subscribe to job updates directly.
+      handleConnect();
+    } else {
+      socket.connect();
+    }
 
     return () => {
       socket.off("connect", handleConnect);
       socket.off("events", handleEvents);
-      socket.disconnect();
+      activeWatchers -= 1;
+      if (activeWatchers === 0) {
+        socket.disconnect();
+      }
     };
   }, [token, jobId]);
 }
