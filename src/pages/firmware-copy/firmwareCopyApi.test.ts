@@ -100,16 +100,30 @@ describe("mergeFirmwareData", () => {
     expect(merged.default_to).toBe("EOS-stable");
   });
 
-  it("sorts the combined list by filename", () => {
+  it("sorts 64-bit before 32-bit, newest version first, stable on top", () => {
     const repo = [
-      repoFile({ filename: "EOS-c.swi" }),
-      repoFile({ filename: "EOS-a.swi" }),
+      repoFile({ filename: "EOS-4.32.5M.swi" }),
+      repoFile({ filename: "EOS-4.32.5.1M.swi" }),
+      repoFile({ filename: "EOS-4.34.6M.swi" }),
+      repoFile({ filename: "EOS-stable.swi" }),
+      repoFile({ filename: "EOS64-4.33.6M.swi" }),
+      repoFile({ filename: "EOS64-4.34.6M.swi" }),
+      repoFile({ filename: "EOS64-stable.swi" }),
     ];
-    const nms = [nmsFile({ filename: "EOS-b.swi" })];
+    const nms = [nmsFile({ filename: "EOS64-4.32.5M.swi" })];
 
     const result = mergeFirmwareData(repo, nms).map((f) => f.filename);
 
-    expect(result).toEqual(["EOS-a.swi", "EOS-b.swi", "EOS-c.swi"]);
+    expect(result).toEqual([
+      "EOS64-stable.swi",
+      "EOS64-4.34.6M.swi",
+      "EOS64-4.33.6M.swi",
+      "EOS64-4.32.5M.swi",
+      "EOS-stable.swi",
+      "EOS-4.34.6M.swi",
+      "EOS-4.32.5M.swi",
+      "EOS-4.32.5.1M.swi",
+    ]);
   });
 
   it("does not mutate its inputs", () => {
