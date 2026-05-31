@@ -141,8 +141,8 @@ describe("mergeFirmwareData", () => {
   it("does not mutate its inputs", () => {
     const repo = [repoFile({ filename: "EOS-both.swi" })];
     const nms = [nmsFile({ filename: "EOS-both.swi" })];
-    const repoSnapshot = JSON.parse(JSON.stringify(repo));
-    const nmsSnapshot = JSON.parse(JSON.stringify(nms));
+    const repoSnapshot = [repoFile({ filename: "EOS-both.swi" })];
+    const nmsSnapshot = [nmsFile({ filename: "EOS-both.swi" })];
 
     mergeFirmwareData(repo, nms);
 

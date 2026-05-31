@@ -168,7 +168,7 @@ export async function copyFirmware(
     },
   );
   if (typeof data.job_id !== "number") {
-    throw new Error("No job_id returned when submitting firmware copy job");
+    throw new TypeError("No job_id returned when submitting firmware copy job");
   }
   return data.job_id;
 }

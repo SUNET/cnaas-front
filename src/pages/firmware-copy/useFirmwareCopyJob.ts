@@ -3,7 +3,7 @@ import { isJobEvent } from "../../types/socketEvents";
 import { socket } from "./stores/socket";
 
 // Terminal job states after which a copy job stops emitting updates.
-const TERMINAL_STATUSES = ["FINISHED", "EXCEPTION", "ABORTED"];
+const TERMINAL_STATUSES = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
 
 /**
  * Listen for the terminal transition of a single firmware-copy job. All rows
@@ -27,7 +27,7 @@ export function useFirmwareCopyJob(
       if (
         isJobEvent(data) &&
         data.job_id === jobId &&
-        TERMINAL_STATUSES.includes(data.status)
+        TERMINAL_STATUSES.has(data.status)
       ) {
         onCompleteRef.current();
       }
