@@ -122,7 +122,7 @@ function versionSegments(filename: string): number[] {
   const token = filename.replace(/^EOS(64)?-/, "").replace(/\.swi$/, "");
   const segments = token
     .split(".")
-    .map((part) => parseInt(part, 10))
+    .map((part) => Number.parseInt(part, 10))
     .filter((part) => !Number.isNaN(part));
   return segments.length > 0 ? segments : [Infinity];
 }
@@ -133,7 +133,7 @@ function compareSegments(a: number[], b: number[]): number {
   if (a.length === 0 && b.length === 0) return 0;
   const [headA = 0, ...restA] = a;
   const [headB = 0, ...restB] = b;
-  return headA !== headB ? headB - headA : compareSegments(restA, restB);
+  return headA === headB ? compareSegments(restA, restB) : headB - headA;
 }
 
 export function compareFirmwareFiles(a: string, b: string): number {
