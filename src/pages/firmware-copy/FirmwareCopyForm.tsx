@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, ButtonGroup, Icon } from "semantic-ui-react";
 import { useAuthToken } from "../../stores/AuthTokenContext";
-import { extractErrorMessage } from "../../utils/extractErrorMessage";
+import { extractErrorMessageAsync } from "../../utils/extractErrorMessage";
 import {
   copyFirmware,
   deleteFirmware,
@@ -46,7 +46,7 @@ export function FirmwareCopyForm({
       setCopyJobStatus("RUNNING");
     } catch (err) {
       setErrorMessage(
-        `Error when copying firmware: ${extractErrorMessage(err)}`,
+        `Error when copying firmware: ${await extractErrorMessageAsync(err)}`,
       );
     }
   };
@@ -58,7 +58,7 @@ export function FirmwareCopyForm({
       reloadFirmwareFiles();
     } catch (err) {
       setErrorMessage(
-        `Error when deleting firmware: ${extractErrorMessage(err)}`,
+        `Error when deleting firmware: ${await extractErrorMessageAsync(err)}`,
       );
     } finally {
       setRemoveDisabled(false);
@@ -71,7 +71,7 @@ export function FirmwareCopyForm({
       reloadFirmwareFiles();
     } catch (err) {
       setErrorMessage(
-        `Error when setting default firmware: ${extractErrorMessage(err)}`,
+        `Error when setting default firmware: ${await extractErrorMessageAsync(err)}`,
       );
     }
   };
