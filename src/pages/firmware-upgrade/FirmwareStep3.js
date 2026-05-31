@@ -14,7 +14,7 @@ import {
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { FirmwareError } from "./FirmwareError";
-import { postData } from "../../utils/sendData";
+import { fetchStaggeredSteps } from "./firmwareUpgradeApi";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 
 const dateRegEx = new RegExp(
@@ -102,12 +102,7 @@ export function FirmwareStep3({
   const getStaggeredSteps = React.useCallback(async () => {
     try {
       setStaggeredSteps(<p>Loading staggered steps...</p>);
-      const resp = await postData(
-        `${process.env.API_URL}/api/v1.0/firmware/upgradecheck`,
-        token,
-        { group: commitTarget.group },
-      );
-      const groups = resp.data.upgrade_groups;
+      const groups = await fetchStaggeredSteps(commitTarget.group, token);
       const stepElements = [];
       // enumerate groups and add step <index> to stepElements
       for (const [index, group] of groups.entries()) {
