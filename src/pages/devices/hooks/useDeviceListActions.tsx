@@ -6,7 +6,7 @@ import { useDeviceList } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";
 import type { Device, DeviceState } from "../../../types/device";
 import type { MgmtDomain } from "../../../types/mgmtDomain";
-import { jobLineMatcher } from "../utils";
+import { matchesJobId } from "../../../types/job";
 
 export type DeviceListActions = {
   readonly addDeviceJob: (deviceId: number, jobId: number) => void;
@@ -192,9 +192,9 @@ export function useDeviceListActions(): DeviceListActions {
     if (!jobIds || jobIds.length === 0) return {};
     const lines: string[] = [];
     for (const jobId of jobIds) {
-      const needle = jobLineMatcher(jobId);
+      const matches = matchesJobId(jobId);
       for (const line of logLines) {
-        if (needle.test(line)) {
+        if (matches(line)) {
           lines.push(line);
         }
       }

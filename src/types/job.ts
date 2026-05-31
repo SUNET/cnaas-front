@@ -45,6 +45,20 @@ export function isTerminalJobStatus(status: string): boolean {
 }
 
 /**
+ * Predicate factory: matches log lines belonging to the given job id.
+ *
+ * Delimiter-aware so `job #10` does not match `job #100` lines, and
+ * case-insensitive. Pair with `Array.prototype.filter`:
+ * `logLines.filter(matchesJobId(jobId))`.
+ */
+export function matchesJobId(
+  jobId: number | string,
+): (logLine: string) => boolean {
+  const pattern = new RegExp(`job #${jobId}(?!\\d)`, "i");
+  return (logLine: string) => pattern.test(logLine);
+}
+
+/**
  * Mirroring the backend `Job` SQLAlchemy model
  */
 export type Job = {

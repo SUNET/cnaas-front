@@ -1,5 +1,5 @@
 import LogViewer from "../../components/LogViewer";
-import { type Job } from "../../types/job";
+import { matchesJobId, type Job } from "../../types/job";
 
 type FirmwareProgressInfoProps = {
   readonly jobStatus?: string | null;
@@ -14,9 +14,6 @@ export function FirmwareProgressInfo({
   jobData,
   logLines,
 }: FirmwareProgressInfoProps) {
-  const hasJobId = (id: number | null | undefined) => {
-    return (logLine: string) => logLine.toLowerCase().includes(`job #${id}`);
-  };
   const jobStartTime = jobData?.start_time ?? "";
   const jobFinishTime = jobData?.finish_time ?? "";
   const exceptionMessage =
@@ -30,7 +27,9 @@ export function FirmwareProgressInfo({
       <p className="error">{exceptionMessage}</p>
       <p>start time: {jobStartTime}</p>
       <p>finish time: {jobFinishTime}</p>
-      <LogViewer logs={logLines.filter(hasJobId(jobId))} />
+      <LogViewer
+        logs={jobId == null ? [] : logLines.filter(matchesJobId(jobId))}
+      />
     </div>
   );
 }

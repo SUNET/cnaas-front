@@ -1,5 +1,5 @@
 import LogViewer from "../../../../components/LogViewer";
-import type { Job } from "../../../../types/job";
+import { matchesJobId, type Job } from "../../../../types/job";
 
 type DryRunProgressInfoProps = {
   readonly dryRunJobStatus: string;
@@ -25,15 +25,9 @@ export function DryRunProgressInfo({
       ? (dryRunProgressData?.exception?.message ?? "")
       : "";
 
-  const filterJobId = (id: number | string) => {
-    return function (logLine: string) {
-      return logLine.toLowerCase().includes(`job #${id}`);
-    };
-  };
-
   const logViewer =
     logLines != null && logLines.length > 0 ? (
-      <LogViewer logs={logLines.filter(filterJobId(jobId))} />
+      <LogViewer logs={logLines.filter(matchesJobId(jobId))} />
     ) : null;
 
   return (
