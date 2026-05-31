@@ -35,6 +35,15 @@ type RepoFirmwareEntry = {
 };
 type RepoFirmwareResponse = {
   readonly firmwares?: readonly RepoFirmwareEntry[];
+  // ISO timestamp of when the central repo metadata was last regenerated.
+  readonly updated?: string;
+};
+
+// What fetchRepoFirmware hands back: the mapped firmware files plus the repo's
+// own last-updated timestamp (shown in the UI).
+export type RepoFirmware = {
+  readonly firmwares: FirmwareFile[];
+  readonly updated?: string;
 };
 
 // GET /api/v1.0/firmware — standard API envelope. `data.files` are filenames
@@ -53,18 +62,21 @@ type NmsFirmwareResponse = {
 
 export async function fetchRepoFirmware(
   signal?: AbortSignal,
-): Promise<FirmwareFile[]> {
+): Promise<RepoFirmware> {
   const url = process.env.FIRMWARE_REPO_METADATA_URL;
-  if (!url) return [];
+  if (!url) return { firmwares: [] };
   try {
     const data: RepoFirmwareResponse = await getData(url, undefined, signal);
-    return (data.firmwares ?? []).map((entry) => ({
-      ...entry,
-      present_in_repo: true,
-      already_downloaded: false,
-    }));
+    return {
+      firmwares: (data.firmwares ?? []).map((entry) => ({
+        ...entry,
+        present_in_repo: true,
+        already_downloaded: false,
+      })),
+      updated: data.updated,
+    };
   } catch {
-    return [];
+    return { firmwares: [] };
   }
 }
 
