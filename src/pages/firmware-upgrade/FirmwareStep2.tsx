@@ -1,21 +1,42 @@
 import { useEffect, useState } from "react";
-import { Form, Confirm, Select } from "semantic-ui-react";
+import {
+  Form,
+  Confirm,
+  Select,
+  type DropdownProps,
+  type DropdownItemProps,
+} from "semantic-ui-react";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { fetchFirmwareFiles } from "./firmwareUpgradeApi";
 import { FirmwareError } from "./FirmwareError";
 import { useAuthToken } from "../../stores/AuthTokenContext";
-import PropTypes from "prop-types";
+import type { Job } from "../../types/job";
 
-FirmwareStep2.propTypes = {
-  skipStep2: PropTypes.func,
-  firmwareUpgradeStart: PropTypes.func,
-  firmwareUpgradeAbort: PropTypes.func,
-  jobData: PropTypes.object,
-  jobId: PropTypes.number,
-  totalCount: PropTypes.number,
-  logLines: PropTypes.arrayOf(PropTypes.string),
+type FirmwareStep2Props = {
+  readonly skipStep2: () => void;
+  readonly firmwareUpgradeStart: (
+    step: number,
+    filename: string | null,
+    startAt: string | null,
+  ) => void;
+  readonly firmwareUpgradeAbort: (step: number) => void;
+  readonly jobData?: Job | null;
+  readonly jobId?: number | null;
+  readonly totalCount: number;
+  readonly logLines: readonly string[];
 };
+
+/** Devices keyed by hostname, as found in an EXCEPTION job's `result`. */
+function getExceptionDevices(
+  result: unknown,
+): Readonly<Record<string, { readonly failed?: boolean }>> {
+  if (result && typeof result === "object" && "devices" in result) {
+    return (result as { devices: Record<string, { failed?: boolean }> })
+      .devices;
+  }
+  return {};
+}
 
 export function FirmwareStep2({
   skipStep2,
@@ -25,11 +46,13 @@ export function FirmwareStep2({
   jobId,
   totalCount,
   logLines,
-}) {
+}: FirmwareStep2Props) {
   const { token } = useAuthToken();
 
-  const [filename, setFilename] = useState(null);
-  const [firmwareOptions, setFirmwareOptions] = useState([]);
+  const [filename, setFilename] = useState<string | null>(null);
+  const [firmwareOptions, setFirmwareOptions] = useState<DropdownItemProps[]>(
+    [],
+  );
   const [firmwareLocked, setFirmwareLocked] = useState(false);
   const [firmwareSelected, setFirmwareSelected] = useState(false);
   const [confirmDiagOpen, setConfirmDiagOpen] = useState(false);
@@ -44,10 +67,12 @@ export function FirmwareStep2({
     skipStep2();
   };
 
-  const updateFilename = (e, option) => {
+  const updateFilename = (
+    _e: React.SyntheticEvent<HTMLElement>,
+    option: DropdownProps,
+  ) => {
     if (firmwareLocked === false) {
-      const val = option.value;
-      setFilename(val);
+      setFilename(String(option.value));
     }
     setFirmwareSelected(true);
   };
@@ -56,18 +81,22 @@ export function FirmwareStep2({
     setFirmwareLocked(true);
     firmwareUpgradeStart(2, filename, null);
     const confirmButtonElem = document.getElementById("step2button");
-    confirmButtonElem.disabled = true;
+    if (confirmButtonElem instanceof HTMLButtonElement) {
+      confirmButtonElem.disabled = true;
+    }
   };
 
   const onClickStep2Abort = () => {
     firmwareUpgradeAbort(2);
     const confirmButtonElem = document.getElementById("step2abortButton");
-    confirmButtonElem.disabled = true;
+    if (confirmButtonElem instanceof HTMLButtonElement) {
+      confirmButtonElem.disabled = true;
+    }
   };
 
-  const getFirmwareFiles = async () => {
+  const getFirmwareFiles = async (): Promise<DropdownItemProps[]> => {
     const dataFiles = await fetchFirmwareFiles(token);
-    const newFirmwareOptions = [];
+    const newFirmwareOptions: DropdownItemProps[] = [];
     dataFiles.forEach((filename, index) => {
       if (
         process.env.ARISTA_DETECT_ARCH !== undefined &&
@@ -125,9 +154,9 @@ export function FirmwareStep2({
   }, []);
 
   const error =
-    jobStatus === "EXCEPTION"
-      ? [<FirmwareError key="exception" devices={jobResult.devices} />]
-      : "";
+    jobStatus === "EXCEPTION" ? (
+      <FirmwareError key="exception" devices={getExceptionDevices(jobResult)} />
+    ) : null;
   const step2abortDisabled = !(
     jobStatus === "RUNNING" || jobStatus === "SCHEDULED"
   );
@@ -148,7 +177,7 @@ export function FirmwareStep2({
           <Select
             placeholder="filename"
             options={firmwareOptions}
-            onChange={(e, option) => updateFilename(e, option)}
+            onChange={updateFilename}
             disabled={firmwareLocked}
           />
           <div className="info">
