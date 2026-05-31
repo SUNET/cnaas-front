@@ -252,12 +252,14 @@ export function FirmwareUpgrade() {
     const url = `${process.env.API_URL}/api/v1.0/firmware/upgrade`;
     const response = await post(url, token, dataToSend);
     readHeaders(response, step);
-    // TODO (Step 7): most upgrade validation errors come back as HTTP 200 with
-    // { status: "error", message } and no job_id (see cnaas-nms firmware.py
-    // FirmwareUpgradeApi.post). We currently read data.job_id blindly, so those
-    // errors become a silent no-op (poll effect skips a falsy jobId). When
-    // converting to .tsx: type the response with job_id?: number, check
-    // status === "error", and surface `message` to the user.
+    // TODO (Step 7): post() only throws on !response.ok, so it checks the HTTP
+    // status code only. The BE returns most upgrade validation errors as HTTP
+    // 200 with { status: "error", message } and no job_id (see cnaas-nms
+    // firmware.py FirmwareUpgradeApi.post). We read data.job_id blindly, so
+    // those errors become a silent no-op (poll effect skips a falsy jobId).
+    // When converting to .tsx: type the response with job_id?: number, check
+    // the body's status === "error" (NOT just the HTTP code), and surface
+    // `message` to the user.
     const data = await response.json();
     if (step === 2) {
       setStep2jobId(data.job_id);
