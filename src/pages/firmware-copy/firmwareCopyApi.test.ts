@@ -133,8 +133,24 @@ describe("mergeFirmwareData", () => {
       "EOS64-4.32.5M.swi",
       "EOS-stable.swi",
       "EOS-4.34.6M.swi",
-      "EOS-4.32.5M.swi",
       "EOS-4.32.5.1M.swi",
+      "EOS-4.32.5M.swi",
+    ]);
+  });
+
+  it("ranks a dotted patch release as newer than its base version", () => {
+    const repo = [
+      repoFile({ filename: "EOS-4.32.5M.swi" }),
+      repoFile({ filename: "EOS-4.32.5.10M.swi" }),
+      repoFile({ filename: "EOS-4.32.5.1M.swi" }),
+    ];
+
+    const result = mergeFirmwareData(repo, []).map((f) => f.filename);
+
+    expect(result).toEqual([
+      "EOS-4.32.5.10M.swi",
+      "EOS-4.32.5.1M.swi",
+      "EOS-4.32.5M.swi",
     ]);
   });
 

@@ -108,18 +108,39 @@ export async function fetchNmsFirmware(
 
 // Order firmware for display: 64-bit images (EOS64-…) first, then 32-bit
 // (EOS-…); within each group newest version on top. We treat the token before
-// the first "-" as the platform prefix ("EOS64"/"EOS") and compare the rest
-// numerically in reverse so higher versions sort first.
+// the first "-" as the platform prefix ("EOS64"/"EOS") and compare the version
+// that follows segment-by-segment so dotted patch releases rank correctly
+// (4.32.5.1 is newer than 4.32.5).
 function is64bit(filename: string): boolean {
   return filename.split("-")[0].includes("64");
+}
+
+// Numeric version segments of a firmware filename, e.g.
+// "EOS-4.32.5.1M.swi" -> [4, 32, 5, 1]. Non-numeric tokens such as "stable"
+// have no segments and rank newest, so they map to [Infinity] to float to top.
+function versionSegments(filename: string): number[] {
+  const token = filename.replace(/^EOS(64)?-/, "").replace(/\.swi$/, "");
+  const segments = token
+    .split(".")
+    .map((part) => parseInt(part, 10))
+    .filter((part) => !Number.isNaN(part));
+  return segments.length > 0 ? segments : [Infinity];
+}
+
+// Compare version segments newest-first, most-significant segment wins. A
+// missing trailing segment counts as 0, so 4.32.5.1 ranks above 4.32.5.
+function compareSegments(a: number[], b: number[]): number {
+  if (a.length === 0 && b.length === 0) return 0;
+  const [headA = 0, ...restA] = a;
+  const [headB = 0, ...restB] = b;
+  return headA !== headB ? headB - headA : compareSegments(restA, restB);
 }
 
 export function compareFirmwareFiles(a: string, b: string): number {
   const a64 = is64bit(a);
   const b64 = is64bit(b);
   if (a64 !== b64) return a64 ? -1 : 1;
-  // same bitness — newest version first (descending natural order)
-  return b.localeCompare(a, undefined, { numeric: true });
+  return compareSegments(versionSegments(a), versionSegments(b));
 }
 
 // Combine repo + NMS views into a single sorted list. Pure — never mutates its
