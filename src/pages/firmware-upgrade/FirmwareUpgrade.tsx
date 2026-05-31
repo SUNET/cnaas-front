@@ -18,6 +18,17 @@ type DoPoll = {
   readonly step: number | null;
 };
 
+/**
+ * Body of POST /firmware/upgrade. On success `job_id` is set; most validation
+ * errors come back as HTTP 200 with `{ status: "error", message }` and no
+ * `job_id` (cnaas-nms firmware.py FirmwareUpgradeApi.post via empty_result).
+ */
+type UpgradeStartResult = {
+  readonly status?: string;
+  readonly message?: string;
+  readonly job_id?: number;
+};
+
 export function FirmwareUpgrade() {
   const { token } = useAuthToken();
   const tokenRef = useFreshRef(token);
@@ -44,6 +55,7 @@ export function FirmwareUpgrade() {
   const [jobTicketRef, setJobTicketRef] = useState("");
   const [logLines, setLogLines] = useState<string[]>([]);
   const [doPoll, setDoPoll] = useState<DoPoll>({ jobId: null, step: null });
+  const [startError, setStartError] = useState<string | null>(null);
 
   const updateComment = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -261,14 +273,16 @@ export function FirmwareUpgrade() {
     const url = `${process.env.API_URL}/api/v1.0/firmware/upgrade`;
     const response = await post(url, token, dataToSend);
     readHeaders(response, step);
-    // TODO (Step 9): post() only throws on !response.ok, so it checks the HTTP
-    // status code only. The BE returns most upgrade validation errors as HTTP
-    // 200 with { status: "error", message } and no job_id (see cnaas-nms
-    // firmware.py FirmwareUpgradeApi.post). We read data.job_id blindly, so
-    // those errors become a silent no-op (poll effect skips a falsy jobId).
-    // Fix: check the body's status === "error" (NOT just the HTTP code), and
-    // surface `message` to the user.
-    const data = await response.json();
+    // post() only throws on !response.ok. The BE returns most upgrade
+    // validation errors as HTTP 200 with { status: "error", message } and no
+    // job_id, so check the body — not just the HTTP status — and surface the
+    // message instead of silently starting a poll for a missing job.
+    const data: UpgradeStartResult = await response.json();
+    if (data.status === "error" || data.job_id == null) {
+      setStartError(data.message ?? "Failed to start firmware upgrade");
+      return;
+    }
+    setStartError(null);
     if (step === 2) {
       setStep2jobId(data.job_id);
     } else if (step === 3) {
@@ -338,6 +352,7 @@ export function FirmwareUpgrade() {
       <section>
         <h1>Firmware upgrade</h1>
         <p>Firmware upgrade target {commitTargetName}</p>
+        {startError && <p className="error">{startError}</p>}
         <p>Describe the change:</p>
         <Input
           placeholder="comment"

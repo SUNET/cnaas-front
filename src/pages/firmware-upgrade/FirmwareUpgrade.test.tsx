@@ -80,6 +80,17 @@ function upgradeResponse(jobId: number): Response {
   } as unknown as Response;
 }
 
+/**
+ * The BE returns most upgrade validation errors as HTTP 200 with
+ * { status: "error", message } and no job_id.
+ */
+function upgradeErrorResponse(message: string): Response {
+  return {
+    headers: { get: () => "1" },
+    json: async () => ({ status: "error", message }),
+  } as unknown as Response;
+}
+
 function renderComponent(search = "?hostname=test-switch") {
   const router = createMemoryRouter(
     [{ path: "/firmware-upgrade", element: <FirmwareUpgrade /> }],
@@ -233,6 +244,31 @@ test("step 2: an EXCEPTION job surfaces the failed devices", async () => {
 
   expect(await screen.findByText("dev1")).toBeInTheDocument();
   expect(screen.queryByText("dev2")).not.toBeInTheDocument();
+});
+
+test("step 2: a 200-status body error surfaces the message without polling", async () => {
+  mockGetDataResponses({ files: ["firmware-4.29.0.bin"] });
+  mockPost.mockResolvedValue(
+    upgradeErrorResponse("No devices to upgrade matched filter"),
+  );
+
+  renderComponent();
+
+  await selectFirmware(/firmware-4.29.0.bin/);
+  const startButton = await screen.findByRole("button", {
+    name: /start activate firmware/i,
+  });
+  await waitFor(() => expect(startButton).toBeEnabled());
+  await userEvent.click(startButton);
+
+  expect(
+    await screen.findByText("No devices to upgrade matched filter"),
+  ).toBeInTheDocument();
+
+  const polledForJob = mockGetData.mock.calls.some(([url]) =>
+    String(url).includes("/job/"),
+  );
+  expect(polledForJob).toBe(false);
 });
 
 test("step 2: aborting a running job sends an ABORT request", async () => {
