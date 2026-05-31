@@ -9,7 +9,8 @@ jest.mock("./stores/socket", () => {
   return {
     socket: {
       on: jest.fn((event: string, cb: (data: unknown) => void) => {
-        (listeners[event] ||= []).push(cb);
+        listeners[event] ||= [];
+        listeners[event].push(cb);
       }),
       off: jest.fn((event: string, cb: (data: unknown) => void) => {
         listeners[event] = (listeners[event] || []).filter((h) => h !== cb);
