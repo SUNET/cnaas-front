@@ -105,6 +105,22 @@ export async function fetchNmsFirmware(
   }
 }
 
+// Order firmware for display: 64-bit images (EOS64-…) first, then 32-bit
+// (EOS-…); within each group newest version on top. We treat the token before
+// the first "-" as the platform prefix ("EOS64"/"EOS") and compare the rest
+// numerically in reverse so higher versions sort first.
+function is64bit(filename: string): boolean {
+  return filename.split("-")[0].includes("64");
+}
+
+export function compareFirmwareFiles(a: string, b: string): number {
+  const a64 = is64bit(a);
+  const b64 = is64bit(b);
+  if (a64 !== b64) return a64 ? -1 : 1;
+  // same bitness — newest version first (descending natural order)
+  return b.localeCompare(a, undefined, { numeric: true });
+}
+
 // Combine repo + NMS views into a single sorted list. Pure — never mutates its
 // inputs. A file present in both keeps the repo entry, OR-ing in the NMS flags;
 // NMS-only files are appended.
@@ -130,6 +146,6 @@ export function mergeFirmwareData(
   );
 
   return [...merged, ...nmsOnly].sort((a, b) =>
-    a.filename.localeCompare(b.filename),
+    compareFirmwareFiles(a.filename, b.filename),
   );
 }
