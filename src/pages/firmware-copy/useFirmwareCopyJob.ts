@@ -1,9 +1,7 @@
 import { useEffect, useRef } from "react";
 import { isJobEvent } from "../../types/socketEvents";
+import { isTerminalJobStatus } from "../../types/job";
 import { socket } from "./stores/socket";
-
-// Terminal job states after which a copy job stops emitting updates.
-const TERMINAL_STATUSES = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
 
 /**
  * Listen for the terminal transition of a single firmware-copy job. All rows
@@ -27,7 +25,7 @@ export function useFirmwareCopyJob(
       if (
         isJobEvent(data) &&
         data.job_id === jobId &&
-        TERMINAL_STATUSES.has(data.status)
+        isTerminalJobStatus(data.status)
       ) {
         onCompleteRef.current();
       }

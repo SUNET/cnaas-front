@@ -1,6 +1,7 @@
 import { useEffect, type Dispatch } from "react";
 import { useFreshRef } from "../../../hooks/useFreshRef";
 import { type JobEvent, isJobEvent } from "../../../types/socketEvents";
+import { isTerminalJobStatus } from "../../../types/job";
 import { socket } from "../stores/socket";
 import {
   type SyncNotification,
@@ -21,7 +22,6 @@ import {
 type EventData = JobEvent | SyncNotification | string;
 
 const STATUS_RUNNING = new Set(["RUNNING"]);
-const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
 
 type RepoJobState = Pick<
   ConfigChangeState,
@@ -86,7 +86,7 @@ export function useConfigChangeSocket(
         }
       }
 
-      if (STATUS_STOPPED.has(data.status) && repoJobIdRef.current != null) {
+      if (isTerminalJobStatus(data.status) && repoJobIdRef.current != null) {
         dispatch({ type: actions.REPO_JOB_STOPPED });
       }
     };

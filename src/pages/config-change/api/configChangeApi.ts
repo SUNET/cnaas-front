@@ -1,6 +1,6 @@
 import { getData } from "../../../utils/getData";
 import { post } from "../../../utils/sendData";
-import type { Job } from "../../../types/job";
+import { type Job, isTerminalJobStatus } from "../../../types/job";
 import type { SyncHistory } from "../../../types/syncHistory";
 import type {
   CommitTarget,
@@ -107,8 +107,6 @@ export async function startDeviceSync(
 
 // --- Job status polling ---
 
-const STATUS_STOPPED = new Set(["FINISHED", "EXCEPTION", "ABORTED"]);
-
 export type FetchJobStatusResult = {
   readonly payload: Job;
   readonly stopped: boolean;
@@ -124,6 +122,6 @@ export async function fetchJobStatus(
   const payload: Job = response.data.jobs[0];
   return {
     payload,
-    stopped: STATUS_STOPPED.has(payload.status ?? ""),
+    stopped: isTerminalJobStatus(payload.status ?? ""),
   };
 }

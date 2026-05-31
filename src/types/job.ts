@@ -30,6 +30,21 @@ export const JOB_STATUSES = [
 export type JobStatus = (typeof JOB_STATUSES)[number];
 
 /**
+ * Terminal job states — once a job reaches one of these it has stopped and
+ * emits no further lifecycle updates.
+ */
+export const TERMINAL_JOB_STATUSES = new Set<JobStatus>([
+  "FINISHED",
+  "EXCEPTION",
+  "ABORTED",
+]);
+
+/** True once a job has stopped (reached a terminal state). */
+export function isTerminalJobStatus(status: string): boolean {
+  return TERMINAL_JOB_STATUSES.has(status as JobStatus);
+}
+
+/**
  * Mirroring the backend `Job` SQLAlchemy model
  */
 export type Job = {
