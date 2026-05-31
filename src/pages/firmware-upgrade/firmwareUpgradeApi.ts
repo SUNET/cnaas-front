@@ -4,6 +4,12 @@ import type { Device } from "../../types/device";
 
 const API = process.env.API_URL;
 
+/** What the upgrade targets: either a single device or a whole group. */
+export type CommitTarget = {
+  readonly hostname?: string;
+  readonly group?: string;
+};
+
 /** Body of the `data` envelope from GET /devices?filter[hostname]=. */
 export type DeviceOsVersionData = {
   readonly devices: readonly Device[];
