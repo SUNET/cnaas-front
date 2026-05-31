@@ -4,13 +4,12 @@ import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { usePermissions } from "../../../stores/PermissionsContext";
 import { getData } from "../../../utils/getData";
 import { putData } from "../../../utils/sendData";
+import { matchesJobId } from "../../../types/job";
 import LogViewer from "../../../components/LogViewer";
 
 function filterLogLinesByJobIds(jobIds: number[]) {
   return function (logLine: string) {
-    return jobIds.some((v) =>
-      logLine.toLowerCase().includes(`job #${String(v).toLowerCase()}`),
-    );
+    return jobIds.some((id) => matchesJobId(id)(logLine));
   };
 }
 
