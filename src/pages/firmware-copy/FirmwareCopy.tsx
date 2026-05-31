@@ -155,6 +155,7 @@ function FirmwareTableRow({
 
 export function FirmwareCopy() {
   const [firmwareData, setFirmwareData] = useState<FirmwareFile[]>([]);
+  const [repoUpdated, setRepoUpdated] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   const { token } = useAuthToken();
@@ -163,7 +164,8 @@ export function FirmwareCopy() {
     try {
       const repoData = await fetchRepoFirmware();
       const nmsData = await fetchNmsFirmware(token);
-      setFirmwareData(mergeFirmwareData(repoData, nmsData));
+      setFirmwareData(mergeFirmwareData(repoData.firmwares, nmsData));
+      setRepoUpdated(repoData.updated);
     } finally {
       setLoading(false);
     }
@@ -177,6 +179,7 @@ export function FirmwareCopy() {
     <section>
       <div id="firmware_list">
         <h2>Firmware</h2>
+        {repoUpdated && <p>Firmware repository last updated: {repoUpdated}</p>}
         <div id="data">
           <Table striped>
             <TableHeader>
