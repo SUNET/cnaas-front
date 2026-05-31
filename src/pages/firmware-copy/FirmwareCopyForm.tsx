@@ -33,7 +33,7 @@ export function FirmwareCopyForm({
 
   const { token } = useAuthToken();
 
-  useFirmwareCopyJob(token, copyJobId, () => {
+  useFirmwareCopyJob(copyJobId, () => {
     reloadFirmwareFiles();
     setCopyJobId(null);
     setCopyJobStatus(null);
