@@ -64,7 +64,7 @@ const commonRules = {
   "no-use-before-define": "off",
   "prettier/prettier": "error",
   "react-hooks/exhaustive-deps": "off",
-  "react-hooks/immutability": "warn",
+  "react-hooks/immutability": "error",
   "react/destructuring-assignment": "error",
   "react/jsx-filename-extension": [
     "off",
@@ -72,7 +72,7 @@ const commonRules = {
   ],
   "react/prop-types": "error",
   "react/sort-comp": "error",
-  "react-hooks/set-state-in-effect": "warn",
+  "react-hooks/set-state-in-effect": "error",
   "import/no-restricted-paths": ["error", { zones: importBoundaryZones }],
 };
 
