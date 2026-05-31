@@ -1,5 +1,4 @@
-import PropTypes from "prop-types";
-import React from "react";
+import { useCallback, useState, type ChangeEvent, type ReactNode } from "react";
 import {
   Form,
   Confirm,
@@ -14,23 +13,33 @@ import {
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { FirmwareError } from "./FirmwareError";
-import { fetchStaggeredSteps } from "./firmwareUpgradeApi";
+import {
+  fetchStaggeredSteps,
+  getExceptionDevices,
+  type CommitTarget,
+} from "./firmwareUpgradeApi";
 import { useAuthToken } from "../../stores/AuthTokenContext";
+import type { Job } from "../../types/job";
 
 const dateRegEx = new RegExp(
   "^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?$",
 );
 
-FirmwareStep3.propTypes = {
-  firmwareUpgradeStart: PropTypes.func.isRequired,
-  firmwareUpgradeAbort: PropTypes.func.isRequired,
-  filename: PropTypes.string,
-  jobData: PropTypes.object,
-  jobId: PropTypes.number,
-  activateStep3: PropTypes.bool.isRequired,
-  totalCount: PropTypes.number.isRequired,
-  logLines: PropTypes.array.isRequired,
-  commitTarget: PropTypes.object.isRequired,
+type FirmwareStep3Props = {
+  readonly firmwareUpgradeStart: (
+    step: number,
+    filename: string | null,
+    startAt: string | null,
+    staggeredUpgrade: boolean,
+  ) => void;
+  readonly firmwareUpgradeAbort: (step: number) => void;
+  readonly filename?: string | null;
+  readonly jobData?: Job | null;
+  readonly jobId?: number | null;
+  readonly activateStep3: boolean;
+  readonly totalCount: number;
+  readonly logLines: readonly string[];
+  readonly commitTarget: CommitTarget;
 };
 
 export function FirmwareStep3({
@@ -43,53 +52,55 @@ export function FirmwareStep3({
   totalCount,
   logLines,
   commitTarget,
-}) {
+}: FirmwareStep3Props) {
   const { token } = useAuthToken();
 
   const jobStatus = jobData?.status ?? null;
   const jobResult = jobData?.result ?? null;
   const jobFinishedDevices = jobData?.finished_devices ?? null;
 
-  const [jobStarted, setJobStarted] = React.useState(false);
-  const [confirmDiagOpen, setConfirmDiagOpen] = React.useState(false);
+  const [jobStarted, setJobStarted] = useState(false);
+  const [confirmDiagOpen, setConfirmDiagOpen] = useState(false);
   const [confirmStaggeredDiagOpen, setConfirmStaggeredDiagOpen] =
-    React.useState(false);
-  const [startAt, setStartAt] = React.useState("");
-  const [startAtError, setStartAtError] = React.useState(false);
-  const [staggeredSteps, setStaggeredSteps] = React.useState(null);
-  const [staggeredCompatible, setStaggeredCompatible] = React.useState(false);
+    useState(false);
+  const [startAt, setStartAt] = useState("");
+  const [startAtError, setStartAtError] = useState(false);
+  const [staggeredSteps, setStaggeredSteps] = useState<ReactNode>(null);
+  const [staggeredCompatible, setStaggeredCompatible] = useState(false);
 
-  const openConfirm = React.useCallback(() => {
+  const openConfirm = useCallback(() => {
     setConfirmDiagOpen(true);
   }, []);
 
-  const closeConfirm = React.useCallback(() => {
+  const closeConfirm = useCallback(() => {
     setConfirmDiagOpen(false);
   }, []);
 
-  const closeStaggeredConfirm = React.useCallback(() => {
+  const closeStaggeredConfirm = useCallback(() => {
     setConfirmStaggeredDiagOpen(false);
   }, []);
 
-  const okConfirm = React.useCallback(() => {
+  const okConfirm = useCallback(() => {
     setConfirmDiagOpen(false);
     setJobStarted(true);
-    firmwareUpgradeStart(3, filename, startAt, false);
+    firmwareUpgradeStart(3, filename ?? null, startAt, false);
   }, [firmwareUpgradeStart, filename, startAt]);
 
-  const okStaggeredConfirm = React.useCallback(() => {
+  const okStaggeredConfirm = useCallback(() => {
     setConfirmStaggeredDiagOpen(false);
     setJobStarted(true);
-    firmwareUpgradeStart(3, filename, startAt, true);
+    firmwareUpgradeStart(3, filename ?? null, startAt, true);
   }, [firmwareUpgradeStart, filename, startAt]);
 
-  const onClickStep3Abort = React.useCallback(() => {
+  const onClickStep3Abort = useCallback(() => {
     firmwareUpgradeAbort(3);
     const confirmButtonElem = document.getElementById("step3abortButton");
-    if (confirmButtonElem) confirmButtonElem.disabled = true;
+    if (confirmButtonElem instanceof HTMLButtonElement) {
+      confirmButtonElem.disabled = true;
+    }
   }, [firmwareUpgradeAbort]);
 
-  const onUpdateStartAt = React.useCallback((e) => {
+  const onUpdateStartAt = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setStartAt(val);
     if (dateRegEx.test(val)) {
@@ -99,15 +110,15 @@ export function FirmwareStep3({
     }
   }, []);
 
-  const getStaggeredSteps = React.useCallback(async () => {
+  const getStaggeredSteps = useCallback(async () => {
     try {
       setStaggeredSteps(<p>Loading staggered steps...</p>);
-      const groups = await fetchStaggeredSteps(commitTarget.group, token);
-      const stepElements = [];
+      const groups = await fetchStaggeredSteps(commitTarget.group ?? "", token);
+      const stepElements: ReactNode[] = [];
       // enumerate groups and add step <index> to stepElements
       for (const [index, group] of groups.entries()) {
         stepElements.push(<h2 key={`stepheader${index}`}>Step {index + 1}</h2>);
-        const devicesElements = [];
+        const devicesElements: ReactNode[] = [];
         for (const device of group) {
           devicesElements.push(<li key={device}>{device}</li>);
         }
@@ -116,20 +127,19 @@ export function FirmwareStep3({
       setStaggeredSteps(stepElements);
       setStaggeredCompatible(true);
     } catch (error) {
-      if (error.status === 400) {
+      if (error instanceof Response && error.status === 400) {
         const errorMessage = await error.json();
         setStaggeredSteps(
           <p>Error fetching staggered steps: {errorMessage.message}</p>,
         );
       } else {
-        setStaggeredSteps(
-          <p>Error fetching staggered steps: {error.message}</p>,
-        );
+        const message = error instanceof Error ? error.message : String(error);
+        setStaggeredSteps(<p>Error fetching staggered steps: {message}</p>);
       }
     }
   }, [token, commitTarget]);
 
-  const openStaggeredConfirm = React.useCallback(() => {
+  const openStaggeredConfirm = useCallback(() => {
     setConfirmStaggeredDiagOpen(true);
     getStaggeredSteps();
   }, [getStaggeredSteps]);
@@ -138,9 +148,9 @@ export function FirmwareStep3({
   let disableStaggeredButton = true;
 
   const error =
-    jobStatus === "EXCEPTION"
-      ? [<FirmwareError key="exception" devices={jobResult.devices} />]
-      : "";
+    jobStatus === "EXCEPTION" ? (
+      <FirmwareError key="exception" devices={getExceptionDevices(jobResult)} />
+    ) : null;
 
   const step3abortDisabled = !(
     jobStatus === "RUNNING" || jobStatus === "SCHEDULED"
