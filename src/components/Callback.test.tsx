@@ -59,7 +59,7 @@ describe("Callback Component", () => {
     mockUseAuthToken.mockReturnValue(authTokenValue({ token: null }));
     mockUsePermissions.mockReturnValue(permissionsValue);
 
-    Object.defineProperty(window, "location", {
+    Object.defineProperty(globalThis, "location", {
       configurable: true,
       value: { replace: mockReplace },
     });

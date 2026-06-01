@@ -67,20 +67,20 @@ function renderAuth() {
   );
 }
 
-const originalLocation = window.location;
+const originalLocation = globalThis.location;
 
 beforeEach(() => {
   localStorage.clear();
   jest.clearAllMocks();
   mockGetData.mockResolvedValue("alice");
-  Object.defineProperty(window, "location", {
+  Object.defineProperty(globalThis, "location", {
     configurable: true,
     value: { replace: jest.fn() },
   });
 });
 
 afterEach(() => {
-  Object.defineProperty(window, "location", {
+  Object.defineProperty(globalThis, "location", {
     configurable: true,
     value: originalLocation,
   });
@@ -133,6 +133,6 @@ describe("logout flow", () => {
       "You have been logged out",
     );
     expect(localStorage.getItem("token")).toBeNull();
-    expect(window.location.replace).toHaveBeenCalledWith("/");
+    expect(globalThis.location.replace).toHaveBeenCalledWith("/");
   });
 });
