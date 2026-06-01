@@ -1,7 +1,6 @@
 import { useEffect, useReducer, useRef, type ChangeEvent } from "react";
 import { useSearchParams } from "react-router";
 import { Input } from "semantic-ui-react";
-import { io, type Socket } from "socket.io-client";
 import { NavigationBlocker } from "../../components/NavigationBlocker";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";
@@ -17,6 +16,7 @@ import {
   firmwareUpgradeReducer,
   initialState,
 } from "./firmwareUpgradeReducer";
+import { useFirmwareUpgradeSocket } from "./useFirmwareUpgradeSocket";
 
 /**
  * Body of POST /firmware/upgrade. On success `job_id` is set; most validation
@@ -102,34 +102,11 @@ export function FirmwareUpgrade() {
     typeof setInterval
   > | null>(null);
 
+  useFirmwareUpgradeSocket(token, dispatch);
+
+  // Clear any in-flight poll intervals on unmount.
   useEffect(() => {
-    const apiUrl = process.env.API_URL;
-    if (!apiUrl) {
-      throw new Error("API_URL is not configured");
-    }
-
-    const socket: Socket = io(apiUrl, {
-      query: { jwt: tokenRef.current },
-    });
-
-    socket.on("connect", function () {
-      socket.emit("events", { loglevel: "DEBUG" });
-    });
-
-    socket.on("error", (error) => {
-      console.log("SOCKET ERROR", error);
-    });
-
-    socket.on("disconnect", (reason, details) => {
-      console.log("SOCKET DISCONNECTED", reason, details);
-    });
-
-    socket.on("events", (data) => {
-      dispatch({ type: actions.APPEND_LOG, line: `${data}\n` });
-    });
-
     return () => {
-      socket.off("events");
       clearInterval(repeatingStep2IntervalRef.current ?? undefined);
       clearInterval(repeatingStep3intervalRef.current ?? undefined);
     };
