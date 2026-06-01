@@ -1,19 +1,29 @@
-import PropTypes from "prop-types";
+import { ChangeEvent, MouseEvent } from "react";
 
-LoginForm.propTypes = {
-  handleSubmit: PropTypes.func,
-  setValue: PropTypes.func,
-  formValues: PropTypes.object,
-  errorMessage: PropTypes.string,
+type LoginFormValues = {
+  readonly email: string;
+  readonly password: string;
 };
 
-function LoginForm({ handleSubmit, setValue, formValues, errorMessage }) {
-  const handleInput = (event) => {
+type LoginFormProps = {
+  readonly handleSubmit: (email: string, password: string) => void;
+  readonly setValue: (name: string, value: string) => void;
+  readonly formValues: LoginFormValues;
+  readonly errorMessage?: string;
+};
+
+function LoginForm({
+  handleSubmit,
+  setValue,
+  formValues,
+  errorMessage,
+}: LoginFormProps) {
+  const handleInput = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setValue(name, value);
   };
 
-  const handleClick = (event) => {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     handleSubmit(formValues.email, formValues.password);
   };

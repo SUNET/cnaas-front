@@ -20,7 +20,7 @@ mockGetData.mockResolvedValue({ api: { COMMIT_CONFIRMED_MODE: 1 } });
 mockUseAuthToken.mockReturnValue({
   token: "mockToken",
   username: "test-user",
-});
+} as ReturnType<typeof useAuthTokenImport>);
 
 const mockLiveRunSyncStart = jest.fn();
 

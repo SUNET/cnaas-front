@@ -2,6 +2,7 @@ import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { useAuthToken } from "../stores/AuthTokenContext";
+import { initialAuthTokenState } from "../stores/authTokenReducer";
 import { usePermissions } from "../stores/PermissionsContext";
 import { getData } from "../utils/getData";
 import { Callback } from "./Callback";
@@ -9,6 +10,14 @@ import { Callback } from "./Callback";
 jest.mock("../stores/AuthTokenContext");
 jest.mock("../stores/PermissionsContext");
 jest.mock("../utils/getData");
+
+const mockUseAuthToken = useAuthToken as jest.MockedFunction<
+  typeof useAuthToken
+>;
+const mockUsePermissions = usePermissions as jest.MockedFunction<
+  typeof usePermissions
+>;
+const mockGetData = getData as jest.MockedFunction<typeof getData>;
 
 const { PERMISSIONS_DISABLED } = process.env;
 
@@ -28,18 +37,33 @@ describe("Callback Component", () => {
   const mockPutPermissions = jest.fn();
   const mockReplace = jest.fn();
 
-  beforeEach(() => {
-    useAuthToken.mockReturnValue({
-      token: null,
-      putToken: mockPutToken,
-      setUsername: mockSetUsername,
-    });
-    usePermissions.mockReturnValue({
-      putPermissions: mockPutPermissions,
-    });
+  const authTokenValue = (
+    overrides: Partial<ReturnType<typeof useAuthToken>>,
+  ): ReturnType<typeof useAuthToken> => ({
+    ...initialAuthTokenState,
+    doTokenRefresh: jest.fn(),
+    login: jest.fn(),
+    logout: jest.fn(),
+    oidcLogin: jest.fn(),
+    putToken: mockPutToken,
+    setUsername: mockSetUsername,
+    ...overrides,
+  });
 
-    delete window.location;
-    window.location = { replace: mockReplace };
+  const permissionsValue: ReturnType<typeof usePermissions> = {
+    permissions: [],
+    permissionsCheck: jest.fn(),
+    putPermissions: mockPutPermissions,
+  };
+
+  beforeEach(() => {
+    mockUseAuthToken.mockReturnValue(authTokenValue({ token: null }));
+    mockUsePermissions.mockReturnValue(permissionsValue);
+
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { replace: mockReplace },
+    });
 
     process.env.PERMISSIONS_DISABLED = "false";
   });
@@ -53,7 +77,7 @@ describe("Callback Component", () => {
   });
 
   test("processes OIDC redirect and navigates home", async () => {
-    getData.mockResolvedValueOnce([{ permission: "some-permission" }]);
+    mockGetData.mockResolvedValueOnce([{ permission: "some-permission" }]);
 
     renderCallback();
 
@@ -78,11 +102,9 @@ describe("Callback Component", () => {
   });
 
   test("redirects home if already logged in and no URL params", async () => {
-    useAuthToken.mockReturnValue({
-      token: "existing-token",
-      putToken: mockPutToken,
-      setUsername: mockSetUsername,
-    });
+    mockUseAuthToken.mockReturnValue(
+      authTokenValue({ token: "existing-token" }),
+    );
 
     renderCallback("/callback");
 
@@ -93,7 +115,7 @@ describe("Callback Component", () => {
   });
 
   test("displays no permissions message when user has no permissions", async () => {
-    getData.mockResolvedValueOnce([]);
+    mockGetData.mockResolvedValueOnce([]);
 
     renderCallback();
 

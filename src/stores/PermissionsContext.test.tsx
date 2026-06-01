@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
-import { getData as mockGetData } from "../utils/getData";
-import { useAuthToken as mockUseAuthToken } from "./AuthTokenContext";
+import { getData } from "../utils/getData";
+import { useAuthToken } from "./AuthTokenContext";
 import {
   findPermission,
   PermissionsProvider,
@@ -15,18 +15,23 @@ const mockPermissions = [
 jest.mock("../utils/getData");
 jest.mock("./AuthTokenContext");
 
+const mockGetData = getData as jest.MockedFunction<typeof getData>;
+const mockUseAuthToken = useAuthToken as jest.MockedFunction<
+  typeof useAuthToken
+>;
+
 beforeEach(() => {
   mockGetData.mockResolvedValue(mockPermissions);
   mockUseAuthToken.mockReturnValue({
     token: "mockToken",
-  });
+  } as ReturnType<typeof useAuthToken>);
   jest
     .spyOn(Storage.prototype, "getItem")
     .mockReturnValue(JSON.stringify(mockPermissions));
 });
 
 afterEach(() => {
-  global.Storage.prototype.getItem.mockReset();
+  jest.spyOn(Storage.prototype, "getItem").mockReset();
   jest.clearAllMocks();
 });
 

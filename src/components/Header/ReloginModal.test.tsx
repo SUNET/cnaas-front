@@ -2,8 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
+import { useAuthToken } from "../../stores/AuthTokenContext";
+import { initialAuthTokenState } from "../../stores/authTokenReducer";
 import ReloginModal from "./ReloginModal";
-import { useAuthToken as mockUseAuthToken } from "../../stores/AuthTokenContext";
 
 jest.mock("../../stores/AuthTokenContext", () => {
   const actual = jest.requireActual("../../stores/AuthTokenContext");
@@ -13,19 +14,34 @@ jest.mock("../../stores/AuthTokenContext", () => {
   };
 });
 
+const mockUseAuthToken = useAuthToken as jest.MockedFunction<
+  typeof useAuthToken
+>;
 const mockLogout = jest.fn();
 const mockOidcLogin = jest.fn();
+
+const authTokenValue = (
+  overrides: Partial<ReturnType<typeof useAuthToken>>,
+): ReturnType<typeof useAuthToken> => ({
+  ...initialAuthTokenState,
+  doTokenRefresh: jest.fn(),
+  login: jest.fn(),
+  logout: mockLogout,
+  oidcLogin: mockOidcLogin,
+  putToken: jest.fn(),
+  setUsername: jest.fn(),
+  ...overrides,
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-function renderComponent({ isOpen = true, tokenExpiry = null } = {}) {
-  mockUseAuthToken.mockReturnValue({
-    logout: mockLogout,
-    oidcLogin: mockOidcLogin,
-    tokenExpiry,
-  });
+function renderComponent({
+  isOpen = true,
+  tokenExpiry = null,
+}: { isOpen?: boolean; tokenExpiry?: number | null } = {}) {
+  mockUseAuthToken.mockReturnValue(authTokenValue({ tokenExpiry }));
   return render(<ReloginModal isOpen={isOpen} />);
 }
 

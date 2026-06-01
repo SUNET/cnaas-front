@@ -1,24 +1,29 @@
-import PropTypes from "prop-types";
 import {
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
-import { getData } from "../utils/getData";
+import { Permission } from "../types/permission";
 import { storeValueIsUndefined } from "../utils/formatters";
+import { getData } from "../utils/getData";
 import { useAuthToken } from "./AuthTokenContext";
 
-const PermissionsContext = createContext();
-
-PermissionsProvider.propTypes = {
-  children: PropTypes.node,
+export type PermissionsContextValue = {
+  permissions: Permission[] | null;
+  permissionsCheck: (page: string, right: string) => boolean;
+  putPermissions: (newPermissions: Permission[] | null) => void;
 };
 
 // export for test
-export const findPermission = (userPermissions, targetPage, requiredRight) => {
+export const findPermission = (
+  userPermissions: Permission[],
+  targetPage: string,
+  requiredRight: string,
+): boolean => {
   for (const permission of userPermissions) {
     const { pages, rights } = permission;
     if (
@@ -32,8 +37,16 @@ export const findPermission = (userPermissions, targetPage, requiredRight) => {
   return false;
 };
 
-export function PermissionsProvider({ children }) {
-  const [permissions, setPermissions] = useState([]);
+const PermissionsContext = createContext<PermissionsContextValue | undefined>(
+  undefined,
+);
+
+export function PermissionsProvider({
+  children,
+}: {
+  readonly children?: ReactNode;
+}) {
+  const [permissions, setPermissions] = useState<Permission[] | null>([]);
   const { token, loggedIn } = useAuthToken();
 
   const removePermissions = useCallback(() => {
@@ -42,7 +55,7 @@ export function PermissionsProvider({ children }) {
   }, []);
 
   const putPermissions = useCallback(
-    (newPermissions) => {
+    (newPermissions: Permission[] | null) => {
       if (storeValueIsUndefined(newPermissions)) {
         removePermissions();
       } else {
@@ -54,7 +67,7 @@ export function PermissionsProvider({ children }) {
   );
 
   const permissionsCheck = useCallback(
-    (page, right) => {
+    (page: string, right: string) => {
       if (process.env.PERMISSIONS_DISABLED === "true") {
         return true;
       }
@@ -69,7 +82,7 @@ export function PermissionsProvider({ children }) {
   useEffect(() => {
     const setPermissionsOnLoad = () => {
       const permissionsStored = localStorage.getItem("permissions");
-      if (!storeValueIsUndefined(permissionsStored)) {
+      if (permissionsStored && !storeValueIsUndefined(permissionsStored)) {
         setPermissions(JSON.parse(permissionsStored));
       }
     };
@@ -100,7 +113,7 @@ export function PermissionsProvider({ children }) {
     };
   }, [token, putPermissions]);
 
-  const value = useMemo(
+  const value = useMemo<PermissionsContextValue>(
     () => ({ permissions, permissionsCheck, putPermissions }),
     [permissions, permissionsCheck, putPermissions],
   );
@@ -112,7 +125,7 @@ export function PermissionsProvider({ children }) {
 }
 
 // Export custom hook for using PermissionsContext
-export const usePermissions = () => {
+export const usePermissions = (): PermissionsContextValue => {
   const context = useContext(PermissionsContext);
 
   if (!context) {

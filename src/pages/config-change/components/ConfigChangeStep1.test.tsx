@@ -24,7 +24,11 @@ mockPutData.mockResolvedValue(true);
 beforeEach(() => {
   mockGetData.mockClear();
   mockPutData.mockClear();
-  mockUsePermissions.mockReturnValue({ permissionsCheck: () => true });
+  mockUsePermissions.mockReturnValue({
+    permissions: [],
+    permissionsCheck: () => true,
+    putPermissions: jest.fn(),
+  });
 });
 
 test("loads and displays 3 enabled buttons", async () => {

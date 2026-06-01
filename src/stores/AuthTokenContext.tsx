@@ -1,8 +1,10 @@
 /* eslint-disable react-hooks/immutability */
-import PropTypes from "prop-types";
 import { jwtDecode } from "jwt-decode";
 import {
   createContext,
+  Dispatch,
+  ReactNode,
+  SyntheticEvent,
   useCallback,
   useContext,
   useEffect,
@@ -16,11 +18,24 @@ import { getData } from "../utils/getData";
 import { postData } from "../utils/sendData";
 import {
   actions,
+  AuthTokenAction,
   authTokenReducer,
+  AuthTokenState,
   initialAuthTokenState,
 } from "./authTokenReducer";
 
-export const getSecondsUntilExpiry = (tokenExpiry) => {
+export type AuthTokenContextValue = AuthTokenState & {
+  doTokenRefresh: () => Promise<void>;
+  login: (email: string, password: string) => void;
+  logout: () => void;
+  oidcLogin: (event?: SyntheticEvent) => void;
+  putToken: (newToken: string | null) => void;
+  setUsername: (username: string) => void;
+};
+
+export const getSecondsUntilExpiry = (
+  tokenExpiry: number | null | undefined,
+): number | null => {
   if (tokenExpiry === null || tokenExpiry === undefined) {
     return null;
   }
@@ -32,14 +47,29 @@ export const getSecondsUntilExpiry = (tokenExpiry) => {
   }
 };
 
-export const AuthTokenContext = createContext({});
-
-AuthTokenProvider.propTypes = {
-  children: PropTypes.node,
+// A non-throwing default keeps the original `createContext({})` behaviour:
+// components rendered outside a provider see a logged-out value rather than
+// crashing. (Provider always supplies a real value in the app.)
+const defaultAuthTokenContextValue: AuthTokenContextValue = {
+  ...initialAuthTokenState,
+  doTokenRefresh: async () => {},
+  login: () => {},
+  logout: () => {},
+  oidcLogin: () => {},
+  putToken: () => {},
+  setUsername: () => {},
 };
 
-export function AuthTokenProvider({ children }) {
-  const init = () => {
+export const AuthTokenContext = createContext<AuthTokenContextValue>(
+  defaultAuthTokenContextValue,
+);
+
+export function AuthTokenProvider({
+  children,
+}: {
+  readonly children?: ReactNode;
+}) {
+  const init = (): AuthTokenState => {
     const initialState = initialAuthTokenState;
     const tokenStored = localStorage.getItem("token");
 
@@ -53,11 +83,8 @@ export function AuthTokenProvider({ children }) {
     return initialState;
   };
 
-  const [tokenState, dispatch] = useReducer(
-    authTokenReducer,
-    initialAuthTokenState,
-    init,
-  );
+  const [tokenState, dispatch]: [AuthTokenState, Dispatch<AuthTokenAction>] =
+    useReducer(authTokenReducer, initialAuthTokenState, init);
 
   // Update username from API
   useEffect(() => {
@@ -77,7 +104,9 @@ export function AuthTokenProvider({ children }) {
   }, [tokenState.token]);
 
   // Set refresh token timer
-  const tokenRefreshTimer = useRef();
+  const tokenRefreshTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   useEffect(() => {
     if (tokenState.token && tokenState.tokenExpiry !== null) {
       const debounce = Math.floor(Math.random() * 30); // debounce 0 - 30 seconds
@@ -85,7 +114,10 @@ export function AuthTokenProvider({ children }) {
         () => {
           doTokenRefresh();
         },
-        (getSecondsUntilExpiry(tokenState.tokenExpiry) - 120 + debounce) * 1000, // 2 minutes before expiry + debounce
+        ((getSecondsUntilExpiry(tokenState.tokenExpiry) ?? 0) -
+          120 +
+          debounce) *
+          1000, // 2 minutes before expiry + debounce
       );
     }
 
@@ -96,17 +128,19 @@ export function AuthTokenProvider({ children }) {
 
   // Get token from storage on load and add storage listener
   useEffect(() => {
-    const onStorageTokenUpdate = (e) => {
+    const onStorageTokenUpdate = (e: StorageEvent) => {
       // Handle token change in other tab
       const { key, newValue } = e;
       if (key !== "token") return;
 
-      storeValueIsUndefined(newValue)
-        ? console.warn("Token has bad value", newValue)
-        : dispatch({
-            type: actions.SET_TOKEN,
-            payload: { time: Date.now(), token: newValue },
-          });
+      if (storeValueIsUndefined(newValue)) {
+        console.warn("Token has bad value", newValue);
+      } else {
+        dispatch({
+          type: actions.SET_TOKEN,
+          payload: { time: Date.now(), token: newValue as string },
+        });
+      }
     };
 
     dispatch({
@@ -138,7 +172,7 @@ export function AuthTokenProvider({ children }) {
       });
   }, [tokenState.tokenExpiry]);
 
-  const login = useCallback((email, password) => {
+  const login = useCallback((email: string, password: string) => {
     const url = `${process.env.API_URL}/api/v1.0/auth`;
     const loginString = `${email}:${password}`;
     fetch(url, {
@@ -173,7 +207,7 @@ export function AuthTokenProvider({ children }) {
     window.location.replace("/");
   }, []);
 
-  const oidcLogin = (event) => {
+  const oidcLogin = (event?: SyntheticEvent) => {
     if (event) {
       event.preventDefault();
     }
@@ -184,7 +218,7 @@ export function AuthTokenProvider({ children }) {
 
   // Only supposed to be used in 'Callback' component.
 
-  const putToken = (newToken) => {
+  const putToken = (newToken: string | null) => {
     if (storeValueIsUndefined(newToken)) {
       // New token value is invalid
       dispatch({ type: actions.LOGOUT });
@@ -193,15 +227,15 @@ export function AuthTokenProvider({ children }) {
 
     dispatch({
       type: actions.SET_TOKEN,
-      payload: { time: Date.now(), token: newToken },
+      payload: { time: Date.now(), token: newToken as string },
     });
   };
 
-  const setUsername = (username) => {
+  const setUsername = (username: string) => {
     dispatch({ type: actions.SET_USERNAME, payload: username });
   };
 
-  const value = useMemo(
+  const value = useMemo<AuthTokenContextValue>(
     () => ({
       doTokenRefresh,
       login,
@@ -230,7 +264,7 @@ export function AuthTokenProvider({ children }) {
 }
 
 // Export custom hook
-export const useAuthToken = () => {
+export const useAuthToken = (): AuthTokenContextValue => {
   const authContext = useContext(AuthTokenContext);
 
   if (!authContext) {

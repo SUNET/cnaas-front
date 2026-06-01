@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Icon, Container } from "semantic-ui-react";
+import { Container, Icon } from "semantic-ui-react";
 
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { usePermissions } from "../../stores/PermissionsContext";
+import { DashboardLinkgrid } from "../DashboardLinkgrid";
 import LoginForm from "./LoginForm";
 import LoginOIDC from "./LoginOIDC";
-import { DashboardLinkgrid } from "../DashboardLinkgrid";
 
 function Login() {
   const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuthToken();
@@ -23,7 +23,7 @@ function Login() {
       ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
       : "";
 
-  const setValue = (name, value) => {
+  const setValue = (name: string, value: string) => {
     setCredentials({
       ...credentials,
       [name]: value,
