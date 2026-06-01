@@ -271,6 +271,34 @@ test("step 2: a 200-status body error surfaces the message without polling", asy
   expect(polledForJob).toBe(false);
 });
 
+test("step 2: a transport failure surfaces the error and does not poll", async () => {
+  mockGetDataResponses({ files: ["firmware-4.29.0.bin"] });
+  // post() rejects on a non-2xx status (with the raw Response in the app). The
+  // start handler must catch it and surface the message in startError rather
+  // than leak an unhandled rejection.
+  mockPost.mockRejectedValue({
+    message: "Backend exploded",
+    status: 500,
+    statusText: "Internal Server Error",
+  });
+
+  renderComponent();
+
+  await selectFirmware(/firmware-4.29.0.bin/);
+  const startButton = await screen.findByRole("button", {
+    name: /start activate firmware/i,
+  });
+  await waitFor(() => expect(startButton).toBeEnabled());
+  await userEvent.click(startButton);
+
+  expect(await screen.findByText("Backend exploded")).toBeInTheDocument();
+
+  const polledForJobAfterError = mockGetData.mock.calls.some(([url]) =>
+    String(url).includes("/job/"),
+  );
+  expect(polledForJobAfterError).toBe(false);
+});
+
 test("step 2: a finished activation job activates step 3", async () => {
   mockGetDataResponses({
     files: ["firmware-4.29.0.bin"],
