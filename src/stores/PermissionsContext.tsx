@@ -10,6 +10,7 @@ import {
 import { Permission } from "../types/permission";
 import { storeValueIsUndefined } from "../utils/formatters";
 import { getData } from "../utils/getData";
+import { sanitizePermissions } from "../utils/permissions/sanitizePermissions";
 import { useAuthToken } from "./AuthTokenContext";
 
 export type PermissionsContextValue = {
@@ -56,11 +57,15 @@ export function PermissionsProvider({
 
   const putPermissions = useCallback(
     (newPermissions: Permission[] | null) => {
-      if (storeValueIsUndefined(newPermissions)) {
+      // Validate/normalise before trusting or persisting: only known string
+      // fields survive, so the value written to storage is freshly constructed
+      // rather than the raw (untrusted) API response.
+      const sanitized = sanitizePermissions(newPermissions);
+      if (storeValueIsUndefined(sanitized)) {
         removePermissions();
       } else {
-        setPermissions(newPermissions);
-        localStorage.setItem("permissions", JSON.stringify(newPermissions));
+        setPermissions(sanitized);
+        localStorage.setItem("permissions", JSON.stringify(sanitized));
       }
     },
     [removePermissions],

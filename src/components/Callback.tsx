@@ -17,7 +17,7 @@ export function Callback() {
   useEffect(() => {
     const getPermissions = async (authToken: string | null) => {
       if (process.env.PERMISSIONS_DISABLED === "true") {
-        window.location.replace("/");
+        globalThis.location.replace("/");
         return;
       }
       try {
@@ -27,7 +27,7 @@ export function Callback() {
         );
         putPermissions(data);
         if (data.length > 0) {
-          window.location.replace("/");
+          globalThis.location.replace("/");
         } else {
           setErrorMessage(
             "You don't seem to have any permissions within this application. Please check with an admin if this is correct.",
@@ -52,7 +52,7 @@ export function Callback() {
       getPermissions(newToken);
     } else if (token) {
       // No URL params — if already logged in, redirect home
-      window.location.replace("/");
+      globalThis.location.replace("/");
     }
   }, []); // mount-only: runs once on OIDC redirect landing
 
