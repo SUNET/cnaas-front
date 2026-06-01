@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useReducer, useRef, type ChangeEvent } from "react";
 import { useSearchParams } from "react-router";
 import { Input } from "semantic-ui-react";
 import { io, type Socket } from "socket.io-client";
@@ -12,11 +12,11 @@ import { useAuthToken } from "../../stores/AuthTokenContext";
 import { post, putData } from "../../utils/sendData";
 import { isTerminalJobStatus, type Job } from "../../types/job";
 import type { CommitTarget } from "./firmwareUpgradeApi";
-
-type DoPoll = {
-  readonly jobId: number | null;
-  readonly step: number | null;
-};
+import {
+  actions,
+  firmwareUpgradeReducer,
+  initialState,
+} from "./firmwareUpgradeReducer";
 
 /**
  * Body of POST /firmware/upgrade. On success `job_id` is set; most validation
@@ -34,41 +34,41 @@ export function FirmwareUpgrade() {
   const tokenRef = useFreshRef(token);
   const [searchParams] = useSearchParams();
 
-  const [blockNavigation, setBlockNavigation] = useState(false);
+  const [state, dispatch] = useReducer(firmwareUpgradeReducer, initialState);
+  const {
+    blockNavigation,
+    step2TotalCount,
+    step2JobId,
+    step2JobData,
+    step3TotalCount,
+    step3JobId,
+    step3JobData,
+    activateStep3,
+    filename,
+    jobComment,
+    jobTicketRef,
+    logLines,
+    doPoll,
+    startError,
+  } = state;
+
+  // Derived view state — never stored in the reducer.
+  const step2jobStatus = step2JobData?.status ?? null;
+  const step3jobStatus = step3JobData?.status ?? null;
 
   const navigationBlockerMessage =
     "A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave.";
 
-  const [step2totalCount, setStep2totalCount] = useState(0);
-  const [step2jobId, setStep2jobId] = useState<number | null>(null);
-  const [step2jobData, setStep2jobData] = useState<Job | null>(null);
-  const step2jobStatus = step2jobData?.status ?? null;
-
-  const [step3totalCount, setStep3totalCount] = useState(0);
-  const [step3jobId, setStep3jobId] = useState<number | null>(null);
-  const [step3jobData, setStep3jobData] = useState<Job | null>(null);
-  const step3jobStatus = step3jobData?.status ?? null;
-
-  const [activateStep3, setActivateStep3] = useState(false);
-  const [filename, setFilename] = useState<string | null>(null);
-  const [jobComment, setJobComment] = useState("");
-  const [jobTicketRef, setJobTicketRef] = useState("");
-  const [logLines, setLogLines] = useState<string[]>([]);
-  const [doPoll, setDoPoll] = useState<DoPoll>({ jobId: null, step: null });
-  const [startError, setStartError] = useState<string | null>(null);
-
   const updateComment = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setJobComment(val);
+    dispatch({ type: actions.SET_JOB_COMMENT, comment: e.target.value });
   };
 
   const updateTicketRef = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setJobTicketRef(val);
+    dispatch({ type: actions.SET_JOB_TICKET_REF, ticketRef: e.target.value });
   };
 
   const skipStep2 = () => {
-    setActivateStep3(true);
+    dispatch({ type: actions.SET_ACTIVATE_STEP3, activate: true });
   };
 
   const getCommitTarget = (): CommitTarget | null => {
@@ -125,13 +125,7 @@ export function FirmwareUpgrade() {
     });
 
     socket.on("events", (data) => {
-      setLogLines((prev) => {
-        const updated = [...prev, `${data}\n`];
-        if (updated.length >= 1000) {
-          updated.shift();
-        }
-        return updated;
-      });
+      dispatch({ type: actions.APPEND_LOG, line: `${data}\n` });
     });
 
     return () => {
@@ -156,29 +150,35 @@ export function FirmwareUpgrade() {
       try {
         const initialStep2Data = await getData(url, tokenRef.current);
         const initialJobStep2Data: Job = initialStep2Data.data.jobs[0];
-        setStep2jobData(initialJobStep2Data);
-        setBlockNavigation(true);
+        dispatch({
+          type: actions.SET_STEP2_JOB_DATA,
+          data: initialJobStep2Data,
+        });
+        dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: true });
       } catch (error) {
         console.error("Polling error:", error);
-        setBlockNavigation(false);
+        dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
       }
 
       repeatingStep2IntervalRef.current = setInterval(async () => {
         try {
           const data = await getData(url, tokenRef.current);
           const jobData: Job = data.data.jobs[0];
-          setStep2jobData(jobData);
+          dispatch({ type: actions.SET_STEP2_JOB_DATA, data: jobData });
           if (isTerminalJobStatus(jobData.status)) {
             clearInterval(repeatingStep2IntervalRef.current ?? undefined);
-            setActivateStep3(true);
-            setBlockNavigation(false);
-            setDoPoll({ jobId: null, step: null });
+            dispatch({ type: actions.SET_ACTIVATE_STEP3, activate: true });
+            dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
+            dispatch({
+              type: actions.SET_DO_POLL,
+              doPoll: { jobId: null, step: null },
+            });
           }
         } catch (error) {
           console.error("Polling error:", error);
           clearInterval(repeatingStep2IntervalRef.current ?? undefined);
           repeatingStep2IntervalRef.current = null;
-          setBlockNavigation(false);
+          dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
         }
       }, 5000);
     }
@@ -187,28 +187,34 @@ export function FirmwareUpgrade() {
       try {
         const initialStep3Data = await getData(url, tokenRef.current);
         const initialJobStep3Data: Job = initialStep3Data.data.jobs[0];
-        setStep3jobData(initialJobStep3Data);
-        setBlockNavigation(true);
+        dispatch({
+          type: actions.SET_STEP3_JOB_DATA,
+          data: initialJobStep3Data,
+        });
+        dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: true });
       } catch (error) {
         console.error("Polling error:", error);
-        setBlockNavigation(false);
+        dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
       }
 
       repeatingStep3intervalRef.current = setInterval(async () => {
         try {
           const data = await getData(url, tokenRef.current);
           const jobStep3Data: Job = data.data.jobs[0];
-          setStep3jobData(jobStep3Data);
+          dispatch({ type: actions.SET_STEP3_JOB_DATA, data: jobStep3Data });
           if (isTerminalJobStatus(jobStep3Data.status)) {
             clearInterval(repeatingStep3intervalRef.current ?? undefined);
-            setBlockNavigation(false);
-            setDoPoll({ jobId: null, step: null });
+            dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
+            dispatch({
+              type: actions.SET_DO_POLL,
+              doPoll: { jobId: null, step: null },
+            });
           }
         } catch (error) {
           console.error("Polling error:", error);
           clearInterval(repeatingStep3intervalRef.current ?? undefined);
           repeatingStep3intervalRef.current = null;
-          setBlockNavigation(false);
+          dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
         }
       }, 5000);
     }
@@ -218,9 +224,15 @@ export function FirmwareUpgrade() {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !Number.isNaN(Number(totalCountHeader))) {
       if (step === 2) {
-        setStep2totalCount(Number.parseInt(totalCountHeader, 10));
+        dispatch({
+          type: actions.SET_STEP2_TOTAL_COUNT,
+          count: Number.parseInt(totalCountHeader, 10),
+        });
       } else if (step === 3) {
-        setStep3totalCount(Number.parseInt(totalCountHeader, 10));
+        dispatch({
+          type: actions.SET_STEP3_TOTAL_COUNT,
+          count: Number.parseInt(totalCountHeader, 10),
+        });
       }
     } else {
       console.log(
@@ -264,7 +276,7 @@ export function FirmwareUpgrade() {
     };
 
     if (step === 2) {
-      setFilename(filename);
+      dispatch({ type: actions.SET_FILENAME, filename });
     }
     if (step !== 2 && step !== 3) {
       throw "Invalid argument passed to firmwareUpgradeStart";
@@ -279,16 +291,22 @@ export function FirmwareUpgrade() {
     // message instead of silently starting a poll for a missing job.
     const data: UpgradeStartResult = await response.json();
     if (data.status === "error" || data.job_id == null) {
-      setStartError(data.message ?? "Failed to start firmware upgrade");
+      dispatch({
+        type: actions.SET_START_ERROR,
+        message: data.message ?? "Failed to start firmware upgrade",
+      });
       return;
     }
-    setStartError(null);
+    dispatch({ type: actions.SET_START_ERROR, message: null });
     if (step === 2) {
-      setStep2jobId(data.job_id);
+      dispatch({ type: actions.SET_STEP2_JOB_ID, jobId: data.job_id });
     } else if (step === 3) {
-      setStep3jobId(data.job_id);
+      dispatch({ type: actions.SET_STEP3_JOB_ID, jobId: data.job_id });
     }
-    setDoPoll({ jobId: data.job_id, step });
+    dispatch({
+      type: actions.SET_DO_POLL,
+      doPoll: { jobId: data.job_id, step },
+    });
   };
 
   useEffect(() => {
@@ -305,13 +323,11 @@ export function FirmwareUpgrade() {
     let jobId: number | null = null;
     if (step === 2) {
       if (step2jobStatus === "RUNNING" || step2jobStatus === "SCHEDULED") {
-        jobId = step2jobId;
-        const newLogLines = [...logLines];
-        if (newLogLines.length >= 1000) {
-          newLogLines.shift();
-        }
-        newLogLines.push(`WEBUI job #${jobId}: Trying to abort job...\n`);
-        setLogLines(newLogLines);
+        jobId = step2JobId;
+        dispatch({
+          type: actions.APPEND_LOG,
+          line: `WEBUI job #${jobId}: Trying to abort job...\n`,
+        });
       } else {
         return;
       }
@@ -319,13 +335,11 @@ export function FirmwareUpgrade() {
 
     if (step === 3) {
       if (step3jobStatus === "RUNNING" || step3jobStatus === "SCHEDULED") {
-        jobId = step3jobId;
-        const newLogLines = [...logLines];
-        if (newLogLines.length >= 1000) {
-          newLogLines.shift();
-        }
-        newLogLines.push(`WEBUI job #${jobId}: Trying to abort job...\n`);
-        setLogLines(newLogLines);
+        jobId = step3JobId;
+        dispatch({
+          type: actions.APPEND_LOG,
+          line: `WEBUI job #${jobId}: Trying to abort job...\n`,
+        });
       } else {
         return;
       }
@@ -371,18 +385,18 @@ export function FirmwareUpgrade() {
         <FirmwareStep2
           firmwareUpgradeStart={firmwareUpgradeStart}
           firmwareUpgradeAbort={firmwareUpgradeAbort}
-          jobId={step2jobId}
-          jobData={step2jobData}
-          totalCount={step2totalCount}
+          jobId={step2JobId}
+          jobData={step2JobData}
+          totalCount={step2TotalCount}
           logLines={logLines}
           skipStep2={skipStep2}
         />
         <FirmwareStep3
           firmwareUpgradeStart={firmwareUpgradeStart}
           firmwareUpgradeAbort={firmwareUpgradeAbort}
-          jobId={step3jobId}
-          jobData={step3jobData}
-          totalCount={step3totalCount}
+          jobId={step3JobId}
+          jobData={step3JobData}
+          totalCount={step3TotalCount}
           logLines={logLines}
           filename={filename}
           activateStep3={activateStep3}
