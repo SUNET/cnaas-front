@@ -54,7 +54,7 @@ export function isTerminalJobStatus(status: string): boolean {
 export function matchesJobId(
   jobId: number | string,
 ): (logLine: string) => boolean {
-  const pattern = new RegExp(`job #${jobId}(?!\\d)`, "i");
+  const pattern = new RegExp(String.raw`job #${jobId}(?!\d)`, "i");
   return (logLine: string) => pattern.test(logLine);
 }
 
