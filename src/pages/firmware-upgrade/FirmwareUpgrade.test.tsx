@@ -21,15 +21,15 @@ jest.mock("../../hooks/useFreshRef", () => ({
   useFreshRef: (value: unknown) => ({ current: value }),
 }));
 
-const mockSocketOn = jest.fn();
-const mockSocketEmit = jest.fn();
-const mockSocketOff = jest.fn();
-jest.mock("socket.io-client", () => ({
-  io: jest.fn(() => ({
-    on: mockSocketOn,
-    emit: mockSocketEmit,
-    off: mockSocketOff,
-  })),
+jest.mock("./stores/socket", () => ({
+  socket: {
+    io: { opts: {} },
+    on: jest.fn(),
+    emit: jest.fn(),
+    off: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+  },
 }));
 
 const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
