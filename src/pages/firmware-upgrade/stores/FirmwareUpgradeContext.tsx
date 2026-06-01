@@ -15,7 +15,10 @@ import { useFreshRef } from "../../../hooks/useFreshRef";
 import { useBeforeUnloadWarning } from "../../../hooks/useBeforeUnloadWarning";
 import { getData } from "../../../utils/getData";
 import { post, putData } from "../../../utils/sendData";
-import { extractErrorMessage } from "../../../utils/extractErrorMessage";
+import {
+  extractErrorMessage,
+  extractErrorMessageAsync,
+} from "../../../utils/extractErrorMessage";
 import { isTerminalJobStatus, type Job } from "../../../types/job";
 import type { CommitTarget } from "../api/firmwareUpgradeApi";
 import {
@@ -308,27 +311,37 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       }
 
       const url = `${process.env.API_URL}/api/v1.0/firmware/upgrade`;
-      const response = await post(url, tokenRef.current, dataToSend);
-      readHeaders(response, step);
-      // post() only throws on !response.ok. The BE returns most upgrade
-      // validation errors as HTTP 200 with { status: "error", message } and no
-      // job_id, so check the body — not just the HTTP status — and surface the
-      // message instead of silently starting a poll for a missing job.
-      const data: UpgradeStartResult = await response.json();
-      if (data.status === "error" || data.job_id == null) {
+      // post() rejects with the raw Response on a non-2xx status. Wrap the whole
+      // start flow so a transport-level failure surfaces in startError instead
+      // of leaking as an unhandled rejection (the step buttons don't await this).
+      try {
+        const response = await post(url, tokenRef.current, dataToSend);
+        readHeaders(response, step);
+        // post() only throws on !response.ok. The BE returns most upgrade
+        // validation errors as HTTP 200 with { status: "error", message } and no
+        // job_id, so check the body — not just the HTTP status — and surface the
+        // message instead of silently starting a poll for a missing job.
+        const data: UpgradeStartResult = await response.json();
+        if (data.status === "error" || data.job_id == null) {
+          dispatch({
+            type: actions.SET_START_ERROR,
+            message: data.message ?? "Failed to start firmware upgrade",
+          });
+          return;
+        }
+        dispatch({ type: actions.SET_START_ERROR, message: null });
+        if (step === 2) {
+          dispatch({ type: actions.SET_STEP2_JOB_ID, jobId: data.job_id });
+        } else {
+          dispatch({ type: actions.SET_STEP3_JOB_ID, jobId: data.job_id });
+        }
+        startPolling(data.job_id, step);
+      } catch (error) {
         dispatch({
           type: actions.SET_START_ERROR,
-          message: data.message ?? "Failed to start firmware upgrade",
+          message: await extractErrorMessageAsync(error),
         });
-        return;
       }
-      dispatch({ type: actions.SET_START_ERROR, message: null });
-      if (step === 2) {
-        dispatch({ type: actions.SET_STEP2_JOB_ID, jobId: data.job_id });
-      } else {
-        dispatch({ type: actions.SET_STEP3_JOB_ID, jobId: data.job_id });
-      }
-      startPolling(data.job_id, step);
     },
     [
       commitTarget,
