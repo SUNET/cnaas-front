@@ -26,13 +26,13 @@ test("APPEND_LOG appends the given line verbatim", () => {
 test("APPEND_LOG bounds the buffer at 1000 lines", () => {
   const filled: FirmwareUpgradeState = {
     ...initialState,
-    logLines: Array.from({ length: 999 }, (_, i) => `line-${i}\n`),
+    logLines: Array.from({ length: 1000 }, (_, i) => `line-${i}\n`),
   };
   const next = firmwareUpgradeReducer(filled, {
     type: actions.APPEND_LOG,
     line: "overflow\n",
   });
-  expect(next.logLines).toHaveLength(999);
+  expect(next.logLines).toHaveLength(1000);
   expect(next.logLines.at(-1)).toBe("overflow\n");
   expect(next.logLines[0]).toBe("line-1\n");
 });

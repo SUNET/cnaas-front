@@ -21,7 +21,10 @@ export type FailedDevices = Readonly<
  */
 export function getExceptionDevices(result: unknown): FailedDevices {
   if (result && typeof result === "object" && "devices" in result) {
-    return (result as { devices: FailedDevices }).devices;
+    const { devices } = result as { devices: unknown };
+    if (devices && typeof devices === "object") {
+      return devices as FailedDevices;
+    }
   }
   return {};
 }
@@ -49,7 +52,7 @@ export async function fetchDeviceOsVersion(
   signal?: AbortSignal,
 ): Promise<DeviceOsVersionData> {
   const { data } = await getData(
-    `${API}/api/v1.0/devices?filter[hostname]=${hostname}`,
+    `${API}/api/v1.0/devices?filter[hostname]=${encodeURIComponent(hostname)}`,
     token,
     signal,
   );
@@ -63,7 +66,7 @@ export async function fetchGroupOsVersion(
   signal?: AbortSignal,
 ): Promise<GroupOsVersionData> {
   const { data } = await getData(
-    `${API}/api/v1.0/groups/${group}/os_version`,
+    `${API}/api/v1.0/groups/${encodeURIComponent(group)}/os_version`,
     token,
     signal,
   );

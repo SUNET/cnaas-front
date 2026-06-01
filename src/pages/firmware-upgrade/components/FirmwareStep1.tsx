@@ -41,7 +41,7 @@ export function FirmwareStep1() {
       setFirmwareInfo(newFirmwareStatus);
     };
     fetchData();
-  }, []);
+  }, [commitTarget, token]);
 
   let osVersionList = <p>None</p>;
   if (firmwareInfo && "groups" in firmwareInfo && commitTarget.group) {
