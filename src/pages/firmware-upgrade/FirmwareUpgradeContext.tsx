@@ -39,6 +39,15 @@ type UpgradeStartResult = {
 /** The firmware-upgrade steps that run a backend job (step 1 is read-only). */
 type FirmwareJobStep = 2 | 3;
 
+/**
+ * Response body from `PUT /api/v1.0/job/{id}` with `{ action: "ABORT" }`.
+ * On success the envelope carries the updated job (now `ABORTING`); on failure
+ * it carries an error message instead of a job_id.
+ */
+type AbortJobResult =
+  | { readonly status: "success"; readonly data: { readonly jobs: Job[] } }
+  | { readonly status: "error"; readonly message?: string };
+
 type StepProgress = {
   readonly jobId: number | null;
   readonly jobData: Job | null;
@@ -332,8 +341,23 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       abort_reason: "Aborted from WebUI",
     };
     console.log(`Aborting firmware upgrade job ${jobId} step ${step}`);
-    const response = await putData(url, token, dataToSend);
-    readHeaders(response, step);
+    // putData resolves to parsed JSON, not a Response. Read the body to surface
+    // a rejected abort; on success the poller reflects the ABORTING -> ABORTED
+    // transition (the returned job is dispatched here for immediate feedback).
+    const result: AbortJobResult = await putData(url, token, dataToSend);
+    if (result.status === "error") {
+      dispatch({
+        type: actions.APPEND_LOG,
+        line: `WEBUI job #${jobId}: abort failed: ${result.message ?? "unknown error"}\n`,
+      });
+      return;
+    }
+    const jobData = result.data.jobs[0];
+    if (step === 2) {
+      dispatch({ type: actions.SET_STEP2_JOB_DATA, data: jobData });
+    } else {
+      dispatch({ type: actions.SET_STEP3_JOB_DATA, data: jobData });
+    }
   };
 
   // Intentionally NOT memoized (unlike the config-change twin). The orchestration

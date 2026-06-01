@@ -13,6 +13,7 @@ function ProgressBar({ jobStatus, value, total, hidden }) {
         disabled = false;
         break;
       case "RUNNING":
+      case "ABORTING":
         disabled = false;
         active = true;
         break;

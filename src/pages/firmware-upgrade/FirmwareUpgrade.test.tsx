@@ -308,7 +308,12 @@ test("step 2: aborting a running job sends an ABORT request", async () => {
     job: makeJob({ status: "RUNNING" }),
   });
   mockPost.mockResolvedValue(upgradeResponse(123));
-  mockPutData.mockResolvedValue({ headers: { get: () => "1" } });
+  // putData resolves to parsed JSON (no Response/headers), matching the real
+  // transport. The abort envelope carries the updated job (now ABORTING).
+  mockPutData.mockResolvedValue({
+    status: "success",
+    data: { jobs: [makeJob({ id: 123, status: "ABORTING" })] },
+  });
 
   renderComponent();
 
