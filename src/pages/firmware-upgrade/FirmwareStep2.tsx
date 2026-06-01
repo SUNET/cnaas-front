@@ -11,32 +11,17 @@ import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { fetchFirmwareFiles, getExceptionDevices } from "./firmwareUpgradeApi";
 import { FirmwareError } from "./FirmwareError";
 import { useAuthToken } from "../../stores/AuthTokenContext";
-import type { Job } from "../../types/job";
+import { useFirmwareUpgrade } from "./FirmwareUpgradeContext";
 
-type FirmwareStep2Props = {
-  readonly skipStep2: () => void;
-  readonly firmwareUpgradeStart: (
-    step: number,
-    filename: string | null,
-    startAt: string | null,
-  ) => void;
-  readonly firmwareUpgradeAbort: (step: number) => void;
-  readonly jobData?: Job | null;
-  readonly jobId?: number | null;
-  readonly totalCount: number;
-  readonly logLines: readonly string[];
-};
-
-export function FirmwareStep2({
-  skipStep2,
-  firmwareUpgradeStart,
-  firmwareUpgradeAbort,
-  jobData,
-  jobId,
-  totalCount,
-  logLines,
-}: FirmwareStep2Props) {
+export function FirmwareStep2() {
   const { token } = useAuthToken();
+  const {
+    step2: { jobId, jobData, totalCount },
+    logLines,
+    skipStep2,
+    firmwareUpgradeStart,
+    firmwareUpgradeAbort,
+  } = useFirmwareUpgrade();
 
   const [filename, setFilename] = useState<string | null>(null);
   const [firmwareOptions, setFirmwareOptions] = useState<DropdownItemProps[]>(

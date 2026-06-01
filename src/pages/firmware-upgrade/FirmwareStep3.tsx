@@ -13,47 +13,25 @@ import {
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { FirmwareError } from "./FirmwareError";
-import {
-  fetchStaggeredSteps,
-  getExceptionDevices,
-  type CommitTarget,
-} from "./firmwareUpgradeApi";
+import { fetchStaggeredSteps, getExceptionDevices } from "./firmwareUpgradeApi";
 import { useAuthToken } from "../../stores/AuthTokenContext";
-import type { Job } from "../../types/job";
+import { useFirmwareUpgrade } from "./FirmwareUpgradeContext";
 
 const dateRegEx = new RegExp(
   "^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?$",
 );
 
-type FirmwareStep3Props = {
-  readonly firmwareUpgradeStart: (
-    step: number,
-    filename: string | null,
-    startAt: string | null,
-    staggeredUpgrade: boolean,
-  ) => void;
-  readonly firmwareUpgradeAbort: (step: number) => void;
-  readonly filename?: string | null;
-  readonly jobData?: Job | null;
-  readonly jobId?: number | null;
-  readonly activateStep3: boolean;
-  readonly totalCount: number;
-  readonly logLines: readonly string[];
-  readonly commitTarget: CommitTarget;
-};
-
-export function FirmwareStep3({
-  firmwareUpgradeStart,
-  firmwareUpgradeAbort,
-  filename,
-  jobData,
-  jobId,
-  activateStep3,
-  totalCount,
-  logLines,
-  commitTarget,
-}: FirmwareStep3Props) {
+export function FirmwareStep3() {
   const { token } = useAuthToken();
+  const {
+    step3: { jobId, jobData, totalCount },
+    filename,
+    activateStep3,
+    logLines,
+    commitTarget,
+    firmwareUpgradeStart,
+    firmwareUpgradeAbort,
+  } = useFirmwareUpgrade();
 
   const jobStatus = jobData?.status ?? null;
   const jobResult = jobData?.result ?? null;
