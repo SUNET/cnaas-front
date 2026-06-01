@@ -271,6 +271,37 @@ test("step 2: a 200-status body error surfaces the message without polling", asy
   expect(polledForJob).toBe(false);
 });
 
+test("step 2: a finished activation job activates step 3", async () => {
+  mockGetDataResponses({
+    files: ["firmware-4.29.0.bin"],
+    job: makeJob({
+      status: "FINISHED",
+      result: { devices: {} },
+      finished_devices: ["test-switch"],
+    }),
+  });
+  mockPost.mockResolvedValue(upgradeResponse(123));
+
+  renderComponent();
+
+  // Step 3's start button is disabled until step 2 finishes.
+  const step3Button = await screen.findByRole("button", {
+    name: /start reboots/i,
+  });
+  expect(step3Button).toBeDisabled();
+
+  await selectFirmware(/firmware-4.29.0.bin/);
+  const startButton = await screen.findByRole("button", {
+    name: /start activate firmware/i,
+  });
+  await waitFor(() => expect(startButton).toBeEnabled());
+  await userEvent.click(startButton);
+
+  // Polling sees a terminal (FINISHED) job and flips activateStep3, which
+  // enables step 3.
+  await waitFor(() => expect(step3Button).toBeEnabled());
+});
+
 test("step 2: aborting a running job sends an ABORT request", async () => {
   mockGetDataResponses({
     files: ["firmware-4.29.0.bin"],
