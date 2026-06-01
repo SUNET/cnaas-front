@@ -12,7 +12,6 @@ import {
   useReducer,
   useRef,
 } from "react";
-import checkResponseStatus from "../utils/checkResponseStatus";
 import { storeValueIsUndefined } from "../utils/formatters";
 import { getData } from "../utils/getData";
 import { postData } from "../utils/sendData";
@@ -26,7 +25,6 @@ import {
 
 export type AuthTokenContextValue = AuthTokenState & {
   doTokenRefresh: () => Promise<void>;
-  login: (email: string, password: string) => void;
   logout: () => void;
   oidcLogin: (event?: SyntheticEvent) => void;
   putToken: (newToken: string | null) => void;
@@ -53,7 +51,6 @@ export const getSecondsUntilExpiry = (
 const defaultAuthTokenContextValue: AuthTokenContextValue = {
   ...initialAuthTokenState,
   doTokenRefresh: async () => {},
-  login: () => {},
   logout: () => {},
   oidcLogin: () => {},
   putToken: () => {},
@@ -172,32 +169,6 @@ export function AuthTokenProvider({
       });
   }, [tokenState.tokenExpiry]);
 
-  const login = useCallback((email: string, password: string) => {
-    const url = `${process.env.API_URL}/api/v1.0/auth`;
-    const loginString = `${email}:${password}`;
-    fetch(url, {
-      method: "POST",
-      headers: { Authorization: `Basic ${btoa(loginString)}` },
-    })
-      .then((response) => checkResponseStatus(response))
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data?.access_token) {
-          throw new Error(`Login failed. Response ${data}`);
-        }
-        putToken(data.access_token);
-        dispatch({
-          type: actions.SET_LOGIN_MESSAGE,
-          payload: "Login successful",
-        });
-      })
-      .catch((error) => {
-        dispatch({ type: actions.LOGOUT });
-        dispatch({ type: actions.SET_LOGIN_MESSAGE, payload: error.message });
-        console.warn(error);
-      });
-  }, []);
-
   const logout = useCallback(() => {
     dispatch({ type: actions.LOGOUT });
     dispatch({
@@ -238,22 +209,13 @@ export function AuthTokenProvider({
   const value = useMemo<AuthTokenContextValue>(
     () => ({
       doTokenRefresh,
-      login,
       logout,
       oidcLogin,
       putToken,
       setUsername,
       ...tokenState,
     }),
-    [
-      doTokenRefresh,
-      login,
-      logout,
-      oidcLogin,
-      putToken,
-      setUsername,
-      tokenState,
-    ],
+    [doTokenRefresh, logout, oidcLogin, putToken, setUsername, tokenState],
   );
 
   return (

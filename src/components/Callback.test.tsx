@@ -42,7 +42,6 @@ describe("Callback Component", () => {
   ): ReturnType<typeof useAuthToken> => ({
     ...initialAuthTokenState,
     doTokenRefresh: jest.fn(),
-    login: jest.fn(),
     logout: jest.fn(),
     oidcLogin: jest.fn(),
     putToken: mockPutToken,

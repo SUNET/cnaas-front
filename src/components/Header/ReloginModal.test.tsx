@@ -25,7 +25,6 @@ const authTokenValue = (
 ): ReturnType<typeof useAuthToken> => ({
   ...initialAuthTokenState,
   doTokenRefresh: jest.fn(),
-  login: jest.fn(),
   logout: mockLogout,
   oidcLogin: mockOidcLogin,
   putToken: jest.fn(),
