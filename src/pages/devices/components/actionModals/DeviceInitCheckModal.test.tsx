@@ -2,13 +2,19 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
+import { ComponentProps } from "react";
+
 import { DeviceInitCheckModal } from "./DeviceInitCheckModal";
-import { initCheckDevice as mockInitCheckDevice } from "../../api/deviceListApi";
+import { initCheckDevice, InitCheckResponse } from "../../api/deviceListApi";
 
 jest.mock("../../api/deviceListApi");
 jest.mock("../../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
+
+const mockInitCheckDevice = initCheckDevice as jest.MockedFunction<
+  typeof initCheckDevice
+>;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -16,8 +22,10 @@ beforeEach(() => {
 
 const mockSubmitInit = jest.fn();
 
-function renderComponent(props = {}) {
-  const defaultProps = {
+function renderComponent(
+  props: Partial<ComponentProps<typeof DeviceInitCheckModal>> = {},
+) {
+  const defaultProps: ComponentProps<typeof DeviceInitCheckModal> = {
     disabled: false,
     submitInit: mockSubmitInit,
     deviceId: 10,
@@ -35,7 +43,7 @@ const compatibleResponse = {
     linknets: [{ name: "linknet1" }],
     neighbors: [{ name: "neighbor1" }],
   },
-};
+} as unknown as InitCheckResponse;
 
 const incompatibleResponse = {
   data: {
@@ -45,7 +53,7 @@ const incompatibleResponse = {
     linknets: [],
     neighbors: [{ name: "neighbor1" }],
   },
-};
+} as unknown as InitCheckResponse;
 
 test("renders trigger button with provided text", () => {
   renderComponent();

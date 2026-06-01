@@ -1,14 +1,20 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
+import type { ComponentProps } from "react";
 
 import { DeviceStateModal } from "./DeviceStateModal";
-import { updateDevice as mockUpdateDevice } from "../../api/deviceListApi";
+import { updateDevice } from "../../api/deviceListApi";
+import type { UpdateDeviceResponse } from "../../api/deviceListApi";
 
 jest.mock("../../api/deviceListApi");
 jest.mock("../../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
+
+const mockUpdateDevice = updateDevice as jest.MockedFunction<
+  typeof updateDevice
+>;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -17,8 +23,10 @@ beforeEach(() => {
 const mockCloseAction = jest.fn();
 const mockOnStateChange = jest.fn();
 
-function renderComponent(props = {}) {
-  const defaultProps = {
+function renderComponent(
+  props: Partial<ComponentProps<typeof DeviceStateModal>> = {},
+) {
+  const defaultProps: ComponentProps<typeof DeviceStateModal> = {
     isOpen: true,
     closeAction: mockCloseAction,
     deviceId: 42,
@@ -43,7 +51,9 @@ test("renders confirmation message with hostname and new state", () => {
 });
 
 test("calls API and closes modal on successful state change", async () => {
-  mockUpdateDevice.mockResolvedValue({ status: "success" });
+  mockUpdateDevice.mockResolvedValue({
+    status: "success",
+  } as UpdateDeviceResponse);
   renderComponent();
 
   await userEvent.click(screen.getByRole("button", { name: /change state/i }));
