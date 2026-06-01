@@ -42,16 +42,13 @@ describe("getSecondsUntilExpiry", () => {
 });
 
 function AuthConsumer() {
-  const { token, loginMessage, loggedIn, login, logout, doTokenRefresh } =
+  const { token, loginMessage, loggedIn, logout, doTokenRefresh } =
     useAuthToken();
   return (
     <div>
       <span data-testid="token">{token ?? "none"}</span>
       <span data-testid="message">{loginMessage}</span>
       <span data-testid="loggedIn">{String(loggedIn)}</span>
-      <button type="button" onClick={() => login("a@b.c", "pw")}>
-        login
-      </button>
       <button type="button" onClick={() => doTokenRefresh()}>
         refresh
       </button>
@@ -86,29 +83,6 @@ afterEach(() => {
   Object.defineProperty(window, "location", {
     configurable: true,
     value: originalLocation,
-  });
-});
-
-describe("login flow (getting a new token)", () => {
-  test("stores the token from the auth response and reports success", async () => {
-    mockJwtDecode.mockReturnValue({
-      exp: NOW_S + 600,
-      preferred_username: "alice",
-    });
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ access_token: "login-jwt" }),
-    }) as jest.Mock;
-
-    renderAuth();
-    await userEvent.click(screen.getByRole("button", { name: "login" }));
-
-    await waitFor(() =>
-      expect(screen.getByTestId("token")).toHaveTextContent("login-jwt"),
-    );
-    expect(screen.getByTestId("loggedIn")).toHaveTextContent("true");
-    expect(screen.getByTestId("message")).toHaveTextContent("Login successful");
-    expect(localStorage.getItem("token")).toBe("login-jwt");
   });
 });
 

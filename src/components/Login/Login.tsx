@@ -1,19 +1,13 @@
-import { useState } from "react";
 import { Container, Icon } from "semantic-ui-react";
 
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { usePermissions } from "../../stores/PermissionsContext";
 import { DashboardLinkgrid } from "../DashboardLinkgrid";
-import LoginForm from "./LoginForm";
 import LoginOIDC from "./LoginOIDC";
 
 function Login() {
-  const { login, oidcLogin, logout, loginMessage, loggedIn } = useAuthToken();
+  const { oidcLogin, logout, loginMessage, loggedIn } = useAuthToken();
   const { permissions } = usePermissions();
-  const [credentials, setCredentials] = useState({
-    email: "",
-    password: "",
-  });
 
   const permissionsLoading = loggedIn && !permissions?.length;
   const permissionsErrorMsg =
@@ -22,13 +16,6 @@ function Login() {
     !permissions?.length
       ? "You don't seem to have any permissions. Check with an administrator if this is correct. "
       : "";
-
-  const setValue = (name: string, value: string) => {
-    setCredentials({
-      ...credentials,
-      [name]: value,
-    });
-  };
 
   if (loggedIn) {
     window.location.replace("/dashboard");
@@ -49,24 +36,10 @@ function Login() {
     );
   }
 
-  let loginForm = null;
-  if (process.env.OIDC_ENABLED === "true") {
-    loginForm = <LoginOIDC login={oidcLogin} errorMessage={loginMessage} />;
-  } else {
-    loginForm = (
-      <LoginForm
-        handleSubmit={login}
-        formValues={credentials}
-        setValue={setValue}
-        errorMessage={loginMessage}
-      />
-    );
-  }
-
   return (
     <div>
       <Container>
-        {loginForm}
+        <LoginOIDC login={oidcLogin} errorMessage={loginMessage} />
         <DashboardLinkgrid />
       </Container>
     </div>

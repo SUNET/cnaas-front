@@ -62,6 +62,22 @@ describe("SET_TOKEN", () => {
 
     expect(next.username).toBe("c@example.com");
   });
+
+  test("stays logged in without scheduling refresh for a token without exp", () => {
+    // The e2e token (playwright/.auth/user.json) carries no `exp` claim.
+    mockJwtDecode.mockReturnValue({ sub: "admin" });
+
+    const next = authTokenReducer(initialAuthTokenState, {
+      type: actions.SET_TOKEN,
+      payload: { time: NOW_MS, token: "jwt-no-exp" },
+    });
+
+    expect(next.token).toBe("jwt-no-exp");
+    expect(next.username).toBe("admin");
+    expect(next.tokenExpiry).toBeNull();
+    expect(next.loggedIn).toBe(true);
+    expect(next.tokenWillExpire).toBe(false);
+  });
 });
 
 describe("LOAD_TOKEN_FROM_STORAGE", () => {
