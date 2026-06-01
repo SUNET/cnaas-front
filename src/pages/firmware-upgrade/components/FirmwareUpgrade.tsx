@@ -1,9 +1,9 @@
 import { Input } from "semantic-ui-react";
-import { NavigationBlocker } from "../../components/NavigationBlocker";
+import { NavigationBlocker } from "../../../components/NavigationBlocker";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";
 import { FirmwareStep3 } from "./FirmwareStep3";
-import { useFirmwareUpgrade } from "./FirmwareUpgradeContext";
+import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
 
 const NAVIGATION_BLOCKER_MESSAGE =
   "A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave.";

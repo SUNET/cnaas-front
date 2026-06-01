@@ -4,24 +4,24 @@ import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
 import { FirmwareUpgradePage } from "./FirmwareUpgradePage";
-import { getData as getDataImport } from "../../utils/getData";
+import { getData as getDataImport } from "../../../utils/getData";
 import {
   post as postImport,
   putData as putDataImport,
-} from "../../utils/sendData";
-import { makeJob } from "../../test-utils/makeJob";
-import type { Job } from "../../types/job";
+} from "../../../utils/sendData";
+import { makeJob } from "../../../test-utils/makeJob";
+import type { Job } from "../../../types/job";
 
-jest.mock("../../utils/getData");
-jest.mock("../../utils/sendData");
-jest.mock("../../stores/AuthTokenContext", () => ({
+jest.mock("../../../utils/getData");
+jest.mock("../../../utils/sendData");
+jest.mock("../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
-jest.mock("../../hooks/useFreshRef", () => ({
+jest.mock("../../../hooks/useFreshRef", () => ({
   useFreshRef: (value: unknown) => ({ current: value }),
 }));
 
-jest.mock("./stores/socket", () => ({
+jest.mock("../stores/socket", () => ({
   socket: {
     io: { opts: {} },
     on: jest.fn(),

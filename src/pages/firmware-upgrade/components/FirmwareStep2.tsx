@@ -8,10 +8,13 @@ import {
 } from "semantic-ui-react";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
-import { fetchFirmwareFiles, getExceptionDevices } from "./firmwareUpgradeApi";
+import {
+  fetchFirmwareFiles,
+  getExceptionDevices,
+} from "../api/firmwareUpgradeApi";
 import { FirmwareError } from "./FirmwareError";
-import { useAuthToken } from "../../stores/AuthTokenContext";
-import { useFirmwareUpgrade } from "./FirmwareUpgradeContext";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
 
 export function FirmwareStep2() {
   const { token } = useAuthToken();

@@ -1,5 +1,5 @@
-import LogViewer from "../../components/LogViewer";
-import { matchesJobId, type Job } from "../../types/job";
+import LogViewer from "../../../components/LogViewer";
+import { matchesJobId, type Job } from "../../../types/job";
 
 type FirmwareProgressInfoProps = {
   readonly jobStatus?: string | null;

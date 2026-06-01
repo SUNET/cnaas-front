@@ -5,9 +5,9 @@ import {
   type CommitTarget,
   type DeviceOsVersionData,
   type GroupOsVersionData,
-} from "./firmwareUpgradeApi";
-import { useAuthToken } from "../../stores/AuthTokenContext";
-import { useFirmwareUpgrade } from "./FirmwareUpgradeContext";
+} from "../api/firmwareUpgradeApi";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
 
 type FirmwareInfo = DeviceOsVersionData | GroupOsVersionData | null;
 

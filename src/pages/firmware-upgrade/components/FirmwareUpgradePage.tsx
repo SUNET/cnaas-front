@@ -1,4 +1,4 @@
-import { FirmwareUpgradeProvider } from "./FirmwareUpgradeContext";
+import { FirmwareUpgradeProvider } from "../stores/FirmwareUpgradeContext";
 import { FirmwareUpgrade } from "./FirmwareUpgrade";
 
 export function FirmwareUpgradePage() {

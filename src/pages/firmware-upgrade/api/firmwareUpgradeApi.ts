@@ -1,6 +1,6 @@
-import { getData } from "../../utils/getData";
-import { postData } from "../../utils/sendData";
-import type { Device } from "../../types/device";
+import { getData } from "../../../utils/getData";
+import { postData } from "../../../utils/sendData";
+import type { Device } from "../../../types/device";
 
 const API = process.env.API_URL;
 

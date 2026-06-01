@@ -1,9 +1,9 @@
 import { renderHook } from "@testing-library/react";
 import { useFirmwareUpgradeSocket } from "./useFirmwareUpgradeSocket";
-import { socket } from "./stores/socket";
-import { actions } from "./firmwareUpgradeReducer";
+import { socket } from "../stores/socket";
+import { actions } from "../stores/firmwareUpgradeReducer";
 
-jest.mock("./stores/socket", () => {
+jest.mock("../stores/socket", () => {
   const listeners: Record<string, Array<(data?: unknown) => void>> = {};
   return {
     socket: {

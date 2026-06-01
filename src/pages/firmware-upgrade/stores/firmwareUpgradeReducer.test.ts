@@ -1,4 +1,4 @@
-import { makeJob } from "../../test-utils/makeJob";
+import { makeJob } from "../../../test-utils/makeJob";
 import {
   actions,
   firmwareUpgradeReducer,
