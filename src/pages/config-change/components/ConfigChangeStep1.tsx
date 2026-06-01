@@ -8,8 +8,9 @@ import { matchesJobId } from "../../../types/job";
 import LogViewer from "../../../components/LogViewer";
 
 function filterLogLinesByJobIds(jobIds: number[]) {
+  const matchers = jobIds.map((id) => matchesJobId(id));
   return function (logLine: string) {
-    return jobIds.some((id) => matchesJobId(id)(logLine));
+    return matchers.some((matches) => matches(logLine));
   };
 }
 

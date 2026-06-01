@@ -113,7 +113,7 @@ export function firmwareUpgradeReducer(
 
     case actions.APPEND_LOG: {
       const logLines = [...state.logLines, action.line];
-      if (logLines.length >= MAX_LOG_LINES) {
+      if (logLines.length > MAX_LOG_LINES) {
         logLines.shift();
       }
       return { ...state, logLines };

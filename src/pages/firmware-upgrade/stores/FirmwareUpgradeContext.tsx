@@ -335,6 +335,10 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       }
     }
 
+    if (jobId === null) {
+      return;
+    }
+
     const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
     const dataToSend = {
       action: "ABORT",
