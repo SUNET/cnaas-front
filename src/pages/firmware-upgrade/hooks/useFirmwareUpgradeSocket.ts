@@ -1,6 +1,6 @@
 import { useEffect, type Dispatch } from "react";
-import { socket } from "./stores/socket";
-import { actions, type Action } from "./firmwareUpgradeReducer";
+import { socket } from "../stores/socket";
+import { actions, type Action } from "../stores/firmwareUpgradeReducer";
 
 /**
  * Opens the single shared firmware-upgrade socket for as long as the page is

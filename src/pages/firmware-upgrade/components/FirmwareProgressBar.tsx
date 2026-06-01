@@ -1,4 +1,4 @@
-import ProgressBar from "../../components/ProgressBar";
+import ProgressBar from "../../../components/ProgressBar";
 
 type FirmwareProgressBarProps = {
   readonly jobFinishedDevices?: readonly string[] | null;

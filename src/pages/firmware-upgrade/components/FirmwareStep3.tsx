@@ -13,9 +13,12 @@ import {
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { FirmwareError } from "./FirmwareError";
-import { fetchStaggeredSteps, getExceptionDevices } from "./firmwareUpgradeApi";
-import { useAuthToken } from "../../stores/AuthTokenContext";
-import { useFirmwareUpgrade } from "./FirmwareUpgradeContext";
+import {
+  fetchStaggeredSteps,
+  getExceptionDevices,
+} from "../api/firmwareUpgradeApi";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
 
 const dateRegEx = new RegExp(
   "^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?$",

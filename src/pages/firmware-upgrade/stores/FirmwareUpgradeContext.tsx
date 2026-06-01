@@ -9,19 +9,19 @@ import {
   type ReactNode,
 } from "react";
 import { useSearchParams } from "react-router";
-import { useAuthToken } from "../../stores/AuthTokenContext";
-import { useFreshRef } from "../../hooks/useFreshRef";
-import { useBeforeUnloadWarning } from "../../hooks/useBeforeUnloadWarning";
-import { getData } from "../../utils/getData";
-import { post, putData } from "../../utils/sendData";
-import { isTerminalJobStatus, type Job } from "../../types/job";
-import type { CommitTarget } from "./firmwareUpgradeApi";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { useFreshRef } from "../../../hooks/useFreshRef";
+import { useBeforeUnloadWarning } from "../../../hooks/useBeforeUnloadWarning";
+import { getData } from "../../../utils/getData";
+import { post, putData } from "../../../utils/sendData";
+import { isTerminalJobStatus, type Job } from "../../../types/job";
+import type { CommitTarget } from "../api/firmwareUpgradeApi";
 import {
   actions,
   firmwareUpgradeReducer,
   initialState,
 } from "./firmwareUpgradeReducer";
-import { useFirmwareUpgradeSocket } from "./useFirmwareUpgradeSocket";
+import { useFirmwareUpgradeSocket } from "../hooks/useFirmwareUpgradeSocket";
 
 /**
  * Body of POST /firmware/upgrade. On success `job_id` is set; most validation
