@@ -5,11 +5,9 @@ import "@testing-library/jest-dom";
 
 import { DeviceListPage } from "../DeviceListPage";
 
-import {
-  getData as mockGetData,
-  getResponse as mockGetResponse,
-} from "../../../utils/getData";
-import { deleteData as mockDeleteData } from "../../../utils/sendData";
+import { getData, getResponse } from "../../../utils/getData";
+import { deleteData } from "../../../utils/sendData";
+import { Device } from "../../../types/device";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../utils/sendData");
@@ -20,7 +18,7 @@ jest.mock("../../../stores/PermissionsContext", () => ({
   usePermissions: () => ({ permissionsCheck: () => true }),
 }));
 jest.mock("../../../hooks/useFreshRef", () => ({
-  useFreshRef: (value) => ({ current: value }),
+  useFreshRef: (value: unknown) => ({ current: value }),
 }));
 jest.mock("../stores/socket", () => ({
   socket: {
@@ -36,6 +34,10 @@ jest.mock("../../../api/netboxApi", () => ({
   fetchNetboxDevice: jest.fn().mockResolvedValue(null),
   fetchNetboxModel: jest.fn().mockResolvedValue(null),
 }));
+
+const mockGetData = getData as jest.MockedFunction<typeof getData>;
+const mockGetResponse = getResponse as jest.MockedFunction<typeof getResponse>;
+const mockDeleteData = deleteData as jest.MockedFunction<typeof deleteData>;
 
 const FIXTURE_DEVICES = [
   {
@@ -59,18 +61,24 @@ const FIXTURE_DEVICES = [
     state: "MANAGED",
     synchronized: true,
   },
-];
+] as unknown as Device[];
 
-function devicesPageResponse(devices, totalCount = devices.length) {
+function devicesPageResponse(
+  devices: readonly Device[],
+  totalCount = devices.length,
+): Response {
   return {
     headers: {
-      get: (name) => (name === "X-Total-Count" ? String(totalCount) : null),
+      get: (name: string) =>
+        name === "X-Total-Count" ? String(totalCount) : null,
     },
     json: async () => ({ data: { devices } }),
-  };
+  } as unknown as Response;
 }
 
-function MockDeviceList({ initialEntry = "/devices" } = {}) {
+function MockDeviceList({
+  initialEntry = "/devices",
+}: { readonly initialEntry?: string } = {}) {
   const router = createMemoryRouter(
     [{ path: "/devices", element: <DeviceListPage /> }],
     { initialEntries: [initialEntry] },
@@ -143,15 +151,17 @@ describe("sorting", () => {
 });
 
 describe("row expansion", () => {
-  function findVisible(elements) {
+  function findVisible(elements: HTMLElement[]) {
     return elements.find((el) => el.closest("tr:not([hidden])"));
   }
 
-  async function findVisibleHostnameRow(hostname) {
+  async function findVisibleHostnameRow(hostname: string) {
     const cells = await screen.findAllByText(hostname);
     const cell = findVisible(cells);
     expect(cell).toBeDefined();
-    return cell.closest("tr");
+    const row = cell?.closest("tr");
+    if (!row) throw new Error(`No visible row for ${hostname}`);
+    return row;
   }
 
   test("clicking a row reveals the Actions dropdown", async () => {
@@ -189,20 +199,26 @@ describe("row expansion", () => {
 });
 
 describe("action menu by device state and type", () => {
-  async function expandRowAndOpenMenu(user, hostname) {
+  async function expandRowAndOpenMenu(
+    user: ReturnType<typeof userEvent.setup>,
+    hostname: string,
+  ) {
     const cells = await screen.findAllByText(hostname);
     const cell = cells.find((c) => c.closest("tr:not([hidden])"));
-    const row = cell.closest("tr");
+    const row = cell?.closest("tr");
+    if (!row) throw new Error(`No visible row for ${hostname}`);
     await user.click(row);
-    let trigger;
+    let trigger: HTMLElement | undefined;
     await waitFor(() => {
       trigger = screen
         .getAllByText("Actions")
         .find((el) => el.closest("tr:not([hidden])"));
       expect(trigger).toBeDefined();
     });
+    const dropdown = trigger?.closest(".ui.dropdown");
+    if (!trigger || !dropdown) throw new Error("No Actions dropdown");
     await user.click(trigger);
-    return within(trigger.closest(".ui.dropdown"));
+    return within(dropdown as HTMLElement);
   }
 
   test("MANAGED ACCESS device shows full action set", async () => {

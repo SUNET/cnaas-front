@@ -1,14 +1,20 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
+import type { ComponentProps } from "react";
 
 import { HostnameModal } from "./HostnameModal";
-import { updateDevice as mockUpdateDevice } from "../../api/deviceListApi";
+import { updateDevice } from "../../api/deviceListApi";
+import type { UpdateDeviceResponse } from "../../api/deviceListApi";
 
 jest.mock("../../api/deviceListApi");
 jest.mock("../../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
+
+const mockUpdateDevice = updateDevice as jest.MockedFunction<
+  typeof updateDevice
+>;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -17,8 +23,10 @@ beforeEach(() => {
 const mockCloseAction = jest.fn();
 const mockOnSuccess = jest.fn();
 
-function renderComponent(props = {}) {
-  const defaultProps = {
+function renderComponent(
+  props: Partial<ComponentProps<typeof HostnameModal>> = {},
+) {
+  const defaultProps: ComponentProps<typeof HostnameModal> = {
     closeAction: mockCloseAction,
     deviceId: 42,
     hostname: "old-switch",
@@ -29,7 +37,9 @@ function renderComponent(props = {}) {
 }
 
 test("successfully changes hostname and navigates to config-change", async () => {
-  mockUpdateDevice.mockResolvedValue({ status: "success" });
+  mockUpdateDevice.mockResolvedValue({
+    status: "success",
+  } as UpdateDeviceResponse);
   renderComponent();
 
   expect(
@@ -64,9 +74,9 @@ test("successfully changes hostname and navigates to config-change", async () =>
   ).not.toBeInTheDocument();
 
   await userEvent.click(syncButton);
-  expect(globalThis.mockNavigate).toHaveBeenCalledWith(
-    "/config-change?scrollTo=dry_run",
-  );
+  expect(
+    (globalThis as unknown as { mockNavigate: jest.Mock }).mockNavigate,
+  ).toHaveBeenCalledWith("/config-change?scrollTo=dry_run");
 });
 
 test("submit button remains disabled when typing the same hostname", async () => {

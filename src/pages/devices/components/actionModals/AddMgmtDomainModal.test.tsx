@@ -4,16 +4,22 @@ import "@testing-library/jest-dom";
 
 import { AddMgmtDomainModal } from "./AddMgmtDomainModal";
 
-import { createMgmtDomain as mockCreateMgmtDomain } from "../../api/deviceListApi";
+import { createMgmtDomain } from "../../api/deviceListApi";
+import type { Device } from "../../../../types/device";
+import type { MgmtDomain } from "../../../../types/mgmtDomain";
 
 jest.mock("../../api/deviceListApi");
 jest.mock("../../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 
+const mockCreateMgmtDomain = createMgmtDomain as jest.MockedFunction<
+  typeof createMgmtDomain
+>;
+
 mockCreateMgmtDomain.mockResolvedValue({
-  success: "ok",
-  data: { added_mgmtdomain: { id: 66 } },
+  status: "success",
+  data: { added_mgmtdomain: { id: 66 } as MgmtDomain },
 });
 
 beforeEach(() => {
@@ -25,7 +31,7 @@ function renderComponent() {
   render(
     <AddMgmtDomainModal
       deviceA="deviceA"
-      deviceBCandidates={[{ hostname: "a" }, { hostname: "b" }]}
+      deviceBCandidates={[{ hostname: "a" }, { hostname: "b" }] as Device[]}
       isOpen
       onAdd={jest.fn()}
       closeAction={mockCloseAction}
@@ -86,15 +92,15 @@ test("type input and click cancel should clear fields", async () => {
   await userEvent.click(dropdownOptions[1]);
   expect(domainBSelect).not.toBeVisible();
 
-  const ipv4Input = screen.getByLabelText(/ipv4 gateway/i);
+  const ipv4Input = screen.getByLabelText(/ipv4 gateway/i) as HTMLInputElement;
   await userEvent.type(ipv4Input, "1.2.3.4/24");
   expect(ipv4Input.value).toBe("1.2.3.4/24");
 
-  const ipv6Input = screen.getByLabelText(/ipv6 gateway/i);
+  const ipv6Input = screen.getByLabelText(/ipv6 gateway/i) as HTMLInputElement;
   await userEvent.type(ipv6Input, "::1234:5678:91.123.4.56");
   expect(ipv6Input.value).toBe("::1234:5678:91.123.4.56");
 
-  const vlanInput = screen.getByLabelText(/vlan id/i);
+  const vlanInput = screen.getByLabelText(/vlan id/i) as HTMLInputElement;
   await userEvent.type(vlanInput, "1950");
   expect(vlanInput.value).toBe("1950");
 

@@ -4,23 +4,28 @@ import "@testing-library/jest-dom";
 
 import { UpdateMgmtDomainModal } from "./UpdateMgmtDomainModal";
 
-import {
-  deleteMgmtDomain as mockDeleteMgmtDomain,
-  updateMgmtDomain as mockUpdateMgmtDomain,
-} from "../../api/deviceListApi";
+import { deleteMgmtDomain, updateMgmtDomain } from "../../api/deviceListApi";
+import type { MgmtDomain } from "../../../../types/mgmtDomain";
 
 jest.mock("../../api/deviceListApi");
 jest.mock("../../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
 
+const mockDeleteMgmtDomain = deleteMgmtDomain as jest.MockedFunction<
+  typeof deleteMgmtDomain
+>;
+const mockUpdateMgmtDomain = updateMgmtDomain as jest.MockedFunction<
+  typeof updateMgmtDomain
+>;
+
 mockDeleteMgmtDomain.mockResolvedValue({
-  success: "ok",
-  json: () => Promise.resolve([{ data: { deleted_mgmtdomain: { id: 42 } } }]),
+  status: "success",
+  data: { deleted_mgmtdomain: { id: 42 } as MgmtDomain },
 });
 mockUpdateMgmtDomain.mockResolvedValue({
-  success: "ok",
-  json: () => Promise.resolve([{ data: { updated_mgmtdomain: { id: 42 } } }]),
+  status: "success",
+  data: { updated_mgmtdomain: { id: 42 } as MgmtDomain },
 });
 
 beforeEach(() => {
@@ -32,7 +37,7 @@ const mockCloseAction = jest.fn();
 function renderComponent(ipv4Initial = "", ipv6Initial = "", vlanInitial = "") {
   render(
     <UpdateMgmtDomainModal
-      mgmtId="42"
+      mgmtId={42}
       deviceA="deviceA"
       deviceB="deviceB"
       ipv4Initial={ipv4Initial}
@@ -49,13 +54,13 @@ function renderComponent(ipv4Initial = "", ipv6Initial = "", vlanInitial = "") {
 test("renders with default values", async () => {
   renderComponent("1.1.1.1", "::::", "1900");
 
-  const ipv4Input = screen.getByLabelText(/ipv4 gateway/i);
+  const ipv4Input = screen.getByLabelText(/ipv4 gateway/i) as HTMLInputElement;
   expect(ipv4Input.value).toBe("1.1.1.1");
 
-  const ipv6Input = screen.getByLabelText(/ipv6 gateway/i);
+  const ipv6Input = screen.getByLabelText(/ipv6 gateway/i) as HTMLInputElement;
   expect(ipv6Input.value).toBe("::::");
 
-  const vlanInput = screen.getByLabelText(/vlan id/i);
+  const vlanInput = screen.getByLabelText(/vlan id/i) as HTMLInputElement;
   expect(vlanInput.value).toBe("1900");
 
   expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
@@ -80,7 +85,7 @@ test("type input and click add", async () => {
 
   expect(mockDeleteMgmtDomain).not.toHaveBeenCalled();
   expect(mockUpdateMgmtDomain).toHaveBeenCalledWith(
-    "42",
+    42,
     {
       device_a: "deviceA",
       device_b: "deviceB",
@@ -109,5 +114,5 @@ test("click delete", async () => {
 
   await userEvent.click(confirmDeleteButton);
   expect(mockUpdateMgmtDomain).not.toHaveBeenCalled();
-  expect(mockDeleteMgmtDomain).toHaveBeenCalledWith("42", "test-token");
+  expect(mockDeleteMgmtDomain).toHaveBeenCalledWith(42, "test-token");
 });
