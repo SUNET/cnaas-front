@@ -14,7 +14,7 @@ export function JwtInfo() {
     getSecondsUntilExpiry(tokenExpiry),
   );
   const [prevTokenExpiry, setPrevTokenExpiry] = useState(tokenExpiry);
-  const timerId = useRef();
+  const timerId = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   // Reset countdown when tokenExpiry changes (e.g. token refresh)
   if (tokenExpiry !== prevTokenExpiry) {
@@ -27,11 +27,12 @@ export function JwtInfo() {
       return;
     }
 
-    if (getSecondsUntilExpiry(tokenExpiry) > 0) {
+    const secondsLeft = getSecondsUntilExpiry(tokenExpiry);
+    if (secondsLeft !== null && secondsLeft > 0) {
       timerId.current = setInterval(() => {
         const remaining = getSecondsUntilExpiry(tokenExpiry);
         setSecondsUntilExpiry(remaining);
-        if (remaining <= 0) {
+        if (remaining === null || remaining <= 0) {
           clearInterval(timerId.current);
         }
       }, 5000);
@@ -73,7 +74,9 @@ export function JwtInfo() {
             content="Copy JWT (to use from curl etc), take note of valid time listed above"
             trigger={
               <Button
-                onClick={() => navigator.clipboard.writeText(token)}
+                onClick={() => {
+                  if (token) navigator.clipboard.writeText(token);
+                }}
                 icon="copy"
                 size="tiny"
               />
@@ -103,7 +106,7 @@ export function JwtInfo() {
                     process.env.NETBOX_API_URL &&
                     !localStorage.getItem("netboxToken")
                       ? "orange"
-                      : null
+                      : undefined
                   }
                 />
               </NavLink>

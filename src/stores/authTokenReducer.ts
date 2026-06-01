@@ -1,7 +1,17 @@
 import { jwtDecode } from "jwt-decode";
+import type { JwtPayload } from "jwt-decode";
 import { storeValueIsUndefined } from "../utils/formatters";
 
-export const initialAuthTokenState = {
+export type AuthTokenState = {
+  loggedIn: boolean;
+  loginMessage: string;
+  token: string | null;
+  tokenExpiry: number | null;
+  tokenWillExpire: boolean;
+  username: string;
+};
+
+export const initialAuthTokenState: AuthTokenState = {
   loggedIn: false,
   loginMessage: "",
   token: null,
@@ -17,9 +27,29 @@ export const actions = {
   SET_TOKEN: "SET_TOKEN",
   SET_TOKEN_WILL_EXPIRE: "SET_TOKEN_WILL_EXPIRE",
   SET_USERNAME: "SET_USERNAME",
+} as const;
+
+export type AuthTokenAction =
+  | {
+      type: typeof actions.LOAD_TOKEN_FROM_STORAGE;
+      payload: { time: number; token?: string | null };
+    }
+  | { type: typeof actions.LOGOUT }
+  | { type: typeof actions.SET_LOGIN_MESSAGE; payload: string }
+  | { type: typeof actions.SET_TOKEN; payload: { time: number; token: string } }
+  | { type: typeof actions.SET_TOKEN_WILL_EXPIRE; payload: boolean }
+  | { type: typeof actions.SET_USERNAME; payload: string };
+
+// jwt-decode's default JwtPayload lacks the OIDC username claims we read.
+type DecodedAuthToken = JwtPayload & {
+  preferred_username?: string;
+  email?: string;
 };
 
-export function authTokenReducer(state, action) {
+export function authTokenReducer(
+  state: AuthTokenState,
+  action: AuthTokenAction,
+): AuthTokenState {
   switch (action.type) {
     case actions.LOAD_TOKEN_FROM_STORAGE: {
       const tokenStored = getTokenFromStorage();
@@ -38,7 +68,7 @@ export function authTokenReducer(state, action) {
       return {
         ...state,
         token: tokenStored,
-        ...decodeToken(time, tokenStored),
+        ...decodeToken(time, tokenStored as string),
       };
     }
     case actions.LOGOUT: {
@@ -82,20 +112,21 @@ export function authTokenReducer(state, action) {
       };
     }
     default: {
-      console.warn(`Unknown action dispatched: ${action.type}`);
+      console.warn(
+        `Unknown action dispatched: ${(action as AuthTokenAction).type}`,
+      );
       return state;
     }
   }
 }
 
-const decodeToken = (time, token) => {
+const decodeToken = (time: number, token: string): Partial<AuthTokenState> => {
   try {
-    const decodedToken = jwtDecode(token);
-    const hasExpiry =
-      decodedToken.exp !== null && decodedToken.exp !== undefined;
-    const secondsUntilExpiry = hasExpiry
-      ? getSecondsUntilExpiry(decodedToken.exp, time)
-      : Infinity;
+    const decodedToken = jwtDecode<DecodedAuthToken>(token);
+    const { exp } = decodedToken;
+    const hasExpiry = exp !== null && exp !== undefined;
+    const secondsUntilExpiry =
+      exp != null ? getSecondsUntilExpiry(exp, time) : Infinity;
     return {
       username:
         decodedToken.preferred_username ??
@@ -110,7 +141,7 @@ const decodeToken = (time, token) => {
   }
 };
 
-const getSecondsUntilExpiry = (expiry, time) => {
+const getSecondsUntilExpiry = (expiry: number, time: number): number => {
   try {
     const now = Math.round(time / 1000);
     return Math.max(expiry - now, 0);
@@ -120,7 +151,7 @@ const getSecondsUntilExpiry = (expiry, time) => {
 };
 
 const TOKEN_LOCK_KEY = "TOKEN_LOCK";
-const addTokenToStorage = (token) => {
+const addTokenToStorage = (token: string): boolean => {
   const tokenLock = localStorage.getItem(TOKEN_LOCK_KEY);
 
   if (storeValueIsUndefined(tokenLock)) {
@@ -137,10 +168,10 @@ const addTokenToStorage = (token) => {
   return true;
 };
 
-const removeTokenFromStorage = () => {
+const removeTokenFromStorage = (): void => {
   localStorage.removeItem("token");
 };
 
-const getTokenFromStorage = () => {
+const getTokenFromStorage = (): string | null => {
   return localStorage.getItem("token");
 };

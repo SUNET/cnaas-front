@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import { useEffect, useRef, useState } from "react";
 import {
   Button,
@@ -14,11 +13,11 @@ import {
 } from "../../stores/AuthTokenContext";
 import { secondsToText } from "../../utils/formatters";
 
-ReloginModal.propTypes = {
-  isOpen: PropTypes.bool,
+type ReloginModalProps = {
+  readonly isOpen?: boolean;
 };
 
-function ReloginModal({ isOpen }) {
+function ReloginModal({ isOpen }: ReloginModalProps) {
   const { logout, oidcLogin, tokenExpiry } = useAuthToken();
 
   const [closedByUser, setClosedByUser] = useState(!isOpen);
@@ -27,7 +26,7 @@ function ReloginModal({ isOpen }) {
   );
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const [prevTokenExpiry, setPrevTokenExpiry] = useState(tokenExpiry);
-  const timerId = useRef();
+  const timerId = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   // Reset closedByUser when isOpen changes
   if (isOpen !== prevIsOpen) {
@@ -51,11 +50,12 @@ function ReloginModal({ isOpen }) {
       return;
     }
 
-    if (getSecondsUntilExpiry(tokenExpiry) > 0) {
+    const secondsLeft = getSecondsUntilExpiry(tokenExpiry);
+    if (secondsLeft !== null && secondsLeft > 0) {
       timerId.current = setInterval(() => {
         const remaining = getSecondsUntilExpiry(tokenExpiry);
         setSecondsUntilExpiry(remaining);
-        if (remaining <= 0) {
+        if (remaining === null || remaining <= 0) {
           clearInterval(timerId.current);
         }
       }, 5000);

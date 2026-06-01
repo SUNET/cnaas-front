@@ -1,11 +1,11 @@
-import PropTypes from "prop-types";
+import { SyntheticEvent } from "react";
 
-LoginOIDC.propTypes = {
-  login: PropTypes.func,
-  errorMessage: PropTypes.string,
+type LoginOIDCProps = {
+  readonly login: (event?: SyntheticEvent) => void;
+  readonly errorMessage?: string;
 };
 
-function LoginOIDC({ login, errorMessage }) {
+function LoginOIDC({ login, errorMessage }: LoginOIDCProps) {
   return (
     <form onSubmit={login}>
       <p className="title error">{errorMessage}</p>

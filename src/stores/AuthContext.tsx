@@ -1,12 +1,8 @@
-import PropTypes from "prop-types";
+import { ReactNode } from "react";
 import { AuthTokenProvider } from "./AuthTokenContext";
 import { PermissionsProvider } from "./PermissionsContext";
 
-AuthContextProvider.propTypes = {
-  children: PropTypes.node,
-};
-
-function AuthContextProvider({ children }) {
+function AuthContextProvider({ children }: { readonly children?: ReactNode }) {
   return (
     <AuthTokenProvider>
       <PermissionsProvider>{children}</PermissionsProvider>

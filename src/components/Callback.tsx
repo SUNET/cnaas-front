@@ -15,7 +15,7 @@ export function Callback() {
   );
 
   useEffect(() => {
-    const getPermissions = async (authToken) => {
+    const getPermissions = async (authToken: string | null) => {
       if (process.env.PERMISSIONS_DISABLED === "true") {
         window.location.replace("/");
         return;
@@ -43,8 +43,9 @@ export function Callback() {
 
     // Process OIDC redirect params if present
     if (hasToken) {
-      if (searchParams.has("username")) {
-        setUsername(searchParams.get("username"));
+      const username = searchParams.get("username");
+      if (username !== null) {
+        setUsername(username);
       }
       const newToken = searchParams.get("token");
       putToken(newToken);

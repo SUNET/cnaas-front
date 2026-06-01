@@ -2,7 +2,7 @@ import { findPermission } from "../../stores/PermissionsContext";
 
 // To be deprecated. This utility is used by class components that dont't have
 // access to PermissionsContext.
-const permissionsCheck = (page, right) => {
+const permissionsCheck = (page: string, right: string): boolean => {
   if (process.env.PERMISSIONS_DISABLED === "true") {
     return true;
   }

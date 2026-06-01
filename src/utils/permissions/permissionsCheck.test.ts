@@ -30,18 +30,18 @@ const mockPermissions = [
   },
 ];
 
-let PERMISSIONS_DISABLED;
+let PERMISSIONS_DISABLED: string | undefined;
 
 beforeAll(() => {
   PERMISSIONS_DISABLED = process.env.PERMISSIONS_DISABLED;
-  process.env.PERMISSIONS_DISABLED = false;
+  process.env.PERMISSIONS_DISABLED = "false";
   jest
     .spyOn(Storage.prototype, "getItem")
     .mockReturnValue(JSON.stringify(mockPermissions));
 });
 
 afterAll(() => {
-  global.Storage.prototype.getItem.mockReset();
+  jest.spyOn(Storage.prototype, "getItem").mockReset();
   process.env.PERMISSIONS_DISABLED = PERMISSIONS_DISABLED;
 });
 
