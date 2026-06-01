@@ -2,35 +2,16 @@ import { renderHook } from "@testing-library/react";
 import { useFirmwareUpgradeSocket } from "./useFirmwareUpgradeSocket";
 import { socket } from "../stores/socket";
 import { actions } from "../stores/firmwareUpgradeReducer";
+import type { SocketMock } from "../../../test-utils/socketMock";
 
-jest.mock("../stores/socket", () => {
-  const listeners: Record<string, Array<(data?: unknown) => void>> = {};
-  return {
-    socket: {
-      io: { opts: {} as Record<string, unknown> },
-      on: jest.fn((event: string, cb: (data?: unknown) => void) => {
-        listeners[event] ||= [];
-        listeners[event].push(cb);
-      }),
-      off: jest.fn((event: string, cb: (data?: unknown) => void) => {
-        listeners[event] = (listeners[event] || []).filter((h) => h !== cb);
-      }),
-      emit: jest.fn(),
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      __emit: (event: string, data?: unknown) => {
-        (listeners[event] || []).forEach((h) => h(data));
-      },
-    },
-  };
-});
+// jest hoists jest.mock above imports, so the factory must require() the
+// shared helper rather than close over an imported binding.
+jest.mock("../stores/socket", () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require("../../../test-utils/socketMock").createSocketMock(),
+);
 
-const mockSocket = socket as unknown as {
-  connect: jest.Mock;
-  disconnect: jest.Mock;
-  emit: jest.Mock;
-  __emit: (event: string, data?: unknown) => void;
-};
+const mockSocket = socket as unknown as SocketMock;
 
 describe("useFirmwareUpgradeSocket", () => {
   beforeEach(() => {

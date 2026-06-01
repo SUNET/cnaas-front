@@ -21,16 +21,12 @@ jest.mock("../../../hooks/useFreshRef", () => ({
   useFreshRef: (value: unknown) => ({ current: value }),
 }));
 
-jest.mock("../stores/socket", () => ({
-  socket: {
-    io: { opts: {} },
-    on: jest.fn(),
-    emit: jest.fn(),
-    off: jest.fn(),
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-  },
-}));
+// jest hoists jest.mock above imports, so the factory must require() the
+// shared helper rather than close over an imported binding.
+jest.mock("../stores/socket", () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require("../../../test-utils/socketMock").createSocketMock(),
+);
 
 const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
 const mockPost = postImport as jest.MockedFunction<typeof postImport>;
