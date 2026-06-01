@@ -36,6 +36,9 @@ type UpgradeStartResult = {
 
 // --- Derived view groups ---
 
+/** The firmware-upgrade steps that run a backend job (step 1 is read-only). */
+type FirmwareJobStep = 2 | 3;
+
 type StepProgress = {
   readonly jobId: number | null;
   readonly jobData: Job | null;
@@ -58,12 +61,12 @@ type FirmwareUpgradeContextValue = {
   readonly updateTicketRef: (e: ChangeEvent<HTMLInputElement>) => void;
   readonly skipStep2: () => void;
   readonly firmwareUpgradeStart: (
-    step: number,
+    step: FirmwareJobStep,
     filename: string | null,
     startAt: string | null,
     staggeredUpgrade?: boolean,
   ) => Promise<void>;
-  readonly firmwareUpgradeAbort: (step: number) => Promise<void>;
+  readonly firmwareUpgradeAbort: (step: FirmwareJobStep) => Promise<void>;
 };
 
 const FirmwareUpgradeContext =
@@ -146,7 +149,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
 
   const pollJobStatus = async (
     jobId: number,
-    step: number,
+    step: FirmwareJobStep,
     signal: AbortSignal,
   ): Promise<void> => {
     const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
@@ -169,7 +172,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     }
   };
 
-  const startPolling = (jobId: number, step: number): void => {
+  const startPolling = (jobId: number, step: FirmwareJobStep): void => {
     pollAbortRef.current?.abort();
     const controller = new AbortController();
     pollAbortRef.current = controller;
@@ -216,7 +219,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     dispatch({ type: actions.SET_ACTIVATE_STEP3, activate: true });
   };
 
-  const readHeaders = (response: Response, step: number): void => {
+  const readHeaders = (response: Response, step: FirmwareJobStep): void => {
     const totalCountHeader = response.headers.get("X-Total-Count");
     if (totalCountHeader !== null && !Number.isNaN(Number(totalCountHeader))) {
       if (step === 2) {
@@ -224,7 +227,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
           type: actions.SET_STEP2_TOTAL_COUNT,
           count: Number.parseInt(totalCountHeader, 10),
         });
-      } else if (step === 3) {
+      } else {
         dispatch({
           type: actions.SET_STEP3_TOTAL_COUNT,
           count: Number.parseInt(totalCountHeader, 10),
@@ -238,15 +241,11 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
   };
 
   const firmwareUpgradeStart = async (
-    step: number,
+    step: FirmwareJobStep,
     filename: string | null,
     startAt: string | null,
     staggeredUpgrade?: boolean,
   ): Promise<void> => {
-    if (step !== 2 && step !== 3) {
-      throw "Invalid argument passed to firmwareUpgradeStart";
-    }
-
     const baseUrl =
       process.env.FIRMWARE_URL &&
       typeof process.env.FIRMWARE_URL === "string" &&
@@ -301,11 +300,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     startPolling(data.job_id, step);
   };
 
-  const firmwareUpgradeAbort = async (step: number): Promise<void> => {
-    if (step !== 2 && step !== 3) {
-      throw "Invalid argument passed to firmwareUpgradeAbort";
-    }
-
+  const firmwareUpgradeAbort = async (step: FirmwareJobStep): Promise<void> => {
     let jobId: number | null = null;
     if (step === 2) {
       if (step2jobStatus === "RUNNING" || step2jobStatus === "SCHEDULED") {
@@ -341,6 +336,11 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     readHeaders(response, step);
   };
 
+  // Intentionally NOT memoized (unlike the config-change twin). The orchestration
+  // functions read fresh reducer state on every render, so keeping them as plain
+  // functions sidesteps the stale-closure traps that useCallback dep arrays invite
+  // here. The children (Step1/2/3) are cheap and re-render on state changes anyway,
+  // so memoizing `value` would buy almost nothing while adding that risk.
   const value: FirmwareUpgradeContextValue = {
     step2: {
       jobId: step2JobId,
