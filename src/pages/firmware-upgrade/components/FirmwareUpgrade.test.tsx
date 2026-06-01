@@ -341,3 +341,46 @@ test("step 2: aborting a running job sends an ABORT request", async () => {
     ),
   );
 });
+
+test("step 2: a rejected abort surfaces the backend message in the log", async () => {
+  mockGetDataResponses({
+    files: ["firmware-4.29.0.bin"],
+    job: makeJob({ status: "RUNNING" }),
+  });
+  mockPost.mockResolvedValue(upgradeResponse(123));
+  // putData rejects on a non-2xx status (checkJsonResponse rejects with the
+  // parsed body merged with status/statusText). The abort handler must catch
+  // this and log the failure rather than leak an unhandled rejection.
+  mockPutData.mockRejectedValue({
+    message: "Job already finished",
+    status: 400,
+    statusText: "Bad Request",
+  });
+
+  renderComponent();
+
+  await selectFirmware(/firmware-4.29.0.bin/);
+  const startButton = await screen.findByRole("button", {
+    name: /start activate firmware/i,
+  });
+  await waitFor(() => expect(startButton).toBeEnabled());
+  await userEvent.click(startButton);
+
+  const abortButton = (
+    await screen.findAllByRole("button", { name: /abort/i })
+  )[0];
+  await waitFor(() => expect(abortButton).toBeEnabled());
+  await userEvent.click(abortButton);
+
+  // LogViewer renders via Prism + dangerouslySetInnerHTML, so the text is split
+  // across token spans; assert on the <pre>'s concatenated textContent instead.
+  const logBlock = await screen.findByText(
+    (_content, element) =>
+      element?.tagName === "PRE" &&
+      element.className.includes("inline-log-viewer") &&
+      (element.textContent ?? "").includes(
+        "WEBUI job #123: abort failed: Job already finished",
+      ),
+  );
+  expect(logBlock).toBeInTheDocument();
+});

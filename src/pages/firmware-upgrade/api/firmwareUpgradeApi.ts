@@ -21,7 +21,7 @@ export type FailedDevices = Readonly<
  */
 export function getExceptionDevices(result: unknown): FailedDevices {
   if (result && typeof result === "object" && "devices" in result) {
-    const { devices } = result as { devices: unknown };
+    const { devices } = result;
     if (devices && typeof devices === "object") {
       return devices as FailedDevices;
     }

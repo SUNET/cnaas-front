@@ -14,6 +14,7 @@ import { useFreshRef } from "../../../hooks/useFreshRef";
 import { useBeforeUnloadWarning } from "../../../hooks/useBeforeUnloadWarning";
 import { getData } from "../../../utils/getData";
 import { post, putData } from "../../../utils/sendData";
+import { extractErrorMessage } from "../../../utils/extractErrorMessage";
 import { isTerminalJobStatus, type Job } from "../../../types/job";
 import type { CommitTarget } from "../api/firmwareUpgradeApi";
 import {
@@ -345,22 +346,31 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       abort_reason: "Aborted from WebUI",
     };
     console.log(`Aborting firmware upgrade job ${jobId} step ${step}`);
-    // putData resolves to parsed JSON, not a Response. Read the body to surface
-    // a rejected abort; on success the poller reflects the ABORTING -> ABORTED
-    // transition (the returned job is dispatched here for immediate feedback).
-    const result: AbortJobResult = await putData(url, token, dataToSend);
-    if (result.status === "error") {
+    // putData resolves to parsed JSON on 2xx, but rejects on a non-2xx status
+    // (via checkJsonResponse). Handle both the in-band `{status: "error"}`
+    // envelope and a thrown rejection so an abort failure always surfaces in
+    // the log buffer. On success the poller reflects ABORTING -> ABORTED (the
+    // returned job is dispatched here for immediate feedback).
+    try {
+      const result: AbortJobResult = await putData(url, token, dataToSend);
+      if (result.status === "error") {
+        dispatch({
+          type: actions.APPEND_LOG,
+          line: `WEBUI job #${jobId}: abort failed: ${result.message ?? "unknown error"}\n`,
+        });
+        return;
+      }
+      const jobData = result.data.jobs[0];
+      if (step === 2) {
+        dispatch({ type: actions.SET_STEP2_JOB_DATA, data: jobData });
+      } else {
+        dispatch({ type: actions.SET_STEP3_JOB_DATA, data: jobData });
+      }
+    } catch (error) {
       dispatch({
         type: actions.APPEND_LOG,
-        line: `WEBUI job #${jobId}: abort failed: ${result.message ?? "unknown error"}\n`,
+        line: `WEBUI job #${jobId}: abort failed: ${extractErrorMessage(error)}\n`,
       });
-      return;
-    }
-    const jobData = result.data.jobs[0];
-    if (step === 2) {
-      dispatch({ type: actions.SET_STEP2_JOB_DATA, data: jobData });
-    } else {
-      dispatch({ type: actions.SET_STEP3_JOB_DATA, data: jobData });
     }
   };
 
