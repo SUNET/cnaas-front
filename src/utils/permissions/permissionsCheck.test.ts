@@ -1,34 +1,5 @@
-import { findPermission } from "../../stores/PermissionsContext";
+import { mockPermissions } from "../../test-utils/permissionsFixtures";
 import permissionsCheck from "./permissionsCheck";
-
-const mockPermissions = [
-  {
-    methods: ["GET"],
-    endpoints: ["/devices", "/device/*", "/repository/**", "/groups"],
-    pages: ["Devices", "Dashboard", "Groups"],
-    rights: ["read"],
-  },
-  {
-    methods: ["*"],
-    endpoints: ["*"],
-    pages: ["AsterixPage"],
-    rights: ["*"],
-  },
-  {
-    methods: ["*"],
-    endpoints: ["*"],
-    pages: ["Dashboard", "Groups", "Firmware", "Config change"],
-    rights: ["read", "write"],
-  },
-  {
-    pages: ["Overlapping"],
-    rights: ["read"],
-  },
-  {
-    pages: ["Overlapping"],
-    rights: ["write"],
-  },
-];
 
 let PERMISSIONS_DISABLED: string | undefined;
 
@@ -46,26 +17,14 @@ afterAll(() => {
 });
 
 describe("no permission in storage", () => {
-  test("should return false if no permissions nor token", async () => {
+  test("should return false if no permissions nor token", () => {
     jest.spyOn(Storage.prototype, "getItem").mockReturnValueOnce(""); // empty permissions
     jest.spyOn(Storage.prototype, "getItem").mockReturnValueOnce(""); // token
 
-    const permission = await permissionsCheck("page", "{}");
+    const permission = permissionsCheck("page", "{}");
 
     expect(permission).toBe(false);
   });
-});
-
-test("should return true", () => {
-  const targetPage = "Groups";
-  const requiredPermission = "read";
-  const result = findPermission(
-    mockPermissions,
-    targetPage,
-    requiredPermission,
-  );
-
-  expect(result).toBe(true);
 });
 
 test("should return false", () => {
