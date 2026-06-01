@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -138,6 +139,13 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
   const step2jobStatus = step2JobData?.status ?? null;
   const step3jobStatus = step3JobData?.status ?? null;
 
+  // Fresh refs for the comment/ticket inputs so `firmwareUpgradeStart` can stay
+  // stable across keystrokes (it reads the latest values without listing them
+  // as deps, which would otherwise rebuild the memoized context value on every
+  // character typed).
+  const jobCommentRef = useFreshRef(jobComment);
+  const jobTicketRefRef = useFreshRef(jobTicketRef);
+
   // Stream backend log events into the reducer's log buffer.
   useFirmwareUpgradeSocket(token, dispatch);
 
@@ -157,52 +165,58 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
   // toggled in exactly one place: true when a poll starts, false in `finally`.
   const pollAbortRef = useRef<AbortController | null>(null);
 
-  const pollJobStatus = async (
-    jobId: number,
-    step: FirmwareJobStep,
-    signal: AbortSignal,
-  ): Promise<void> => {
-    const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
-    while (!signal.aborted) {
-      const data = await getData(url, tokenRef.current, signal);
-      if (signal.aborted) return;
-      const jobData: Job = data.data.jobs[0];
-      if (step === 2) {
-        dispatch({ type: actions.SET_STEP2_JOB_DATA, data: jobData });
-      } else {
-        dispatch({ type: actions.SET_STEP3_JOB_DATA, data: jobData });
-      }
-      if (isTerminalJobStatus(jobData.status)) {
-        if (step === 2) {
-          dispatch({ type: actions.SET_ACTIVATE_STEP3, activate: true });
-        }
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    }
-  };
-
-  const startPolling = (jobId: number, step: FirmwareJobStep): void => {
-    pollAbortRef.current?.abort();
-    const controller = new AbortController();
-    pollAbortRef.current = controller;
-    const { signal } = controller;
-
-    dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: true });
-
-    (async () => {
-      try {
-        await pollJobStatus(jobId, step, signal);
-      } catch (error) {
+  const pollJobStatus = useCallback(
+    async (
+      jobId: number,
+      step: FirmwareJobStep,
+      signal: AbortSignal,
+    ): Promise<void> => {
+      const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
+      while (!signal.aborted) {
+        const data = await getData(url, tokenRef.current, signal);
         if (signal.aborted) return;
-        console.error("Polling error:", error);
-      } finally {
-        if (!signal.aborted) {
-          dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
+        const jobData: Job = data.data.jobs[0];
+        if (step === 2) {
+          dispatch({ type: actions.SET_STEP2_JOB_DATA, data: jobData });
+        } else {
+          dispatch({ type: actions.SET_STEP3_JOB_DATA, data: jobData });
         }
+        if (isTerminalJobStatus(jobData.status)) {
+          if (step === 2) {
+            dispatch({ type: actions.SET_ACTIVATE_STEP3, activate: true });
+          }
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
       }
-    })();
-  };
+    },
+    [tokenRef],
+  );
+
+  const startPolling = useCallback(
+    (jobId: number, step: FirmwareJobStep): void => {
+      pollAbortRef.current?.abort();
+      const controller = new AbortController();
+      pollAbortRef.current = controller;
+      const { signal } = controller;
+
+      dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: true });
+
+      (async () => {
+        try {
+          await pollJobStatus(jobId, step, signal);
+        } catch (error) {
+          if (signal.aborted) return;
+          console.error("Polling error:", error);
+        } finally {
+          if (!signal.aborted) {
+            dispatch({ type: actions.SET_BLOCK_NAVIGATION, blocked: false });
+          }
+        }
+      })();
+    },
+    [pollJobStatus],
+  );
 
   // Abort any in-flight polling on unmount.
   useEffect(() => {
@@ -217,192 +231,231 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
 
   // --- Named actions ---
 
-  const updateComment = (e: ChangeEvent<HTMLInputElement>) => {
+  const updateComment = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: actions.SET_JOB_COMMENT, comment: e.target.value });
-  };
+  }, []);
 
-  const updateTicketRef = (e: ChangeEvent<HTMLInputElement>) => {
+  const updateTicketRef = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: actions.SET_JOB_TICKET_REF, ticketRef: e.target.value });
-  };
+  }, []);
 
-  const skipStep2 = () => {
+  const skipStep2 = useCallback(() => {
     dispatch({ type: actions.SET_ACTIVATE_STEP3, activate: true });
-  };
+  }, []);
 
-  const readHeaders = (response: Response, step: FirmwareJobStep): void => {
-    const totalCountHeader = response.headers.get("X-Total-Count");
-    if (totalCountHeader !== null && !Number.isNaN(Number(totalCountHeader))) {
-      if (step === 2) {
-        dispatch({
-          type: actions.SET_STEP2_TOTAL_COUNT,
-          count: Number.parseInt(totalCountHeader, 10),
-        });
+  const readHeaders = useCallback(
+    (response: Response, step: FirmwareJobStep): void => {
+      const totalCountHeader = response.headers.get("X-Total-Count");
+      if (
+        totalCountHeader !== null &&
+        !Number.isNaN(Number(totalCountHeader))
+      ) {
+        if (step === 2) {
+          dispatch({
+            type: actions.SET_STEP2_TOTAL_COUNT,
+            count: Number.parseInt(totalCountHeader, 10),
+          });
+        } else {
+          dispatch({
+            type: actions.SET_STEP3_TOTAL_COUNT,
+            count: Number.parseInt(totalCountHeader, 10),
+          });
+        }
       } else {
-        dispatch({
-          type: actions.SET_STEP3_TOTAL_COUNT,
-          count: Number.parseInt(totalCountHeader, 10),
-        });
+        console.log(
+          "Could not find X-Total-Count header, progress bar will not work",
+        );
       }
-    } else {
-      console.log(
-        "Could not find X-Total-Count header, progress bar will not work",
-      );
-    }
-  };
-
-  const firmwareUpgradeStart = async (
-    step: FirmwareJobStep,
-    filename: string | null,
-    startAt: string | null,
-    staggeredUpgrade?: boolean,
-  ): Promise<void> => {
-    const baseUrl =
-      process.env.FIRMWARE_URL &&
-      typeof process.env.FIRMWARE_URL === "string" &&
-      process.env.FIRMWARE_URL.startsWith("http")
-        ? process.env.FIRMWARE_URL
-        : `${process.env.API_URL}/firmware/`;
-
-    const dataToSend = {
-      ...commitTarget,
-      url: baseUrl,
-      comment: jobComment,
-      ticket_ref: jobTicketRef,
-      ...(step === 2 && {
-        activate: true,
-        download: true,
-        filename,
-        pre_flight: true,
-      }),
-      ...(step === 3 && {
-        post_flight: true,
-        reboot: true,
-      }),
-      ...(startAt && { start_at: startAt }),
-      ...(staggeredUpgrade && { staggered_upgrade: staggeredUpgrade }),
-    };
-
-    if (step === 2) {
-      dispatch({ type: actions.SET_FILENAME, filename });
-    }
-
-    const url = `${process.env.API_URL}/api/v1.0/firmware/upgrade`;
-    const response = await post(url, token, dataToSend);
-    readHeaders(response, step);
-    // post() only throws on !response.ok. The BE returns most upgrade
-    // validation errors as HTTP 200 with { status: "error", message } and no
-    // job_id, so check the body — not just the HTTP status — and surface the
-    // message instead of silently starting a poll for a missing job.
-    const data: UpgradeStartResult = await response.json();
-    if (data.status === "error" || data.job_id == null) {
-      dispatch({
-        type: actions.SET_START_ERROR,
-        message: data.message ?? "Failed to start firmware upgrade",
-      });
-      return;
-    }
-    dispatch({ type: actions.SET_START_ERROR, message: null });
-    if (step === 2) {
-      dispatch({ type: actions.SET_STEP2_JOB_ID, jobId: data.job_id });
-    } else {
-      dispatch({ type: actions.SET_STEP3_JOB_ID, jobId: data.job_id });
-    }
-    startPolling(data.job_id, step);
-  };
-
-  const firmwareUpgradeAbort = async (step: FirmwareJobStep): Promise<void> => {
-    let jobId: number | null = null;
-    if (step === 2) {
-      if (step2jobStatus === "RUNNING" || step2jobStatus === "SCHEDULED") {
-        jobId = step2JobId;
-        dispatch({
-          type: actions.APPEND_LOG,
-          line: `WEBUI job #${jobId}: Trying to abort job...\n`,
-        });
-      } else {
-        return;
-      }
-    }
-
-    if (step === 3) {
-      if (step3jobStatus === "RUNNING" || step3jobStatus === "SCHEDULED") {
-        jobId = step3JobId;
-        dispatch({
-          type: actions.APPEND_LOG,
-          line: `WEBUI job #${jobId}: Trying to abort job...\n`,
-        });
-      } else {
-        return;
-      }
-    }
-
-    if (jobId === null) {
-      return;
-    }
-
-    const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
-    const dataToSend = {
-      action: "ABORT",
-      abort_reason: "Aborted from WebUI",
-    };
-    console.log(`Aborting firmware upgrade job ${jobId} step ${step}`);
-    // putData resolves to parsed JSON on 2xx, but rejects on a non-2xx status
-    // (via checkJsonResponse). Handle both the in-band `{status: "error"}`
-    // envelope and a thrown rejection so an abort failure always surfaces in
-    // the log buffer. On success the poller reflects ABORTING -> ABORTED (the
-    // returned job is dispatched here for immediate feedback).
-    try {
-      const result: AbortJobResult = await putData(url, token, dataToSend);
-      if (result.status === "error") {
-        dispatch({
-          type: actions.APPEND_LOG,
-          line: `WEBUI job #${jobId}: abort failed: ${result.message ?? "unknown error"}\n`,
-        });
-        return;
-      }
-      const jobData = result.data.jobs[0];
-      if (step === 2) {
-        dispatch({ type: actions.SET_STEP2_JOB_DATA, data: jobData });
-      } else {
-        dispatch({ type: actions.SET_STEP3_JOB_DATA, data: jobData });
-      }
-    } catch (error) {
-      dispatch({
-        type: actions.APPEND_LOG,
-        line: `WEBUI job #${jobId}: abort failed: ${extractErrorMessage(error)}\n`,
-      });
-    }
-  };
-
-  // Intentionally NOT memoized (unlike the config-change twin). The orchestration
-  // functions read fresh reducer state on every render, so keeping them as plain
-  // functions sidesteps the stale-closure traps that useCallback dep arrays invite
-  // here. The children (Step1/2/3) are cheap and re-render on state changes anyway,
-  // so memoizing `value` would buy almost nothing while adding that risk.
-  const value: FirmwareUpgradeContextValue = {
-    step2: {
-      jobId: step2JobId,
-      jobData: step2JobData,
-      totalCount: step2TotalCount,
     },
-    step3: {
-      jobId: step3JobId,
-      jobData: step3JobData,
-      totalCount: step3TotalCount,
+    [],
+  );
+
+  const firmwareUpgradeStart = useCallback(
+    async (
+      step: FirmwareJobStep,
+      filename: string | null,
+      startAt: string | null,
+      staggeredUpgrade?: boolean,
+    ): Promise<void> => {
+      const baseUrl =
+        process.env.FIRMWARE_URL &&
+        typeof process.env.FIRMWARE_URL === "string" &&
+        process.env.FIRMWARE_URL.startsWith("http")
+          ? process.env.FIRMWARE_URL
+          : `${process.env.API_URL}/firmware/`;
+
+      const dataToSend = {
+        ...commitTarget,
+        url: baseUrl,
+        comment: jobCommentRef.current,
+        ticket_ref: jobTicketRefRef.current,
+        ...(step === 2 && {
+          activate: true,
+          download: true,
+          filename,
+          pre_flight: true,
+        }),
+        ...(step === 3 && {
+          post_flight: true,
+          reboot: true,
+        }),
+        ...(startAt && { start_at: startAt }),
+        ...(staggeredUpgrade && { staggered_upgrade: staggeredUpgrade }),
+      };
+
+      if (step === 2) {
+        dispatch({ type: actions.SET_FILENAME, filename });
+      }
+
+      const url = `${process.env.API_URL}/api/v1.0/firmware/upgrade`;
+      const response = await post(url, tokenRef.current, dataToSend);
+      readHeaders(response, step);
+      // post() only throws on !response.ok. The BE returns most upgrade
+      // validation errors as HTTP 200 with { status: "error", message } and no
+      // job_id, so check the body — not just the HTTP status — and surface the
+      // message instead of silently starting a poll for a missing job.
+      const data: UpgradeStartResult = await response.json();
+      if (data.status === "error" || data.job_id == null) {
+        dispatch({
+          type: actions.SET_START_ERROR,
+          message: data.message ?? "Failed to start firmware upgrade",
+        });
+        return;
+      }
+      dispatch({ type: actions.SET_START_ERROR, message: null });
+      if (step === 2) {
+        dispatch({ type: actions.SET_STEP2_JOB_ID, jobId: data.job_id });
+      } else {
+        dispatch({ type: actions.SET_STEP3_JOB_ID, jobId: data.job_id });
+      }
+      startPolling(data.job_id, step);
     },
-    logLines,
-    filename,
-    activateStep3,
-    blockNavigation,
-    startError,
-    commitTarget,
-    commitTargetName: commitTargetToName(commitTarget),
-    updateComment,
-    updateTicketRef,
-    skipStep2,
-    firmwareUpgradeStart,
-    firmwareUpgradeAbort,
-  };
+    [
+      commitTarget,
+      jobCommentRef,
+      jobTicketRefRef,
+      tokenRef,
+      readHeaders,
+      startPolling,
+    ],
+  );
+
+  const firmwareUpgradeAbort = useCallback(
+    async (step: FirmwareJobStep): Promise<void> => {
+      let jobId: number | null = null;
+      if (step === 2) {
+        if (step2jobStatus === "RUNNING" || step2jobStatus === "SCHEDULED") {
+          jobId = step2JobId;
+          dispatch({
+            type: actions.APPEND_LOG,
+            line: `WEBUI job #${jobId}: Trying to abort job...\n`,
+          });
+        } else {
+          return;
+        }
+      }
+
+      if (step === 3) {
+        if (step3jobStatus === "RUNNING" || step3jobStatus === "SCHEDULED") {
+          jobId = step3JobId;
+          dispatch({
+            type: actions.APPEND_LOG,
+            line: `WEBUI job #${jobId}: Trying to abort job...\n`,
+          });
+        } else {
+          return;
+        }
+      }
+
+      if (jobId === null) {
+        return;
+      }
+
+      const url = `${process.env.API_URL}/api/v1.0/job/${jobId}`;
+      const dataToSend = {
+        action: "ABORT",
+        abort_reason: "Aborted from WebUI",
+      };
+      console.log(`Aborting firmware upgrade job ${jobId} step ${step}`);
+      // putData resolves to parsed JSON on 2xx, but rejects on a non-2xx status
+      // (via checkJsonResponse). Handle both the in-band `{status: "error"}`
+      // envelope and a thrown rejection so an abort failure always surfaces in
+      // the log buffer. On success the poller reflects ABORTING -> ABORTED (the
+      // returned job is dispatched here for immediate feedback).
+      try {
+        const result: AbortJobResult = await putData(
+          url,
+          tokenRef.current,
+          dataToSend,
+        );
+        if (result.status === "error") {
+          dispatch({
+            type: actions.APPEND_LOG,
+            line: `WEBUI job #${jobId}: abort failed: ${result.message ?? "unknown error"}\n`,
+          });
+          return;
+        }
+        const jobData = result.data.jobs[0];
+        if (step === 2) {
+          dispatch({ type: actions.SET_STEP2_JOB_DATA, data: jobData });
+        } else {
+          dispatch({ type: actions.SET_STEP3_JOB_DATA, data: jobData });
+        }
+      } catch (error) {
+        dispatch({
+          type: actions.APPEND_LOG,
+          line: `WEBUI job #${jobId}: abort failed: ${extractErrorMessage(error)}\n`,
+        });
+      }
+    },
+    [step2jobStatus, step2JobId, step3jobStatus, step3JobId, tokenRef],
+  );
+
+  const value = useMemo(
+    (): FirmwareUpgradeContextValue => ({
+      step2: {
+        jobId: step2JobId,
+        jobData: step2JobData,
+        totalCount: step2TotalCount,
+      },
+      step3: {
+        jobId: step3JobId,
+        jobData: step3JobData,
+        totalCount: step3TotalCount,
+      },
+      logLines,
+      filename,
+      activateStep3,
+      blockNavigation,
+      startError,
+      commitTarget,
+      commitTargetName: commitTargetToName(commitTarget),
+      updateComment,
+      updateTicketRef,
+      skipStep2,
+      firmwareUpgradeStart,
+      firmwareUpgradeAbort,
+    }),
+    [
+      step2JobId,
+      step2JobData,
+      step2TotalCount,
+      step3JobId,
+      step3JobData,
+      step3TotalCount,
+      logLines,
+      filename,
+      activateStep3,
+      blockNavigation,
+      startError,
+      commitTarget,
+      updateComment,
+      updateTicketRef,
+      skipStep2,
+      firmwareUpgradeStart,
+      firmwareUpgradeAbort,
+    ],
+  );
 
   return (
     <FirmwareUpgradeContext.Provider value={value}>
