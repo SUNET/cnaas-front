@@ -9,7 +9,7 @@ import { Dashboard } from "./pages/dashboard";
 import { DeviceListPage } from "./pages/devices";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FirmwareCopy } from "./pages/firmware-copy";
-import { FirmwareUpgrade } from "./pages/firmware-upgrade";
+import { FirmwareUpgradePage } from "./pages/firmware-upgrade";
 import { GroupList } from "./pages/groups";
 import { InterfaceConfigPage } from "./pages/interface-config";
 import { JobListPage } from "./pages/jobs";
@@ -30,7 +30,7 @@ const router = createBrowserRouter([
           { path: "/jobs", element: <JobListPage /> },
           { path: "/groups", element: <GroupList /> },
           { path: "/config-change", element: <ConfigChangePage /> },
-          { path: "/firmware-upgrade", element: <FirmwareUpgrade /> },
+          { path: "/firmware-upgrade", element: <FirmwareUpgradePage /> },
           { path: "/firmware-copy", element: <FirmwareCopy /> },
           { path: "/interface-config", element: <InterfaceConfigPage /> },
           { path: "/settings", element: <Settings /> },

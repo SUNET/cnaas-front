@@ -2,11 +2,6 @@ import type { Job } from "../../types/job";
 
 // --- Types ---
 
-export type DoPoll = {
-  readonly jobId: number | null;
-  readonly step: number | null;
-};
-
 export type FirmwareUpgradeState = {
   readonly blockNavigation: boolean;
   readonly step2TotalCount: number;
@@ -20,7 +15,6 @@ export type FirmwareUpgradeState = {
   readonly jobComment: string;
   readonly jobTicketRef: string;
   readonly logLines: readonly string[];
-  readonly doPoll: DoPoll;
   readonly startError: string | null;
 };
 
@@ -39,7 +33,6 @@ export const actions = {
   SET_JOB_COMMENT: "SET_JOB_COMMENT",
   SET_JOB_TICKET_REF: "SET_JOB_TICKET_REF",
   APPEND_LOG: "APPEND_LOG",
-  SET_DO_POLL: "SET_DO_POLL",
   SET_START_ERROR: "SET_START_ERROR",
 } as const;
 
@@ -56,7 +49,6 @@ export type Action =
   | { type: typeof actions.SET_JOB_COMMENT; comment: string }
   | { type: typeof actions.SET_JOB_TICKET_REF; ticketRef: string }
   | { type: typeof actions.APPEND_LOG; line: string }
-  | { type: typeof actions.SET_DO_POLL; doPoll: DoPoll }
   | { type: typeof actions.SET_START_ERROR; message: string | null };
 
 // --- Initial state ---
@@ -74,7 +66,6 @@ export const initialState: FirmwareUpgradeState = {
   jobComment: "",
   jobTicketRef: "",
   logLines: [],
-  doPoll: { jobId: null, step: null },
   startError: null,
 };
 
@@ -127,9 +118,6 @@ export function firmwareUpgradeReducer(
       }
       return { ...state, logLines };
     }
-
-    case actions.SET_DO_POLL:
-      return { ...state, doPoll: action.doPoll };
 
     case actions.SET_START_ERROR:
       return { ...state, startError: action.message };

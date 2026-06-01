@@ -37,14 +37,6 @@ test("APPEND_LOG bounds the buffer at 1000 lines", () => {
   expect(next.logLines[0]).toBe("line-1\n");
 });
 
-test("SET_DO_POLL replaces the poll coordination state", () => {
-  const next = firmwareUpgradeReducer(initialState, {
-    type: actions.SET_DO_POLL,
-    doPoll: { jobId: 42, step: 2 },
-  });
-  expect(next.doPoll).toEqual({ jobId: 42, step: 2 });
-});
-
 test("SET_START_ERROR stores whatever message it is handed", () => {
   const next = firmwareUpgradeReducer(initialState, {
     type: actions.SET_START_ERROR,

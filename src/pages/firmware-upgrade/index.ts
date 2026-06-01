@@ -1,1 +1,1 @@
-export { FirmwareUpgrade } from "./FirmwareUpgrade";
+export { FirmwareUpgradePage } from "./FirmwareUpgradePage";

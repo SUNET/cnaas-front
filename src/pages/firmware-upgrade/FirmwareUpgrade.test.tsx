@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
-import { FirmwareUpgrade } from "./FirmwareUpgrade";
+import { FirmwareUpgradePage } from "./FirmwareUpgradePage";
 import { getData as getDataImport } from "../../utils/getData";
 import {
   post as postImport,
@@ -93,7 +93,7 @@ function upgradeErrorResponse(message: string): Response {
 
 function renderComponent(search = "?hostname=test-switch") {
   const router = createMemoryRouter(
-    [{ path: "/firmware-upgrade", element: <FirmwareUpgrade /> }],
+    [{ path: "/firmware-upgrade", element: <FirmwareUpgradePage /> }],
     { initialEntries: [`/firmware-upgrade${search}`] },
   );
   return render(<RouterProvider router={router} />);

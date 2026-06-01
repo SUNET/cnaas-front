@@ -7,12 +7,9 @@ import {
   type GroupOsVersionData,
 } from "./firmwareUpgradeApi";
 import { useAuthToken } from "../../stores/AuthTokenContext";
+import { useFirmwareUpgrade } from "./FirmwareUpgradeContext";
 
 type FirmwareInfo = DeviceOsVersionData | GroupOsVersionData | null;
-
-type FirmwareStep1Props = {
-  readonly commitTarget: CommitTarget;
-};
 
 function renderHostname(hostname: string) {
   return (
@@ -22,8 +19,9 @@ function renderHostname(hostname: string) {
   );
 }
 
-export function FirmwareStep1({ commitTarget }: FirmwareStep1Props) {
+export function FirmwareStep1() {
   const { token } = useAuthToken();
+  const { commitTarget } = useFirmwareUpgrade();
   const [firmwareInfo, setFirmwareInfo] = useState<FirmwareInfo>(null);
 
   const getFirmwareStatus = async (
