@@ -20,9 +20,7 @@ import {
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
 
-const dateRegEx = new RegExp(
-  "^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?$",
-);
+const dateRegEx = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})?$/;
 
 export function FirmwareStep3() {
   const { token } = useAuthToken();
@@ -137,11 +135,11 @@ export function FirmwareStep3() {
     jobStatus === "RUNNING" || jobStatus === "SCHEDULED"
   );
 
-  if (jobStarted === true) {
-    disableStartButton = true;
-  } else if (startAtError === true) {
-    disableStartButton = true;
-  } else if (activateStep3 === true) {
+  if (
+    jobStarted === false &&
+    startAtError === false &&
+    activateStep3 === true
+  ) {
     disableStartButton = false;
     disableStaggeredButton = false;
   }
