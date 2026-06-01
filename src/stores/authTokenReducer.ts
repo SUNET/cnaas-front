@@ -126,7 +126,7 @@ const decodeToken = (time: number, token: string): Partial<AuthTokenState> => {
     const { exp } = decodedToken;
     const hasExpiry = exp !== null && exp !== undefined;
     const secondsUntilExpiry =
-      exp != null ? getSecondsUntilExpiry(exp, time) : Infinity;
+      exp == null ? Infinity : getSecondsUntilExpiry(exp, time);
     return {
       username:
         decodedToken.preferred_username ??

@@ -1,47 +1,13 @@
-import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router";
 import { Button, Icon, Popup } from "semantic-ui-react";
-import {
-  getSecondsUntilExpiry,
-  useAuthToken,
-} from "../../stores/AuthTokenContext";
+import { useAuthToken } from "../../stores/AuthTokenContext";
+import { useSecondsUntilExpiry } from "../../hooks/useSecondsUntilExpiry";
 import { secondsToText } from "../../utils/formatters";
 
 export function JwtInfo() {
   const { doTokenRefresh, logout, username, token, tokenExpiry } =
     useAuthToken();
-  const [secondsUntilExpiry, setSecondsUntilExpiry] = useState(() =>
-    getSecondsUntilExpiry(tokenExpiry),
-  );
-  const [prevTokenExpiry, setPrevTokenExpiry] = useState(tokenExpiry);
-  const timerId = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-
-  // Reset countdown when tokenExpiry changes (e.g. token refresh)
-  if (tokenExpiry !== prevTokenExpiry) {
-    setPrevTokenExpiry(tokenExpiry);
-    setSecondsUntilExpiry(getSecondsUntilExpiry(tokenExpiry));
-  }
-
-  useEffect(() => {
-    if (tokenExpiry === null || tokenExpiry === undefined) {
-      return;
-    }
-
-    const secondsLeft = getSecondsUntilExpiry(tokenExpiry);
-    if (secondsLeft !== null && secondsLeft > 0) {
-      timerId.current = setInterval(() => {
-        const remaining = getSecondsUntilExpiry(tokenExpiry);
-        setSecondsUntilExpiry(remaining);
-        if (remaining === null || remaining <= 0) {
-          clearInterval(timerId.current);
-        }
-      }, 5000);
-    }
-
-    return () => {
-      clearInterval(timerId.current);
-    };
-  }, [tokenExpiry]);
+  const secondsUntilExpiry = useSecondsUntilExpiry(tokenExpiry);
 
   return (
     <Popup

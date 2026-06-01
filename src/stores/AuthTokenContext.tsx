@@ -144,10 +144,10 @@ export function AuthTokenProvider({
       type: actions.LOAD_TOKEN_FROM_STORAGE,
       payload: { time: Date.now() },
     });
-    window.addEventListener("storage", onStorageTokenUpdate);
+    globalThis.addEventListener("storage", onStorageTokenUpdate);
 
     return () => {
-      window.removeEventListener("storage", onStorageTokenUpdate);
+      globalThis.removeEventListener("storage", onStorageTokenUpdate);
     };
   }, []);
 
@@ -175,7 +175,7 @@ export function AuthTokenProvider({
       type: actions.SET_LOGIN_MESSAGE,
       payload: "You have been logged out",
     });
-    window.location.replace("/");
+    globalThis.location.replace("/");
   }, []);
 
   const oidcLogin = (event?: SyntheticEvent) => {
@@ -184,7 +184,7 @@ export function AuthTokenProvider({
     }
     // Handle redirect in Callback component
     const url = `${process.env.API_URL}/api/v1.0/auth/login`;
-    window.location.replace(url);
+    globalThis.location.replace(url);
   };
 
   // Only supposed to be used in 'Callback' component.

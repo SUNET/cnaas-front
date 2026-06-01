@@ -18,7 +18,7 @@ function Login() {
       : "";
 
   if (loggedIn) {
-    window.location.replace("/dashboard");
+    globalThis.location.replace("/dashboard");
   }
 
   if (loggedIn && permissionsLoading) {

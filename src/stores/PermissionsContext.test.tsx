@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { getData } from "../utils/getData";
+import { mockPermissions as permissionsMockery } from "../test-utils/permissionsFixtures";
 import { useAuthToken } from "./AuthTokenContext";
 import {
   findPermission,
@@ -123,35 +124,6 @@ test("correctly checks permissions", async () => {
 });
 
 describe("findPermission", () => {
-  const permissionsMockery = [
-    {
-      methods: ["GET"],
-      endpoints: ["/devices", "/device/*", "/repository/**", "/groups"],
-      pages: ["Devices", "Dashboard", "Groups"],
-      rights: ["read"],
-    },
-    {
-      methods: ["*"],
-      endpoints: ["*"],
-      pages: ["AsterixPage"],
-      rights: ["*"],
-    },
-    {
-      methods: ["*"],
-      endpoints: ["*"],
-      pages: ["Dashboard", "Groups", "Firmware", "Config change"],
-      rights: ["read", "write"],
-    },
-    {
-      pages: ["Overlapping"],
-      rights: ["read"],
-    },
-    {
-      pages: ["Overlapping"],
-      rights: ["write"],
-    },
-  ];
-
   test("should return true", () => {
     const targetPage = "Groups";
     const requiredPermission = "read";
