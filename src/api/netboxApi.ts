@@ -1,6 +1,67 @@
 import { getData, getDataToken } from "../utils/getData";
 import { postData } from "../utils/sendData";
 
+export type NetboxSiteOrLocation = {
+  readonly url: string;
+  readonly name: string;
+};
+
+/**
+ * The subset of a Netbox device the frontend actually reads. The Netbox
+ * `dcim.devices` payload carries far more; only these fields are consumed
+ * (id by interface-config to fetch interfaces, the rest by DeviceInfoTable).
+ */
+export type NetboxDevice = {
+  readonly id: number;
+  readonly status: { readonly label: string };
+  readonly name?: string;
+  readonly display_url?: string;
+  readonly site: NetboxSiteOrLocation | null;
+  readonly location: NetboxSiteOrLocation | null;
+  readonly asset_tag: string | null;
+};
+
+type NetboxCredentials = {
+  credentials: string | null;
+  getFunc: typeof getData | typeof getDataToken;
+  url: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object";
+}
+
+function toSiteOrLocation(value: unknown): NetboxSiteOrLocation | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.url !== "string" || typeof value.name !== "string") {
+    return null;
+  }
+  return { url: value.url, name: value.name };
+}
+
+/**
+ * Validate the loosely-typed Netbox response into a {@link NetboxDevice}.
+ * Returns null when the value lacks the required `id`/`status.label`, so the
+ * untyped (`any`) API boundary never leaks an unchecked assertion downstream.
+ */
+export function toNetboxDevice(value: unknown): NetboxDevice | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.id !== "number") return null;
+  if (!isRecord(value.status) || typeof value.status.label !== "string") {
+    return null;
+  }
+  return {
+    id: value.id,
+    status: { label: value.status.label },
+    name: typeof value.name === "string" ? value.name : undefined,
+    display_url:
+      typeof value.display_url === "string" ? value.display_url : undefined,
+    site: toSiteOrLocation(value.site),
+    location: toSiteOrLocation(value.location),
+    asset_tag: typeof value.asset_tag === "string" ? value.asset_tag : null,
+  };
+}
+
 /**
  * Resolve Netbox API credentials and base URL.
  * Tries netboxToken first (direct Netbox access), falls back to
@@ -8,7 +69,9 @@ import { postData } from "../utils/sendData";
  *
  * Returns null if NETBOX_API_URL is not configured.
  */
-function resolveNetboxCredentials(token) {
+function resolveNetboxCredentials(
+  authToken: string | null,
+): NetboxCredentials | null {
   if (!process.env.NETBOX_API_URL) {
     return null;
   }
@@ -23,7 +86,7 @@ function resolveNetboxCredentials(token) {
   }
 
   return {
-    credentials: token,
+    credentials: authToken,
     getFunc: getData,
     url: `${process.env.API_URL}/netbox`,
   };
@@ -33,12 +96,15 @@ function resolveNetboxCredentials(token) {
  * Fetch a device from Netbox by hostname.
  * Returns the device object, or null if not found or Netbox is not configured.
  */
-export async function fetchNetboxDevice(hostname, token) {
+export async function fetchNetboxDevice(
+  hostname: string,
+  authToken: string | null,
+): Promise<NetboxDevice | null> {
   if (!process.env.NETBOX_TENANT_ID) {
     return null;
   }
 
-  const resolved = resolveNetboxCredentials(token);
+  const resolved = resolveNetboxCredentials(authToken);
   if (!resolved) return null;
 
   const { credentials, getFunc, url } = resolved;
@@ -48,7 +114,7 @@ export async function fetchNetboxDevice(hostname, token) {
     const data = await getFunc(requestUrl, credentials);
 
     if (data.count === 1) {
-      return data.results[0];
+      return toNetboxDevice(data.results[0]);
     }
 
     console.debug("No Netbox data found for device", hostname);
@@ -63,8 +129,11 @@ export async function fetchNetboxDevice(hostname, token) {
  * Fetch interfaces for a Netbox device by device ID.
  * Returns an array of interface objects, or an empty array on failure.
  */
-export async function fetchNetboxInterfaces(deviceId, token) {
-  const resolved = resolveNetboxCredentials(token);
+export async function fetchNetboxInterfaces(
+  deviceId: number,
+  authToken: string | null,
+): Promise<Array<Record<string, unknown>>> {
+  const resolved = resolveNetboxCredentials(authToken);
   if (!resolved) return [];
 
   const { credentials, getFunc, url } = resolved;
@@ -84,8 +153,11 @@ export async function fetchNetboxInterfaces(deviceId, token) {
  * Returns the model object, or null if not found.
  * Used by DeviceList for model info in expanded rows.
  */
-export async function fetchNetboxModel(model, token) {
-  const resolved = resolveNetboxCredentials(token);
+export async function fetchNetboxModel(
+  model: string,
+  authToken: string | null,
+): Promise<Record<string, unknown> | null> {
+  const resolved = resolveNetboxCredentials(authToken);
   if (!resolved) return null;
 
   const { credentials, getFunc, url } = resolved;
@@ -110,10 +182,12 @@ export async function fetchNetboxModel(model, token) {
  * Fetch tenant data from Netbox by NETBOX_TENANT_ID.
  * Returns the tenant object, or null if not found or not configured.
  */
-export async function fetchNetboxTenant(token) {
+export async function fetchNetboxTenant(
+  authToken: string | null,
+): Promise<Record<string, unknown> | null> {
   if (!process.env.NETBOX_TENANT_ID) return null;
 
-  const resolved = resolveNetboxCredentials(token);
+  const resolved = resolveNetboxCredentials(authToken);
   if (!resolved) return null;
 
   const { credentials, getFunc, url } = resolved;
@@ -141,10 +215,12 @@ export async function fetchNetboxTenant(token) {
  * Fetch contact assignments for the configured tenant via Netbox GraphQL.
  * Returns an array of contact assignments, or an empty array on failure.
  */
-export async function fetchNetboxTenantContacts(token) {
+export async function fetchNetboxTenantContacts(
+  authToken: string | null,
+): Promise<Array<Record<string, unknown>>> {
   if (!process.env.NETBOX_TENANT_ID) return [];
 
-  const resolved = resolveNetboxCredentials(token);
+  const resolved = resolveNetboxCredentials(authToken);
   if (!resolved) return [];
 
   const { credentials, url } = resolved;
@@ -166,10 +242,12 @@ export async function fetchNetboxTenantContacts(token) {
  * Fetch physical interfaces tagged for the dashboard from Netbox.
  * Returns an array of interface objects, or an empty array on failure.
  */
-export async function fetchNetboxDashboardInterfaces(token) {
+export async function fetchNetboxDashboardInterfaces(
+  authToken: string | null,
+): Promise<Array<Record<string, unknown>>> {
   if (!process.env.NETBOX_TENANT_ID) return [];
 
-  const resolved = resolveNetboxCredentials(token);
+  const resolved = resolveNetboxCredentials(authToken);
   if (!resolved) return [];
 
   const { credentials, getFunc, url } = resolved;
