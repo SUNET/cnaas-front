@@ -36,7 +36,7 @@ export async function fetchJobs(
     const url = buildJobsUrl(sortField, filterField, filterValue, page);
     const response = await getResponse(url, token);
     const totalPages = parseTotalPages(response.headers.get("X-Total-Count"));
-    const data = await checkJsonResponse(response);
+    const data = await checkJsonResponse<{ data: { jobs: Job[] } }>(response);
     return { jobs: data.data.jobs, totalPages };
   } catch (error: unknown) {
     const message = await extractErrorMessageAsync(error);
