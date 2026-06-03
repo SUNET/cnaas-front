@@ -1,7 +1,12 @@
-const checkResponseStatus = require("./checkResponseStatus");
-const checkJsonResponse = require("./checkJsonResponse");
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import checkResponseStatus from "./checkResponseStatus";
+import checkJsonResponse from "./checkJsonResponse";
 
-const getData = (url, credentials, signal) => {
+export const getData = (
+  url: string,
+  credentials?: string | null,
+  signal?: AbortSignal,
+): Promise<any> => {
   return fetch(url, {
     method: "GET",
     headers: {
@@ -11,7 +16,11 @@ const getData = (url, credentials, signal) => {
   }).then((response) => checkJsonResponse(response));
 };
 
-const getDataHeaders = (url, credentials, headers) => {
+export const getDataHeaders = (
+  url: string,
+  credentials?: string | null,
+  headers?: Record<string, string>,
+): Promise<any> => {
   return fetch(url, {
     method: "GET",
     headers: {
@@ -21,7 +30,11 @@ const getDataHeaders = (url, credentials, headers) => {
   }).then((response) => checkJsonResponse(response));
 };
 
-const getDataToken = (url, credentials, signal) => {
+export const getDataToken = (
+  url: string,
+  credentials?: string | null,
+  signal?: AbortSignal,
+): Promise<any> => {
   return fetch(url, {
     method: "GET",
     headers: {
@@ -31,7 +44,11 @@ const getDataToken = (url, credentials, signal) => {
   }).then((response) => checkJsonResponse(response));
 };
 
-const getResponse = (url, credentials, signal) => {
+export const getResponse = (
+  url: string,
+  credentials?: string,
+  signal?: AbortSignal,
+): Promise<Response> => {
   if (credentials !== undefined) {
     return fetch(url, {
       method: "GET",
@@ -47,5 +64,3 @@ const getResponse = (url, credentials, signal) => {
     ...(signal && { signal }),
   }).then((response) => checkResponseStatus(response));
 };
-
-module.exports = { getData, getDataHeaders, getDataToken, getResponse };

@@ -1,8 +1,8 @@
-const checkResponseStatus = (response) => {
+const checkResponseStatus = (response: Response): Promise<Response> => {
   if (response.ok) {
     return Promise.resolve(response);
   }
   return Promise.reject(response);
 };
 
-module.exports = checkResponseStatus;
+export default checkResponseStatus;

@@ -1,5 +1,5 @@
-const checkJsonResponse = (response) => {
-  return response.json().then((json) => {
+const checkJsonResponse = <T = unknown>(response: Response): Promise<T> => {
+  return response.json().then((json: T) => {
     if (!response.ok) {
       const error = {
         ...json,
@@ -13,4 +13,4 @@ const checkJsonResponse = (response) => {
   });
 };
 
-module.exports = checkJsonResponse;
+export default checkJsonResponse;

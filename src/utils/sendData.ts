@@ -1,7 +1,12 @@
-const checkJsonResponse = require("./checkJsonResponse");
-const checkResponseStatus = require("./checkResponseStatus");
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import checkJsonResponse from "./checkJsonResponse";
+import checkResponseStatus from "./checkResponseStatus";
 
-const putData = (url, credentials, dataToSend) => {
+export const putData = (
+  url: string,
+  credentials: string | null,
+  dataToSend: any,
+): Promise<any> => {
   return fetch(url, {
     method: "PUT",
     headers: {
@@ -12,7 +17,11 @@ const putData = (url, credentials, dataToSend) => {
   }).then((response) => checkJsonResponse(response));
 };
 
-const post = async (url, token, dataToSend) => {
+export const post = async (
+  url: string,
+  token: string | null,
+  dataToSend: any,
+): Promise<Response> => {
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -28,7 +37,11 @@ const post = async (url, token, dataToSend) => {
   return response;
 };
 
-const postData = (url, credentials, dataToSend) => {
+export const postData = (
+  url: string,
+  credentials: string | null,
+  dataToSend: any,
+): Promise<any> => {
   return fetch(url, {
     method: "POST",
     headers: {
@@ -42,7 +55,11 @@ const postData = (url, credentials, dataToSend) => {
     .then((response) => response.json());
 };
 
-const deleteData = (url, credentials, dataToSend) => {
+export const deleteData = (
+  url: string,
+  credentials: string | null,
+  dataToSend?: any,
+): Promise<any> => {
   return fetch(url, {
     method: "DELETE",
     headers: {
@@ -54,5 +71,3 @@ const deleteData = (url, credentials, dataToSend) => {
     .then((response) => checkResponseStatus(response))
     .then((response) => response.json());
 };
-
-module.exports = { putData, post, postData, deleteData };
