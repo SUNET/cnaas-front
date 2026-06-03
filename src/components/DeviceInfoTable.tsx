@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import {
   Button,
   Popup,
@@ -8,8 +7,49 @@ import {
   TableRow,
 } from "semantic-ui-react";
 import { formatISODate } from "../utils/formatters";
+import { toNetboxDevice } from "../api/netboxApi";
+import type { Device } from "../types/device";
 
-function ManagementIP({ ip, keyPrefix = "" }) {
+// --- File-local Netbox model shape ----------------------------------------
+// `model` arrives as loosely-typed `unknown` (the Netbox API returns
+// `Record<string, unknown>`). Narrow the subset of fields the table reads
+// here, at the boundary, so the JSX accesses typed fields without `as`.
+// The device shape + guard live alongside the fetcher in `api/netboxApi`.
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object";
+}
+
+type NetboxModelInfo = {
+  readonly display_url?: string;
+  readonly front_image?: string;
+  readonly description?: string;
+  readonly interface_template_count?: number;
+};
+
+function toNetboxModelInfo(value: unknown): NetboxModelInfo | null {
+  if (!isRecord(value)) return null;
+  return {
+    display_url:
+      typeof value.display_url === "string" ? value.display_url : undefined,
+    front_image:
+      typeof value.front_image === "string" ? value.front_image : undefined,
+    description:
+      typeof value.description === "string" ? value.description : undefined,
+    interface_template_count:
+      typeof value.interface_template_count === "number"
+        ? value.interface_template_count
+        : undefined,
+  };
+}
+
+function ManagementIP({
+  ip,
+  keyPrefix = "",
+}: {
+  readonly ip: string | null;
+  readonly keyPrefix?: string;
+}) {
   if (!ip) return null;
 
   const isIPv6 = ip.includes(":");
@@ -37,42 +77,44 @@ function ManagementIP({ ip, keyPrefix = "" }) {
         icon="terminal"
         title={sshAddress}
         onClick={() => {
-          globalThis.location = sshAddress;
+          globalThis.location.href = sshAddress;
         }}
       />
     </>
   );
 }
 
-ManagementIP.propTypes = {
-  ip: PropTypes.string,
-  keyPrefix: PropTypes.string,
-};
-
-function ModelField({ device, model }) {
-  if (!model) return device.model;
+function ModelField({
+  device,
+  model,
+}: {
+  readonly device: Device;
+  readonly model: unknown;
+}) {
+  const info = toNetboxModelInfo(model);
+  if (!info) return device.model;
 
   const content = [
-    <a key="header" href={model.display_url}>
+    <a key="header" href={info.display_url}>
       <h3>Netbox model info</h3>
     </a>,
   ];
-  if (model.front_image) {
+  if (info.front_image) {
     content.push(
       <img
         key="front"
-        src={model.front_image}
+        src={info.front_image}
         alt="Device front"
         width="100%"
       />,
     );
   }
-  if (model.description) {
-    content.push(<p key="description">{model.description}</p>);
+  if (info.description) {
+    content.push(<p key="description">{info.description}</p>);
   }
-  if (model.interface_template_count) {
+  if (info.interface_template_count) {
     content.push(
-      <p key="interfaces">{model.interface_template_count} interfaces</p>,
+      <p key="interfaces">{info.interface_template_count} interfaces</p>,
     );
   }
 
@@ -86,26 +128,19 @@ function ModelField({ device, model }) {
   );
 }
 
-ModelField.propTypes = {
-  device: PropTypes.object.isRequired,
-  model: PropTypes.object,
-};
-
-function NetboxRows({ netboxDevice }) {
-  if (!netboxDevice) return null;
+function NetboxRows({ netboxDevice }: { readonly netboxDevice: unknown }) {
+  const info = toNetboxDevice(netboxDevice);
+  if (!info) return null;
 
   const rows = [];
 
   let monitoringLink = null;
-  if (
-    netboxDevice.status.label === "Active" &&
-    process.env.MONITORING_WEB_URL
-  ) {
+  if (info.status.label === "Active" && process.env.MONITORING_WEB_URL) {
     monitoringLink = [
       <span key="monitoring_link_pre"> (</span>,
       <a
         key="monitoring_link"
-        href={`${process.env.MONITORING_WEB_URL}/ipdevinfo/${netboxDevice.name}/`}
+        href={`${process.env.MONITORING_WEB_URL}/ipdevinfo/${info.name}/`}
         title="Go to device in in monitoring system"
       >
         Monitoring
@@ -118,8 +153,8 @@ function NetboxRows({ netboxDevice }) {
       <TableCell key="name">Netbox Status</TableCell>
       <TableCell key="value">
         <p>
-          <a href={netboxDevice.display_url} title="Go to device in Netbox">
-            {netboxDevice.status.label}
+          <a href={info.display_url} title="Go to device in Netbox">
+            {info.status.label}
           </a>
           {monitoringLink}
         </p>
@@ -127,27 +162,27 @@ function NetboxRows({ netboxDevice }) {
     </TableRow>,
   );
 
-  if (netboxDevice.location || netboxDevice.site) {
+  if (info.location || info.site) {
     const locationParts = [];
-    if (netboxDevice.site) {
+    if (info.site) {
       locationParts.push(
         <a
           key="site"
-          href={netboxDevice.site.url.replace("/api", "")}
+          href={info.site.url.replace("/api", "")}
           title="Go to site in Netbox"
         >
-          {netboxDevice.site.name}
+          {info.site.name}
         </a>,
       );
     }
-    if (netboxDevice.location) {
+    if (info.location) {
       locationParts.push(
         <a
           key="location"
-          href={netboxDevice.location.url.replace("/api", "")}
+          href={info.location.url.replace("/api", "")}
           title="Go to location in Netbox"
         >
-          {netboxDevice.location.name}
+          {info.location.name}
         </a>,
       );
     }
@@ -164,11 +199,11 @@ function NetboxRows({ netboxDevice }) {
     );
   }
 
-  if (netboxDevice.asset_tag) {
+  if (info.asset_tag) {
     rows.push(
       <TableRow key="netbox_assettag">
         <TableCell key="name">Netbox Asset Tag</TableCell>
-        <TableCell key="value">{netboxDevice.asset_tag}</TableCell>
+        <TableCell key="value">{info.asset_tag}</TableCell>
       </TableRow>,
     );
   }
@@ -176,11 +211,15 @@ function NetboxRows({ netboxDevice }) {
   return rows;
 }
 
-NetboxRows.propTypes = {
-  netboxDevice: PropTypes.object,
-};
-
-export function DeviceInfoTable({ device, model, netboxDevice }) {
+export function DeviceInfoTable({
+  device,
+  model,
+  netboxDevice,
+}: {
+  readonly device: Device;
+  readonly model?: unknown;
+  readonly netboxDevice?: unknown;
+}) {
   return (
     <Table compact>
       <TableBody>
@@ -244,9 +283,3 @@ export function DeviceInfoTable({ device, model, netboxDevice }) {
     </Table>
   );
 }
-
-DeviceInfoTable.propTypes = {
-  device: PropTypes.object.isRequired,
-  model: PropTypes.object,
-  netboxDevice: PropTypes.object,
-};

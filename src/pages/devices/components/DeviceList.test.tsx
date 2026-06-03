@@ -31,6 +31,7 @@ jest.mock("../stores/socket", () => ({
   },
 }));
 jest.mock("../../../api/netboxApi", () => ({
+  ...jest.requireActual("../../../api/netboxApi"),
   fetchNetboxDevice: jest.fn().mockResolvedValue(null),
   fetchNetboxModel: jest.fn().mockResolvedValue(null),
 }));
