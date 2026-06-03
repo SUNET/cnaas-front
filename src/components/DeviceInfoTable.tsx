@@ -7,41 +7,8 @@ import {
   TableRow,
 } from "semantic-ui-react";
 import { formatISODate } from "../utils/formatters";
-import { toNetboxDevice } from "../api/netboxApi";
+import { toNetboxDevice, toNetboxModel } from "../api/netboxApi";
 import type { Device } from "../types/device";
-
-// --- File-local Netbox model shape ----------------------------------------
-// `model` arrives as loosely-typed `unknown` (the Netbox API returns
-// `Record<string, unknown>`). Narrow the subset of fields the table reads
-// here, at the boundary, so the JSX accesses typed fields without `as`.
-// The device shape + guard live alongside the fetcher in `api/netboxApi`.
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object";
-}
-
-type NetboxModelInfo = {
-  readonly display_url?: string;
-  readonly front_image?: string;
-  readonly description?: string;
-  readonly interface_template_count?: number;
-};
-
-function toNetboxModelInfo(value: unknown): NetboxModelInfo | null {
-  if (!isRecord(value)) return null;
-  return {
-    display_url:
-      typeof value.display_url === "string" ? value.display_url : undefined,
-    front_image:
-      typeof value.front_image === "string" ? value.front_image : undefined,
-    description:
-      typeof value.description === "string" ? value.description : undefined,
-    interface_template_count:
-      typeof value.interface_template_count === "number"
-        ? value.interface_template_count
-        : undefined,
-  };
-}
 
 function ManagementIP({
   ip,
@@ -91,7 +58,7 @@ function ModelField({
   readonly device: Device;
   readonly model: unknown;
 }) {
-  const info = toNetboxModelInfo(model);
+  const info = toNetboxModel(model);
   if (!info) return device.model;
 
   const content = [

@@ -63,6 +63,35 @@ export function toNetboxDevice(value: unknown): NetboxDevice | null {
 }
 
 /**
+ * The subset of a Netbox device-type (model) the frontend reads. The guard
+ * narrows permissively — a missing or wrong-typed field becomes `undefined` —
+ * so all fields are optional and {@link toNetboxModel} only rejects non-object
+ * values.
+ */
+export type NetboxModel = {
+  readonly display_url?: string;
+  readonly front_image?: string;
+  readonly description?: string;
+  readonly interface_template_count?: number;
+};
+
+export function toNetboxModel(value: unknown): NetboxModel | null {
+  if (!isRecord(value)) return null;
+  return {
+    display_url:
+      typeof value.display_url === "string" ? value.display_url : undefined,
+    front_image:
+      typeof value.front_image === "string" ? value.front_image : undefined,
+    description:
+      typeof value.description === "string" ? value.description : undefined,
+    interface_template_count:
+      typeof value.interface_template_count === "number"
+        ? value.interface_template_count
+        : undefined,
+  };
+}
+
+/**
  * Resolve Netbox API credentials and base URL.
  * Tries netboxToken first (direct Netbox access), falls back to
  * the CNaaS API proxy with the regular JWT token.
@@ -156,7 +185,7 @@ export async function fetchNetboxInterfaces(
 export async function fetchNetboxModel(
   model: string,
   authToken: string | null,
-): Promise<Record<string, unknown> | null> {
+): Promise<NetboxModel | null> {
   const resolved = resolveNetboxCredentials(authToken);
   if (!resolved) return null;
 
@@ -167,7 +196,7 @@ export async function fetchNetboxModel(
     const data = await getFunc(requestUrl, credentials);
 
     if (data.count === 1) {
-      return data.results[0];
+      return toNetboxModel(data.results[0]);
     }
 
     console.debug("No Netbox data found for model", model);
