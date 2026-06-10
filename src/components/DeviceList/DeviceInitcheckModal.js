@@ -51,15 +51,16 @@ function DeviceInitcheckModal({
       const response = await postData(url, token, dataToSend);
       setInitcheckOutput(response.data);
     } catch (error) {
-      setInitcheckOutput(error.message);
+      const errorData = await error.json();
+      setInitcheckOutput(errorData.message);
     }
   }
 
   let initcheckHtml = <Icon name="spinner" loading />;
   let initcheckOk = false;
-  if (initcheckOutput !== null) {
+  if (initcheckOutput !== null && typeof initcheckOutput !== "string") {
     try {
-      initcheckOk = initcheckOutput.compatible;
+      initcheckOk = Boolean(initcheckOutput.compatible);
       let compatibleLinknets = 0;
       let linknets = "";
       try {
@@ -68,7 +69,7 @@ function DeviceInitcheckModal({
           <pre>{JSON.stringify(initcheckOutput.linknets, null, 2)}</pre>
         );
       } catch {
-        if ("linknets_error" in initcheckOutput) {
+        if (initcheckOutput.linknets_error) {
           linknets = initcheckOutput.linknets_error;
         }
       }
@@ -80,7 +81,7 @@ function DeviceInitcheckModal({
           <pre>{JSON.stringify(initcheckOutput.neighbors, null, 2)}</pre>
         );
       } catch {
-        if ("neighbors_error" in initcheckOutput) {
+        if (initcheckOutput.neighbors_error) {
           neighbors = initcheckOutput.neighbors_error;
         }
       }
@@ -135,6 +136,8 @@ function DeviceInitcheckModal({
     } catch {
       initcheckHtml = <pre>{JSON.stringify(initcheckOutput, null, 2)}</pre>;
     }
+  } else if (typeof initcheckOutput === "string") {
+    initcheckHtml = <pre>{initcheckOutput}</pre>;
   }
   return (
     <Modal
