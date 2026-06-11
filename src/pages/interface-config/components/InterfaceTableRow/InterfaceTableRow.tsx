@@ -210,7 +210,12 @@ export function InterfaceTableRow({
   } = state;
 
   const portTemplateDropdownOptions = useMemo(
-    () => portTemplates.map((pt) => ({ text: pt.name, value: pt.name })),
+    () =>
+      portTemplates.map((pt) => ({
+        text: pt.name,
+        value: pt.name,
+        description: pt?.description,
+      })),
     [portTemplates],
   );
 
