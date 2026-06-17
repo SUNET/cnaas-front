@@ -329,14 +329,13 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
     async (isRefreshing: boolean) => {
       if (state.isRepoRefreshing && !isRefreshing) {
         await loadDevicesAndHistory();
-      } else if (state.repoJobId == null) {
-        // Sentinel: a refresh started locally but the socket hasn't yet seen
-        // a RUNNING event with the real job_id. -1 marks "ours, awaiting id".
-        dispatch({ type: actions.SET_REPO_JOB_ID, jobId: -1 });
       }
+      // The sentinel-plant (repoJobId -1) lives in the reducer's
+      // SET_REPO_REFRESHING handler so it reads the *current* repoJobId and
+      // can't clobber a real id adopted from a socket event in the meantime.
       dispatch({ type: actions.SET_REPO_REFRESHING, refreshing: isRefreshing });
     },
-    [state.isRepoRefreshing, state.repoJobId, loadDevicesAndHistory],
+    [state.isRepoRefreshing, loadDevicesAndHistory],
   );
 
   const resetState = useCallback(async () => {
