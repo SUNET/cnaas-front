@@ -136,7 +136,17 @@ export function configChangeReducer(
     }
 
     case actions.SET_REPO_REFRESHING:
-      return { ...state, isRepoRefreshing: action.refreshing };
+      return {
+        ...state,
+        isRepoRefreshing: action.refreshing,
+        // Plant the sentinel only when a refresh *begins* and no job id is
+        // known yet. -1 marks "ours, awaiting the real job_id from a socket
+        // RUNNING event". Deciding this here (from current state) rather than
+        // in a component closure is what prevents an already-adopted real id
+        // from being clobbered back to -1.
+        repoJobId:
+          action.refreshing && state.repoJobId == null ? -1 : state.repoJobId,
+      };
 
     case actions.SET_REPO_JOB_ID:
       return { ...state, repoJobId: action.jobId };
