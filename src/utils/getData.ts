@@ -30,18 +30,18 @@ export const getDataHeaders = (
   }).then((response) => checkJsonResponse(response));
 };
 
-export const getDataToken = (
+export const getDataToken = <T = unknown>(
   url: string,
   credentials?: string | null,
   signal?: AbortSignal,
-): Promise<any> => {
+): Promise<T> => {
   return fetch(url, {
     method: "GET",
     headers: {
       ...(credentials && { Authorization: `Token ${credentials}` }),
     },
     ...(signal && { signal }),
-  }).then((response) => checkJsonResponse(response));
+  }).then((response) => checkJsonResponse<T>(response));
 };
 
 export const getResponse = (
