@@ -9,7 +9,7 @@ jest.mock("../../../utils/getData");
 jest.mock("../../../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
 }));
-jest.mock("../../../hooks/useFreshRef.js", () => ({
+jest.mock("../../../hooks/useFreshRef", () => ({
   useFreshRef: <T,>(value: T) => ({ current: value }),
 }));
 jest.mock("../../../stores/PermissionsContext", () => ({
