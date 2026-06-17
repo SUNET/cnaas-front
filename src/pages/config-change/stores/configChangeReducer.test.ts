@@ -33,6 +33,58 @@ describe("configChangeReducer", () => {
     });
   });
 
+  describe("SET_REPO_REFRESHING", () => {
+    test("plants the sentinel job id when a refresh begins with no job id", () => {
+      const result = reducer(initialState, {
+        type: actions.SET_REPO_REFRESHING,
+        refreshing: true,
+      });
+
+      expect(result.isRepoRefreshing).toBe(true);
+      expect(result.repoJobId).toBe(-1);
+    });
+
+    test("does not overwrite an already-adopted real job id when a refresh begins", () => {
+      const state = { ...initialState, repoJobId: 192021 };
+
+      const result = reducer(state, {
+        type: actions.SET_REPO_REFRESHING,
+        refreshing: true,
+      });
+
+      expect(result.isRepoRefreshing).toBe(true);
+      expect(result.repoJobId).toBe(192021);
+    });
+
+    test("stopping a refresh never clobbers the real job id back to the sentinel", () => {
+      const state = {
+        ...initialState,
+        isRepoRefreshing: true,
+        repoJobId: 192021,
+      };
+
+      const result = reducer(state, {
+        type: actions.SET_REPO_REFRESHING,
+        refreshing: false,
+      });
+
+      expect(result.isRepoRefreshing).toBe(false);
+      expect(result.repoJobId).toBe(192021);
+    });
+
+    test("stopping a refresh with no job id leaves it null", () => {
+      const state = { ...initialState, isRepoRefreshing: true };
+
+      const result = reducer(state, {
+        type: actions.SET_REPO_REFRESHING,
+        refreshing: false,
+      });
+
+      expect(result.isRepoRefreshing).toBe(false);
+      expect(result.repoJobId).toBeNull();
+    });
+  });
+
   describe("RESET_STATE", () => {
     test("returns to initial state", () => {
       const state = {
