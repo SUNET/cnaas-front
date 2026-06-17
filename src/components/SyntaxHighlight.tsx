@@ -2,17 +2,28 @@ import "../styles/prism.css";
 import { useEffect, useRef } from "react";
 import Prism from "prismjs";
 import "prismjs/components/prism-diff.js";
-import PropTypes from "prop-types";
 
-function SyntaxHighlight({ index, syntaxLanguage, code }) {
-  const preRef = useRef();
+type SyntaxHighlightProps = {
+  readonly index?: number;
+  readonly syntaxLanguage?: string;
+  readonly code?: string;
+};
+
+function SyntaxHighlight({
+  index = 0,
+  syntaxLanguage,
+  code = "",
+}: SyntaxHighlightProps) {
+  const preRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
-    Prism.highlightAllUnder(preRef.current);
+    if (preRef.current) {
+      Prism.highlightAllUnder(preRef.current);
+    }
   }, []);
 
-  const normalizeDiffSymbols = (code) => {
-    return code
+  const normalizeDiffSymbols = (diff: string): string => {
+    return diff
       .split("\n")
       .map((line) => line.replace(/^(\s+)([+-])(\S)/, "$2$1$3"))
       .join("\n");
@@ -24,11 +35,5 @@ function SyntaxHighlight({ index, syntaxLanguage, code }) {
     </pre>
   );
 }
-
-SyntaxHighlight.propTypes = {
-  index: PropTypes.number,
-  syntaxLanguage: PropTypes.string,
-  code: PropTypes.string,
-};
 
 export default SyntaxHighlight;
