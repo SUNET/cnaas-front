@@ -1,4 +1,4 @@
-import { type SyntheticEvent, type ReactNode, useMemo } from "react";
+import { type SyntheticEvent, type ReactNode } from "react";
 import { ButtonGroup, Checkbox, Icon, Input, Table } from "semantic-ui-react";
 import { VlanColumn } from "./VlanColumn";
 import {
@@ -208,16 +208,6 @@ export function InterfaceTableRow({
     portTemplates,
     vlans,
   } = state;
-
-  const portTemplateDropdownOptions = useMemo(
-    () =>
-      portTemplates.map((pt) => ({
-        text: pt.name,
-        value: pt.name,
-        description: pt?.description,
-      })),
-    [portTemplates],
-  );
 
   const hostname = device?.hostname ?? null;
   const deviceType = device?.device_type;
@@ -585,7 +575,6 @@ export function InterfaceTableRow({
           currentIfClass={currentIfClass}
           portTemplate={portTemplate}
           editDisabled={editDisabled}
-          portTemplateOptions={portTemplateDropdownOptions}
           updateFieldData={updateFieldData}
           addPortTemplateOption={addPortTemplateOption}
         />
