@@ -7,6 +7,7 @@ import {
   Grid,
   GridColumn,
   Input,
+  type InputOnChangeData,
   Modal,
   ModalActions,
   ModalContent,
@@ -16,21 +17,26 @@ import {
 } from "semantic-ui-react";
 
 import "../styles/prism.css";
-import PropTypes from "prop-types";
 
-const highlightLogs = (logs) => {
-  if (!logs || logs.length === 0) return "";
+const highlightLogs = (logs: readonly string[]): string => {
+  if (logs.length === 0) return "";
   return Prism.highlight(logs.join(""), Prism.languages.log, "log");
 };
 
-function ExpanedLogViewer({ logs, open, setOpen }) {
+type ExpandedLogViewerProps = {
+  readonly logs: readonly string[];
+  readonly open: boolean;
+  readonly setOpen: (open: boolean) => void;
+};
+
+function ExpanedLogViewer({ logs, open, setOpen }: ExpandedLogViewerProps) {
   const [filter, setFilter] = useState("");
   const [activeFilter, setActiveFilter] = useState("");
 
-  const codeRef = useRef(null);
-  const debounceTimeout = useRef(null);
+  const codeRef = useRef<HTMLElement>(null);
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const safeLogs = Array.isArray(logs) ? logs : [];
+  const safeLogs: readonly string[] = Array.isArray(logs) ? logs : [];
   const filteredHtml = useMemo(() => {
     const filtered = safeLogs.filter((value) => value.includes(activeFilter));
     return highlightLogs(filtered);
@@ -54,7 +60,7 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
           <GridColumn floated="left">Logs</GridColumn>
           <GridColumn floated="right" width={3}>
             <Input
-              onChange={(e, data) => {
+              onChange={(_e: unknown, data: InputOnChangeData) => {
                 //Set filter directly
                 setFilter(data.value);
                 // Clear previous debounce
@@ -90,18 +96,17 @@ function ExpanedLogViewer({ logs, open, setOpen }) {
     </Modal>
   );
 }
-ExpanedLogViewer.propTypes = {
-  logs: PropTypes.arrayOf(PropTypes.string),
-  open: PropTypes.bool,
-  setOpen: PropTypes.func,
+
+type LogViewerProps = {
+  readonly logs: readonly string[];
 };
 
-function LogViewer({ logs }) {
+function LogViewer({ logs }: LogViewerProps) {
   const [open, setOpen] = useState(false);
 
-  const codeRef = useRef(null);
+  const codeRef = useRef<HTMLPreElement>(null);
 
-  const safeLogs = Array.isArray(logs) ? logs : [];
+  const safeLogs: readonly string[] = Array.isArray(logs) ? logs : [];
   const html = useMemo(() => highlightLogs(safeLogs), [safeLogs]);
 
   useEffect(() => {
@@ -111,7 +116,7 @@ function LogViewer({ logs }) {
   }, [html]);
 
   if (safeLogs.length === 0) {
-    return;
+    return null;
   }
 
   return (
@@ -141,9 +146,5 @@ function LogViewer({ logs }) {
     </>
   );
 }
-
-LogViewer.propTypes = {
-  logs: PropTypes.arrayOf(PropTypes.string),
-};
 
 export default LogViewer;

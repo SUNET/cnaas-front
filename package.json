@@ -37,6 +37,7 @@
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.24",
     "@types/node": "^25.3.5",
+    "@types/prismjs": "^1.26.6",
     "babel-jest": "^29.7.0",
     "buffer": "^6.0.3",
     "eslint": "^9.37",
