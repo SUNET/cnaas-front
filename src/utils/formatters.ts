@@ -1,6 +1,4 @@
-export const formatISODate = (
-  dateString: string | null | undefined,
-): string => {
+export const formatISODate = (dateString?: string | null): string => {
   if (typeof dateString === "string") {
     return dateString.split(".")[0].replace("T", " ");
   }
