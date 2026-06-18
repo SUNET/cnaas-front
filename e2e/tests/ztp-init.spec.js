@@ -2,6 +2,13 @@
 import { test, expect } from "@playwright/test";
 import { JWT_TOKEN, API_BASE } from "../constants.js";
 
+// Per-test budget (Playwright test.setTimeout). Discovery gets a strictly
+// smaller slice (DISCOVERY_TIMEOUT_MS) so waitForDevice's explicit
+// "No device reached DISCOVERED" error fires ~60s before Playwright's generic
+// test-timeout — which would otherwise mask which poll stalled.
+const TEST_TIMEOUT_MS = 600_000;
+const DISCOVERY_TIMEOUT_MS = 540_000;
+
 /**
  * End-to-end test for the full device lifecycle:
  *   ZTP → DISCOVERED → Initialize via UI → MANAGED
@@ -20,7 +27,7 @@ import { JWT_TOKEN, API_BASE } from "../constants.js";
  * ZTP lifecycle: DHCP_BOOT → DISCOVERED → INIT → MANAGED
  * We keep polling while the device is missing or still in DHCP_BOOT.
  */
-async function waitForDevice(page, timeoutMs = 600_000) {
+async function waitForDevice(page, timeoutMs = DISCOVERY_TIMEOUT_MS) {
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
@@ -102,7 +109,7 @@ async function verifyJobFinished(page, functionName, expectedDevice) {
 
 test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
   // This test can take a long time — ZTP boot + discovery + init + config push.
-  test.setTimeout(600_000); // 10 minutes
+  test.setTimeout(TEST_TIMEOUT_MS); // 10 minutes
 
   test("initialize eosaccess through the UI", async ({ page }, testInfo) => {
     // Show the devices page while waiting, so --headed mode isn't stuck on about:blank
