@@ -1,12 +1,18 @@
 import { Grid, Popup, Divider } from "semantic-ui-react";
-import gitlogo from "../assets/gitlogo.svg";
-import navlogo from "../assets/navlogo.svg";
-import freeradiuslogo from "../assets/freeradiuslogo.svg";
-import netboxlogo from "../assets/netboxlogo.svg";
-import grayloglogo from "../assets/grayloglogo.svg";
-import externallink from "../assets/externallink.svg";
-import swaggerlogo from "../assets/swaggerlogo.svg";
-import readthedocslogo from "../assets/readthedocslogo.svg";
+
+const gitlogo = new URL("../assets/gitlogo.svg", import.meta.url).href;
+const navlogo = new URL("../assets/navlogo.svg", import.meta.url).href;
+const freeradiuslogo = new URL("../assets/freeradiuslogo.svg", import.meta.url)
+  .href;
+const netboxlogo = new URL("../assets/netboxlogo.svg", import.meta.url).href;
+const grayloglogo = new URL("../assets/grayloglogo.svg", import.meta.url).href;
+const externallink = new URL("../assets/externallink.svg", import.meta.url)
+  .href;
+const swaggerlogo = new URL("../assets/swaggerlogo.svg", import.meta.url).href;
+const readthedocslogo = new URL(
+  "../assets/readthedocslogo.svg",
+  import.meta.url,
+).href;
 
 type DashboardLink = {
   readonly title: string;
