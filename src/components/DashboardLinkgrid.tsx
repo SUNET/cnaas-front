@@ -1,8 +1,23 @@
 import { Grid, Popup, Divider } from "semantic-ui-react";
+import gitlogo from "../assets/gitlogo.svg";
+import navlogo from "../assets/navlogo.svg";
+import freeradiuslogo from "../assets/freeradiuslogo.svg";
+import netboxlogo from "../assets/netboxlogo.svg";
+import grayloglogo from "../assets/grayloglogo.svg";
+import externallink from "../assets/externallink.svg";
+import swaggerlogo from "../assets/swaggerlogo.svg";
+import readthedocslogo from "../assets/readthedocslogo.svg";
+
+type DashboardLink = {
+  readonly title: string;
+  readonly description: string;
+  readonly url: string;
+  readonly icon: string;
+  readonly backgroundColor: string | null;
+};
 
 export function DashboardLinkgrid() {
-  const links = [];
-  const gitlogo = new URL("../assets/gitlogo.svg", import.meta.url);
+  const links: DashboardLink[] = [];
 
   if (process.env.SETTINGS_WEB_URL) {
     links.push({
@@ -19,7 +34,7 @@ export function DashboardLinkgrid() {
       title: "Monitoring",
       description: "Network device monitoring (NAV)",
       url: `${process.env.MONITORING_WEB_URL}`,
-      icon: new URL("../assets/navlogo.svg", import.meta.url),
+      icon: navlogo,
       backgroundColor: "#E71324",
     });
   }
@@ -30,7 +45,7 @@ export function DashboardLinkgrid() {
       description:
         "Network Access Control, MAC authentication bypass (CNaaS-NAC)",
       url: `${process.env.NAC_WEB_URL}`,
-      icon: new URL("../assets/freeradiuslogo.svg", import.meta.url),
+      icon: freeradiuslogo,
       backgroundColor: null,
     });
   }
@@ -40,7 +55,7 @@ export function DashboardLinkgrid() {
       title: "Inventory & IPAM",
       description: "Device inventory and IP address management system (NetBox)",
       url: `${process.env.NETBOX_API_URL}`,
-      icon: new URL("../assets/netboxlogo.svg", import.meta.url),
+      icon: netboxlogo,
       backgroundColor: null,
     });
   }
@@ -50,7 +65,7 @@ export function DashboardLinkgrid() {
       title: "Log Management",
       description: "Search in syslog messages (Graylog)",
       url: `${process.env.GRAYLOG_WEB_URL}`,
-      icon: new URL("../assets/grayloglogo.svg", import.meta.url),
+      icon: grayloglogo,
       backgroundColor: "#1D2630",
     });
   }
@@ -60,7 +75,7 @@ export function DashboardLinkgrid() {
       title: "Cloud Vision Wireless",
       description: "Access the CloudVision platform for wireless management",
       url: `${process.env.CLOUDVISION_WEB_URL}`,
-      icon: new URL("../assets/externallink.svg", import.meta.url),
+      icon: externallink,
       backgroundColor: null,
     });
   }
@@ -70,7 +85,7 @@ export function DashboardLinkgrid() {
       title: "CNaaS Wiki",
       description: "CNaaS wiki documentation",
       url: `${process.env.WIKI_WEB_URL}`,
-      icon: new URL("../assets/externallink.svg", import.meta.url),
+      icon: externallink,
       backgroundColor: null,
     });
   }
@@ -80,14 +95,14 @@ export function DashboardLinkgrid() {
       title: "API Browser",
       description: "Explore the NMS API endpoints",
       url: "/api/doc/",
-      icon: new URL("../assets/swaggerlogo.svg", import.meta.url),
+      icon: swaggerlogo,
       backgroundColor: null,
     },
     {
       title: "NMS Documentation",
       description: "Official NMS documentation",
       url: "https://cnaas-nms.readthedocs.io/",
-      icon: new URL("../assets/readthedocslogo.svg", import.meta.url),
+      icon: readthedocslogo,
       backgroundColor: null,
     },
   );
