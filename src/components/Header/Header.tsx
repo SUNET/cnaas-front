@@ -1,4 +1,4 @@
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { usePermissions } from "../../stores/PermissionsContext";
 import { JwtInfo } from "./JwtInfo";
@@ -7,6 +7,7 @@ import ReloginModal from "./ReloginModal";
 export function Header() {
   const { loggedIn, tokenWillExpire } = useAuthToken();
   const { permissionsCheck } = usePermissions();
+  const location = useLocation();
 
   const renderLinks = () => {
     if (!loggedIn) {
@@ -87,7 +88,7 @@ export function Header() {
   return (
     <header>
       <nav>
-        <h1>CNaaS NMS: {process.env.API_URL.split("/")[2]}</h1>
+        <h1>CNaaS NMS: {process.env.API_URL?.split("/")[2]}</h1>
         <ul>{renderLinks()}</ul>
         <ReloginModal isOpen={tokenWillExpire} />
       </nav>
