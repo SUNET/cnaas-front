@@ -1,4 +1,5 @@
 import { getData } from "../utils/getData";
+import type { Device } from "../types/device";
 
 /**
  * Cross-page shared device helpers. Page-specific device fetchers live
@@ -31,11 +32,13 @@ export type DeviceInterfaceStatus = Record<string, InterfaceStatus>;
 export async function fetchDevice(
   hostname: string,
   token: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> {
+): Promise<Device | null> {
   try {
     const url = `${process.env.API_URL}/api/v1.0/device/${hostname}`;
-    const device = (await getData(url, token)).data.devices[0];
+    const response = (await getData(url, token)) as {
+      data: { devices: (Device | undefined)[] };
+    };
+    const device = response.data.devices[0];
     return device ?? null;
   } catch (error) {
     console.error(`Failed to fetch device ${hostname}:`, error);
