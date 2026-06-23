@@ -9,15 +9,31 @@ import { NavigationBlocker } from "./NavigationBlocker";
 // @remix-run/router uses the global Request class when completing navigation.
 // JSDOM doesn't expose Web API globals like Request, but Node 18+ has them.
 // Provide a minimal shim so router.navigate() / blocker.proceed() work in tests.
+class MockRequest {
+  url: string;
+  method: string;
+  headers: unknown;
+  signal: AbortSignal;
+
+  constructor(url: string | URL, init: RequestInit = {}) {
+    this.url = typeof url === "string" ? url : url.toString();
+    this.method = (init.method ?? "GET").toUpperCase();
+    this.headers =
+      typeof globalThis.Headers === "function"
+        ? new globalThis.Headers(init.headers ?? {})
+        : new Map(Object.entries(init.headers ?? {}));
+    this.signal = init.signal ?? new AbortController().signal;
+  }
+}
+
 if (typeof globalThis.Request === "undefined") {
-  globalThis.Request = class Request {
-    constructor(url, init = {}) {
-      this.url = typeof url === "string" ? url : url.toString();
-      this.method = (init.method || "GET").toUpperCase();
-      this.headers = new (globalThis.Headers || Map)(init.headers || {});
-      this.signal = init.signal || new AbortController().signal;
-    }
-  };
+  // Assign via defineProperty: MockRequest is a minimal shim and intentionally
+  // does not satisfy the full lib.dom Request interface.
+  Object.defineProperty(globalThis, "Request", {
+    value: MockRequest,
+    writable: true,
+    configurable: true,
+  });
 }
 
 /**
@@ -25,7 +41,15 @@ if (typeof globalThis.Request === "undefined") {
  * The `block` prop controls whether blocking starts enabled.
  * A toggle button lets tests enable/disable blocking dynamically.
  */
-function BlockerTestPage({ block: initialBlock = true, message }) {
+type BlockerTestPageProps = {
+  readonly block?: boolean;
+  readonly message: string;
+};
+
+function BlockerTestPage({
+  block: initialBlock = true,
+  message,
+}: BlockerTestPageProps) {
   const [block, setBlock] = useState(initialBlock);
   return (
     <div>
@@ -41,7 +65,15 @@ function OtherPage() {
   return <h1>Other Page</h1>;
 }
 
-function renderWithRouter({ block = true, message = "Unsaved changes!" } = {}) {
+type RenderOptions = {
+  readonly block?: boolean;
+  readonly message?: string;
+};
+
+function renderWithRouter({
+  block = true,
+  message = "Unsaved changes!",
+}: RenderOptions = {}) {
   const user = userEvent.setup();
   const router = createMemoryRouter(
     [
