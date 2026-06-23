@@ -28,7 +28,7 @@ function renderWithRouter(initialPath: string) {
   return render(<RouterProvider router={router} />);
 }
 
-let consoleErrorSpy: jest.SpyInstance;
+let consoleErrorSpy: jest.Spied<typeof console.error>;
 
 beforeEach(() => {
   // React logs caught errors to console.error; silence the expected noise.

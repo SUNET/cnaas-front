@@ -5,11 +5,13 @@ import { useAuthToken } from "../stores/AuthTokenContext";
 import { initialAuthTokenState } from "../stores/authTokenReducer";
 import { usePermissions } from "../stores/PermissionsContext";
 import { getData } from "../utils/getData";
+import { redirectTo } from "../utils/navigation";
 import { Callback } from "./Callback";
 
 jest.mock("../stores/AuthTokenContext");
 jest.mock("../stores/PermissionsContext");
 jest.mock("../utils/getData");
+jest.mock("../utils/navigation");
 
 const mockUseAuthToken = useAuthToken as jest.MockedFunction<
   typeof useAuthToken
@@ -18,6 +20,7 @@ const mockUsePermissions = usePermissions as jest.MockedFunction<
   typeof usePermissions
 >;
 const mockGetData = getData as jest.MockedFunction<typeof getData>;
+const mockRedirectTo = redirectTo as jest.MockedFunction<typeof redirectTo>;
 
 const { PERMISSIONS_DISABLED } = process.env;
 
@@ -35,7 +38,6 @@ describe("Callback Component", () => {
   const mockPutToken = jest.fn();
   const mockSetUsername = jest.fn();
   const mockPutPermissions = jest.fn();
-  const mockReplace = jest.fn();
 
   const authTokenValue = (
     overrides: Partial<ReturnType<typeof useAuthToken>>,
@@ -59,11 +61,6 @@ describe("Callback Component", () => {
     mockUseAuthToken.mockReturnValue(authTokenValue({ token: null }));
     mockUsePermissions.mockReturnValue(permissionsValue);
 
-    Object.defineProperty(globalThis, "location", {
-      configurable: true,
-      value: { replace: mockReplace },
-    });
-
     process.env.PERMISSIONS_DISABLED = "false";
   });
 
@@ -81,7 +78,7 @@ describe("Callback Component", () => {
     renderCallback();
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("/");
+      expect(mockRedirectTo).toHaveBeenCalledWith("/");
     });
     expect(mockPutToken).toHaveBeenCalledWith("some-valid-token");
     expect(mockSetUsername).toHaveBeenCalledWith("testuser");
@@ -108,7 +105,7 @@ describe("Callback Component", () => {
     renderCallback("/callback");
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("/");
+      expect(mockRedirectTo).toHaveBeenCalledWith("/");
     });
     expect(mockPutToken).not.toHaveBeenCalled();
   });

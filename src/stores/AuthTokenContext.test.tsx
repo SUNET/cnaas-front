@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { jwtDecode } from "jwt-decode";
 
 import { getData } from "../utils/getData";
+import { redirectTo } from "../utils/navigation";
 import { postData } from "../utils/sendData";
 import {
   AuthTokenProvider,
@@ -14,10 +15,12 @@ import {
 jest.mock("jwt-decode", () => ({ jwtDecode: jest.fn() }));
 jest.mock("../utils/getData");
 jest.mock("../utils/sendData");
+jest.mock("../utils/navigation");
 
 const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
 const mockGetData = getData as jest.MockedFunction<typeof getData>;
 const mockPostData = postData as jest.MockedFunction<typeof postData>;
+const mockRedirectTo = redirectTo as jest.MockedFunction<typeof redirectTo>;
 
 const NOW_S = Math.round(Date.now() / 1000);
 
@@ -67,23 +70,10 @@ function renderAuth() {
   );
 }
 
-const originalLocation = globalThis.location;
-
 beforeEach(() => {
   localStorage.clear();
   jest.clearAllMocks();
   mockGetData.mockResolvedValue("alice");
-  Object.defineProperty(globalThis, "location", {
-    configurable: true,
-    value: { replace: jest.fn() },
-  });
-});
-
-afterEach(() => {
-  Object.defineProperty(globalThis, "location", {
-    configurable: true,
-    value: originalLocation,
-  });
 });
 
 describe("refresh flow", () => {
@@ -133,6 +123,6 @@ describe("logout flow", () => {
       "You have been logged out",
     );
     expect(localStorage.getItem("token")).toBeNull();
-    expect(globalThis.location.replace).toHaveBeenCalledWith("/");
+    expect(mockRedirectTo).toHaveBeenCalledWith("/");
   });
 });

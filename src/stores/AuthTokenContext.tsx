@@ -14,6 +14,7 @@ import {
 } from "react";
 import { storeValueIsUndefined } from "../utils/formatters";
 import { getData } from "../utils/getData";
+import { redirectTo } from "../utils/navigation";
 import { postData } from "../utils/sendData";
 import {
   actions,
@@ -175,7 +176,7 @@ export function AuthTokenProvider({
       type: actions.SET_LOGIN_MESSAGE,
       payload: "You have been logged out",
     });
-    globalThis.location.replace("/");
+    redirectTo("/");
   }, []);
 
   const oidcLogin = (event?: SyntheticEvent) => {
@@ -184,7 +185,7 @@ export function AuthTokenProvider({
     }
     // Handle redirect in Callback component
     const url = `${process.env.API_URL}/api/v1.0/auth/login`;
-    globalThis.location.replace(url);
+    redirectTo(url);
   };
 
   // Only supposed to be used in 'Callback' component.
