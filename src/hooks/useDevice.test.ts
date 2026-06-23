@@ -2,6 +2,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { useDevice } from "./useDevice";
 import { fetchDevice } from "../api/deviceApi";
+import type { Device } from "../types/device";
 
 jest.mock("../stores/AuthTokenContext", () => ({
   useAuthToken: () => ({ token: "test-token" }),
@@ -9,6 +10,11 @@ jest.mock("../stores/AuthTokenContext", () => ({
 
 jest.mock("../api/deviceApi");
 
+const mockedFetchDevice = fetchDevice as jest.MockedFunction<
+  typeof fetchDevice
+>;
+
+// Partial fixture — the test only exercises the fields below.
 const mockDevice = {
   id: 42,
   hostname: "test-switch",
@@ -25,7 +31,7 @@ const mockDevice = {
   ztp_mac: "00:11:22:33:44:55",
   primary_group: "DEFAULT",
   last_seen: "2026-01-01T00:00:00Z",
-};
+} as Device;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -36,11 +42,11 @@ describe("useDevice", () => {
     const { result } = renderHook(() => useDevice(null));
 
     expect(result.current.device).toBeNull();
-    expect(fetchDevice).not.toHaveBeenCalled();
+    expect(mockedFetchDevice).not.toHaveBeenCalled();
   });
 
   test("fetches device data by hostname", async () => {
-    fetchDevice.mockResolvedValue(mockDevice);
+    mockedFetchDevice.mockResolvedValue(mockDevice);
 
     const { result } = renderHook(() => useDevice("test-switch"));
 
@@ -55,17 +61,18 @@ describe("useDevice", () => {
       }),
     );
 
-    expect(fetchDevice).toHaveBeenCalledWith("test-switch", "test-token");
+    expect(mockedFetchDevice).toHaveBeenCalledWith("test-switch", "test-token");
   });
 
   test("exposes all API fields from the device object", async () => {
-    fetchDevice.mockResolvedValue(mockDevice);
+    mockedFetchDevice.mockResolvedValue(mockDevice);
 
     const { result } = renderHook(() => useDevice("test-switch"));
 
     await waitFor(() => expect(result.current.device).not.toBeNull());
 
     const { device } = result.current;
+    if (device === null) throw new Error("expected device to be loaded");
     expect(device.model).toBe("vEOS");
     expect(device.vendor).toBe("Arista");
     expect(device.os_version).toBe("4.28.0F");
@@ -79,26 +86,26 @@ describe("useDevice", () => {
   });
 
   test("handles API error gracefully", async () => {
-    fetchDevice.mockResolvedValue(null);
+    mockedFetchDevice.mockResolvedValue(null);
 
     const { result } = renderHook(() => useDevice("test-switch"));
 
-    await waitFor(() => expect(fetchDevice).toHaveBeenCalled());
+    await waitFor(() => expect(mockedFetchDevice).toHaveBeenCalled());
 
     expect(result.current.device).toBeNull();
   });
 
   test("reload re-fetches device data", async () => {
-    fetchDevice.mockResolvedValue(mockDevice);
+    mockedFetchDevice.mockResolvedValue(mockDevice);
 
     const { result } = renderHook(() => useDevice("test-switch"));
 
     await waitFor(() => expect(result.current.device).not.toBeNull());
 
-    expect(fetchDevice).toHaveBeenCalledTimes(1);
+    expect(mockedFetchDevice).toHaveBeenCalledTimes(1);
 
     // Update mock to return different data
-    fetchDevice.mockResolvedValue({
+    mockedFetchDevice.mockResolvedValue({
       ...mockDevice,
       synchronized: false,
       confhash: "def456",
@@ -108,17 +115,19 @@ describe("useDevice", () => {
       await result.current.reload();
     });
 
-    expect(fetchDevice).toHaveBeenCalledTimes(2);
-    expect(result.current.device.synchronized).toBe(false);
-    expect(result.current.device.confhash).toBe("def456");
+    expect(mockedFetchDevice).toHaveBeenCalledTimes(2);
+    const { device } = result.current;
+    if (device === null) throw new Error("expected device to be loaded");
+    expect(device.synchronized).toBe(false);
+    expect(device.confhash).toBe("def456");
   });
 
   test("handles empty devices array", async () => {
-    fetchDevice.mockResolvedValue(null);
+    mockedFetchDevice.mockResolvedValue(null);
 
     const { result } = renderHook(() => useDevice("nonexistent"));
 
-    await waitFor(() => expect(fetchDevice).toHaveBeenCalled());
+    await waitFor(() => expect(mockedFetchDevice).toHaveBeenCalled());
 
     expect(result.current.device).toBeNull();
   });
