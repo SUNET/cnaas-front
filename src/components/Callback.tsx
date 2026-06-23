@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router";
 import { useAuthToken } from "../stores/AuthTokenContext";
 import { usePermissions } from "../stores/PermissionsContext";
 import { getData } from "../utils/getData";
+import { redirectTo } from "../utils/navigation";
 
 export function Callback() {
   const [searchParams] = useSearchParams();
@@ -17,7 +18,7 @@ export function Callback() {
   useEffect(() => {
     const getPermissions = async (authToken: string | null) => {
       if (process.env.PERMISSIONS_DISABLED === "true") {
-        globalThis.location.replace("/");
+        redirectTo("/");
         return;
       }
       try {
@@ -27,7 +28,7 @@ export function Callback() {
         );
         putPermissions(data);
         if (data.length > 0) {
-          globalThis.location.replace("/");
+          redirectTo("/");
         } else {
           setErrorMessage(
             "You don't seem to have any permissions within this application. Please check with an admin if this is correct.",
@@ -52,7 +53,7 @@ export function Callback() {
       getPermissions(newToken);
     } else if (token) {
       // No URL params — if already logged in, redirect home
-      globalThis.location.replace("/");
+      redirectTo("/");
     }
   }, []); // mount-only: runs once on OIDC redirect landing
 
