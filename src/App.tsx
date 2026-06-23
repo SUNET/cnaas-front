@@ -1,5 +1,4 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
-import { flushSync } from "react-dom";
 import AuthContextProvider from "./stores/AuthContext";
 import { Footer } from "./components/Footer";
 import { Panel } from "./components/Panel";
@@ -44,7 +43,7 @@ export function App() {
   return (
     <div className="container">
       <AuthContextProvider>
-        <RouterProvider router={router} flushSync={flushSync} />
+        <RouterProvider router={router} />
       </AuthContextProvider>
       <Footer />
     </div>
