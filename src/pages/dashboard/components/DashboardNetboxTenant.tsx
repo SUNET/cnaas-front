@@ -20,6 +20,7 @@ export function DashboardNetboxTenant() {
 
   const getNetboxObjects = async () => {
     if (netboxTenant) return;
+    if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) return;
 
     try {
       const tenant = toNetboxTenant(await fetchNetboxTenant(token));
