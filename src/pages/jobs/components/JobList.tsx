@@ -1,41 +1,30 @@
-import type { MouseEvent, ReactNode } from "react";
-import {
-  Icon,
-  Pagination,
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableHeaderCell,
-  TableRow,
-} from "semantic-ui-react";
+import type { ReactNode } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
+import Pagination from "@mui/material/Pagination";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TableSortLabel from "@mui/material/TableSortLabel";
 import { JobRow } from "./JobRow";
 import { JobSearchForm } from "./JobSearchForm";
 import LogViewer from "../../../components/LogViewer";
 import { useJobList } from "../stores/JobListContext";
 
+const COLUMNS = [
+  { key: "id", label: "ID" },
+  { key: "function_name", label: "Function name" },
+  { key: "status", label: "Status" },
+  { key: "scheduled_by", label: "Scheduled by" },
+  { key: "finish_time", label: "Finish time" },
+] as const;
+
 export function JobList() {
   const { state, sortByColumn, setFilter, setPage, toggleRow } = useJobList();
-
   const { jobs, loading, error, sort, expandedRows, totalPages, logLines } =
     state;
-
-  // --- Sort indicator ---
-
-  const getSortIndicator = (column: string): string => {
-    if (sort.column !== column) return "";
-    return sort.direction === "desc" ? "\u2191" : "\u2193";
-  };
-
-  const renderSortButton = (indicator: string): ReactNode => {
-    if (indicator === "\u2191") {
-      return <Icon name="sort up" />;
-    }
-    if (indicator === "\u2193") {
-      return <Icon name="sort down" />;
-    }
-    return <Icon name="sort" />;
-  };
 
   // --- Search action (adapter for JobSearchForm) ---
 
@@ -49,20 +38,13 @@ export function JobList() {
     });
   };
 
-  // --- Page change ---
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pageChange = (_e: MouseEvent<HTMLAnchorElement>, data: any) => {
-    setPage(Number(data.activePage));
-  };
-
   // --- Table body ---
 
   const renderTableBody = (): ReactNode => {
     if (error) {
       return (
         <TableRow>
-          <TableCell colSpan={5}>API error: {error}</TableCell>
+          <TableCell colSpan={COLUMNS.length}>API error: {error}</TableCell>
         </TableRow>
       );
     }
@@ -70,8 +52,11 @@ export function JobList() {
     if (loading) {
       return (
         <TableRow>
-          <TableCell colSpan={5}>
-            <Icon name="spinner" loading />
+          <TableCell colSpan={COLUMNS.length}>
+            <CircularProgress
+              size="var(--size-md)"
+              sx={{ marginRight: "var(--size-xxs)", verticalAlign: "middle" }}
+            />
             Loading jobs...
           </TableCell>
         </TableRow>
@@ -81,7 +66,7 @@ export function JobList() {
     if (jobs.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={5}>Empty result</TableCell>
+          <TableCell colSpan={COLUMNS.length}>Empty result</TableCell>
         </TableRow>
       );
     }
@@ -103,56 +88,44 @@ export function JobList() {
       </div>
       <LogViewer logs={logLines} />
       <h2>Jobs</h2>
-      <Table striped>
-        <TableHeader>
-          <TableRow key="header">
-            <TableHeaderCell onClick={() => sortByColumn("id")} key="0">
-              ID
-              <div className="sync_status_sort">
-                {renderSortButton(getSortIndicator("id"))}
-              </div>
-            </TableHeaderCell>
-            <TableHeaderCell
-              onClick={() => sortByColumn("function_name")}
-              key="1"
-            >
-              Function name
-              <div className="hostname_sort">
-                {renderSortButton(getSortIndicator("function_name"))}
-              </div>
-            </TableHeaderCell>
-            <TableHeaderCell onClick={() => sortByColumn("status")} key="2">
-              Status
-              <div className="device_type_sort">
-                {renderSortButton(getSortIndicator("status"))}
-              </div>
-            </TableHeaderCell>
-            <TableHeaderCell
-              onClick={() => sortByColumn("scheduled_by")}
-              key="3"
-            >
-              Scheduled by
-              <div className="sync_status_sort">
-                {renderSortButton(getSortIndicator("scheduled_by"))}
-              </div>
-            </TableHeaderCell>
-            <TableHeaderCell
-              onClick={() => sortByColumn("finish_time")}
-              key="4"
-            >
-              Finish time
-              <div className="sync_status_sort">
-                {renderSortButton(getSortIndicator("finish_time"))}
-              </div>
-            </TableHeaderCell>
-          </TableRow>
-        </TableHeader>
-        <TableBody>{renderTableBody()}</TableBody>
-      </Table>
+      <TableContainer>
+        <Table aria-label="Jobs" size="small">
+          <TableHead>
+            <TableRow>
+              {COLUMNS.map((column) => (
+                <TableCell
+                  key={column.key}
+                  sortDirection={
+                    sort.column === column.key ? sort.direction : false
+                  }
+                  onClick={() => sortByColumn(column.key)}
+                  sx={{
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <TableSortLabel
+                    active={sort.column === column.key}
+                    direction={
+                      sort.column === column.key ? sort.direction : "asc"
+                    }
+                  >
+                    {column.label}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>{renderTableBody()}</TableBody>
+        </Table>
+      </TableContainer>
       <Pagination
-        activePage={state.activePage}
-        totalPages={totalPages}
-        onPageChange={pageChange}
+        aria-label="Pagination Navigation"
+        count={totalPages}
+        page={state.activePage}
+        onChange={(_event, page) => setPage(page)}
+        sx={{ marginTop: "var(--size-md)" }}
       />
     </section>
   );
