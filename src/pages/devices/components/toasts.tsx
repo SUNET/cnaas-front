@@ -1,5 +1,5 @@
-import { Button } from "semantic-ui-react";
-import { toast } from "react-semantic-toasts-2";
+import Button from "@mui/material/Button";
+import { dismissAllToasts, showToast } from "../../../components/toast";
 
 import type { Device } from "../../../types/device";
 
@@ -9,70 +9,54 @@ type DeviceEvent = {
   readonly object: Device;
 };
 
-// Removes any other floating toasts from the DOM
-function dismissFloatingMessages(): void {
-  document
-    .querySelectorAll(".ui.floating.message")
-    .forEach((el) => el.remove());
-}
-
 export function showDeviceDiscoveredToast(
   data: DeviceEvent,
   onGoToDevice: (deviceId: number) => void,
 ): void {
-  toast({
-    type: "info",
-    icon: "paper plane",
+  showToast({
+    severity: "info",
     title: `Device discovered: ${data.hostname}`,
-    description: (
-      <p>
+    message: (
+      <>
         Model: {data.object.model}, Serial: {data.object.serial}
         <br />
         <Button
-          basic
-          compact
+          variant="text"
+          size="small"
           onClick={() => {
-            dismissFloatingMessages();
+            dismissAllToasts();
             onGoToDevice(data.device_id);
           }}
         >
           Go to device
         </Button>
-      </p>
+      </>
     ),
-    animation: "bounce",
-    time: 0,
-    // `react-semantic-toasts-2` types description as string; localised cast.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any);
+  });
 }
 
 export function showDeviceCreatedToast(
   data: DeviceEvent,
   onGoToDevice: (deviceId: number) => void,
 ): void {
-  toast({
-    type: "info",
-    icon: "paper plane",
+  showToast({
+    severity: "info",
     title: `Device added: ${data.hostname}`,
-    description: (
-      <p>
+    message: (
+      <>
         State: {data.object.state}
         <br />
         <Button
-          basic
-          compact
+          variant="text"
+          size="small"
           onClick={() => {
-            dismissFloatingMessages();
+            dismissAllToasts();
             onGoToDevice(data.device_id);
           }}
         >
           Go to device
         </Button>
-      </p>
+      </>
     ),
-    animation: "bounce",
-    time: 0,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any);
+  });
 }

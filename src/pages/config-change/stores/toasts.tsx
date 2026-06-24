@@ -1,22 +1,9 @@
-import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { Button } from "semantic-ui-react";
-import { toast } from "react-semantic-toasts-2";
+import Button from "@mui/material/Button";
+import { showToast } from "../../../components/toast";
 import type { SyncNotification } from "./socketEvents";
 
 const BATCH_INTERVAL_MS = 1000;
-
-// `react-semantic-toasts-2` types `description` as `string` but the underlying
-// component renders any ReactNode. This wrapper localises the cast so call
-// sites stay type-safe.
-type ToastOptions = Omit<Parameters<typeof toast>[0], "description"> & {
-  description?: ReactNode;
-};
-
-function showToast(options: ToastOptions): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
-  toast(options as any);
-}
 
 // --- Sync toast batching ---
 
@@ -38,7 +25,7 @@ export function showSyncToast(hostname: string): void {
           ? `Refresh affected: ${hostnames[0]}`
           : `Refresh affected: ${hostnames.length} devices`;
 
-      showToast({ type: "info", icon: "paper plane", title, time: 2000 });
+      showToast({ severity: "info", title, duration: 2000 });
       pendingHostnames.clear();
     }
     toastBatchTimer = null;
@@ -65,32 +52,33 @@ export function showSyncWarningToast(data: SyncNotification): void {
           ? `Sync event: ${pendingSyncWarnings[0].syncevent_hostname}`
           : `Multiple sync events`;
 
-      const description =
+      const message =
         count === 1 ? (
-          <p>
+          <>
             {pendingSyncWarnings[0].syncevent_data.cause} by{" "}
             {pendingSyncWarnings[0].syncevent_data.by} <br />
-            <Button onClick={() => globalThis.location.reload()}>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => globalThis.location.reload()}
+            >
               Reload page
             </Button>
-          </p>
+          </>
         ) : (
-          <p>
+          <>
             {count} sync events from other sessions <br />
-            <Button onClick={() => globalThis.location.reload()}>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => globalThis.location.reload()}
+            >
               Reload page
             </Button>
-          </p>
+          </>
         );
 
-      showToast({
-        type: "warning",
-        icon: "paper plane",
-        title,
-        description,
-        animation: "bounce",
-        time: 0,
-      });
+      showToast({ severity: "warning", title, message });
 
       pendingSyncWarnings = [];
     }
@@ -102,18 +90,15 @@ export function showSyncWarningToast(data: SyncNotification): void {
 
 export function showAnotherSessionDidRefreshToast(jobId: number): void {
   showToast({
-    type: "warning",
-    icon: "paper plane",
+    severity: "warning",
     title: `Another session did refresh`,
-    description: (
-      <p>
+    message: (
+      <>
         Dry run progress reset because refresh repo job {jobId}
         <br />
         <Link to="/jobs">job log</Link>
-      </p>
+      </>
     ),
-    animation: "bounce",
-    time: 0,
   });
 }
 

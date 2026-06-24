@@ -56,15 +56,18 @@
     "typescript-eslint": "^8.58.2"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.1.1",
+    "@mui/material": "^9.1.2",
     "dotenv": "^16.3.1",
     "jsonwebtoken": "^9.0.1",
     "jwt-decode": "^4.0.0",
     "prismjs": "^1.30.0",
     "prop-types": "^15.8.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-router": "^7.15.1",
-    "react-semantic-toasts-2": "^0.6.7",
     "semantic-ui-react": "^2.1.4",
     "socket.io-client": "^4.8.3",
     "yaml": "^1.10.3"

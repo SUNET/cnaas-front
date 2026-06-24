@@ -1,4 +1,3 @@
-import { SemanticToastContainer } from "react-semantic-toasts-2";
 import { NavigationBlocker } from "../../../components/NavigationBlocker";
 import { useConfigChange } from "../stores/ConfigChangeContext";
 import { ConfigChangeStep1 } from "./ConfigChangeStep1";
@@ -6,8 +5,6 @@ import { ConfigChangeStep4 } from "./ConfigChangeStep4";
 import { DryRun } from "./DryRun/DryRun";
 import { SyncStatus } from "./SyncStatus";
 import { VerifyDiff } from "./VerifyDiff/VerifyDiff";
-
-import "../../../styles/react-semantic-alert.css";
 
 const NAVIGATION_BLOCKER_MESSAGE =
   "A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave.";
@@ -34,7 +31,6 @@ export function ConfigChange() {
         when={state.blockNavigation}
         message={NAVIGATION_BLOCKER_MESSAGE}
       />
-      <SemanticToastContainer position="top-right" maxToasts={3} />
       <section>
         <SyncStatus
           devices={state.devices}
