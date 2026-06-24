@@ -87,10 +87,10 @@ async function verifyJobFinished(page, functionName, expectedDevice) {
   });
 
   // Expand every job row on the first page so each job's finished_devices is
-  // rendered. Scope to the outer striped jobs table — expanded rows contain
-  // nested tables whose <tr>s would otherwise pollute this locator.
+  // rendered. Scope to the outer jobs table — expanded rows contain nested
+  // tables whose <tr>s would otherwise pollute this locator.
   const jobRows = page.locator(
-    ".ui.striped.table > tbody > tr:not(.device_details_row)",
+    'table[aria-label="Jobs"] > tbody > tr:not(.device_details_row)',
   );
   const count = await jobRows.count();
   for (let i = 0; i < count; i++) {

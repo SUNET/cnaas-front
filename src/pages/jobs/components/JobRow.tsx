@@ -1,16 +1,22 @@
 import type { ReactNode } from "react";
-import {
-  Grid,
-  GridColumn,
-  Icon,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "semantic-ui-react";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import Collapse from "@mui/material/Collapse";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
+import { styled } from "@mui/material/styles";
 import { formatISODate } from "../../../utils/formatters";
 import { JobDetails } from "./JobDetails";
 import type { Job } from "../../../types/job";
+
+const DetailLayout = styled("div")({
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: "var(--size-md)",
+  padding: "var(--size-sm) 0",
+});
 
 type JobRowProps = {
   readonly job: Job;
@@ -26,9 +32,26 @@ export function JobRow({ job, isExpanded, onToggle }: JobRowProps) {
 
   return (
     <>
-      <TableRow onClick={onToggle}>
+      <TableRow
+        onClick={onToggle}
+        sx={{
+          cursor: "pointer",
+          "& > .MuiTableCell-root": { borderBottom: "unset" },
+          "&:hover": { backgroundColor: "var(--color-surface)" },
+        }}
+      >
         <TableCell>
-          <Icon name={isExpanded ? "angle down" : "angle right"} />
+          {isExpanded ? (
+            <KeyboardArrowDownIcon
+              fontSize="small"
+              sx={{ verticalAlign: "middle" }}
+            />
+          ) : (
+            <KeyboardArrowRightIcon
+              fontSize="small"
+              sx={{ verticalAlign: "middle" }}
+            />
+          )}
           {job.id}
         </TableCell>
         <TableCell>{job.function_name}</TableCell>
@@ -36,16 +59,16 @@ export function JobRow({ job, isExpanded, onToggle }: JobRowProps) {
         <TableCell>{job.scheduled_by}</TableCell>
         <TableCell>{formatISODate(job.finish_time)}</TableCell>
       </TableRow>
-      <TableRow className="device_details_row" hidden={!isExpanded}>
-        <TableCell style={{ display: "block" }}>
-          <Grid columns={2}>
-            <GridColumn>
+      <TableRow className="device_details_row">
+        <TableCell colSpan={5} sx={{ py: 0 }}>
+          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+            <DetailLayout>
               <JobMetadataTable job={job} finishedDevices={finishedDevices} />
-            </GridColumn>
-            <GridColumn width={16}>
-              <JobDetails job={job} />
-            </GridColumn>
-          </Grid>
+              <div style={{ gridColumn: "1 / -1" }}>
+                <JobDetails job={job} />
+              </div>
+            </DetailLayout>
+          </Collapse>
         </TableCell>
       </TableRow>
     </>
@@ -61,45 +84,50 @@ function JobMetadataTable({
   job,
   finishedDevices,
 }: JobMetadataTableProps): ReactNode {
+  const rows: ReadonlyArray<{ label: string; value: ReactNode }> = [
+    { label: "Start time", value: formatISODate(job.start_time) },
+    { label: "Finish time", value: formatISODate(job.finish_time) },
+    { label: "Comment", value: job.comment },
+    { label: "Ticket reference", value: job.ticket_ref },
+    ...(job.start_arguments
+      ? [
+          {
+            label: "Start arguments",
+            value: JSON.stringify(job.start_arguments, null, 0),
+          },
+        ]
+      : []),
+    { label: "Next job id", value: job.next_job_id },
+    { label: "Change score", value: job.change_score },
+    { label: "Finished devices", value: finishedDevices },
+  ];
+
   return (
-    <Table compact basic="very">
+    <Table
+      size="small"
+      sx={{
+        "& td": { border: 0, fontSize: "var(--size-md)" },
+        "& tbody tr:nth-of-type(even)": {
+          backgroundColor: "var(--color-surface)",
+        },
+      }}
+    >
       <TableBody>
-        <TableRow>
-          <TableCell>Start time</TableCell>
-          <TableCell>{formatISODate(job.start_time)}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Finish time</TableCell>
-          <TableCell>{formatISODate(job.finish_time)}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Comment</TableCell>
-          <TableCell>{job.comment}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Ticket reference</TableCell>
-          <TableCell>{job.ticket_ref}</TableCell>
-        </TableRow>
-        {job.start_arguments && (
-          <TableRow>
-            <TableCell>Start arguments</TableCell>
-            <TableCell>
-              {JSON.stringify(job.start_arguments, null, 0)}
+        {rows.map((row) => (
+          <TableRow key={row.label}>
+            <TableCell
+              sx={{
+                fontWeight: 700,
+                width: "1%",
+                whiteSpace: "nowrap",
+                verticalAlign: "top",
+              }}
+            >
+              {row.label}
             </TableCell>
+            <TableCell>{row.value}</TableCell>
           </TableRow>
-        )}
-        <TableRow>
-          <TableCell>Next job id</TableCell>
-          <TableCell>{job.next_job_id}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Change score</TableCell>
-          <TableCell>{job.change_score}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Finished devices</TableCell>
-          <TableCell>{finishedDevices}</TableCell>
-        </TableRow>
+        ))}
       </TableBody>
     </Table>
   );

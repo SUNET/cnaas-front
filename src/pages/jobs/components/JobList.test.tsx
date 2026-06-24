@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
@@ -215,15 +215,21 @@ test("expands job details when clicking a row", async () => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  // Details row should be hidden initially
-  const detailsRow = container.querySelector(".device_details_row");
-  expect(detailsRow).toHaveAttribute("hidden");
+  // Details should be collapsed (content unmounted) initially
+  const detailsRow = container.querySelector(
+    ".device_details_row",
+  ) as HTMLElement;
+  expect(
+    within(detailsRow).queryByText("Change score"),
+  ).not.toBeInTheDocument();
 
   // Click on the first job row
   await userEvent.click(screen.getByText("101"));
 
-  // Details row should now be visible
-  expect(detailsRow).not.toHaveAttribute("hidden");
+  // Details should now be expanded and visible
+  await waitFor(() => {
+    expect(within(detailsRow).getByText("Change score")).toBeInTheDocument();
+  });
 
   // Should see expanded details
   expect(screen.getByText("Test sync")).toBeInTheDocument();
@@ -429,15 +435,23 @@ test("collapses job details when clicking expanded row again", async () => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  const detailsRow = container.querySelector(".device_details_row");
+  const detailsRow = container.querySelector(
+    ".device_details_row",
+  ) as HTMLElement;
 
   // Click to expand
   await userEvent.click(screen.getByText("101"));
-  expect(detailsRow).not.toHaveAttribute("hidden");
+  await waitFor(() => {
+    expect(within(detailsRow).getByText("Change score")).toBeInTheDocument();
+  });
 
   // Click again to collapse
   await userEvent.click(screen.getByText("101"));
-  expect(detailsRow).toHaveAttribute("hidden");
+  await waitFor(() => {
+    expect(
+      within(detailsRow).queryByText("Change score"),
+    ).not.toBeInTheDocument();
+  });
 });
 
 test("can expand multiple job rows independently", async () => {
@@ -447,22 +461,38 @@ test("can expand multiple job rows independently", async () => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  const detailsRows = container.querySelectorAll(".device_details_row");
+  const detailsRows = container.querySelectorAll<HTMLElement>(
+    ".device_details_row",
+  );
   expect(detailsRows).toHaveLength(2);
 
-  // Both should be hidden initially
-  expect(detailsRows[0]).toHaveAttribute("hidden");
-  expect(detailsRows[1]).toHaveAttribute("hidden");
+  // Both should be collapsed initially
+  expect(
+    within(detailsRows[0]).queryByText("Change score"),
+  ).not.toBeInTheDocument();
+  expect(
+    within(detailsRows[1]).queryByText("Change score"),
+  ).not.toBeInTheDocument();
 
   // Expand first row
   await userEvent.click(screen.getByText("101"));
-  expect(detailsRows[0]).not.toHaveAttribute("hidden");
-  expect(detailsRows[1]).toHaveAttribute("hidden");
+  await waitFor(() => {
+    expect(
+      within(detailsRows[0]).getByText("Change score"),
+    ).toBeInTheDocument();
+  });
+  expect(
+    within(detailsRows[1]).queryByText("Change score"),
+  ).not.toBeInTheDocument();
 
   // Expand second row
   await userEvent.click(screen.getByText("102"));
-  expect(detailsRows[0]).not.toHaveAttribute("hidden");
-  expect(detailsRows[1]).not.toHaveAttribute("hidden");
+  await waitFor(() => {
+    expect(
+      within(detailsRows[1]).getByText("Change score"),
+    ).toBeInTheDocument();
+  });
+  expect(within(detailsRows[0]).getByText("Change score")).toBeInTheDocument();
 });
 
 // Job details content tests
@@ -744,9 +774,7 @@ test("clicking page 2 triggers API call with page=2", async () => {
 
   fetchJobs.mockClear();
 
-  const nav = screen.getByRole("navigation", { name: "Pagination Navigation" });
-  const page2Link = nav.querySelector('a[value="2"]');
-  await userEvent.click(page2Link as Element);
+  await userEvent.click(screen.getByRole("button", { name: "Go to page 2" }));
 
   await waitFor(() => {
     expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", null, null, 2);
@@ -763,16 +791,24 @@ test("expanded rows collapse when sorting by a different column", async () => {
 
   // Expand first row
   await userEvent.click(screen.getByText("101"));
-  let detailsRow = container.querySelector(".device_details_row");
-  expect(detailsRow).not.toHaveAttribute("hidden");
+  await waitFor(() => {
+    const detailsRow = container.querySelector(
+      ".device_details_row",
+    ) as HTMLElement;
+    expect(within(detailsRow).getByText("Change score")).toBeInTheDocument();
+  });
 
   // Click a different column header to sort
   const columnHeaders = screen.getAllByRole("columnheader");
   await userEvent.click(columnHeaders[2]); // Status column
 
   await waitFor(() => {
-    detailsRow = container.querySelector(".device_details_row");
-    expect(detailsRow).toHaveAttribute("hidden");
+    const detailsRow = container.querySelector(
+      ".device_details_row",
+    ) as HTMLElement;
+    expect(
+      within(detailsRow).queryByText("Change score"),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -787,16 +823,22 @@ test("expanded rows collapse when changing page", async () => {
 
   // Expand first row
   await userEvent.click(screen.getByText("101"));
-  let detailsRow = container.querySelector(".device_details_row");
-  expect(detailsRow).not.toHaveAttribute("hidden");
+  await waitFor(() => {
+    const detailsRow = container.querySelector(
+      ".device_details_row",
+    ) as HTMLElement;
+    expect(within(detailsRow).getByText("Change score")).toBeInTheDocument();
+  });
 
-  const nav = screen.getByRole("navigation", { name: "Pagination Navigation" });
-  const page2Link = nav.querySelector('a[value="2"]');
-  await userEvent.click(page2Link as Element);
+  await userEvent.click(screen.getByRole("button", { name: "Go to page 2" }));
 
   await waitFor(() => {
-    detailsRow = container.querySelector(".device_details_row");
-    expect(detailsRow).toHaveAttribute("hidden");
+    const detailsRow = container.querySelector(
+      ".device_details_row",
+    ) as HTMLElement;
+    expect(
+      within(detailsRow).queryByText("Change score"),
+    ).not.toBeInTheDocument();
   });
 });
 
