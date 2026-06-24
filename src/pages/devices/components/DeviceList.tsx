@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
-import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
+import { showToast } from "../../../components/toast";
 import {
   Grid,
   GridColumn,
@@ -226,30 +226,30 @@ export function DeviceList() {
   };
 
   const handleAddMgmtDomains = (id: number) => {
-    toast({
-      type: "success",
+    showToast({
+      severity: "success",
       title: `Management domain ${id} added`,
-      time: 5000,
+      duration: 5000,
     });
     getAllMgmtDomainsData();
     dispatch({ type: actions.TOGGLE_ADD_MGMT_DOMAIN_MODAL, isOpen: false });
   };
 
   const handleDeleteMgmtDomain = (id: number) => {
-    toast({
-      type: "success",
+    showToast({
+      severity: "success",
       title: `Management domain ${id} deleted`,
-      time: 5000,
+      duration: 5000,
     });
     getAllMgmtDomainsData();
     dispatch({ type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL, isOpen: false });
   };
 
   const handleUpdateMgmtDomains = (id: number) => {
-    toast({
-      type: "success",
+    showToast({
+      severity: "success",
       title: `Management domain ${id} updated`,
-      time: 5000,
+      duration: 5000,
     });
     getAllMgmtDomainsData();
     dispatch({ type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL, isOpen: false });
@@ -303,8 +303,6 @@ export function DeviceList() {
             </GridColumn>
           </GridRow>
         </Grid>
-
-        <SemanticToastContainer position="top-right" maxToasts={3} />
 
         <DeviceStateModal
           isOpen={deviceStateModal.isOpen}

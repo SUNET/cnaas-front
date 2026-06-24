@@ -16,7 +16,7 @@ import {
   Popup,
   Table,
 } from "semantic-ui-react";
-import { SemanticToastContainer, toast } from "react-semantic-toasts-2";
+import { showToast } from "../../../components/toast";
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
 import { NewInterface } from "./NewInterface";
@@ -105,13 +105,10 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
       state.synchronized !== null &&
       wasSync !== state.synchronized
     ) {
-      toast({
-        type: "warning",
-        icon: "paper plane",
+      showToast({
+        severity: "warning",
         title: "Synchronized state was changed!",
-        description: `Device state was changed to ${String(state.synchronized)} by a third party.`,
-        animation: "bounce",
-        time: 0,
+        message: `Device state was changed to ${String(state.synchronized)} by a third party.`,
       });
     }
   }, [state.synchronized, state.isWorking]);
@@ -121,15 +118,12 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
     prevThirdPartyUpdate.current = state.thirdPartyUpdate;
 
     if (!wasThirdParty && state.thirdPartyUpdate) {
-      toast({
-        type: "warning",
-        icon: "paper plane",
+      showToast({
+        severity: "warning",
         title: "Device was updated elsewhere!",
-        description: state.updatedBy
+        message: state.updatedBy
           ? `Device has been updated by ${state.updatedBy}, this page is out of sync.`
           : "Device has been updated by a third party, this page is out of sync.",
-        animation: "bounce",
-        time: 0,
       });
     }
   }, [state.thirdPartyUpdate]);
@@ -422,7 +416,6 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
 
   return (
     <section>
-      <SemanticToastContainer position="top-right" maxToasts={1} />
       <div id="device_list">
         <h2>Interface configuration</h2>
 

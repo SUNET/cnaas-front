@@ -1,5 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import AuthContextProvider from "./stores/AuthContext";
+import { Toaster } from "./components/toast";
 import { Footer } from "./components/Footer";
 import { Panel } from "./components/Panel";
 import { Callback } from "./components/Callback";
@@ -39,13 +41,22 @@ const router = createBrowserRouter([
   },
 ]);
 
+const theme = createTheme({
+  typography: {
+    fontFamily: '"Karla", sans-serif',
+  },
+});
+
 export function App() {
   return (
-    <div className="container">
-      <AuthContextProvider>
-        <RouterProvider router={router} />
-      </AuthContextProvider>
-      <Footer />
-    </div>
+    <ThemeProvider theme={theme}>
+      <div className="container">
+        <AuthContextProvider>
+          <RouterProvider router={router} />
+        </AuthContextProvider>
+        <Footer />
+      </div>
+      <Toaster />
+    </ThemeProvider>
   );
 }
