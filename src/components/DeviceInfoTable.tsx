@@ -1,22 +1,29 @@
-import {
-  Button,
-  Popup,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "semantic-ui-react";
+import { Popup } from "semantic-ui-react";
 import { formatISODate } from "../utils/formatters";
 import { toNetboxDevice, toNetboxModel } from "../api/netboxApi";
 import type { Device } from "../types/device";
 
-function ManagementIP({
-  ip,
-  keyPrefix = "",
-}: {
-  readonly ip: string | null;
-  readonly keyPrefix?: string;
-}) {
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableRow from "@mui/material/TableRow";
+import IconButton from "@mui/material/IconButton";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import TerminalIcon from "@mui/icons-material/Terminal";
+import { styled } from "@mui/material";
+
+const StripedTable = styled(Table)(() => ({
+  "& tbody tr:nth-of-type(even)": {
+    backgroundColor: "var(--color-surface)",
+  },
+}));
+
+const TableContainerBordered = styled(TableContainer)(() => ({
+  border: "1px solid var(--color-divider)",
+}));
+
+function ManagementIP({ ip }: { readonly ip: string | null }) {
   if (!ip) return null;
 
   const isIPv6 = ip.includes(":");
@@ -24,29 +31,27 @@ function ManagementIP({
 
   return (
     <>
-      <span key={`${keyPrefix}mgmt_ip`}>{ip} </span>
-      <Button
-        key={`${keyPrefix}copy`}
-        basic
-        compact
-        size="mini"
-        icon="copy"
+      <span> {ip} </span>
+      <IconButton
+        sx={{ border: "1px solid transparent" }}
+        size="small"
         title={ip}
         onClick={() => {
           navigator.clipboard.writeText(ip);
         }}
-      />
-      <Button
-        key={`${keyPrefix}ssh`}
-        basic
-        compact
-        size="mini"
-        icon="terminal"
+      >
+        <ContentCopyIcon />
+      </IconButton>
+      <IconButton
+        sx={{ border: "1px solid transparent" }}
+        size="small"
         title={sshAddress}
         onClick={() => {
           globalThis.location.href = sshAddress;
         }}
-      />
+      >
+        <TerminalIcon />
+      </IconButton>
     </>
   );
 }
@@ -61,33 +66,27 @@ function ModelField({
   const info = toNetboxModel(model);
   if (!info) return device.model;
 
-  const content = [
-    <a key="header" href={info.display_url}>
-      <h3>Netbox model info</h3>
-    </a>,
-  ];
-  if (info.front_image) {
-    content.push(
-      <img
-        key="front"
-        src={info.front_image}
-        alt="Device front"
-        width="100%"
-      />,
-    );
-  }
-  if (info.description) {
-    content.push(<p key="description">{info.description}</p>);
-  }
-  if (info.interface_template_count) {
-    content.push(
-      <p key="interfaces">{info.interface_template_count} interfaces</p>,
-    );
-  }
-
   return (
     <Popup
-      content={<>{content}</>}
+      content={
+        <>
+          <a key="header" href={info.display_url}>
+            <h3>Netbox model info</h3>
+          </a>
+          {info.front_image && (
+            <img
+              key="front"
+              src={info.front_image}
+              alt="Device front"
+              width="100%"
+            />
+          )}
+          {info.description && <p key="description">{info.description}</p>}
+          {info.interface_template_count && (
+            <p key="interfaces">{info.interface_template_count} interfaces</p>
+          )}
+        </>
+      }
       wide="very"
       hoverable
       trigger={<span className="popup-trigger">{device.model}</span>}
@@ -99,83 +98,76 @@ function NetboxRows({ netboxDevice }: { readonly netboxDevice: unknown }) {
   const info = toNetboxDevice(netboxDevice);
   if (!info) return null;
 
-  const rows = [];
+  const monitoringLink =
+    info.status.label === "Active" && process.env.MONITORING_WEB_URL ? (
+      <>
+        {"("}
+        <a
+          key="monitoring_link"
+          href={`${process.env.MONITORING_WEB_URL}/ipdevinfo/${info.name}/`}
+          title="Go to device in in monitoring system"
+        >
+          {" "}
+          Monitoring{" "}
+        </a>
+        {")"}
+      </>
+    ) : null;
 
-  let monitoringLink = null;
-  if (info.status.label === "Active" && process.env.MONITORING_WEB_URL) {
-    monitoringLink = [
-      <span key="monitoring_link_pre"> (</span>,
-      <a
-        key="monitoring_link"
-        href={`${process.env.MONITORING_WEB_URL}/ipdevinfo/${info.name}/`}
-        title="Go to device in in monitoring system"
-      >
-        Monitoring
-      </a>,
-      <span key="monitoring_link_post">)</span>,
-    ];
-  }
-  rows.push(
-    <TableRow key="netbox_status">
-      <TableCell key="name">Netbox Status</TableCell>
-      <TableCell key="value">
-        <p>
-          <a href={info.display_url} title="Go to device in Netbox">
-            {info.status.label}
-          </a>
-          {monitoringLink}
-        </p>
-      </TableCell>
-    </TableRow>,
-  );
-
-  if (info.location || info.site) {
-    const locationParts = [];
-    if (info.site) {
-      locationParts.push(
+  const locationParts = (
+    <>
+      {info.site && (
         <a
           key="site"
           href={info.site.url.replace("/api", "")}
           title="Go to site in Netbox"
         >
           {info.site.name}
-        </a>,
-      );
-    }
-    if (info.location) {
-      locationParts.push(
-        <a
-          key="location"
-          href={info.location.url.replace("/api", "")}
-          title="Go to location in Netbox"
-        >
-          {info.location.name}
-        </a>,
-      );
-    }
-    if (locationParts.length === 2) {
-      locationParts.splice(1, 0, <span key="separator"> {"->"} </span>);
-    }
-    rows.push(
-      <TableRow key="netbox_location">
-        <TableCell key="name">Netbox Location</TableCell>
-        <TableCell key="value">
-          <span>{locationParts}</span>
+        </a>
+      )}
+      {info.location && (
+        <>
+          {info.site && <span> {"->"} </span>}
+          <a
+            href={info.location.url.replace("/api", "")}
+            title="Go to location in Netbox"
+          >
+            {info.location.name}
+          </a>
+        </>
+      )}
+    </>
+  );
+
+  return (
+    <>
+      <TableRow key="row_netbox_status">
+        <TableCell key="netbox_status">Netbox Status</TableCell>
+        <TableCell key="netbox_status_value">
+          <p>
+            <a href={info.display_url} title="Go to device in Netbox">
+              {info.status.label}
+            </a>
+            {monitoringLink}
+          </p>
         </TableCell>
-      </TableRow>,
-    );
-  }
-
-  if (info.asset_tag) {
-    rows.push(
-      <TableRow key="netbox_assettag">
-        <TableCell key="name">Netbox Asset Tag</TableCell>
-        <TableCell key="value">{info.asset_tag}</TableCell>
-      </TableRow>,
-    );
-  }
-
-  return rows;
+      </TableRow>
+      {locationParts && (
+        <TableRow key="netbox_location">
+          <TableCell key="netbox_location">Netbox Location</TableCell>
+          <TableCell key="netbox_location_value">
+            <span>{locationParts}</span>
+          </TableCell>
+        </TableRow>
+      )}
+      {info.asset_tag && (
+        <TableRow key="netbox_assettag">
+          <TableCell key="netbox_asset">Netbox Asset Tag</TableCell>
+          <TableCell key="netbox_asset_value">{info.asset_tag}</TableCell>
+        </TableRow>
+      )}
+    </>
+  );
 }
 
 export function DeviceInfoTable({
@@ -188,65 +180,71 @@ export function DeviceInfoTable({
   readonly netboxDevice?: unknown;
 }) {
   return (
-    <Table compact>
-      <TableBody>
-        <TableRow key="detail_hostname">
-          <TableCell key="name">Hostname</TableCell>
-          <TableCell key="value">{device.hostname}</TableCell>
-        </TableRow>
-        <TableRow key="detail_mgmtip">
-          <TableCell key="name">Management IP</TableCell>
-          <TableCell key="value">
-            <ManagementIP ip={device.management_ip} />
-            <ManagementIP
-              ip={device.secondary_management_ip}
-              keyPrefix="secondary_"
-            />
-            {device.dhcp_ip != null && (
-              <span key="dhcp_ip">(DHCP IP: {device.dhcp_ip})</span>
-            )}
-          </TableCell>
-        </TableRow>
-        <TableRow key="detail_infraip">
-          <TableCell key="name">Infra IP</TableCell>
-          <TableCell key="value">{device.infra_ip}</TableCell>
-        </TableRow>
-        <TableRow key="detail_mac">
-          <TableCell key="name">MAC</TableCell>
-          <TableCell key="value">{device.ztp_mac}</TableCell>
-        </TableRow>
-        <TableRow key="detail_vendor">
-          <TableCell key="name">Vendor</TableCell>
-          <TableCell key="value">{device.vendor}</TableCell>
-        </TableRow>
-        <TableRow key="detail_model">
-          <TableCell key="name">Model</TableCell>
-          <TableCell key="value">
-            <ModelField device={device} model={model} />
-          </TableCell>
-        </TableRow>
-        <TableRow key="detail_osversion">
-          <TableCell key="name">OS Version</TableCell>
-          <TableCell key="value">{device.os_version}</TableCell>
-        </TableRow>
-        <TableRow key="detail_serial">
-          <TableCell key="name">Serial</TableCell>
-          <TableCell key="value">{device.serial}</TableCell>
-        </TableRow>
-        <TableRow key="detail_state">
-          <TableCell key="name">State</TableCell>
-          <TableCell key="value">{device.state}</TableCell>
-        </TableRow>
-        <TableRow key="primary_group">
-          <TableCell key="name">Primary group</TableCell>
-          <TableCell key="value">{device.primary_group}</TableCell>
-        </TableRow>
-        <TableRow key="seen">
-          <TableCell key="name">Last seen</TableCell>
-          <TableCell key="value">{formatISODate(device.last_seen)}</TableCell>
-        </TableRow>
-        <NetboxRows netboxDevice={netboxDevice} />
-      </TableBody>
-    </Table>
+    <TableContainerBordered>
+      <StripedTable size="small" aria-label="Device info table">
+        <TableBody>
+          <TableRow key="row_hostname">
+            <TableCell key="hostname">Hostname</TableCell>
+            <TableCell key="hostname_value">{device.hostname}</TableCell>
+          </TableRow>
+          <TableRow key="row_mgmtip">
+            <TableCell key="mgmtip">Management IP</TableCell>
+            <TableCell key="mgmtip_value">
+              <ManagementIP key="mgmt_ip" ip={device.management_ip} />
+              <ManagementIP
+                key="secondary_mgmt_ip"
+                ip={device.secondary_management_ip}
+              />
+              {device.dhcp_ip && (
+                <span key="dhcp_ip">(DHCP IP: {device.dhcp_ip})</span>
+              )}
+            </TableCell>
+          </TableRow>
+          <TableRow key="row_infraip">
+            <TableCell key="infraip">Infra IP</TableCell>
+            <TableCell key="infraip_value">{device.infra_ip}</TableCell>
+          </TableRow>
+          <TableRow key="row_ztp_mac">
+            <TableCell key="ztp_mac">MAC</TableCell>
+            <TableCell key="ztp_mac_value">{device.ztp_mac}</TableCell>
+          </TableRow>
+          <TableRow key="row_vendor">
+            <TableCell key="vendor">Vendor</TableCell>
+            <TableCell key="vendor_value">{device.vendor}</TableCell>
+          </TableRow>
+          <TableRow key="row_model">
+            <TableCell key="model">Model</TableCell>
+            <TableCell key="model_value">
+              <ModelField device={device} model={model} />
+            </TableCell>
+          </TableRow>
+          <TableRow key="row_osversion">
+            <TableCell key="osversion">OS Version</TableCell>
+            <TableCell key="osversion_value">{device.os_version}</TableCell>
+          </TableRow>
+          <TableRow key="row_serial">
+            <TableCell key="serial">Serial</TableCell>
+            <TableCell key="serial_value">{device.serial}</TableCell>
+          </TableRow>
+          <TableRow key="row_state">
+            <TableCell key="state">State</TableCell>
+            <TableCell key="state_value">{device.state}</TableCell>
+          </TableRow>
+          <TableRow key="row_primary_group">
+            <TableCell key="primary_group">Primary group</TableCell>
+            <TableCell key="primary_group_value">
+              {device.primary_group}
+            </TableCell>
+          </TableRow>
+          <TableRow key="row_seen">
+            <TableCell key="seen">Last seen</TableCell>
+            <TableCell key="seen_value">
+              {formatISODate(device.last_seen)}
+            </TableCell>
+          </TableRow>
+          <NetboxRows netboxDevice={netboxDevice} />
+        </TableBody>
+      </StripedTable>
+    </TableContainerBordered>
   );
 }

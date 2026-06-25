@@ -41,7 +41,17 @@ const router = createBrowserRouter([
   },
 ]);
 
+// Palette mirrors the design tokens in src/styles/variables.css. MUI's color
+// math (alpha/lighten/darken) can't parse var(), so the hex values are
+// duplicated here instead of referencing the custom properties. Keep them in
+// sync with variables.css.
 const theme = createTheme({
+  palette: {
+    primary: { main: "#003049" }, // --color-primary
+    secondary: { main: "#ff4500" }, // --color-secondary
+    error: { main: "#ff0000" }, // --color-error
+    background: { default: "#ffffff" }, // --color-background
+  },
   typography: {
     fontFamily: '"Karla", sans-serif',
   },
