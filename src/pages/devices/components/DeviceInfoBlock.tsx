@@ -31,7 +31,11 @@ export function DeviceInfoBlock({
       <GridRow>
         <GridColumn>
           {permissionsCheck("Devices", "write") && (
-            <Dropdown text="Actions" button>
+            <Dropdown
+              text="Actions"
+              button
+              style={{ marginBottom: "var(--size-md)" }}
+            >
               <Dropdown.Menu>{menuActions}</Dropdown.Menu>
             </Dropdown>
           )}
