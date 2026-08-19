@@ -1,9 +1,17 @@
 import type { Job } from "../../../types/job";
+import type {
+  DeviceOsVersionData,
+  GroupOsVersionData,
+} from "../api/firmwareUpgradeApi";
 
 // --- Types ---
 
+/** OS version info for the target: single-device or group response, or null. */
+export type FirmwareInfo = DeviceOsVersionData | GroupOsVersionData | null;
+
 export type FirmwareUpgradeState = {
   readonly blockNavigation: boolean;
+  readonly firmwareInfo: FirmwareInfo;
   readonly step2TotalCount: number;
   readonly step2JobId: number | null;
   readonly step2JobData: Job | null;
@@ -22,6 +30,7 @@ export type FirmwareUpgradeState = {
 
 export const actions = {
   SET_BLOCK_NAVIGATION: "SET_BLOCK_NAVIGATION",
+  SET_FIRMWARE_INFO: "SET_FIRMWARE_INFO",
   SET_STEP2_TOTAL_COUNT: "SET_STEP2_TOTAL_COUNT",
   SET_STEP2_JOB_ID: "SET_STEP2_JOB_ID",
   SET_STEP2_JOB_DATA: "SET_STEP2_JOB_DATA",
@@ -38,6 +47,7 @@ export const actions = {
 
 export type Action =
   | { type: typeof actions.SET_BLOCK_NAVIGATION; blocked: boolean }
+  | { type: typeof actions.SET_FIRMWARE_INFO; info: FirmwareInfo }
   | { type: typeof actions.SET_STEP2_TOTAL_COUNT; count: number }
   | { type: typeof actions.SET_STEP2_JOB_ID; jobId: number | null }
   | { type: typeof actions.SET_STEP2_JOB_DATA; data: Job | null }
@@ -55,6 +65,7 @@ export type Action =
 
 export const initialState: FirmwareUpgradeState = {
   blockNavigation: false,
+  firmwareInfo: null,
   step2TotalCount: 0,
   step2JobId: null,
   step2JobData: null,
@@ -80,6 +91,9 @@ export function firmwareUpgradeReducer(
   switch (action.type) {
     case actions.SET_BLOCK_NAVIGATION:
       return { ...state, blockNavigation: action.blocked };
+
+    case actions.SET_FIRMWARE_INFO:
+      return { ...state, firmwareInfo: action.info };
 
     case actions.SET_STEP2_TOTAL_COUNT:
       return { ...state, step2TotalCount: action.count };

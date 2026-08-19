@@ -1,4 +1,5 @@
 import { makeJob } from "../../../test-utils/makeJob";
+import type { Device } from "../../../types/device";
 import {
   actions,
   firmwareUpgradeReducer,
@@ -43,4 +44,15 @@ test("SET_START_ERROR stores whatever message it is handed", () => {
     message: "boom",
   });
   expect(next.startError).toBe("boom");
+});
+
+test("SET_FIRMWARE_INFO stores the device info", () => {
+  const info = {
+    devices: [{ hostname: "sw1", model: "CCS-710P-16P" } as Device],
+  };
+  const next = firmwareUpgradeReducer(initialState, {
+    type: actions.SET_FIRMWARE_INFO,
+    info,
+  });
+  expect(next.firmwareInfo).toBe(info);
 });

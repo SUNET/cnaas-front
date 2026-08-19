@@ -1,15 +1,4 @@
-import { useEffect, useState } from "react";
-import {
-  fetchDeviceOsVersion,
-  fetchGroupOsVersion,
-  type CommitTarget,
-  type DeviceOsVersionData,
-  type GroupOsVersionData,
-} from "../api/firmwareUpgradeApi";
-import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
-
-type FirmwareInfo = DeviceOsVersionData | GroupOsVersionData | null;
 
 function renderHostname(hostname: string) {
   return (
@@ -20,28 +9,7 @@ function renderHostname(hostname: string) {
 }
 
 export function FirmwareStep1() {
-  const { token } = useAuthToken();
-  const { commitTarget } = useFirmwareUpgrade();
-  const [firmwareInfo, setFirmwareInfo] = useState<FirmwareInfo>(null);
-
-  const getFirmwareStatus = async (
-    target: CommitTarget,
-  ): Promise<FirmwareInfo> => {
-    if (target.hostname) {
-      return fetchDeviceOsVersion(target.hostname, token);
-    } else if (target.group) {
-      return fetchGroupOsVersion(target.group, token);
-    }
-    return null;
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const newFirmwareStatus = await getFirmwareStatus(commitTarget);
-      setFirmwareInfo(newFirmwareStatus);
-    };
-    fetchData();
-  }, [commitTarget, token]);
+  const { commitTarget, firmwareInfo } = useFirmwareUpgrade();
 
   let osVersionList = <p>None</p>;
   if (firmwareInfo && "groups" in firmwareInfo && commitTarget.group) {

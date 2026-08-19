@@ -20,11 +20,17 @@ import {
   extractErrorMessageAsync,
 } from "../../../utils/extractErrorMessage";
 import { isTerminalJobStatus, type Job } from "../../../types/job";
-import type { CommitTarget } from "../api/firmwareUpgradeApi";
+import { archForModel, type DeviceArch } from "../../../types/device";
+import {
+  fetchDeviceOsVersion,
+  fetchGroupOsVersion,
+  type CommitTarget,
+} from "../api/firmwareUpgradeApi";
 import {
   actions,
   firmwareUpgradeReducer,
   initialState,
+  type FirmwareInfo,
 } from "./firmwareUpgradeReducer";
 import { useFirmwareUpgradeSocket } from "../hooks/useFirmwareUpgradeSocket";
 
@@ -71,6 +77,16 @@ type FirmwareUpgradeContextValue = {
   readonly startError: string | null;
   readonly commitTarget: CommitTarget;
   readonly commitTargetName: string;
+  /**
+   * Current OS version info for the target (single device or group), fetched
+   * once here and read by every step. `null` until loaded.
+   */
+  readonly firmwareInfo: FirmwareInfo;
+  /**
+   * Architecture of a single-device target, used to filter firmware options.
+   * `null` for group targets (no single model) — those are left unfiltered.
+   */
+  readonly targetArch: DeviceArch | null;
   readonly updateComment: (e: ChangeEvent<HTMLInputElement>) => void;
   readonly updateTicketRef: (e: ChangeEvent<HTMLInputElement>) => void;
   readonly skipStep2: () => void;
@@ -124,6 +140,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
   const [state, dispatch] = useReducer(firmwareUpgradeReducer, initialState);
   const {
     blockNavigation,
+    firmwareInfo,
     step2TotalCount,
     step2JobId,
     step2JobData,
@@ -161,6 +178,51 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     if (group) return { group };
     return {};
   }, [searchParams]);
+
+  // Current OS version info for the target, fetched once here into the reducer
+  // and shared with every step.
+  useEffect(() => {
+    const { hostname, group } = commitTarget;
+    if (!hostname && !group) {
+      dispatch({ type: actions.SET_FIRMWARE_INFO, info: null });
+      return;
+    }
+    const controller = new AbortController();
+    const fetchFirmwareInfo = async () => {
+      try {
+        let info: FirmwareInfo = null;
+        if (hostname) {
+          info = await fetchDeviceOsVersion(
+            hostname,
+            tokenRef.current,
+            controller.signal,
+          );
+        } else if (group) {
+          info = await fetchGroupOsVersion(
+            group,
+            tokenRef.current,
+            controller.signal,
+          );
+        }
+        dispatch({ type: actions.SET_FIRMWARE_INFO, info });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Failed to fetch firmware info:", error);
+      }
+    };
+    fetchFirmwareInfo();
+    return () => controller.abort();
+  }, [commitTarget, tokenRef]);
+
+  // Architecture of a single-device target, derived from its model and used to
+  // filter firmware options. `null` for group targets (no single model), which
+  // leaves them unfiltered.
+  const targetArch = useMemo((): DeviceArch | null => {
+    if (firmwareInfo && "devices" in firmwareInfo) {
+      return archForModel(firmwareInfo.devices[0]?.model);
+    }
+    return null;
+  }, [firmwareInfo]);
 
   // --- Polling ---
   //
@@ -443,6 +505,8 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       startError,
       commitTarget,
       commitTargetName: commitTargetToName(commitTarget),
+      firmwareInfo,
+      targetArch,
       updateComment,
       updateTicketRef,
       skipStep2,
@@ -462,6 +526,8 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       blockNavigation,
       startError,
       commitTarget,
+      firmwareInfo,
+      targetArch,
       updateComment,
       updateTicketRef,
       skipStep2,
