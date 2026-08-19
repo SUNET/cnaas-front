@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import queryString from "query-string";
 import { Form, Confirm, Select } from "semantic-ui-react";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
@@ -6,6 +8,18 @@ import { getData } from "../../utils/getData";
 import { FirmwareError } from "./FirmwareError";
 import { useAuthToken } from "../../contexts/AuthTokenContext";
 import PropTypes from "prop-types";
+
+/**
+ * Map a device model string to its firmware architecture. The 710XP family runs
+ * ARM (EOSarm-) images across all SKU variants; everything else (and unknown or
+ * missing models) is treated as x86 (EOS/EOS64-).
+ */
+function archForModel(model) {
+  if (typeof model === "string" && model.includes("710XP")) {
+    return "arm";
+  }
+  return "x86";
+}
 
 FirmwareStep2.propTypes = {
   skipStep2: PropTypes.func,
@@ -27,12 +41,16 @@ export function FirmwareStep2({
   logLines,
 }) {
   const { token } = useAuthToken();
+  const { search } = useLocation();
 
   const [filename, setFilename] = useState(null);
   const [firmwareOptions, setFirmwareOptions] = useState([]);
   const [firmwareLocked, setFirmwareLocked] = useState(false);
   const [firmwareSelected, setFirmwareSelected] = useState(false);
   const [confirmDiagOpen, setConfirmDiagOpen] = useState(false);
+  // Architecture of a single-device target, used to filter firmware options.
+  // `null` for group targets or before it resolves — those stay unfiltered.
+  const [targetArch, setTargetArch] = useState(null);
 
   const jobStatus = jobData?.status ?? null;
   const jobResult = jobData?.result ?? null;
@@ -75,11 +93,27 @@ export function FirmwareStep2({
         process.env.ARISTA_DETECT_ARCH !== undefined &&
         process.env.ARISTA_DETECT_ARCH === "true"
       ) {
-        // build combined entry for both 32+64bit images if both are found
-        if (
+        // Hide firmware that doesn't match the target device's architecture.
+        // EOSarm images are arm-only; EOS/EOS64 are x86-only. Non-EOS files and
+        // unknown targets (targetArch === null, e.g. group upgrades) are shown.
+        const isArmImage = filename.startsWith("EOSarm-");
+        const isX86Image =
+          filename.startsWith("EOS-") || filename.startsWith("EOS64-");
+        if (targetArch === "arm" && isX86Image) return;
+        if (targetArch === "x86" && isArmImage) return;
+
+        if (filename.startsWith("EOSarm-")) {
+          newFirmwareOptions.push({
+            key: index,
+            value: filename,
+            text: `${filename.substring(7)} (arm)`,
+            icon: "circle",
+          });
+        } else if (
           filename.startsWith("EOS64-") &&
           dataFiles.includes(`EOS${filename.substring(5)}`)
         ) {
+          // build combined entry for both 32+64bit images if both are found
           newFirmwareOptions.push({
             key: index,
             value: `detect_arch-${filename}`,
@@ -119,12 +153,31 @@ export function FirmwareStep2({
   };
 
   useEffect(() => {
+    const hostname = queryString.parse(search).hostname;
+    if (!hostname) {
+      return;
+    }
+    const fetchArch = async () => {
+      try {
+        const url = `${process.env.API_URL}/api/v1.0/devices?filter[hostname]=${hostname}`;
+        const data = await getData(url, token);
+        const model = data?.data?.devices?.[0]?.model;
+        setTargetArch(archForModel(model));
+      } catch (error) {
+        console.error("Failed to determine device architecture:", error);
+        setTargetArch(archForModel(null));
+      }
+    };
+    fetchArch();
+  }, [search, token]);
+
+  useEffect(() => {
     const fetchData = async () => {
       const newFirmwareOptions = await getFirmwareFiles();
       setFirmwareOptions(newFirmwareOptions);
     };
     fetchData();
-  }, []);
+  }, [targetArch]);
 
   const error =
     jobStatus === "EXCEPTION"
