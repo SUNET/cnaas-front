@@ -163,3 +163,28 @@ export function isDeviceType(value: unknown): value is DeviceType {
     (DEVICE_TYPES as readonly string[]).includes(value)
   );
 }
+
+// ----- Architecture ------------------------------------------------------
+
+/** Firmware architecture a device runs: arm (EOSarm-) or x86 (EOS/EOS64-). */
+export type DeviceArch = "arm" | "x86";
+
+/**
+ * Model families that run the ARM EOS image (`EOSarm-`). Matched as a substring
+ * of the device `model` so all SKU variants (port/optics/fan suffixes such as
+ * `-2S`, `-F`, `-2S-F`) map to the same architecture. Any model that matches no
+ * ARM family is assumed to be x86 (32/64-bit EOS).
+ */
+const ARM_MODEL_FAMILIES: readonly string[] = ["710XP"];
+
+/**
+ * Map a device model string to its firmware architecture. Unknown or missing
+ * models fall back to `"x86"`, matching the historical assumption that devices
+ * run x86 EOS images.
+ */
+export function archForModel(model: string | null | undefined): DeviceArch {
+  if (model != null && ARM_MODEL_FAMILIES.some((f) => model.includes(f))) {
+    return "arm";
+  }
+  return "x86";
+}

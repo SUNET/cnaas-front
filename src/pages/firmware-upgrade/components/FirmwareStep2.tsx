@@ -21,6 +21,7 @@ export function FirmwareStep2() {
   const {
     step2: { jobId, jobData, totalCount },
     logLines,
+    targetArch,
     skipStep2,
     firmwareUpgradeStart,
     firmwareUpgradeAbort,
@@ -71,54 +72,94 @@ export function FirmwareStep2() {
     }
   };
 
+  /**
+   * Fetches the firmware files from the API and returns them as an array of DropdownItemProps.
+   *
+   * EOS firmware files are assumed to be named according to architectures:
+   *   - "EOS-": 32-bit
+   *   - "EOS64-": 64-bit
+   *   - "EOSarm-": ARM
+   *
+   * @returns {Promise<DropdownItemProps[]>} An array of DropdownItemProps representing the firmware files.
+   */
   const getFirmwareFiles = async (): Promise<DropdownItemProps[]> => {
-    const dataFiles = await fetchFirmwareFiles(token);
+    const fetchedFileNames = await fetchFirmwareFiles(token);
     const newFirmwareOptions: DropdownItemProps[] = [];
-    dataFiles.forEach((filename, index) => {
-      if (
-        process.env.ARISTA_DETECT_ARCH !== undefined &&
-        process.env.ARISTA_DETECT_ARCH === "true"
-      ) {
-        // build combined entry for both 32+64bit images if both are found
-        if (
-          filename.startsWith("EOS64-") &&
-          dataFiles.includes(`EOS${filename.substring(5)}`)
-        ) {
-          newFirmwareOptions.push({
-            key: index,
-            value: `detect_arch-${filename}`,
-            text: `${filename.substring(6)} (32+64bit)`,
-            icon: "circle",
-          });
-        } else if (
-          filename.startsWith("EOS-") &&
-          dataFiles.includes(`EOS64${filename.substring(3)}`)
-        ) {
-          // corresponding 64bit image found, don't show 32bit image
-        } else if (filename.startsWith("EOS")) {
-          newFirmwareOptions.push({
-            key: index,
-            value: filename,
-            text: `${filename} (not dual-arch)`,
-            icon: "adjust",
-            disabled: true,
-          });
-        } else {
-          newFirmwareOptions.push({
-            key: index,
-            value: filename,
-            text: filename,
-            icon: "circle",
-          });
+    fetchedFileNames.forEach((fetchedFileName, index) => {
+      if (process.env.ARISTA_DETECT_ARCH === "true") {
+        const [prefix, version] = fetchedFileName.split(/-(.*)/);
+        const has32version = fetchedFileNames.includes(`EOS-${version}`);
+        const has64version = fetchedFileNames.includes(`EOS64-${version}`);
+
+        // Hide firmware that doesn't match the target device's architecture.
+        // EOSarm images are arm-only; EOS/EOS64 are x86-only. Non-EOS files and
+        // unknown targets (targetArch === null, e.g. group upgrades) are shown.
+        const isArmImage = prefix === "EOSarm";
+        const isX86Image = prefix === "EOS" || prefix === "EOS64";
+        if (targetArch === "arm" && isX86Image) return;
+        if (targetArch === "x86" && isArmImage) return;
+
+        switch (prefix) {
+          case "EOSarm":
+            newFirmwareOptions.push({
+              key: index,
+              value: fetchedFileName,
+              text: `${fetchedFileName.substring(7)} (arm)`,
+              icon: "circle",
+            });
+            break;
+
+          case "EOS64":
+            if (has32version) {
+              // build combined entry for both 32+64bit images if both are found
+              newFirmwareOptions.push({
+                key: index,
+                value: `detect_arch-${fetchedFileName}`,
+                text: `${fetchedFileName.substring(6)} (32+64bit)`,
+                icon: "circle",
+              });
+            } else {
+              newFirmwareOptions.push({
+                key: index,
+                value: fetchedFileName,
+                text: `${fetchedFileName} (not dual-arch)`,
+                icon: "adjust",
+              });
+            }
+            break;
+
+          case "EOS":
+            if (has64version) {
+              // combined entry for both 32+64bit images already added, skip this 32bit image
+              break;
+            }
+            newFirmwareOptions.push({
+              key: index,
+              value: fetchedFileName,
+              text: `${fetchedFileName} (not dual-arch)`,
+              icon: "adjust",
+              disabled: true,
+            });
+            break;
+
+          default:
+            newFirmwareOptions.push({
+              key: index,
+              value: fetchedFileName,
+              text: fetchedFileName,
+            });
+            break;
         }
       } else {
+        // Not Arista
         newFirmwareOptions.push({
           key: index,
-          value: filename,
-          text: filename,
+          value: fetchedFileName,
+          text: fetchedFileName,
         });
       }
     });
+
     return newFirmwareOptions;
   };
 
@@ -128,7 +169,8 @@ export function FirmwareStep2() {
       setFirmwareOptions(newFirmwareOptions);
     };
     fetchData();
-  }, []);
+    // Re-fetch/re-filter when the target architecture resolves.
+  }, [targetArch, token]);
 
   const error =
     jobStatus === "EXCEPTION" ? (
