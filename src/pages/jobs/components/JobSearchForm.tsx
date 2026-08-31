@@ -1,6 +1,7 @@
 import type { ChangeEvent, FormEvent, SyntheticEvent } from "react";
 import { useState } from "react";
-import { Button, Select, Input, Icon } from "semantic-ui-react";
+import { Select, Input, Icon } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 
 type SearchActionOptions = {
   readonly filterField?: string | null;
@@ -58,7 +59,9 @@ export function JobSearchForm({ searchAction }: JobSearchFormProps) {
           (_e: SyntheticEvent, data: any) => setSearchField(String(data.value))
         }
       />
-      <Button type="submit">Search</Button>
+      <Button type="submit" variant="contained">
+        Search
+      </Button>
     </form>
   );
 }

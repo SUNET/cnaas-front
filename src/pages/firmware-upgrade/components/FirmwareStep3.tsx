@@ -7,8 +7,8 @@ import {
   ModalHeader,
   ModalContent,
   ModalActions,
-  Button,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { Tooltip } from "../../../components/Tooltip";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
@@ -218,11 +218,18 @@ export function FirmwareStep3() {
             {staggeredSteps}
           </ModalContent>
           <ModalActions>
-            <Button onClick={closeStaggeredConfirm}>Cancel</Button>
             <Button
+              variant="outlined"
+              color="inherit"
+              onClick={closeStaggeredConfirm}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
               onClick={okStaggeredConfirm}
               disabled={!staggeredCompatible}
-              color="blue"
             >
               OK
             </Button>

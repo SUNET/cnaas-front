@@ -1,6 +1,10 @@
 import { useState, type SyntheticEvent } from "react";
-import { Button, ButtonGroup, Checkbox, Icon, Select } from "semantic-ui-react";
+import { Checkbox, Select } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
+import IconButton from "@mui/material/IconButton";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import CloseIcon from "@mui/icons-material/Close";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import {
   COLUMN_MAP,
   type DeviceColumnKey,
@@ -52,19 +56,16 @@ export function DeviceTableButtonGroup({
     null,
   );
   return (
-    <ButtonGroup icon>
-      <Button
-        icon
-        basic
+    <div>
+      <IconButton
         size="small"
         onClick={() => setFilterActive((prev) => !prev)}
         title="Search / Filter"
+        aria-label="Search / Filter"
       >
-        <Icon name="filter" />
-      </Button>
-      <Button
-        icon
-        basic
+        <FilterListIcon />
+      </IconButton>
+      <IconButton
         size="small"
         onClick={() => {
           setFilterActive(false);
@@ -72,20 +73,20 @@ export function DeviceTableButtonGroup({
           clearSort();
         }}
         title="Clear Filter and Sorting"
+        aria-label="Clear Filter and Sorting"
       >
-        <Icon name="close" />
-      </Button>
-      <Button
-        icon
-        basic
+        <CloseIcon />
+      </IconButton>
+      <IconButton
         size="small"
         title="Select Columns"
+        aria-label="Select Columns"
         onClick={(e: SyntheticEvent) =>
           setColumnsAnchorEl(e.currentTarget as HTMLElement)
         }
       >
-        <Icon name="columns" />
-      </Button>
+        <ViewColumnIcon />
+      </IconButton>
       <Popover
         open={Boolean(columnsAnchorEl)}
         anchorEl={columnsAnchorEl}
@@ -120,6 +121,6 @@ export function DeviceTableButtonGroup({
           </ul>
         </div>
       </Popover>
-    </ButtonGroup>
+    </div>
   );
 }

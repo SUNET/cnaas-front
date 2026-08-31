@@ -2,13 +2,13 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import {
   FormInput,
   FormGroup,
-  Button,
   Form,
   Container,
   Checkbox,
   type InputOnChangeData,
   type CheckboxProps,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { Tooltip } from "../../components/Tooltip";
 import HelpIcon from "@mui/icons-material/Help";
 
@@ -94,7 +94,12 @@ export function Settings() {
             />
           </FormGroup>
         </Form>
-        <Button type="submit" onClick={handleSave} color="green">
+        <Button
+          type="submit"
+          variant="contained"
+          color="success"
+          onClick={handleSave}
+        >
           Save
         </Button>
       </Container>
