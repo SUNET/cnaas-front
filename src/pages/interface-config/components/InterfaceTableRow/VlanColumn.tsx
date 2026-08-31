@@ -7,12 +7,12 @@ import {
   useState,
 } from "react";
 import {
-  Button,
-  ButtonGroup,
   Dropdown,
   Label,
   Loader,
 } from "semantic-ui-react";
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { Tooltip } from "../../../../components/Tooltip";
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import { actions } from "../../stores/interfaceConfigReducer";
@@ -209,29 +209,23 @@ function TaggedToggle({
   untaggedClick,
 }: TaggedToggleProps) {
   return (
-    <ButtonGroup size="mini" vertical>
+    <ToggleButtonGroup
+      orientation="vertical"
+      size="small"
+      exclusive
+      value={isUntagged ? "untagged" : "tagged"}
+      onChange={(e, value: string | null) => {
+        if (value !== null) {
+          untaggedClick(e, { id: interfaceName, name: value });
+        }
+      }}
+    >
       <Tooltip title="Change untagged VLAN" placement="top-end">
-        <Button
-          id={interfaceName}
-          name="untagged"
-          onClick={untaggedClick}
-          active={isUntagged}
-          className="table-button-compact"
-        >
-          U
-        </Button>
+        <ToggleButton value="untagged">U</ToggleButton>
       </Tooltip>
       <Tooltip title="Change list of tagged VLANs" placement="bottom-end">
-        <Button
-          id={interfaceName}
-          name="tagged"
-          onClick={untaggedClick}
-          active={!isUntagged}
-          className="table-button-compact"
-        >
-          T
-        </Button>
+        <ToggleButton value="tagged">T</ToggleButton>
       </Tooltip>
-    </ButtonGroup>
+    </ToggleButtonGroup>
   );
 }
