@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Container, Grid, Popup } from "semantic-ui-react";
+import { Container, Grid } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { DashboardLinkgrid } from "../../../components/DashboardLinkgrid";
 import {
@@ -131,11 +132,12 @@ export function Dashboard() {
           </Grid.Column>
           <Grid.Column width={8}>
             <p>
-              <Popup
-                content={`Detailed git commit version: ${systemVersion.git_version}`}
-                position="top left"
-                hoverable
-                trigger={
+              <Tooltip
+                title={`Detailed git commit version: ${systemVersion.git_version}`}
+                placement="top-start"
+                slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+              >
+                <span>
                   <a
                     href="https://github.com/SUNET/cnaas-nms/releases"
                     target="_blank"
@@ -143,8 +145,8 @@ export function Dashboard() {
                   >
                     CNaaS-NMS version: {systemVersion.version}
                   </a>
-                }
-              />
+                </span>
+              </Tooltip>
             </p>
           </Grid.Column>
         </Grid>

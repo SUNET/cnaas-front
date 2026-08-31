@@ -1,4 +1,5 @@
-import { Grid, Popup, Divider } from "semantic-ui-react";
+import { Grid, Divider } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
 
 const gitlogo = new URL("../assets/gitlogo.svg", import.meta.url).href;
 const navlogo = new URL("../assets/navlogo.svg", import.meta.url).href;
@@ -119,11 +120,8 @@ export function DashboardLinkgrid() {
       <Grid columns={4} stackable>
         {links.map((link) => (
           <Grid.Column key={link.title} textAlign="center">
-            <Popup
-              content={link.description}
-              position="bottom center"
-              hoverable
-              trigger={
+            <Tooltip title={link.description} placement="bottom">
+              <span>
                 <a href={link.url} target="_blank" rel="noreferrer">
                   <img
                     src={link.icon}
@@ -136,8 +134,8 @@ export function DashboardLinkgrid() {
                   />
                   <div>{link.title}</div>
                 </a>
-              }
-            />
+              </span>
+            </Tooltip>
           </Grid.Column>
         ))}
       </Grid>
