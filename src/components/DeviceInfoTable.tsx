@@ -1,4 +1,3 @@
-import { Popup } from "semantic-ui-react";
 import { formatISODate } from "../utils/formatters";
 import { toNetboxDevice, toNetboxModel } from "../api/netboxApi";
 import type { Device } from "../types/device";
@@ -9,9 +8,10 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import TerminalIcon from "@mui/icons-material/Terminal";
-import { styled } from "@mui/material";
+import { styled } from "@mui/material/styles";
 
 const StripedTable = styled(Table)(() => ({
   "& tbody tr:nth-of-type(even)": {
@@ -67,8 +67,8 @@ function ModelField({
   if (!info) return device.model;
 
   return (
-    <Popup
-      content={
+    <Tooltip
+      title={
         <>
           <a key="header" href={info.display_url}>
             <h3>Netbox model info</h3>
@@ -87,10 +87,10 @@ function ModelField({
           )}
         </>
       }
-      wide="very"
-      hoverable
-      trigger={<span className="popup-trigger">{device.model}</span>}
-    />
+      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+    >
+      <span className="popup-trigger">{device.model}</span>
+    </Tooltip>
   );
 }
 
