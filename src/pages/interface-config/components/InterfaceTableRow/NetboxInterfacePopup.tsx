@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Popup, Button } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import Button from "@mui/material/Button";
 
 type NetboxType = { readonly label?: string };
 type NetboxCable = { readonly display?: string };
@@ -73,6 +74,7 @@ export function NetboxInterfacePopup({
 
     return (
       <>
+        <h4>Inventory Information</h4>
         <InterfaceType type={type} />
         <CableInfo cable={cable} />
         <NeighborInfoList neighbors={connectedEndpoints} />
@@ -85,13 +87,16 @@ export function NetboxInterfacePopup({
   }
 
   return (
-    <Popup
-      header="Inventory Information"
-      content={content}
-      position="right center"
-      wide
-      hoverable
-      trigger={<Button className="table-button-compact">I</Button>}
-    />
+    <Tooltip
+      title={content}
+      placement="right"
+      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+    >
+      <span>
+        <Button size="small" sx={{ minWidth: 0 }}>
+          I
+        </Button>
+      </span>
+    </Tooltip>
   );
 }
