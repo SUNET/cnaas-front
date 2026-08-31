@@ -16,6 +16,10 @@ import {
   Table,
 } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
+import IconButton from "@mui/material/IconButton";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import AddBoxIcon from "@mui/icons-material/AddBox";
 import { Tooltip } from "../../../components/Tooltip";
 import { showToast } from "../../../components/toast";
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
@@ -483,18 +487,16 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         )}
 
         <div className="table_options">
-          <Button
+          <IconButton
             className="table_options_button"
-            icon
-            basic
             size="small"
             title="Select Columns"
             onClick={(e: SyntheticEvent) =>
               setColumnsAnchorEl(e.currentTarget as HTMLElement)
             }
           >
-            <Icon name="columns" />
-          </Button>
+            <ViewColumnIcon />
+          </IconButton>
           <Popover
             open={Boolean(columnsAnchorEl)}
             anchorEl={columnsAnchorEl}
@@ -515,32 +517,28 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                 title="Export interface configuration as downloadable JSON file"
                 placement="bottom-end"
               >
-                <Button
+                <IconButton
                   className="table_options_button"
-                  icon
-                  basic
                   size="small"
                   title="Export interface configuration"
                   onClick={() => exportInterfaces(hostname)}
                 >
-                  <Icon name="share square" />
-                </Button>
+                  <FileUploadIcon />
+                </IconButton>
               </Tooltip>
               <Tooltip
                 key="import_interface_config"
                 title="Import interface configuration from a JSON file"
                 placement="bottom-end"
               >
-                <Button
+                <IconButton
                   className="table_options_button"
-                  icon
-                  basic
                   size="small"
                   title="Import interface configuration"
                   onClick={() => setImportModalOpen(true)}
                 >
-                  <Icon name="add square" />
-                </Button>
+                  <AddBoxIcon />
+                </IconButton>
               </Tooltip>
             </>
           )}

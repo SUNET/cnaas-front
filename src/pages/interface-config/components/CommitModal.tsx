@@ -2,10 +2,11 @@ import { type ReactNode } from "react";
 import {
   Accordion,
   type AccordionTitleProps,
-  Button,
   Icon,
   Modal,
 } from "semantic-ui-react";
+import IconButton from "@mui/material/IconButton";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Tooltip } from "../../../components/Tooltip";
 import YAML from "yaml";
 
@@ -94,15 +95,16 @@ export function CommitModalDist({
           <Accordion.Content active>
             <pre>{yaml}</pre>
             <Tooltip title="Copy YAML" placement="bottom-end">
-              <Button
+              <IconButton
+                size="small"
                 onClick={() =>
                   navigator.clipboard.writeText(
                     yaml.split("\n").slice(1).join("\n"),
                   )
                 }
-                icon="copy"
-                size="tiny"
-              />
+              >
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
             </Tooltip>
             <p>
               {editUrl ? (

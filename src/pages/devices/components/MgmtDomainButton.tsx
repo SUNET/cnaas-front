@@ -1,4 +1,6 @@
-import { Button } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import AddIcon from "@mui/icons-material/Add";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 
 import type { Device } from "../../../types/device";
 import { useDeviceList } from "../stores/DeviceListContext";
@@ -48,12 +50,15 @@ export function MgmtDomainButton({ device }: MgmtDomainButtonProps) {
       );
     return (
       <Button
-        compact
-        icon="plus"
+        size="small"
+        variant="contained"
+        startIcon={<AddIcon />}
+        sx={{ justifyContent: "flex-start" }}
         key={`${device.id}_mgmgt_add`}
         onClick={() => handleMgmtAddModalOpen(device.hostname, [...candidates])}
-        content="Add management domain"
-      />
+      >
+        Add management domain
+      </Button>
     );
   }
 
@@ -63,11 +68,14 @@ export function MgmtDomainButton({ device }: MgmtDomainButtonProps) {
 
   return (
     <Button
-      compact
-      icon="arrow up"
+      size="small"
+      variant="contained"
+      startIcon={<ArrowUpwardIcon />}
+      sx={{ justifyContent: "flex-start" }}
       key={`${device.id}_mgmgt_add`}
       onClick={() => handleMgmtUpdateModalOpen(owned[0])}
-      content="Management domain"
-    />
+    >
+      Management domain
+    </Button>
   );
 }

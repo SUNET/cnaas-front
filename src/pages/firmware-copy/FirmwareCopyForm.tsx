@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { Button, ButtonGroup, Icon } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import { styled } from "@mui/material/styles";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+import StarIcon from "@mui/icons-material/Star";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { extractErrorMessageAsync } from "../../utils/extractErrorMessage";
 import {
@@ -8,6 +12,15 @@ import {
   setDefaultFirmware,
 } from "./firmwareCopyApi";
 import { useFirmwareCopyJob } from "./useFirmwareCopyJob";
+
+// Single-column grid stacks the firmware action buttons with a consistent gap.
+const ButtonStack = styled("div")({
+  display: "grid",
+  gridTemplateColumns: "1fr",
+  gap: "var(--size-xxs)",
+  width: "fit-content",
+  justifyItems: "start",
+});
 
 type FirmwareCopyFormProps = {
   readonly filename: string;
@@ -86,16 +99,25 @@ export function FirmwareCopyForm({
             during ZTP.
           </p>
         ) : (
-          <ButtonGroup vertical labeled icon>
-            <Button disabled={removeDisabled} onClick={submitDelete}>
-              Delete <Icon name="trash alternate outline" />
+          <ButtonStack>
+            <Button
+              variant="text"
+              disabled={removeDisabled}
+              onClick={submitDelete}
+              endIcon={<DeleteOutlinedIcon />}
+            >
+              Delete
             </Button>
             {!linkedTo && (
-              <Button onClick={submitSetDefault} compact>
-                Set as default <Icon name="star" color="blue" />
+              <Button
+                variant="text"
+                onClick={submitSetDefault}
+                endIcon={<StarIcon sx={{ color: "primary.main" }} />}
+              >
+                Set as default
               </Button>
             )}
-          </ButtonGroup>
+          </ButtonStack>
         )}
       </>
     );
@@ -104,11 +126,16 @@ export function FirmwareCopyForm({
   return (
     <>
       {errorMessage && <p>{errorMessage}</p>}
-      <ButtonGroup vertical labeled icon>
-        <Button disabled={copyJobId !== null || !sha1sum} onClick={submitCopy}>
-          Copy to NMS <Icon name="cloud download" />
+      <ButtonStack>
+        <Button
+          variant="text"
+          disabled={copyJobId !== null || !sha1sum}
+          onClick={submitCopy}
+          endIcon={<CloudDownloadIcon />}
+        >
+          Copy to NMS
         </Button>
-      </ButtonGroup>
+      </ButtonStack>
       {copyJobStatus !== null && (
         <p>
           Copy job id #{copyJobId} status: {copyJobStatus}
