@@ -1,4 +1,5 @@
-import { Modal, Button } from "semantic-ui-react";
+import { Modal } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { importInterfaces } from "../api/deviceApi";
@@ -84,7 +85,8 @@ export function ImportInterfaceModal({
       <Modal.Actions>
         <Button
           key="close"
-          color="black"
+          variant="outlined"
+          color="inherit"
           onClick={() => {
             onClose();
           }}
@@ -93,6 +95,7 @@ export function ImportInterfaceModal({
         </Button>
         <Button
           key="import"
+          variant="contained"
           disabled={fileContent === null || errorMessage !== null}
           onClick={async () => {
             const success = await sendInterfaceData();
@@ -107,7 +110,8 @@ export function ImportInterfaceModal({
         </Button>
         <Button
           key="import-commit"
-          positive
+          variant="contained"
+          color="success"
           disabled={fileContent === null || errorMessage !== null}
           onClick={async () => {
             const success = await sendInterfaceData();

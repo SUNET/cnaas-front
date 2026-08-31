@@ -1,13 +1,8 @@
 import { useState, useCallback } from "react";
-import {
-  Button,
-  Icon,
-  Modal,
-  Table,
-  Header,
-  Label,
-  Message,
-} from "semantic-ui-react";
+import { Icon, Modal, Table, Header, Label, Message } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import { Tooltip } from "../../../../components/Tooltip";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { formatISODate } from "../../../../utils/formatters";
@@ -296,9 +291,12 @@ export function BgpNeighborModal({
       onClose={() => setOpen(false)}
       size="fullscreen"
       trigger={
-        <Button icon labelPosition="right" onClick={handleOpen}>
+        <Button
+          variant="contained"
+          endIcon={<SwapHorizIcon />}
+          onClick={handleOpen}
+        >
           BGP Neighbors
-          <Icon name="exchange" />
         </Button>
       }
     >
@@ -418,13 +416,18 @@ export function BgpNeighborModal({
       </Modal.Content>
       <Modal.Actions>
         <Button
+          variant="contained"
           onClick={loadData}
           disabled={loadingPhase === "settings" || loadingPhase === "neighbors"}
+          startIcon={<RefreshIcon />}
         >
-          <Icon name="refresh" />
           Refresh
         </Button>
-        <Button color="black" onClick={() => setOpen(false)}>
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={() => setOpen(false)}
+        >
           Close
         </Button>
       </Modal.Actions>

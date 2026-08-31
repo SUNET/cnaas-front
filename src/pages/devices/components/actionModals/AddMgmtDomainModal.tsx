@@ -1,19 +1,20 @@
 import { useState, type ChangeEvent } from "react";
 import {
-  Button,
   type DropdownProps,
   Form,
   FormField,
   FormGroup,
   FormInput,
   FormSelect,
-  Icon,
   Modal,
   ModalActions,
   ModalContent,
   ModalDescription,
   ModalHeader,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import CloseIcon from "@mui/icons-material/Close";
+import CheckIcon from "@mui/icons-material/Check";
 import { createMgmtDomain } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import type { Device } from "../../../../types/device";
@@ -189,11 +190,21 @@ export function AddMgmtDomainModal({
         </ModalDescription>
       </ModalContent>
       <ModalActions>
-        <Button color="black" onClick={handleCancel}>
-          Cancel <Icon name="cancel" />
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={handleCancel}
+          endIcon={<CloseIcon />}
+        >
+          Cancel
         </Button>
-        <Button color="green" onClick={handleAdd}>
-          Add <Icon name="checkmark" />
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleAdd}
+          endIcon={<CheckIcon />}
+        >
+          Add
         </Button>
       </ModalActions>
     </Modal>

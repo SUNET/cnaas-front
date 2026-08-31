@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react";
-import {
-  Button,
-  Modal,
-  Icon,
-  Dropdown,
-  type DropdownProps,
-} from "semantic-ui-react";
+import { Modal, Dropdown, type DropdownProps } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 export function NewInterface({
   suggestedInterfaces,
@@ -53,9 +49,8 @@ export function NewInterface({
       onOpen={() => setOpen(true)}
       open={open}
       trigger={
-        <Button icon labelPosition="right">
+        <Button variant="contained" endIcon={<OpenInNewIcon />}>
           Add new interface...
-          <Icon name="window restore outline" />
         </Button>
       }
     >
@@ -74,10 +69,14 @@ export function NewInterface({
         />
       </Modal.Content>
       <Modal.Actions>
-        <Button color="black" onClick={() => setOpen(false)}>
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={() => setOpen(false)}
+        >
           Close
         </Button>
-        <Button positive onClick={handleAdd}>
+        <Button variant="contained" color="success" onClick={handleAdd}>
           Add
         </Button>
       </Modal.Actions>
