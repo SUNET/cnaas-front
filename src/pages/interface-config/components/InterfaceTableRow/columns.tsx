@@ -1,5 +1,7 @@
 import { type SyntheticEvent } from "react";
-import { Checkbox, Dropdown, Icon, Input, Popup } from "semantic-ui-react";
+import { Checkbox, Dropdown, Input } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
 // --- Tags column ---
 
@@ -54,14 +56,20 @@ export function JsonColumn({ data }: JsonColumnProps) {
   if (!data) return null;
 
   return (
-    <Popup
-      header="Raw JSON data"
-      content={JSON.stringify(data)}
-      position="top right"
-      wide
-      hoverable
-      trigger={<Icon color="grey" name="ellipsis horizontal" />}
-    />
+    <Tooltip
+      title={
+        <>
+          <h4>Raw JSON data</h4>
+          {JSON.stringify(data)}
+        </>
+      }
+      placement="top-end"
+      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+    >
+      <span>
+        <MoreHorizIcon sx={{ color: "grey" }} />
+      </span>
+    </Tooltip>
   );
 }
 
@@ -112,18 +120,18 @@ export function BpduFilterColumn({
   updateFieldData,
 }: BpduFilterColumnProps) {
   return (
-    <Popup
-      header="Enable spanning-tree BPDU filter on this interface"
-      wide
-      hoverable
-      trigger={
+    <Tooltip
+      title="Enable spanning-tree BPDU filter on this interface"
+      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+    >
+      <span>
         <Checkbox
           name={`bpdu_filter|${interfaceName}`}
           defaultChecked={bpduFilter}
           onChange={updateFieldData}
           disabled={editDisabled}
         />
-      }
-    />
+      </span>
+    </Tooltip>
   );
 }

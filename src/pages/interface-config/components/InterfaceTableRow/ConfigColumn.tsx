@@ -1,5 +1,6 @@
-import { type SyntheticEvent } from "react";
-import { Button, Icon, Popup, TextArea } from "semantic-ui-react";
+import { type SyntheticEvent, useState, type MouseEvent } from "react";
+import { Button, Icon, TextArea } from "semantic-ui-react";
+import Popover from "@mui/material/Popover";
 import { InterfaceCurrentConfig } from "./InterfaceCurrentConfig";
 
 type ConfigColumnProps = {
@@ -20,6 +21,8 @@ export function ConfigColumn({
   currentIfClass,
   updateFieldData,
 }: ConfigColumnProps) {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+
   return (
     <>
       <TextArea
@@ -30,19 +33,32 @@ export function ConfigColumn({
         hidden={currentIfClass !== "custom"}
         onChange={updateFieldData}
       />
-      <Popup
-        on="click"
-        pinned
-        position="top right"
-        trigger={
-          <Button compact size="small">
-            <Icon name="arrow alternate circle down outline" />
-          </Button>
-        }
+      <Button
+        compact
+        size="small"
+        onClick={(e: MouseEvent<HTMLButtonElement>) => {
+          setAnchorEl(e.currentTarget);
+        }}
       >
-        <p>Current running config:</p>
-        <InterfaceCurrentConfig hostname={hostname} interface={interfaceName} />
-      </Popup>
+        <Icon name="arrow alternate circle down outline" />
+      </Button>
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={() => {
+          setAnchorEl(null);
+        }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <div style={{ padding: "var(--size-md)" }}>
+          <p>Current running config:</p>
+          <InterfaceCurrentConfig
+            hostname={hostname}
+            interface={interfaceName}
+          />
+        </div>
+      </Popover>
     </>
   );
 }

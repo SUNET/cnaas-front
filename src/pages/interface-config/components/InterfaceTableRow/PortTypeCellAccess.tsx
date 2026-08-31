@@ -1,5 +1,6 @@
 import { type SyntheticEvent } from "react";
-import { Dropdown, Table, Popup, Checkbox } from "semantic-ui-react";
+import { Dropdown, Table, Checkbox } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
 
 const CONFIG_TYPE_OPTIONS = [
   { value: "ACCESS_AUTO", text: "Auto/dot1x" },
@@ -39,12 +40,17 @@ export function PortTypeCellAccess({
       />
 
       {currentConfigtype === "ACCESS_DOWNLINK" && (
-        <Popup
-          key="doIneedThisKey?"
-          header="Redundant Link: true/false"
-          content="Disable ZTP redundant link check for this downlink interface by unchecking this box"
-          wide
-          trigger={
+        <Tooltip
+          title={
+            <>
+              <h4>Redundant Link: true/false</h4>
+              Disable ZTP redundant link check for this downlink interface by
+              unchecking this box
+            </>
+          }
+          slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+        >
+          <span>
             <Checkbox
               key={`redundant_link|${item.name}`}
               name={`redundant_link|${item.name}`}
@@ -52,8 +58,8 @@ export function PortTypeCellAccess({
               disabled={editDisabled}
               onChange={updateFieldData}
             />
-          }
-        />
+          </span>
+        </Tooltip>
       )}
     </Table.Cell>
   );
