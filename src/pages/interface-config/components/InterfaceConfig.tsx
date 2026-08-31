@@ -9,7 +9,6 @@ import {
 import { Link, useNavigate } from "react-router";
 import {
   type AccordionTitleProps,
-  Button,
   Checkbox,
   Icon,
   Modal,
@@ -17,9 +16,14 @@ import {
 } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
 import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
+import { styled } from "@mui/material/styles";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import AddBoxIcon from "@mui/icons-material/AddBox";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import LinkIcon from "@mui/icons-material/Link";
 import { Tooltip } from "../../../components/Tooltip";
 import { showToast } from "../../../components/toast";
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
@@ -32,6 +36,15 @@ import { useInterfaceConfig } from "../stores/InterfaceConfigContext";
 import { useInterfaceConfigSocket } from "../hooks/useInterfaceConfigSocket";
 
 // --- Constants ---
+
+// Footer toolbar: spaces the save/refresh/verify action buttons and wraps
+// them on narrow viewports.
+const FooterToolbar = styled("div")({
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "var(--size-sm)",
+  alignItems: "center",
+});
 
 const ALLOWED_COLUMNS_ACCESS: Record<string, string> = {
   vlans: "VLANs",
@@ -470,7 +483,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
             Device has been updated
             {state.updatedBy ? ` by ${state.updatedBy}` : " by a third party"}.
             Reload page to get the latest changes (local changes will be lost).{" "}
-            <Button size="mini" onClick={reloadAllData}>
+            <Button size="small" variant="contained" onClick={reloadAllData}>
               Refresh Data
             </Button>
           </p>
@@ -581,74 +594,81 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
             <Table.Footer fullWidth>
               <Table.Row>
                 <Table.HeaderCell colSpan={3 + state.displayColumns.length}>
-                  <Modal
-                    onClose={closeSaveModal}
-                    onOpen={() => setSaveModalOpen(true)}
-                    open={saveModalOpen}
-                    trigger={
-                      <Button icon labelPosition="right">
-                        Save & commit...
-                        <Icon name="window restore outline" />
-                      </Button>
-                    }
-                  >
-                    <Modal.Header>Save & commit</Modal.Header>
-                    {commitModal}
-                    <Modal.Actions>
-                      <Button
-                        key="close"
-                        color="black"
-                        onClick={closeSaveModal}
-                      >
-                        Close
-                      </Button>
-                      {deviceType === "ACCESS" && [
-                        <Button
-                          key="access_button_saveandcommit"
-                          onClick={saveAndCommitChanges}
-                          disabled={commitAutopushDisabled}
-                          color="yellow"
-                        >
-                          Save and commit now
-                        </Button>,
-                        <Button
-                          key="access_button_dryrun"
-                          onClick={saveChanges}
-                          disabled={state.isWorking}
-                          positive
-                        >
-                          Save and dry run...
-                        </Button>,
-                      ]}
-                      {deviceType === "DIST" && (
-                        <Button
-                          key="dist_button_dryrun"
-                          onClick={gotoConfigChange}
-                          positive
-                        >
-                          Start dry run...
+                  <FooterToolbar>
+                    <Modal
+                      onClose={closeSaveModal}
+                      onOpen={() => setSaveModalOpen(true)}
+                      open={saveModalOpen}
+                      trigger={
+                        <Button variant="contained" endIcon={<OpenInNewIcon />}>
+                          Save & commit...
                         </Button>
-                      )}
-                    </Modal.Actions>
-                  </Modal>
-                  <Button
-                    icon
-                    labelPosition="right"
-                    onClick={refreshInterfaceStatus}
-                  >
-                    Refresh interface status
-                    <Icon name="refresh" />
-                  </Button>
-                  <Button icon labelPosition="right" onClick={verifyLinknets}>
-                    Verify linknets
-                    <Icon name="linkify" />
-                  </Button>
-                  {deviceType === "DIST" && (
-                    <NewInterface
-                      suggestedInterfaces={unusedInterfaces}
-                      addNewInterface={addNewInterface}
-                    />
-                  )}
+                      }
+                    >
+                      <Modal.Header>Save & commit</Modal.Header>
+                      {commitModal}
+                      <Modal.Actions>
+                        <Button
+                          key="close"
+                          variant="outlined"
+                          color="inherit"
+                          onClick={closeSaveModal}
+                        >
+                          Close
+                        </Button>
+                        {deviceType === "ACCESS" && [
+                          <Button
+                            key="access_button_saveandcommit"
+                            onClick={saveAndCommitChanges}
+                            disabled={commitAutopushDisabled}
+                            variant="contained"
+                            color="warning"
+                          >
+                            Save and commit now
+                          </Button>,
+                          <Button
+                            key="access_button_dryrun"
+                            onClick={saveChanges}
+                            disabled={state.isWorking}
+                            variant="contained"
+                            color="success"
+                          >
+                            Save and dry run...
+                          </Button>,
+                        ]}
+                        {deviceType === "DIST" && (
+                          <Button
+                            key="dist_button_dryrun"
+                            onClick={gotoConfigChange}
+                            variant="contained"
+                            color="success"
+                          >
+                            Start dry run...
+                          </Button>
+                        )}
+                      </Modal.Actions>
+                    </Modal>
+                    <Button
+                      variant="contained"
+                      endIcon={<RefreshIcon />}
+                      onClick={refreshInterfaceStatus}
+                    >
+                      Refresh interface status
+                    </Button>
+                    <Button
+                      variant="contained"
+                      endIcon={<LinkIcon />}
+                      onClick={verifyLinknets}
+                    >
+                      Verify linknets
+                    </Button>
+                    {deviceType === "DIST" && (
+                      <NewInterface
+                        suggestedInterfaces={unusedInterfaces}
+                        addNewInterface={addNewInterface}
+                      />
+                    )}
+                  </FooterToolbar>
                 </Table.HeaderCell>
               </Table.Row>
             </Table.Footer>

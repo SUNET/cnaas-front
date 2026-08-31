@@ -50,7 +50,6 @@ export function MgmtDomainButton({ device }: MgmtDomainButtonProps) {
       );
     return (
       <Button
-        size="small"
         variant="contained"
         startIcon={<AddIcon />}
         sx={{ justifyContent: "flex-start" }}
@@ -68,7 +67,6 @@ export function MgmtDomainButton({ device }: MgmtDomainButtonProps) {
 
   return (
     <Button
-      size="small"
       variant="contained"
       startIcon={<ArrowUpwardIcon />}
       sx={{ justifyContent: "flex-start" }}
