@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Confirm, Icon, Input, Select } from "semantic-ui-react";
 import type { InputOnChangeData } from "semantic-ui-react";
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../components/NmsTooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
@@ -44,31 +44,34 @@ function createWarningPopups(
 
   if (!jobTicketRef && !jobComment) {
     warnings.push(
-      <Tooltip key="popup1" title="Ticket reference or comment is missing">
+      <NmsTooltip key="popup1" title="Ticket reference or comment is missing">
         <ErrorIcon fontSize="large" sx={{ color: "warning.main" }} />
-      </Tooltip>,
+      </NmsTooltip>,
     );
   }
   const warnChangeScore = 90;
   if (dryRunChangeScore != null && dryRunChangeScore > warnChangeScore) {
     warnings.push(
-      <Tooltip key="popup2" title={`High change score: ${dryRunChangeScore}`}>
+      <NmsTooltip
+        key="popup2"
+        title={`High change score: ${dryRunChangeScore}`}
+      >
         <WarningIcon fontSize="large" sx={{ color: "orange" }} />
-      </Tooltip>,
+      </NmsTooltip>,
     );
   }
   if (synctoForce) {
     warnings.push(
-      <Tooltip key="popup3" title="Local changes will be overwritten!">
+      <NmsTooltip key="popup3" title="Local changes will be overwritten!">
         <WarningIcon fontSize="large" sx={{ color: "error.main" }} />
-      </Tooltip>,
+      </NmsTooltip>,
     );
   }
   if (!warnings.length) {
     warnings.push(
-      <Tooltip key="popup4" title="No warnings">
+      <NmsTooltip key="popup4" title="No warnings">
         <CheckBoxIcon fontSize="large" sx={{ color: "success.main" }} />
-      </Tooltip>,
+      </NmsTooltip>,
     );
   }
 
@@ -178,12 +181,9 @@ export function ConfigChangeStep4({
             rotated={expanded ? undefined : "counterclockwise"}
           />
           Commit configuration (4/4)
-          <Tooltip
-            title="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log."
-            slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
-          >
+          <NmsTooltip title="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log.">
             <HelpOutlineOutlinedIcon fontSize="small" />
-          </Tooltip>
+          </NmsTooltip>
         </h2>
       </div>
       <div className="task-collapsable" hidden={!expanded}>

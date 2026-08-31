@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../../components/NmsTooltip";
 import Button from "@mui/material/Button";
 import type { LldpNeighbor } from "../../types/lldp";
 
@@ -37,7 +37,7 @@ export function LldpNeighborPopup({
   );
 
   return (
-    <Tooltip
+    <NmsTooltip
       title={
         <>
           <h4>LLDP Neighbor Information</h4>
@@ -45,13 +45,12 @@ export function LldpNeighborPopup({
         </>
       }
       placement="right"
-      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
     >
       <span>
         <Button size="small" sx={{ minWidth: 0 }}>
           N
         </Button>
       </span>
-    </Tooltip>
+    </NmsTooltip>
   );
 }

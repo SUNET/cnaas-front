@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Grid, Divider } from "semantic-ui-react";
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../components/NmsTooltip";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -69,7 +69,7 @@ export function DashboardNetboxTenant() {
                 <p>
                   <b>Customer status:</b>{" "}
                   {netboxTenant.group?.name ? (
-                    <Tooltip
+                    <NmsTooltip
                       title={
                         <div>
                           <p>
@@ -79,10 +79,9 @@ export function DashboardNetboxTenant() {
                         </div>
                       }
                       placement="top-start"
-                      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
                     >
                       <span>{netboxTenant.group.name}</span>
-                    </Tooltip>
+                    </NmsTooltip>
                   ) : (
                     "N/A"
                   )}
@@ -158,7 +157,7 @@ export function DashboardNetboxTenant() {
             netboxContacts.map((contact) => (
               <p key={`${contact.role.name}:${contact.contact.name}`}>
                 {contact.role.name}:{" "}
-                <Tooltip
+                <NmsTooltip
                   title={
                     <div>
                       <p>
@@ -166,7 +165,6 @@ export function DashboardNetboxTenant() {
                         {contact.contact.email && (
                           <IconButton
                             size="small"
-                            sx={{ border: "1px solid transparent" }}
                             onClick={() =>
                               navigator.clipboard.writeText(
                                 contact.contact.email ?? "",
@@ -182,13 +180,12 @@ export function DashboardNetboxTenant() {
                     </div>
                   }
                   placement="right"
-                  slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
                 >
                   <span>
                     {contact.contact.name}
                     {contact.priority ? ` (${contact.priority})` : ""}
                   </span>
-                </Tooltip>
+                </NmsTooltip>
               </p>
             ))
           ) : (

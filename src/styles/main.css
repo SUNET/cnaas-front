@@ -93,7 +93,11 @@ p.tokenexpired {
   margin-top: 16px;
 } */
 
-button {
+/* :not(.MuiButtonBase-root) excludes MUI buttons (Button, IconButton, etc.)
+   from these classless styles. MUI wins on properties it sets, but leaves
+   others (e.g. hover border) unset, so main.css would otherwise bleed through
+   and cause artifacts like the hover size-jump. */
+button:not(.MuiButtonBase-root) {
   background: var(--color-secondary);
   font-family: "Montserrat", sans-serif;
   font-size: 1rem;
@@ -108,13 +112,13 @@ button {
   margin: var(--size-md);
 }
 
-button:hover {
+button:not(.MuiButtonBase-root):hover {
   border: var(--color-secondary) solid 1px;
   background: var(--color-surface);
   color: var(--color-secondary);
 }
 
-button:disabled {
+button:not(.MuiButtonBase-root):disabled {
   background: var(--color-disabled-bg);
 }
 

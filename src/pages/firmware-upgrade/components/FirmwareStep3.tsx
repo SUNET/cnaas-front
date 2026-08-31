@@ -3,13 +3,13 @@ import {
   Form,
   Confirm,
   Input,
-  Popup,
   Modal,
   ModalHeader,
   ModalContent,
   ModalActions,
   Button,
 } from "semantic-ui-react";
+import { NmsTooltip } from "../../../components/NmsTooltip";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { FirmwareError } from "./FirmwareError";
@@ -178,21 +178,17 @@ export function FirmwareStep3() {
             >
               Start reboots
             </button>
-            <Popup
-              content="Only for groups of ACCESS only devices. Will reboot devices in steps to minimize impact."
-              wide
-              trigger={
-                <div>
-                  <button
-                    id={"step3buttonStaggered"}
-                    onClick={openStaggeredConfirm}
-                    disabled={disableStaggeredButton}
-                  >
-                    Staggered reboots...
-                  </button>
-                </div>
-              }
-            />
+            <NmsTooltip title="Only for groups of ACCESS only devices. Will reboot devices in steps to minimize impact.">
+              <div>
+                <button
+                  id={"step3buttonStaggered"}
+                  onClick={openStaggeredConfirm}
+                  disabled={disableStaggeredButton}
+                >
+                  Staggered reboots...
+                </button>
+              </div>
+            </NmsTooltip>
             <button
               id="step3abortButton"
               disabled={step3abortDisabled}

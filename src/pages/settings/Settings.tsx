@@ -4,13 +4,13 @@ import {
   FormGroup,
   Button,
   Form,
-  Icon,
   Container,
-  Popup,
   Checkbox,
   type InputOnChangeData,
   type CheckboxProps,
 } from "semantic-ui-react";
+import { NmsTooltip } from "../../components/NmsTooltip";
+import HelpIcon from "@mui/icons-material/Help";
 
 type SettingsForm = {
   netboxToken: string;
@@ -50,23 +50,23 @@ export function Settings() {
         label={
           <p>
             Netbox API token
-            <Popup
-              wide
-              hoverable
-              trigger={
-                <Icon
-                  name="question circle"
-                  color={
-                    localStorage.getItem("netboxToken") ? undefined : "orange"
-                  }
-                />
+            <NmsTooltip
+              title={
+                <>
+                  Provide Netbox API token to allow read-write access
+                  <a href={`${process.env.NETBOX_API_URL}/user/api-tokens/`}>
+                    Netbox API tokens
+                  </a>
+                </>
               }
             >
-              Provide Netbox API token to allow read-write access
-              <a href={`${process.env.NETBOX_API_URL}/user/api-tokens/`}>
-                Netbox API tokens
-              </a>
-            </Popup>
+              <HelpIcon
+                fontSize="small"
+                color={
+                  localStorage.getItem("netboxToken") ? "inherit" : "warning"
+                }
+              />
+            </NmsTooltip>
           </p>
         }
         name="netboxToken"

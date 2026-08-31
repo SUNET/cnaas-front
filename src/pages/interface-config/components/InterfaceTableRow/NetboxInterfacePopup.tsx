@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../../components/NmsTooltip";
 import Button from "@mui/material/Button";
 
 type NetboxType = { readonly label?: string };
@@ -87,16 +87,12 @@ export function NetboxInterfacePopup({
   }
 
   return (
-    <Tooltip
-      title={content}
-      placement="right"
-      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
-    >
+    <NmsTooltip title={content} placement="right">
       <span>
         <Button size="small" sx={{ minWidth: 0 }}>
           I
         </Button>
       </span>
-    </Tooltip>
+    </NmsTooltip>
   );
 }

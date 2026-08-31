@@ -4,7 +4,6 @@ import {
   GridColumn,
   Icon,
   Loader,
-  Popup,
   Table,
   TableBody,
   TableCell,
@@ -12,6 +11,12 @@ import {
   TableHeaderCell,
   TableRow,
 } from "semantic-ui-react";
+import { NmsTooltip } from "../../components/NmsTooltip";
+import CloudIcon from "@mui/icons-material/Cloud";
+import SaveIcon from "@mui/icons-material/Save";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import StarIcon from "@mui/icons-material/Star";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { FirmwareCopyForm } from "./FirmwareCopyForm";
@@ -25,52 +30,53 @@ import { useFirmwareCopySocket } from "./useFirmwareCopySocket";
 
 function PopupPresentInRepo() {
   return (
-    <Popup
-      content="This firmware is present in the central firmware repository"
-      position="top center"
-      trigger={<Icon name="cloud" />}
-    />
+    <NmsTooltip
+      title="This firmware is present in the central firmware repository"
+      placement="top"
+    >
+      <CloudIcon fontSize="small" />
+    </NmsTooltip>
   );
 }
 
 function PopupAlreadyDownloaded() {
   return (
-    <Popup
-      content="This firmware is present on this local NMS instance"
-      position="top center"
-      trigger={<Icon name="disk" />}
-    />
+    <NmsTooltip
+      title="This firmware is present on this local NMS instance"
+      placement="top"
+    >
+      <SaveIcon fontSize="small" />
+    </NmsTooltip>
   );
 }
 
 function PopupApproved() {
   return (
-    <Popup
-      content="This firmware is verified/approved"
-      position="top center"
-      trigger={<Icon name="check" color="green" />}
-    />
+    <NmsTooltip title="This firmware is verified/approved" placement="top">
+      <CheckCircleIcon fontSize="small" sx={{ color: "success.main" }} />
+    </NmsTooltip>
   );
 }
 
 function PopupNotApproved() {
   return (
-    <Popup
-      content="Warning! This firmware is not verified/approved"
-      position="top center"
-      trigger={<Icon name="delete" color="red" />}
-    />
+    <NmsTooltip
+      title="Warning! This firmware is not verified/approved"
+      placement="top"
+    >
+      <CancelIcon fontSize="small" sx={{ color: "error.main" }} />
+    </NmsTooltip>
   );
 }
 
 function PopupDefaultFirmware() {
   return (
-    <Popup
-      content="This firmware is a default firmware for one or more device types during ZTP"
-      position="top center"
-      wide
-      trigger={<Icon name="star" color="blue" />}
-    />
+    <NmsTooltip
+      title="This firmware is a default firmware for one or more device types during ZTP"
+      placement="top"
+    >
+      <StarIcon fontSize="small" sx={{ color: "primary.main" }} />
+    </NmsTooltip>
   );
 }
 
