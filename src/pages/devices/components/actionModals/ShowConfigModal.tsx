@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  Button,
   ButtonGroup,
   Loader,
-  Icon,
   Modal,
   ModalActions,
   ModalContent,
@@ -18,6 +16,12 @@ import {
   DropdownHeader,
   DropdownItem,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import CloseIcon from "@mui/icons-material/Close";
 import { Tooltip } from "../../../../components/Tooltip";
 import {
   fetchGenerateConfig,
@@ -322,28 +326,31 @@ export function ShowConfigModal({
           <h1>{headerText}</h1>
           <ButtonGroup>
             <Tooltip title={`Copy ${headerText}`} placement="bottom-end">
-              <Button
-                onClick={() => navigator.clipboard.writeText(config)}
-                icon="copy"
+              <IconButton
                 size="small"
-              />
+                onClick={() => navigator.clipboard.writeText(config)}
+              >
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
             </Tooltip>
             {colValue.startsWith("previous_") && (
               <Tooltip title={`Copy Job ID #${jobId}`} placement="bottom-end">
-                <Button
-                  onClick={() => navigator.clipboard.writeText(String(jobId))}
-                  icon="numbered list"
+                <IconButton
                   size="small"
-                />
+                  onClick={() => navigator.clipboard.writeText(String(jobId))}
+                >
+                  <FormatListNumberedIcon fontSize="small" />
+                </IconButton>
               </Tooltip>
             )}
             {colValue in columnRefreshFunctions && (
               <Tooltip title={`Refresh ${headerText}`} placement="bottom-end">
-                <Button
-                  onClick={() => columnRefreshFunctions[colValue]()}
-                  icon="refresh"
+                <IconButton
                   size="small"
-                />
+                  onClick={() => columnRefreshFunctions[colValue]()}
+                >
+                  <RefreshIcon fontSize="small" />
+                </IconButton>
               </Tooltip>
             )}
           </ButtonGroup>
@@ -387,8 +394,13 @@ export function ShowConfigModal({
         </ModalDescription>
       </ModalContent>
       <ModalActions>
-        <Button color="black" onClick={handleCancel}>
-          Close <Icon name="cancel" />
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={handleCancel}
+          endIcon={<CloseIcon />}
+        >
+          Close
         </Button>
       </ModalActions>
     </Modal>

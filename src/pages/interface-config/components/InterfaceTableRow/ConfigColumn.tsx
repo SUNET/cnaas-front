@@ -1,6 +1,8 @@
 import { type SyntheticEvent, useState, type MouseEvent } from "react";
-import { Button, Icon, TextArea } from "semantic-ui-react";
+import { TextArea } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
+import IconButton from "@mui/material/IconButton";
+import ExpandCircleDownOutlinedIcon from "@mui/icons-material/ExpandCircleDownOutlined";
 import { InterfaceCurrentConfig } from "./InterfaceCurrentConfig";
 
 type ConfigColumnProps = {
@@ -33,15 +35,14 @@ export function ConfigColumn({
         hidden={currentIfClass !== "custom"}
         onChange={updateFieldData}
       />
-      <Button
-        compact
+      <IconButton
         size="small"
         onClick={(e: MouseEvent<HTMLButtonElement>) => {
           setAnchorEl(e.currentTarget);
         }}
       >
-        <Icon name="arrow alternate circle down outline" />
-      </Button>
+        <ExpandCircleDownOutlinedIcon />
+      </IconButton>
       <Popover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}

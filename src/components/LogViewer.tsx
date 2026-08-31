@@ -3,7 +3,6 @@ import "prismjs/components/prism-log.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
-  Button,
   Grid,
   GridColumn,
   Input,
@@ -14,6 +13,9 @@ import {
   ModalHeader,
   Ref,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import { Tooltip } from "./Tooltip";
 
 import "../styles/prism.css";
@@ -91,7 +93,9 @@ function ExpanedLogViewer({ logs, open, setOpen }: ExpandedLogViewerProps) {
         </ModalContent>
       </Ref>
       <ModalActions>
-        <Button onClick={() => setOpen(false)}>Close</Button>
+        <Button variant="contained" onClick={() => setOpen(false)}>
+          Close
+        </Button>
       </ModalActions>
     </Modal>
   );
@@ -130,15 +134,13 @@ function LogViewer({ logs }: LogViewerProps) {
           />
 
           <Tooltip title="Expand logs">
-            <span>
-              <Button
-                onClick={() => setOpen((prev) => !prev)}
-                className="button-expand-log-viewer"
-                icon="expand"
-                basic
-                size="tiny"
-              />
-            </span>
+            <IconButton
+              size="small"
+              className="button-expand-log-viewer"
+              onClick={() => setOpen((prev) => !prev)}
+            >
+              <OpenInFullIcon fontSize="small" />
+            </IconButton>
           </Tooltip>
         </pre>
       </div>

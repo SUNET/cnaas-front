@@ -1,4 +1,5 @@
-import { Button } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 
 import { useDeviceListPageActions } from "../stores/DeviceListContext";
 import type { DeviceInterface } from "../types/deviceInterface";
@@ -26,8 +27,10 @@ export function UplinkButtons({ interfaces }: UplinkButtonsProps) {
         )
         .map((intf) => (
           <Button
-            compact
-            icon="arrow up"
+            size="small"
+            variant="contained"
+            startIcon={<ArrowUpwardIcon />}
+            sx={{ justifyContent: "flex-start" }}
             key={intf.name}
             onClick={() => {
               handleFilterChange(
@@ -39,8 +42,9 @@ export function UplinkButtons({ interfaces }: UplinkButtonsProps) {
               globalThis.scrollTo(0, 0);
             }}
             title="Go to uplink device"
-            content={`${intf.name}: Uplink to ${intf.data?.neighbor}`}
-          />
+          >
+            {`${intf.name}: Uplink to ${intf.data?.neighbor}`}
+          </Button>
         ))}
     </>
   );

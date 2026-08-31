@@ -1,4 +1,5 @@
-import { Icon, Button } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 
 export function BounceInterfaceButton({
   handleClick,
@@ -11,14 +12,14 @@ export function BounceInterfaceButton({
 }) {
   return (
     <Button
+      variant="contained"
       disabled={editDisabled || bounceDisabled}
       loading={bounceDisabled}
-      icon
-      labelPosition="right"
       onClick={handleClick}
       size="small"
+      endIcon={<AutorenewIcon />}
     >
-      Bounce interface <Icon name="retweet" />
+      Bounce interface
     </Button>
   );
 }

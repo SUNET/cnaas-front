@@ -57,6 +57,17 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Karla", sans-serif',
   },
+  components: {
+    // The app's buttons are not uppercased; disable MUI's default
+    // text-transform: uppercase so migrated buttons keep their label casing.
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+        },
+      },
+    },
+  },
 });
 
 export function App() {

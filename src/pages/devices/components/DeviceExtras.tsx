@@ -1,5 +1,4 @@
-import { Button } from "semantic-ui-react";
-
+import { styled } from "@mui/material/styles";
 import type { Device } from "../../../types/device";
 import { isCoreDevice, isDistDevice } from "../../../types/device";
 import { useDeviceList } from "../stores/DeviceListContext";
@@ -10,6 +9,16 @@ import { UplinkButtons } from "./UplinkButtons";
 type DeviceExtrasProps = {
   readonly device: Device;
 };
+
+// Single-column grid stacks the per-type buttons with a consistent gap and
+// stretches them so their icons/labels line up.
+const ExtrasLayout = styled("div")({
+  display: "grid",
+  gridTemplateColumns: "1fr",
+  gap: "var(--size-xxs)",
+  width: "fit-content",
+  justifyItems: "start",
+});
 
 /**
  * Per-type extras shown in the expanded-row state column:
@@ -29,12 +38,10 @@ export function DeviceExtras({ device }: DeviceExtrasProps) {
   if (!interfaces && !showMgmtDomain) return null;
 
   return (
-    <div key="btngroup">
-      <Button.Group vertical labeled icon>
-        {interfaces && <MlagButtons interfaces={interfaces} />}
-        {interfaces && <UplinkButtons interfaces={interfaces} />}
-        {showMgmtDomain && <MgmtDomainButton device={device} />}
-      </Button.Group>
-    </div>
+    <ExtrasLayout key="btngroup">
+      {interfaces && <MlagButtons interfaces={interfaces} />}
+      {interfaces && <UplinkButtons interfaces={interfaces} />}
+      {showMgmtDomain && <MgmtDomainButton device={device} />}
+    </ExtrasLayout>
   );
 }

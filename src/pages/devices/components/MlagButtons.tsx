@@ -1,4 +1,5 @@
-import { Button } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 
 import { useDeviceListPageActions } from "../stores/DeviceListContext";
 import type { DeviceInterface } from "../types/deviceInterface";
@@ -25,8 +26,10 @@ export function MlagButtons({ interfaces }: MlagButtonsProps) {
         )
         .map((intf) => (
           <Button
-            compact
-            icon="exchange"
+            size="small"
+            variant="contained"
+            startIcon={<SwapHorizIcon />}
+            sx={{ justifyContent: "flex-start" }}
             key={intf.name}
             onClick={() => {
               handleFilterChange(
@@ -36,8 +39,9 @@ export function MlagButtons({ interfaces }: MlagButtonsProps) {
               globalThis.scrollTo(0, 0);
             }}
             title="Go to MLAG peer device"
-            content={`${intf.name}: MLAG peer`}
-          />
+          >
+            {`${intf.name}: MLAG peer`}
+          </Button>
         ))}
     </>
   );

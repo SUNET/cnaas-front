@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Dropdown, Grid, GridColumn, GridRow } from "semantic-ui-react";
+import { Dropdown } from "semantic-ui-react";
+import { styled } from "@mui/material/styles";
 import { usePermissions } from "../../../stores/PermissionsContext";
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
 import LogViewer from "../../../components/LogViewer";
@@ -14,6 +15,26 @@ type DeviceInfoBlockProps = {
   readonly netboxDevice?: unknown;
 };
 
+// Table and its side extras (MLAG/uplink/mgmt buttons) sit side by side when
+// there's horizontal room, and wrap to a stacked layout on narrow viewports.
+// The table keeps a comfortable width and the extras take the leftover space;
+// flex-wrap drops the extras below the table when the row can't fit.
+const InfoLayout = styled("div")({
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "var(--size-md)",
+  alignItems: "flex-start",
+});
+
+const TableCell = styled("div")({
+  flex: "1 1 640px",
+  minWidth: "min(100%, 640px)",
+});
+
+const ExtrasCell = styled("div")({
+  flex: "1 1 auto",
+});
+
 export function DeviceInfoBlock({
   device,
   menuActions,
@@ -27,35 +48,31 @@ export function DeviceInfoBlock({
   const hasLogs = Boolean(deviceLogs && deviceLogs.length > 0);
 
   return (
-    <Grid columns={2}>
-      <GridRow>
-        <GridColumn>
-          {permissionsCheck("Devices", "write") && (
-            <Dropdown
-              text="Actions"
-              button
-              style={{ marginBottom: "var(--size-md)" }}
-            >
-              <Dropdown.Menu>{menuActions}</Dropdown.Menu>
-            </Dropdown>
-          )}
+    <div>
+      {permissionsCheck("Devices", "write") && (
+        <Dropdown
+          text="Actions"
+          button
+          style={{ marginBottom: "var(--size-md)" }}
+        >
+          <Dropdown.Menu>{menuActions}</Dropdown.Menu>
+        </Dropdown>
+      )}
+      <InfoLayout>
+        <TableCell>
           <DeviceInfoTable
             device={device}
             model={model}
             netboxDevice={netboxDevice}
           />
-        </GridColumn>
-      </GridRow>
-      <GridRow style={{ paddingTop: 0 }}>
-        <GridColumn width={16}>{deviceStateExtra}</GridColumn>
-      </GridRow>
+        </TableCell>
+        {deviceStateExtra && <ExtrasCell>{deviceStateExtra}</ExtrasCell>}
+      </InfoLayout>
       {hasLogs && (
-        <GridRow style={{ overflow: "hidden" }}>
-          <GridColumn width={16}>
-            <LogViewer logs={deviceLogs as string[]} />
-          </GridColumn>
-        </GridRow>
+        <div style={{ overflow: "hidden", marginTop: "var(--size-md)" }}>
+          <LogViewer logs={deviceLogs as string[]} />
+        </div>
       )}
-    </Grid>
+    </div>
   );
 }
