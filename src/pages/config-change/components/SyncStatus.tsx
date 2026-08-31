@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Table, Icon } from "semantic-ui-react";
-import { NmsTooltip } from "../../../components/NmsTooltip";
+import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import { formatISODate } from "../../../utils/formatters";
 import type { SyncEvent, SyncHistory } from "../../../types/syncHistory";
@@ -67,7 +67,7 @@ type DeviceEntryProps = {
 function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
   return (
     <li key={hostname}>
-      <NmsTooltip
+      <Tooltip
         title={
           <ul key={`device_entry_${hostname}`}>
             {eventList.map((item) => (
@@ -81,7 +81,7 @@ function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
         <span className="popup-trigger">
           {hostname} ({eventList.length})
         </span>
-      </NmsTooltip>
+      </Tooltip>
     </li>
   );
 }
@@ -179,9 +179,9 @@ export function SyncStatus({ devices, synchistory, target }: SyncStatusProps) {
               rotated={expanded ? undefined : "counterclockwise"}
             />
             Target: {getCommitTargetName()}
-            <NmsTooltip title="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized.">
+            <Tooltip title="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized.">
               <HelpOutlineOutlinedIcon fontSize="small" />
-            </NmsTooltip>
+            </Tooltip>
           </h2>
         </div>
         <div key="events" className="task-collapsable" hidden={!expanded}>

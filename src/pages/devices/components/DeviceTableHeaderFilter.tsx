@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Input, Select, type DropdownProps } from "semantic-ui-react";
-import { NmsTooltip } from "../../../components/NmsTooltip";
+import { Tooltip } from "../../../components/Tooltip";
 
 import {
   COLUMN_MAP,
@@ -69,7 +69,7 @@ export function DeviceTableHeaderFilter({
 
   if (column === "synchronized") {
     return (
-      <NmsTooltip title={popupContent}>
+      <Tooltip title={popupContent}>
         <Select
           onChange={(_, data) => {
             handleFilterColumnChange(column, dropdownValueToString(data.value));
@@ -80,12 +80,12 @@ export function DeviceTableHeaderFilter({
           clearable
           closeOnEscape
         />
-      </NmsTooltip>
+      </Tooltip>
     );
   }
   if (column === "state") {
     return (
-      <NmsTooltip title={popupContent}>
+      <Tooltip title={popupContent}>
         <Select
           onChange={(_, data) => {
             handleFilterColumnChange(column, dropdownValueToString(data.value));
@@ -96,12 +96,12 @@ export function DeviceTableHeaderFilter({
           clearable
           closeOnEscape
         />
-      </NmsTooltip>
+      </Tooltip>
     );
   }
   if (column === "device_type") {
     return (
-      <NmsTooltip title={popupContent}>
+      <Tooltip title={popupContent}>
         <Select
           onChange={(_, data) => {
             handleFilterColumnChange(column, dropdownValueToString(data.value));
@@ -112,11 +112,11 @@ export function DeviceTableHeaderFilter({
           clearable
           closeOnEscape
         />
-      </NmsTooltip>
+      </Tooltip>
     );
   }
   return (
-    <NmsTooltip title={popupContent}>
+    <Tooltip title={popupContent}>
       <Input
         value={currentValue}
         onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -124,6 +124,6 @@ export function DeviceTableHeaderFilter({
         }
         style={{ minWidth: "100%" }}
       />
-    </NmsTooltip>
+    </Tooltip>
   );
 }

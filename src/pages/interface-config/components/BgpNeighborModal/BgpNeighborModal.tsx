@@ -8,7 +8,7 @@ import {
   Label,
   Message,
 } from "semantic-ui-react";
-import { NmsTooltip } from "../../../../components/NmsTooltip";
+import { Tooltip } from "../../../../components/Tooltip";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { formatISODate } from "../../../../utils/formatters";
 import { fetchBgpSettings } from "../../api/settingsApi";
@@ -357,7 +357,7 @@ export function BgpNeighborModal({
                       <Table.Cell>{n.description}</Table.Cell>
                       <Table.Cell>{renderValue(n.peerAs)}</Table.Cell>
                       <Table.Cell>
-                        <NmsTooltip
+                        <Tooltip
                           placement="right"
                           title={
                             <div>
@@ -395,7 +395,7 @@ export function BgpNeighborModal({
                           >
                             {n.sessionState}
                           </Label>
-                        </NmsTooltip>
+                        </Tooltip>
                       </Table.Cell>
                       <Table.Cell>{n.afiSafi || "-"}</Table.Cell>
                       <Table.Cell>

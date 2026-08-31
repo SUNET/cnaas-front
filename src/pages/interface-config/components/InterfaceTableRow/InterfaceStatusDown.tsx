@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { NmsTooltip } from "../../../../components/NmsTooltip";
+import { Tooltip } from "../../../../components/Tooltip";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { GraphiteInterface } from "../../../../components/GraphiteInterface";
 
@@ -25,7 +25,7 @@ export function InterfaceStatusDown({
   );
 
   return (
-    <NmsTooltip
+    <Tooltip
       title={
         <>
           <h4 key="header">{name}</h4>
@@ -41,6 +41,6 @@ export function InterfaceStatusDown({
       <span>
         <RadioButtonUncheckedIcon sx={{ color: "grey" }} />
       </span>
-    </NmsTooltip>
+    </Tooltip>
   );
 }

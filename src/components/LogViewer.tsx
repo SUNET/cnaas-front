@@ -14,7 +14,7 @@ import {
   ModalHeader,
   Ref,
 } from "semantic-ui-react";
-import { NmsTooltip } from "./NmsTooltip";
+import { Tooltip } from "./Tooltip";
 
 import "../styles/prism.css";
 
@@ -129,7 +129,7 @@ function LogViewer({ logs }: LogViewerProps) {
             dangerouslySetInnerHTML={{ __html: html }}
           />
 
-          <NmsTooltip title="Expand logs">
+          <Tooltip title="Expand logs">
             <span>
               <Button
                 onClick={() => setOpen((prev) => !prev)}
@@ -139,7 +139,7 @@ function LogViewer({ logs }: LogViewerProps) {
                 size="tiny"
               />
             </span>
-          </NmsTooltip>
+          </Tooltip>
         </pre>
       </div>
     </>

@@ -29,7 +29,7 @@ import { styled } from "@mui/material/styles";
  *     already labelled (a link/button with text), that clobbers its accessible
  *     name. Labelling the span instead preserves it.
  */
-export const NmsTooltip = styled(
+export const Tooltip = styled(
   ({ className, children, ...props }: TooltipProps) => (
     <MuiTooltip {...props} classes={{ popper: className }}>
       <span>{children}</span>

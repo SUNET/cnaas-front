@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Icon } from "semantic-ui-react";
-import { NmsTooltip } from "../../../components/NmsTooltip";
+import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { usePermissions } from "../../../stores/PermissionsContext";
@@ -112,9 +112,9 @@ export function ConfigChangeStep1({
     const match = gitCommitRegex.exec(commitStr);
     if (!match) return <p>{commitStr}</p>;
     const commitPopup = (
-      <NmsTooltip title={match[1] + match[2]}>
+      <Tooltip title={match[1] + match[2]}>
         <u>{match[1]}</u>
-      </NmsTooltip>
+      </Tooltip>
     );
     return (
       <p>
@@ -133,9 +133,9 @@ export function ConfigChangeStep1({
             rotated={expanded ? undefined : "counterclockwise"}
           />
           Optional: Refresh repositories (1/4)
-          <NmsTooltip title="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository.">
+          <Tooltip title="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository.">
             <HelpOutlineOutlinedIcon fontSize="small" />
-          </NmsTooltip>
+          </Tooltip>
         </h2>
       </div>
       <div className="task-collapsable" hidden={!expanded}>
