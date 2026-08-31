@@ -55,6 +55,17 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Karla", sans-serif',
   },
+  components: {
+    MuiTooltip: {
+      styleOverrides: {
+        // MUI's default tooltip font is ~10px; bump to match the previous
+        // Semantic UI popup text size (--size-sm, 14px).
+        tooltip: {
+          fontSize: "var(--size-sm)",
+        },
+      },
+    },
+  },
 });
 
 export function App() {

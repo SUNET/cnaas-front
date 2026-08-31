@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import { Confirm, Icon, Input, Popup, Select } from "semantic-ui-react";
+import { Confirm, Icon, Input, Select } from "semantic-ui-react";
 import type { InputOnChangeData } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import ErrorIcon from "@mui/icons-material/Error";
+import WarningIcon from "@mui/icons-material/Warning";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
 
 import { getData } from "../../../utils/getData";
 import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
@@ -39,47 +44,31 @@ function createWarningPopups(
 
   if (!jobTicketRef && !jobComment) {
     warnings.push(
-      <Popup
-        key="popup1"
-        content="Ticket reference or comment is missing"
-        position="top center"
-        hoverable
-        trigger={<Icon name="warning circle" color="yellow" size="large" />}
-      />,
+      <Tooltip key="popup1" title="Ticket reference or comment is missing">
+        <ErrorIcon fontSize="large" sx={{ color: "warning.main" }} />
+      </Tooltip>,
     );
   }
   const warnChangeScore = 90;
   if (dryRunChangeScore != null && dryRunChangeScore > warnChangeScore) {
     warnings.push(
-      <Popup
-        key="popup2"
-        content={`High change score: ${dryRunChangeScore}`}
-        position="top center"
-        hoverable
-        trigger={<Icon name="warning sign" color="orange" size="large" />}
-      />,
+      <Tooltip key="popup2" title={`High change score: ${dryRunChangeScore}`}>
+        <WarningIcon fontSize="large" sx={{ color: "orange" }} />
+      </Tooltip>,
     );
   }
   if (synctoForce) {
     warnings.push(
-      <Popup
-        key="popup3"
-        content="Local changes will be overwritten!"
-        position="top center"
-        hoverable
-        trigger={<Icon name="warning sign" color="red" size="large" />}
-      />,
+      <Tooltip key="popup3" title="Local changes will be overwritten!">
+        <WarningIcon fontSize="large" sx={{ color: "error.main" }} />
+      </Tooltip>,
     );
   }
   if (!warnings.length) {
     warnings.push(
-      <Popup
-        key="popup4"
-        content="No warnings"
-        position="top center"
-        hoverable
-        trigger={<Icon name="checkmark box" color="green" size="large" />}
-      />,
+      <Tooltip key="popup4" title="No warnings">
+        <CheckBoxIcon fontSize="large" sx={{ color: "success.main" }} />
+      </Tooltip>,
     );
   }
 
@@ -189,11 +178,12 @@ export function ConfigChangeStep4({
             rotated={expanded ? undefined : "counterclockwise"}
           />
           Commit configuration (4/4)
-          <Popup
-            content="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log."
-            trigger={<Icon name="question circle outline" size="small" />}
-            wide="very"
-          />
+          <Tooltip
+            title="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log."
+            slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+          >
+            <HelpOutlineOutlinedIcon fontSize="small" />
+          </Tooltip>
         </h2>
       </div>
       <div className="task-collapsable" hidden={!expanded}>

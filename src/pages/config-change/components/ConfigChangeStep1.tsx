@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Icon, Popup } from "semantic-ui-react";
+import { Icon } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { usePermissions } from "../../../stores/PermissionsContext";
 import { getData } from "../../../utils/getData";
@@ -110,12 +112,9 @@ export function ConfigChangeStep1({
     const match = gitCommitRegex.exec(commitStr);
     if (!match) return <p>{commitStr}</p>;
     const commitPopup = (
-      <Popup
-        content={match[1] + match[2]}
-        position="top center"
-        hoverable
-        trigger={<u>{match[1]}</u>}
-      />
+      <Tooltip title={match[1] + match[2]}>
+        <u>{match[1]}</u>
+      </Tooltip>
     );
     return (
       <p>
@@ -134,11 +133,12 @@ export function ConfigChangeStep1({
             rotated={expanded ? undefined : "counterclockwise"}
           />
           Optional: Refresh repositories (1/4)
-          <Popup
-            content="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository."
-            trigger={<Icon name="question circle outline" size="small" />}
-            wide
-          />
+          <Tooltip
+            title="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository."
+            slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+          >
+            <HelpOutlineOutlinedIcon fontSize="small" />
+          </Tooltip>
         </h2>
       </div>
       <div className="task-collapsable" hidden={!expanded}>

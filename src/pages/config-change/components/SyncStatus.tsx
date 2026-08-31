@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from "react";
-import { Popup, Table, Icon } from "semantic-ui-react";
+import { Table, Icon } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import { formatISODate } from "../../../utils/formatters";
 import type { SyncEvent, SyncHistory } from "../../../types/syncHistory";
 import type {
@@ -65,10 +67,8 @@ type DeviceEntryProps = {
 function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
   return (
     <li key={hostname}>
-      <Popup
-        flowing
-        hoverable
-        content={
+      <Tooltip
+        title={
           <ul key={`device_entry_${hostname}`}>
             {eventList.map((item) => (
               <li key={`${hostname}_${item.cause}_${item.by}_${item.date}`}>
@@ -77,12 +77,12 @@ function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
             ))}
           </ul>
         }
-        trigger={
-          <span className="popup-trigger">
-            {hostname} ({eventList.length})
-          </span>
-        }
-      />
+        slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+      >
+        <span className="popup-trigger">
+          {hostname} ({eventList.length})
+        </span>
+      </Tooltip>
     </li>
   );
 }
@@ -180,11 +180,12 @@ export function SyncStatus({ devices, synchistory, target }: SyncStatusProps) {
               rotated={expanded ? undefined : "counterclockwise"}
             />
             Target: {getCommitTargetName()}
-            <Popup
-              content="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized."
-              trigger={<Icon name="question circle outline" size="small" />}
-              wide
-            />
+            <Tooltip
+              title="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized."
+              slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+            >
+              <HelpOutlineOutlinedIcon fontSize="small" />
+            </Tooltip>
           </h2>
         </div>
         <div key="events" className="task-collapsable" hidden={!expanded}>
