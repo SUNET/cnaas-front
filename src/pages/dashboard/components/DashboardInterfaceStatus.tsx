@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Grid, Popup, Divider } from "semantic-ui-react";
+import { Grid, Divider } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { GraphiteInterface } from "../../../components/GraphiteInterface";
 import {
@@ -105,31 +106,29 @@ export function DashboardInterfaceStatus() {
 
       interfaceList.push(
         <Grid.Column key={intf.id} textAlign="center">
-          <Popup
-            content={
+          <Tooltip
+            title={
               <p>
                 interface speed: {speed}
                 <br />
                 NetBox tags: {intf.tags.map((tag) => tag.name).join(", ")}
               </p>
             }
-            position="bottom center"
-            hoverable
-            wide
-            trigger={
-              <div>
-                <a
-                  href={`${process.env.NETBOX_API_URL}dcim/interfaces/${intf.id}/`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {intf.device.name}: {intf.name} - {operStatus}
-                  <br />
-                  {description}
-                </a>
-              </div>
-            }
-          />
+            placement="bottom"
+            slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+          >
+            <div>
+              <a
+                href={`${process.env.NETBOX_API_URL}dcim/interfaces/${intf.id}/`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {intf.device.name}: {intf.name} - {operStatus}
+                <br />
+                {description}
+              </a>
+            </div>
+          </Tooltip>
           <GraphiteInterface
             hostname={intf.device.name}
             interfaceName={intf.name}

@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { Grid, Popup, Divider, Button, Icon } from "semantic-ui-react";
+import { Grid, Divider } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import CircularProgress from "@mui/material/CircularProgress";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import {
   fetchNetboxTenant,
@@ -65,9 +69,8 @@ export function DashboardNetboxTenant() {
                 <p>
                   <b>Customer status:</b>{" "}
                   {netboxTenant.group?.name ? (
-                    <Popup
-                      trigger={<span>{netboxTenant.group.name}</span>}
-                      content={
+                    <Tooltip
+                      title={
                         <div>
                           <p>
                             <b>Description:</b>{" "}
@@ -75,10 +78,11 @@ export function DashboardNetboxTenant() {
                           </p>
                         </div>
                       }
-                      position="top left"
-                      wide
-                      hoverable
-                    />
+                      placement="top-start"
+                      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+                    >
+                      <span>{netboxTenant.group.name}</span>
+                    </Tooltip>
                   ) : (
                     "N/A"
                   )}
@@ -139,8 +143,8 @@ export function DashboardNetboxTenant() {
             <p>
               {loading ? (
                 <>
-                  <Icon name="spinner" loading />
-                  Loading tenant data...
+                  <CircularProgress size="1em" />
+                  {" Loading tenant data..."}
                 </>
               ) : (
                 "No tenant data found."
@@ -154,37 +158,37 @@ export function DashboardNetboxTenant() {
             netboxContacts.map((contact) => (
               <p key={`${contact.role.name}:${contact.contact.name}`}>
                 {contact.role.name}:{" "}
-                <Popup
-                  trigger={
-                    <span>
-                      {contact.contact.name}
-                      {contact.priority ? ` (${contact.priority})` : ""}
-                    </span>
-                  }
-                  content={
+                <Tooltip
+                  title={
                     <div>
                       <p>
                         <b>Email:</b> {contact.contact.email || "N/A"}{" "}
                         {contact.contact.email && (
-                          <Button
+                          <IconButton
+                            size="small"
+                            sx={{ border: "1px solid transparent" }}
                             onClick={() =>
                               navigator.clipboard.writeText(
                                 contact.contact.email ?? "",
                               )
                             }
-                            icon="copy"
-                            size="mini"
-                          />
+                          >
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
                         )}
                         <br />
                         <b>Phone:</b> {contact.contact.phone || "N/A"}
                       </p>
                     </div>
                   }
-                  position="right center"
-                  wide
-                  hoverable
-                />
+                  placement="right"
+                  slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+                >
+                  <span>
+                    {contact.contact.name}
+                    {contact.priority ? ` (${contact.priority})` : ""}
+                  </span>
+                </Tooltip>
               </p>
             ))
           ) : (
