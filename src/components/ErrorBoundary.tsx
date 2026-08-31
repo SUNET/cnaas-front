@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from "react";
-import { Container, Message, Button } from "semantic-ui-react";
+import { Container, Message } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { Outlet, useLocation } from "react-router";
 
 type ErrorBoundaryState = {
@@ -52,7 +53,11 @@ class ErrorBoundaryInner extends Component<
             <Message.Header>Something went wrong</Message.Header>
             <p>{error.message}</p>
           </Message>
-          <Button primary onClick={this.handleReload}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={this.handleReload}
+          >
             Reload page
           </Button>
         </Container>
