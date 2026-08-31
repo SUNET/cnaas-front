@@ -7,8 +7,8 @@ import {
   Header,
   Label,
   Message,
-  Popup,
 } from "semantic-ui-react";
+import { NmsTooltip } from "../../../../components/NmsTooltip";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { formatISODate } from "../../../../utils/formatters";
 import { fetchBgpSettings } from "../../api/settingsApi";
@@ -357,20 +357,9 @@ export function BgpNeighborModal({
                       <Table.Cell>{n.description}</Table.Cell>
                       <Table.Cell>{renderValue(n.peerAs)}</Table.Cell>
                       <Table.Cell>
-                        <Popup
-                          hoverable
-                          position="right center"
-                          wide
-                          trigger={
-                            <Label
-                              color={sessionStateColor(n.sessionState)}
-                              size="small"
-                              style={{ cursor: "pointer" }}
-                            >
-                              {n.sessionState}
-                            </Label>
-                          }
-                          content={
+                        <NmsTooltip
+                          placement="right"
+                          title={
                             <div>
                               <p>
                                 <strong>Last established:</strong>{" "}
@@ -398,7 +387,15 @@ export function BgpNeighborModal({
                               )}
                             </div>
                           }
-                        />
+                        >
+                          <Label
+                            color={sessionStateColor(n.sessionState)}
+                            size="small"
+                            style={{ cursor: "pointer" }}
+                          >
+                            {n.sessionState}
+                          </Label>
+                        </NmsTooltip>
                       </Table.Cell>
                       <Table.Cell>{n.afiSafi || "-"}</Table.Cell>
                       <Table.Cell>

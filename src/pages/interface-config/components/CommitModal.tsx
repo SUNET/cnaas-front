@@ -5,8 +5,8 @@ import {
   Button,
   Icon,
   Modal,
-  Popup,
 } from "semantic-ui-react";
+import { NmsTooltip } from "../../../components/NmsTooltip";
 import YAML from "yaml";
 
 type CommitModalAccessProps = {
@@ -93,21 +93,17 @@ export function CommitModalDist({
           </Accordion.Title>
           <Accordion.Content active>
             <pre>{yaml}</pre>
-            <Popup
-              content="Copy YAML"
-              trigger={
-                <Button
-                  onClick={() =>
-                    navigator.clipboard.writeText(
-                      yaml.split("\n").slice(1).join("\n"),
-                    )
-                  }
-                  icon="copy"
-                  size="tiny"
-                />
-              }
-              position="bottom right"
-            />
+            <NmsTooltip title="Copy YAML" placement="bottom-end">
+              <Button
+                onClick={() =>
+                  navigator.clipboard.writeText(
+                    yaml.split("\n").slice(1).join("\n"),
+                  )
+                }
+                icon="copy"
+                size="tiny"
+              />
+            </NmsTooltip>
             <p>
               {editUrl ? (
                 <>

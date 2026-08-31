@@ -3,7 +3,6 @@ import {
   Button,
   ButtonGroup,
   Loader,
-  Popup,
   Icon,
   Modal,
   ModalActions,
@@ -19,6 +18,7 @@ import {
   DropdownHeader,
   DropdownItem,
 } from "semantic-ui-react";
+import { NmsTooltip } from "../../../../components/NmsTooltip";
 import {
   fetchGenerateConfig,
   fetchPreviousConfig,
@@ -321,45 +321,36 @@ export function ShowConfigModal({
         <GridColumn key={colName}>
           <h1>{headerText}</h1>
           <ButtonGroup>
-            <Popup
-              content={`Copy ${headerText}`}
-              floated="right"
-              trigger={
+            <NmsTooltip title={`Copy ${headerText}`} placement="bottom-end">
+              <Button
+                onClick={() => navigator.clipboard.writeText(config)}
+                icon="copy"
+                size="small"
+              />
+            </NmsTooltip>
+            {colValue.startsWith("previous_") && (
+              <NmsTooltip
+                title={`Copy Job ID #${jobId}`}
+                placement="bottom-end"
+              >
                 <Button
-                  onClick={() => navigator.clipboard.writeText(config)}
-                  icon="copy"
+                  onClick={() => navigator.clipboard.writeText(String(jobId))}
+                  icon="numbered list"
                   size="small"
                 />
-              }
-              position="bottom right"
-            />
-            {colValue.startsWith("previous_") && (
-              <Popup
-                content={`Copy Job ID #${jobId}`}
-                floated="right"
-                trigger={
-                  <Button
-                    onClick={() => navigator.clipboard.writeText(String(jobId))}
-                    icon="numbered list"
-                    size="small"
-                  />
-                }
-                position="bottom right"
-              />
+              </NmsTooltip>
             )}
             {colValue in columnRefreshFunctions && (
-              <Popup
-                content={`Refresh ${headerText}`}
-                floated="right"
-                trigger={
-                  <Button
-                    onClick={() => columnRefreshFunctions[colValue]()}
-                    icon="refresh"
-                    size="small"
-                  />
-                }
-                position="bottom right"
-              />
+              <NmsTooltip
+                title={`Refresh ${headerText}`}
+                placement="bottom-end"
+              >
+                <Button
+                  onClick={() => columnRefreshFunctions[colValue]()}
+                  icon="refresh"
+                  size="small"
+                />
+              </NmsTooltip>
             )}
           </ButtonGroup>
           <Segment>
