@@ -1,6 +1,6 @@
 import { type SyntheticEvent } from "react";
 import { Dropdown, Table, Checkbox } from "semantic-ui-react";
-import { NmsTooltip } from "../../../../components/NmsTooltip";
+import { Tooltip } from "../../../../components/Tooltip";
 
 const CONFIG_TYPE_OPTIONS = [
   { value: "ACCESS_AUTO", text: "Auto/dot1x" },
@@ -40,7 +40,7 @@ export function PortTypeCellAccess({
       />
 
       {currentConfigtype === "ACCESS_DOWNLINK" && (
-        <NmsTooltip
+        <Tooltip
           title={
             <>
               <h4>Redundant Link: true/false</h4>
@@ -58,7 +58,7 @@ export function PortTypeCellAccess({
               onChange={updateFieldData}
             />
           </span>
-        </NmsTooltip>
+        </Tooltip>
       )}
     </Table.Cell>
   );

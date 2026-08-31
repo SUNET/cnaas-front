@@ -11,7 +11,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "semantic-ui-react";
-import { NmsTooltip } from "../../components/NmsTooltip";
+import { Tooltip } from "../../components/Tooltip";
 import CloudIcon from "@mui/icons-material/Cloud";
 import SaveIcon from "@mui/icons-material/Save";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -30,53 +30,53 @@ import { useFirmwareCopySocket } from "./useFirmwareCopySocket";
 
 function PopupPresentInRepo() {
   return (
-    <NmsTooltip
+    <Tooltip
       title="This firmware is present in the central firmware repository"
       placement="top"
     >
       <CloudIcon fontSize="small" />
-    </NmsTooltip>
+    </Tooltip>
   );
 }
 
 function PopupAlreadyDownloaded() {
   return (
-    <NmsTooltip
+    <Tooltip
       title="This firmware is present on this local NMS instance"
       placement="top"
     >
       <SaveIcon fontSize="small" />
-    </NmsTooltip>
+    </Tooltip>
   );
 }
 
 function PopupApproved() {
   return (
-    <NmsTooltip title="This firmware is verified/approved" placement="top">
+    <Tooltip title="This firmware is verified/approved" placement="top">
       <CheckCircleIcon fontSize="small" sx={{ color: "success.main" }} />
-    </NmsTooltip>
+    </Tooltip>
   );
 }
 
 function PopupNotApproved() {
   return (
-    <NmsTooltip
+    <Tooltip
       title="Warning! This firmware is not verified/approved"
       placement="top"
     >
       <CancelIcon fontSize="small" sx={{ color: "error.main" }} />
-    </NmsTooltip>
+    </Tooltip>
   );
 }
 
 function PopupDefaultFirmware() {
   return (
-    <NmsTooltip
+    <Tooltip
       title="This firmware is a default firmware for one or more device types during ZTP"
       placement="top"
     >
       <StarIcon fontSize="small" sx={{ color: "primary.main" }} />
-    </NmsTooltip>
+    </Tooltip>
   );
 }
 

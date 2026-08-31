@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Checkbox, Form, Icon } from "semantic-ui-react";
 import type { CheckboxProps } from "semantic-ui-react";
-import { NmsTooltip } from "../../../../components/NmsTooltip";
+import { Tooltip } from "../../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import permissionsCheck from "../../../../utils/permissions/permissionsCheck";
 import { DryRunError } from "./DryRunError";
@@ -52,14 +52,14 @@ export function DryRun({
             rotated={expanded ? undefined : "counterclockwise"}
           />
           Dry run (2/4)
-          <NmsTooltip
+          <Tooltip
             title={
               "This step will generate new configurations and send them to the targeted devices, and the devices will then compare their currently running configuration to the newly generated and return a diff." +
               " No configuration will be changed. If any device has been configured outside of NMS you will get a configuration hash mismatch error, and need to do a force retry to see which local changes a commit would overwrite."
             }
           >
             <HelpOutlineOutlinedIcon fontSize="small" />
-          </NmsTooltip>
+          </Tooltip>
         </h2>
       </div>
       <div className="task-collapsable" hidden={!expanded}>

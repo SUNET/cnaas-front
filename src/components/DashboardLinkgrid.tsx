@@ -1,5 +1,5 @@
 import { Grid, Divider } from "semantic-ui-react";
-import { NmsTooltip } from "./NmsTooltip";
+import { Tooltip } from "./Tooltip";
 
 const gitlogo = new URL("../assets/gitlogo.svg", import.meta.url).href;
 const navlogo = new URL("../assets/navlogo.svg", import.meta.url).href;
@@ -120,7 +120,7 @@ export function DashboardLinkgrid() {
       <Grid columns={4} stackable>
         {links.map((link) => (
           <Grid.Column key={link.title} textAlign="center">
-            <NmsTooltip title={link.description} placement="bottom">
+            <Tooltip title={link.description} placement="bottom">
               <span>
                 <a href={link.url} target="_blank" rel="noreferrer">
                   <img
@@ -135,7 +135,7 @@ export function DashboardLinkgrid() {
                   <div>{link.title}</div>
                 </a>
               </span>
-            </NmsTooltip>
+            </Tooltip>
           </Grid.Column>
         ))}
       </Grid>

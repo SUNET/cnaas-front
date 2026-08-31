@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { NmsTooltip } from "../../../../components/NmsTooltip";
+import { Tooltip } from "../../../../components/Tooltip";
 import CircleIcon from "@mui/icons-material/Circle";
 import { GraphiteInterface } from "../../../../components/GraphiteInterface";
 
@@ -27,7 +27,7 @@ export function InterfaceStatusUp({
   );
 
   return (
-    <NmsTooltip
+    <Tooltip
       title={
         <>
           <h4 key="header">{name}</h4>
@@ -43,6 +43,6 @@ export function InterfaceStatusUp({
       <span>
         <CircleIcon sx={{ color: "green" }} />
       </span>
-    </NmsTooltip>
+    </Tooltip>
   );
 }

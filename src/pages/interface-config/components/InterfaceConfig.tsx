@@ -16,7 +16,7 @@ import {
   Table,
 } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
-import { NmsTooltip } from "../../../components/NmsTooltip";
+import { Tooltip } from "../../../components/Tooltip";
 import { showToast } from "../../../components/toast";
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
@@ -510,7 +510,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
 
           {deviceType === "ACCESS" && (
             <>
-              <NmsTooltip
+              <Tooltip
                 key="export_interface_config"
                 title="Export interface configuration as downloadable JSON file"
                 placement="bottom-end"
@@ -525,8 +525,8 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                 >
                   <Icon name="share square" />
                 </Button>
-              </NmsTooltip>
-              <NmsTooltip
+              </Tooltip>
+              <Tooltip
                 key="import_interface_config"
                 title="Import interface configuration from a JSON file"
                 placement="bottom-end"
@@ -541,7 +541,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                 >
                   <Icon name="add square" />
                 </Button>
-              </NmsTooltip>
+              </Tooltip>
             </>
           )}
         </div>

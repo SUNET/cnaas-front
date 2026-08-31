@@ -9,7 +9,7 @@ import {
   type InputOnChangeData,
   type CheckboxProps,
 } from "semantic-ui-react";
-import { NmsTooltip } from "../../components/NmsTooltip";
+import { Tooltip } from "../../components/Tooltip";
 import HelpIcon from "@mui/icons-material/Help";
 
 type SettingsForm = {
@@ -50,7 +50,7 @@ export function Settings() {
         label={
           <p>
             Netbox API token
-            <NmsTooltip
+            <Tooltip
               title={
                 <>
                   Provide Netbox API token to allow read-write access
@@ -66,7 +66,7 @@ export function Settings() {
                   localStorage.getItem("netboxToken") ? "inherit" : "warning"
                 }
               />
-            </NmsTooltip>
+            </Tooltip>
           </p>
         }
         name="netboxToken"

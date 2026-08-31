@@ -13,7 +13,7 @@ import {
   Label,
   Loader,
 } from "semantic-ui-react";
-import { NmsTooltip } from "../../../../components/NmsTooltip";
+import { Tooltip } from "../../../../components/Tooltip";
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import { actions } from "../../stores/interfaceConfigReducer";
 import type { Vlan } from "../../types/vlan";
@@ -150,7 +150,7 @@ export function VlanColumn({
   return (
     <>
       {displayVlanTagged ? (
-        <NmsTooltip
+        <Tooltip
           open={rangeError !== null}
           title={rangeError ? <Label color="red">{rangeError}</Label> : ""}
           placement="top"
@@ -168,7 +168,7 @@ export function VlanColumn({
             defaultValue={taggedVlanList as any} // eslint-disable-line @typescript-eslint/no-explicit-any
             onChange={handleTaggedChange}
           />
-        </NmsTooltip>
+        </Tooltip>
       ) : (
         <Dropdown
           key={`untagged_vlan|${interfaceName}`}
@@ -210,7 +210,7 @@ function TaggedToggle({
 }: TaggedToggleProps) {
   return (
     <ButtonGroup size="mini" vertical>
-      <NmsTooltip title="Change untagged VLAN" placement="top-end">
+      <Tooltip title="Change untagged VLAN" placement="top-end">
         <Button
           id={interfaceName}
           name="untagged"
@@ -220,8 +220,8 @@ function TaggedToggle({
         >
           U
         </Button>
-      </NmsTooltip>
-      <NmsTooltip title="Change list of tagged VLANs" placement="bottom-end">
+      </Tooltip>
+      <Tooltip title="Change list of tagged VLANs" placement="bottom-end">
         <Button
           id={interfaceName}
           name="tagged"
@@ -231,7 +231,7 @@ function TaggedToggle({
         >
           T
         </Button>
-      </NmsTooltip>
+      </Tooltip>
     </ButtonGroup>
   );
 }

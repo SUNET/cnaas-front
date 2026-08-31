@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Container, Grid } from "semantic-ui-react";
-import { NmsTooltip } from "../../../components/NmsTooltip";
+import { Tooltip } from "../../../components/Tooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { DashboardLinkgrid } from "../../../components/DashboardLinkgrid";
 import {
@@ -132,7 +132,7 @@ export function Dashboard() {
           </Grid.Column>
           <Grid.Column width={8}>
             <p>
-              <NmsTooltip
+              <Tooltip
                 title={`Detailed git commit version: ${systemVersion.git_version}`}
                 placement="top-start"
               >
@@ -145,7 +145,7 @@ export function Dashboard() {
                     CNaaS-NMS version: {systemVersion.version}
                   </a>
                 </span>
-              </NmsTooltip>
+              </Tooltip>
             </p>
           </Grid.Column>
         </Grid>

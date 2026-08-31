@@ -50,6 +50,8 @@ const theme = createTheme({
     primary: { main: "#003049" }, // --color-primary
     secondary: { main: "#ff4500" }, // --color-secondary
     error: { main: "#ff0000" }, // --color-error
+    warning: { main: "#ed6c02" }, // --color-warning
+    success: { main: "#2e7d32" }, // --color-success
     background: { default: "#ffffff" }, // --color-background
   },
   typography: {

@@ -1,7 +1,7 @@
 import { NavLink } from "react-router";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import { NmsTooltip } from "../NmsTooltip";
+import { Tooltip } from "../Tooltip";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -19,7 +19,7 @@ export function JwtInfo() {
     process.env.NETBOX_API_URL && !localStorage.getItem("netboxToken");
 
   return (
-    <NmsTooltip
+    <Tooltip
       key="profile"
       title={
         <>
@@ -44,7 +44,7 @@ export function JwtInfo() {
               secondsUntilExpiry > 0 &&
               `Token expires in ${secondsToText(secondsUntilExpiry)}.`}
           </p>
-          <NmsTooltip
+          <Tooltip
             title="Copy JWT (to use from curl etc), take note of valid time listed above"
             placement="bottom-end"
           >
@@ -56,16 +56,16 @@ export function JwtInfo() {
             >
               <ContentCopyIcon fontSize="small" />
             </IconButton>
-          </NmsTooltip>
-          <NmsTooltip
+          </Tooltip>
+          <Tooltip
             title="Try to refresh the access token now, if it can't be refresh automatically you will be asked to log in again"
             placement="bottom-end"
           >
             <IconButton size="small" onClick={doTokenRefresh}>
               <RefreshIcon fontSize="small" />
             </IconButton>
-          </NmsTooltip>
-          <NmsTooltip
+          </Tooltip>
+          <Tooltip
             title="Make changes to user settings for this browser session"
             placement="bottom-end"
           >
@@ -82,7 +82,7 @@ export function JwtInfo() {
                 <SettingsIcon fontSize="small" />
               </IconButton>
             </NavLink>
-          </NmsTooltip>
+          </Tooltip>
           <p key="logout">
             <Button variant="contained" onClick={logout}>
               Log out
@@ -94,6 +94,6 @@ export function JwtInfo() {
       <span>
         <AccountCircleIcon fontSize="large" />
       </span>
-    </NmsTooltip>
+    </Tooltip>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Grid, Divider } from "semantic-ui-react";
-import { NmsTooltip } from "../../../components/NmsTooltip";
+import { Tooltip } from "../../../components/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -69,7 +69,7 @@ export function DashboardNetboxTenant() {
                 <p>
                   <b>Customer status:</b>{" "}
                   {netboxTenant.group?.name ? (
-                    <NmsTooltip
+                    <Tooltip
                       title={
                         <div>
                           <p>
@@ -81,7 +81,7 @@ export function DashboardNetboxTenant() {
                       placement="top-start"
                     >
                       <span>{netboxTenant.group.name}</span>
-                    </NmsTooltip>
+                    </Tooltip>
                   ) : (
                     "N/A"
                   )}
@@ -157,7 +157,7 @@ export function DashboardNetboxTenant() {
             netboxContacts.map((contact) => (
               <p key={`${contact.role.name}:${contact.contact.name}`}>
                 {contact.role.name}:{" "}
-                <NmsTooltip
+                <Tooltip
                   title={
                     <div>
                       <p>
@@ -185,7 +185,7 @@ export function DashboardNetboxTenant() {
                     {contact.contact.name}
                     {contact.priority ? ` (${contact.priority})` : ""}
                   </span>
-                </NmsTooltip>
+                </Tooltip>
               </p>
             ))
           ) : (

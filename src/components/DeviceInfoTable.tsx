@@ -8,7 +8,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import IconButton from "@mui/material/IconButton";
-import { NmsTooltip } from "./NmsTooltip";
+import { Tooltip } from "./Tooltip";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import { styled } from "@mui/material/styles";
@@ -65,7 +65,7 @@ function ModelField({
   if (!info) return device.model;
 
   return (
-    <NmsTooltip
+    <Tooltip
       title={
         <>
           <a key="header" href={info.display_url}>
@@ -87,7 +87,7 @@ function ModelField({
       }
     >
       <span className="popup-trigger">{device.model}</span>
-    </NmsTooltip>
+    </Tooltip>
   );
 }
 

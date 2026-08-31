@@ -18,7 +18,7 @@ import {
   DropdownHeader,
   DropdownItem,
 } from "semantic-ui-react";
-import { NmsTooltip } from "../../../../components/NmsTooltip";
+import { Tooltip } from "../../../../components/Tooltip";
 import {
   fetchGenerateConfig,
   fetchPreviousConfig,
@@ -321,36 +321,30 @@ export function ShowConfigModal({
         <GridColumn key={colName}>
           <h1>{headerText}</h1>
           <ButtonGroup>
-            <NmsTooltip title={`Copy ${headerText}`} placement="bottom-end">
+            <Tooltip title={`Copy ${headerText}`} placement="bottom-end">
               <Button
                 onClick={() => navigator.clipboard.writeText(config)}
                 icon="copy"
                 size="small"
               />
-            </NmsTooltip>
+            </Tooltip>
             {colValue.startsWith("previous_") && (
-              <NmsTooltip
-                title={`Copy Job ID #${jobId}`}
-                placement="bottom-end"
-              >
+              <Tooltip title={`Copy Job ID #${jobId}`} placement="bottom-end">
                 <Button
                   onClick={() => navigator.clipboard.writeText(String(jobId))}
                   icon="numbered list"
                   size="small"
                 />
-              </NmsTooltip>
+              </Tooltip>
             )}
             {colValue in columnRefreshFunctions && (
-              <NmsTooltip
-                title={`Refresh ${headerText}`}
-                placement="bottom-end"
-              >
+              <Tooltip title={`Refresh ${headerText}`} placement="bottom-end">
                 <Button
                   onClick={() => columnRefreshFunctions[colValue]()}
                   icon="refresh"
                   size="small"
                 />
-              </NmsTooltip>
+              </Tooltip>
             )}
           </ButtonGroup>
           <Segment>

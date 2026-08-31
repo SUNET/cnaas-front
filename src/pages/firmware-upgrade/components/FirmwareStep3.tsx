@@ -9,7 +9,7 @@ import {
   ModalActions,
   Button,
 } from "semantic-ui-react";
-import { NmsTooltip } from "../../../components/NmsTooltip";
+import { Tooltip } from "../../../components/Tooltip";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import { FirmwareError } from "./FirmwareError";
@@ -178,7 +178,7 @@ export function FirmwareStep3() {
             >
               Start reboots
             </button>
-            <NmsTooltip title="Only for groups of ACCESS only devices. Will reboot devices in steps to minimize impact.">
+            <Tooltip title="Only for groups of ACCESS only devices. Will reboot devices in steps to minimize impact.">
               <div>
                 <button
                   id={"step3buttonStaggered"}
@@ -188,7 +188,7 @@ export function FirmwareStep3() {
                   Staggered reboots...
                 </button>
               </div>
-            </NmsTooltip>
+            </Tooltip>
             <button
               id="step3abortButton"
               disabled={step3abortDisabled}

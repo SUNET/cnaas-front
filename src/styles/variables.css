@@ -11,9 +11,9 @@
   --color-primary: #003049; /* for primary interface elements. */
   --color-secondary: #ff4500; /* for secondary interface elements. */
   --color-error: #ff0000; /* for elements that the user should be made aware of. */
-  /* --color-warning:  /* for potentially dangerous actions or important messages. */
+  --color-warning: #ed6c02; /* for potentially dangerous actions or important messages. */
   /* --color-info      /* for highlighting neutral information. */
-  /* --color-success   /* for indicating the successful completion of an action that the user triggered. */
+  --color-success: #2e7d32; /* for indicating the successful completion of an action that the user triggered. */
   /* Not in MUI */
   --color-background: #ffffff;
   --color-surface: #f4f4f4;
