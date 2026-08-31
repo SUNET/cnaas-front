@@ -12,8 +12,8 @@ import {
   Dropdown,
   Label,
   Loader,
-  Popup,
 } from "semantic-ui-react";
+import { NmsTooltip } from "../../../../components/NmsTooltip";
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import { actions } from "../../stores/interfaceConfigReducer";
 import type { Vlan } from "../../types/vlan";
@@ -150,26 +150,25 @@ export function VlanColumn({
   return (
     <>
       {displayVlanTagged ? (
-        <Popup
+        <NmsTooltip
           open={rangeError !== null}
-          content={<Label color="red">{rangeError}</Label>}
-          position="top center"
-          trigger={
-            <Dropdown
-              key={`tagged_vlan_list|${interfaceName}`}
-              name={`tagged_vlan_list|${interfaceName}`}
-              fluid
-              multiple
-              selection
-              allowAdditions={device?.device_type === "DIST"}
-              onAddItem={handleAddVlanRange}
-              search={vlanSearchFilter}
-              options={vlanOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-              defaultValue={taggedVlanList as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-              onChange={handleTaggedChange}
-            />
-          }
-        />
+          title={rangeError ? <Label color="red">{rangeError}</Label> : ""}
+          placement="top"
+        >
+          <Dropdown
+            key={`tagged_vlan_list|${interfaceName}`}
+            name={`tagged_vlan_list|${interfaceName}`}
+            fluid
+            multiple
+            selection
+            allowAdditions={device?.device_type === "DIST"}
+            onAddItem={handleAddVlanRange}
+            search={vlanSearchFilter}
+            options={vlanOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+            defaultValue={taggedVlanList as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+            onChange={handleTaggedChange}
+          />
+        </NmsTooltip>
       ) : (
         <Dropdown
           key={`untagged_vlan|${interfaceName}`}
@@ -211,36 +210,28 @@ function TaggedToggle({
 }: TaggedToggleProps) {
   return (
     <ButtonGroup size="mini" vertical>
-      <Popup
-        content="Change untagged VLAN"
-        position="top right"
-        trigger={
-          <Button
-            id={interfaceName}
-            name="untagged"
-            onClick={untaggedClick}
-            active={isUntagged}
-            className="table-button-compact"
-          >
-            U
-          </Button>
-        }
-      />
-      <Popup
-        content="Change list of tagged VLANs"
-        position="bottom right"
-        trigger={
-          <Button
-            id={interfaceName}
-            name="tagged"
-            onClick={untaggedClick}
-            active={!isUntagged}
-            className="table-button-compact"
-          >
-            T
-          </Button>
-        }
-      />
+      <NmsTooltip title="Change untagged VLAN" placement="top-end">
+        <Button
+          id={interfaceName}
+          name="untagged"
+          onClick={untaggedClick}
+          active={isUntagged}
+          className="table-button-compact"
+        >
+          U
+        </Button>
+      </NmsTooltip>
+      <NmsTooltip title="Change list of tagged VLANs" placement="bottom-end">
+        <Button
+          id={interfaceName}
+          name="tagged"
+          onClick={untaggedClick}
+          active={!isUntagged}
+          className="table-button-compact"
+        >
+          T
+        </Button>
+      </NmsTooltip>
     </ButtonGroup>
   );
 }

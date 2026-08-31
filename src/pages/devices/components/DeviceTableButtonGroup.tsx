@@ -1,11 +1,6 @@
-import {
-  Button,
-  ButtonGroup,
-  Checkbox,
-  Icon,
-  Popup,
-  Select,
-} from "semantic-ui-react";
+import { useState, type SyntheticEvent } from "react";
+import { Button, ButtonGroup, Checkbox, Icon, Select } from "semantic-ui-react";
+import Popover from "@mui/material/Popover";
 import {
   COLUMN_MAP,
   type DeviceColumnKey,
@@ -53,6 +48,9 @@ export function DeviceTableButtonGroup({
   setResultsPerPage,
   clearSort,
 }: DeviceTableButtonGroupProps) {
+  const [columnsAnchorEl, setColumnsAnchorEl] = useState<HTMLElement | null>(
+    null,
+  );
   return (
     <ButtonGroup icon>
       <Button
@@ -77,41 +75,51 @@ export function DeviceTableButtonGroup({
       >
         <Icon name="close" />
       </Button>
-      <Popup
-        on="click"
-        pinned
-        position="bottom right"
-        trigger={
-          <Button icon basic size="small" title="Select Columns">
-            <Icon name="columns" />
-          </Button>
+      <Button
+        icon
+        basic
+        size="small"
+        title="Select Columns"
+        onClick={(e: SyntheticEvent) =>
+          setColumnsAnchorEl(e.currentTarget as HTMLElement)
         }
       >
-        <p>Items per page:</p>
-        <Select
-          options={PER_PAGE_OPTIONS}
-          value={resultsPerPage}
-          onChange={(_, { value }) => {
-            if (typeof value === "number") {
-              setResultsPerPage(value);
-              setActivePage(1);
-            }
-          }}
-        />
-        <p>Show extra columns:</p>
-        <ul>
-          {EXTRA_COLUMNS.map((columnName) => (
-            <li key={columnName}>
-              <Checkbox
-                defaultChecked={activeColumns.includes(columnName)}
-                label={COLUMN_MAP[columnName]}
-                name={columnName}
-                onClick={() => columnSelectorChange(columnName)}
-              />
-            </li>
-          ))}
-        </ul>
-      </Popup>
+        <Icon name="columns" />
+      </Button>
+      <Popover
+        open={Boolean(columnsAnchorEl)}
+        anchorEl={columnsAnchorEl}
+        onClose={() => setColumnsAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <div style={{ padding: "var(--size-md)" }}>
+          <p>Items per page:</p>
+          <Select
+            options={PER_PAGE_OPTIONS}
+            value={resultsPerPage}
+            onChange={(_, { value }) => {
+              if (typeof value === "number") {
+                setResultsPerPage(value);
+                setActivePage(1);
+              }
+            }}
+          />
+          <p>Show extra columns:</p>
+          <ul>
+            {EXTRA_COLUMNS.map((columnName) => (
+              <li key={columnName}>
+                <Checkbox
+                  defaultChecked={activeColumns.includes(columnName)}
+                  label={COLUMN_MAP[columnName]}
+                  name={columnName}
+                  onClick={() => columnSelectorChange(columnName)}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Popover>
     </ButtonGroup>
   );
 }

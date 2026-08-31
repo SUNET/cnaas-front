@@ -13,9 +13,10 @@ import {
   Checkbox,
   Icon,
   Modal,
-  Popup,
   Table,
 } from "semantic-ui-react";
+import Popover from "@mui/material/Popover";
+import { NmsTooltip } from "../../../components/NmsTooltip";
 import { showToast } from "../../../components/toast";
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
@@ -134,6 +135,9 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [columnsAnchorEl, setColumnsAnchorEl] = useState<HTMLElement | null>(
+    null,
+  );
 
   // --- Derived values ---
 
@@ -479,67 +483,65 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         )}
 
         <div className="table_options">
-          <Popup
-            on="click"
-            key="select_columns"
-            pinned
-            position="bottom right"
-            trigger={
-              <Button
-                className="table_options_button"
-                icon
-                basic
-                size="small"
-                title="Select Columns"
-              >
-                <Icon name="columns" />
-              </Button>
+          <Button
+            className="table_options_button"
+            icon
+            basic
+            size="small"
+            title="Select Columns"
+            onClick={(e: SyntheticEvent) =>
+              setColumnsAnchorEl(e.currentTarget as HTMLElement)
             }
           >
-            <p>Show extra columns:</p>
-            <ul>{columnSelectors}</ul>
-          </Popup>
+            <Icon name="columns" />
+          </Button>
+          <Popover
+            open={Boolean(columnsAnchorEl)}
+            anchorEl={columnsAnchorEl}
+            onClose={() => setColumnsAnchorEl(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <div style={{ padding: "var(--size-md)" }}>
+              <p>Show extra columns:</p>
+              <ul>{columnSelectors}</ul>
+            </div>
+          </Popover>
 
           {deviceType === "ACCESS" && (
             <>
-              <Popup
-                on="hover"
-                position="bottom right"
+              <NmsTooltip
                 key="export_interface_config"
-                trigger={
-                  <Button
-                    className="table_options_button"
-                    icon
-                    basic
-                    size="small"
-                    title="Export interface configuration"
-                    onClick={() => exportInterfaces(hostname)}
-                  >
-                    <Icon name="share square" />
-                  </Button>
-                }
+                title="Export interface configuration as downloadable JSON file"
+                placement="bottom-end"
               >
-                Export interface configuration as downloadable JSON file
-              </Popup>
-              <Popup
-                on="hover"
-                position="bottom right"
+                <Button
+                  className="table_options_button"
+                  icon
+                  basic
+                  size="small"
+                  title="Export interface configuration"
+                  onClick={() => exportInterfaces(hostname)}
+                >
+                  <Icon name="share square" />
+                </Button>
+              </NmsTooltip>
+              <NmsTooltip
                 key="import_interface_config"
-                trigger={
-                  <Button
-                    className="table_options_button"
-                    icon
-                    basic
-                    size="small"
-                    title="Import interface configuration"
-                    onClick={() => setImportModalOpen(true)}
-                  >
-                    <Icon name="add square" />
-                  </Button>
-                }
+                title="Import interface configuration from a JSON file"
+                placement="bottom-end"
               >
-                Import interface configuration from a JSON file
-              </Popup>
+                <Button
+                  className="table_options_button"
+                  icon
+                  basic
+                  size="small"
+                  title="Import interface configuration"
+                  onClick={() => setImportModalOpen(true)}
+                >
+                  <Icon name="add square" />
+                </Button>
+              </NmsTooltip>
             </>
           )}
         </div>

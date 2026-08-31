@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Input, Popup, Select, type DropdownProps } from "semantic-ui-react";
+import { Input, Select, type DropdownProps } from "semantic-ui-react";
+import { NmsTooltip } from "../../../components/NmsTooltip";
 
 import {
   COLUMN_MAP,
@@ -68,82 +69,61 @@ export function DeviceTableHeaderFilter({
 
   if (column === "synchronized") {
     return (
-      <Popup
-        content={popupContent}
-        trigger={
-          <Select
-            onChange={(_, data) => {
-              handleFilterColumnChange(
-                column,
-                dropdownValueToString(data.value),
-              );
-            }}
-            value={currentValue}
-            options={synchronizedOptions}
-            style={{ minWidth: "100%" }}
-            clearable
-            closeOnEscape
-          />
-        }
-      />
+      <NmsTooltip title={popupContent}>
+        <Select
+          onChange={(_, data) => {
+            handleFilterColumnChange(column, dropdownValueToString(data.value));
+          }}
+          value={currentValue}
+          options={synchronizedOptions}
+          style={{ minWidth: "100%" }}
+          clearable
+          closeOnEscape
+        />
+      </NmsTooltip>
     );
   }
   if (column === "state") {
     return (
-      <Popup
-        content={popupContent}
-        trigger={
-          <Select
-            onChange={(_, data) => {
-              handleFilterColumnChange(
-                column,
-                dropdownValueToString(data.value),
-              );
-            }}
-            value={currentValue}
-            options={stateOptions}
-            style={{ minWidth: "100%" }}
-            clearable
-            closeOnEscape
-          />
-        }
-      />
+      <NmsTooltip title={popupContent}>
+        <Select
+          onChange={(_, data) => {
+            handleFilterColumnChange(column, dropdownValueToString(data.value));
+          }}
+          value={currentValue}
+          options={stateOptions}
+          style={{ minWidth: "100%" }}
+          clearable
+          closeOnEscape
+        />
+      </NmsTooltip>
     );
   }
   if (column === "device_type") {
     return (
-      <Popup
-        content={popupContent}
-        trigger={
-          <Select
-            onChange={(_, data) => {
-              handleFilterColumnChange(
-                column,
-                dropdownValueToString(data.value),
-              );
-            }}
-            value={currentValue}
-            options={deviceTypeOptions}
-            style={{ minWidth: "100%" }}
-            clearable
-            closeOnEscape
-          />
-        }
-      />
+      <NmsTooltip title={popupContent}>
+        <Select
+          onChange={(_, data) => {
+            handleFilterColumnChange(column, dropdownValueToString(data.value));
+          }}
+          value={currentValue}
+          options={deviceTypeOptions}
+          style={{ minWidth: "100%" }}
+          clearable
+          closeOnEscape
+        />
+      </NmsTooltip>
     );
   }
   return (
-    <Popup
-      content={popupContent}
-      trigger={
-        <Input
-          value={currentValue}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            onChange(column, e.target.value)
-          }
-          style={{ minWidth: "100%" }}
-        />
-      }
-    />
+    <NmsTooltip title={popupContent}>
+      <Input
+        value={currentValue}
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+          onChange(column, e.target.value)
+        }
+        style={{ minWidth: "100%" }}
+      />
+    </NmsTooltip>
   );
 }
