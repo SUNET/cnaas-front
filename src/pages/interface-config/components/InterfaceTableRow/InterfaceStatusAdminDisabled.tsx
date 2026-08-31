@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
-import { Icon, Popup } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import CircleIcon from "@mui/icons-material/Circle";
 import { GraphiteInterface } from "../../../../components/GraphiteInterface";
 
 export function InterfaceStatusAdminDisabled({
@@ -20,17 +21,21 @@ export function InterfaceStatusAdminDisabled({
   );
 
   return (
-    <Popup
-      header={name}
-      content={[
-        <p key="status">Interface is admin disabled</p>,
-        toggleEnabled,
-        graphiteHtml,
-      ]}
-      position="right center"
-      wide
-      hoverable
-      trigger={<Icon color="red" name="circle" />}
-    />
+    <Tooltip
+      title={
+        <>
+          <h4 key="header">{name}</h4>
+          <p key="status">Interface is admin disabled</p>
+          {toggleEnabled}
+          {graphiteHtml}
+        </>
+      }
+      placement="right"
+      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+    >
+      <span>
+        <CircleIcon sx={{ color: "red" }} />
+      </span>
+    </Tooltip>
   );
 }

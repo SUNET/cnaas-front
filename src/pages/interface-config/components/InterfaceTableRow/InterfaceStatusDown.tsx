@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
-import { Icon, Popup } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { GraphiteInterface } from "../../../../components/GraphiteInterface";
 
 export function InterfaceStatusDown({
@@ -24,19 +25,23 @@ export function InterfaceStatusDown({
   );
 
   return (
-    <Popup
-      header={name}
-      content={[
-        <p key="status">Interface is down</p>,
-        toggleEnabled,
-        bounceInterfaceButton,
-        statusMessage,
-        graphiteHtml,
-      ]}
-      position="right center"
-      wide
-      hoverable
-      trigger={<Icon color="grey" name="circle outline" />}
-    />
+    <Tooltip
+      title={
+        <>
+          <h4 key="header">{name}</h4>
+          <p key="status">Interface is down</p>
+          {toggleEnabled}
+          {bounceInterfaceButton}
+          {statusMessage}
+          {graphiteHtml}
+        </>
+      }
+      placement="right"
+      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+    >
+      <span>
+        <RadioButtonUncheckedIcon sx={{ color: "grey" }} />
+      </span>
+    </Tooltip>
   );
 }

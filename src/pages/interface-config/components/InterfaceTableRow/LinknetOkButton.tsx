@@ -1,17 +1,22 @@
-import { Popup, Button } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import Button from "@mui/material/Button";
 
 export function LinknetOkButton() {
   return (
-    <Popup
-      header="Linknet OK"
-      content="LLDP neighbor data matches expected linknet neighbor."
-      position="right center"
-      hoverable
-      trigger={
-        <Button className="table-button-compact" color="green">
+    <Tooltip
+      title={
+        <>
+          <h4>Linknet OK</h4>
+          LLDP neighbor data matches expected linknet neighbor.
+        </>
+      }
+      placement="right"
+    >
+      <span>
+        <Button size="small" sx={{ color: "success.main", minWidth: 0 }}>
           L
         </Button>
-      }
-    />
+      </span>
+    </Tooltip>
   );
 }

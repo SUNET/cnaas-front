@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Popup, Button } from "semantic-ui-react";
+import Tooltip from "@mui/material/Tooltip";
+import Button from "@mui/material/Button";
 import type { LldpNeighbor } from "../../types/lldp";
 
 function NeighborInfo({ neighbor }: { readonly neighbor: LldpNeighbor }) {
@@ -36,13 +37,21 @@ export function LldpNeighborPopup({
   );
 
   return (
-    <Popup
-      header="LLDP Neighbor Information"
-      content={neighborTable}
-      position="right center"
-      wide
-      hoverable
-      trigger={<Button className="table-button-compact">N</Button>}
-    />
+    <Tooltip
+      title={
+        <>
+          <h4>LLDP Neighbor Information</h4>
+          {neighborTable}
+        </>
+      }
+      placement="right"
+      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
+    >
+      <span>
+        <Button size="small" sx={{ minWidth: 0 }}>
+          N
+        </Button>
+      </span>
+    </Tooltip>
   );
 }
