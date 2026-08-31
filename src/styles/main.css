@@ -122,6 +122,12 @@ button:not(.MuiButtonBase-root):disabled {
   background: var(--color-disabled-bg);
 }
 
+/* MUI buttons are excluded from the native button margin above, so a row of
+   them (e.g. Modal.Actions) would sit flush. Space adjacent MUI buttons. */
+.MuiButtonBase-root + .MuiButtonBase-root {
+  margin-left: var(--size-sm);
+}
+
 section {
   display: flex;
   flex: 1;

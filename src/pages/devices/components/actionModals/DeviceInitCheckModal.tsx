@@ -1,10 +1,12 @@
 import {
-  Button,
   Icon,
   Modal,
   Accordion,
   type AccordionTitleProps,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import SettingsIcon from "@mui/icons-material/Settings";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { initCheckDevice, type InitCheckResult } from "../../api/deviceListApi";
@@ -177,13 +179,12 @@ export function DeviceInitCheckModal({
       open={isOpen}
       trigger={
         <Button
+          variant="contained"
           disabled={disabled || submitting}
-          icon
-          labelPosition="right"
+          endIcon={submitting ? <SettingsIcon /> : <OpenInNewIcon />}
           onClick={() => setIsOpen(true)}
         >
           {submitting ? "Initializing..." : "Initialize..."}
-          <Icon name={submitting ? "cog" : "window restore outline"} />
         </Button>
       }
     >
@@ -192,20 +193,24 @@ export function DeviceInitCheckModal({
         <Modal.Description>{initcheckHtml}</Modal.Description>
       </Modal.Content>
       <Modal.Actions>
-        <Button key="cancel" color="black" onClick={() => setIsOpen(false)}>
+        <Button
+          key="cancel"
+          variant="outlined"
+          color="inherit"
+          onClick={() => setIsOpen(false)}
+        >
           Cancel
         </Button>
         <Button
           key="submit"
+          variant="contained"
+          color="success"
           onClick={() => {
             setSubmitting(true);
             setIsOpen(false);
             submitInit();
           }}
           disabled={!initcheckOk}
-          icon
-          labelPosition="right"
-          positive
         >
           Start initialization
         </Button>

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import {
-  Button,
   Icon,
   Modal,
   ModalActions,
   ModalContent,
   Header as SemanticHeader,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import LogoutIcon from "@mui/icons-material/Logout";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { useSecondsUntilExpiry } from "../../hooks/useSecondsUntilExpiry";
 import { secondsToText } from "../../utils/formatters";
@@ -57,11 +59,21 @@ function ReloginModal({ isOpen }: ReloginModalProps) {
         </p>
       </ModalContent>
       <ModalActions>
-        <Button color="red" inverted onClick={logout}>
-          <Icon name="sign-out" /> Log out
+        <Button
+          variant="contained"
+          color="error"
+          onClick={logout}
+          startIcon={<LogoutIcon />}
+        >
+          Log out
         </Button>
-        <Button color="green" inverted onClick={relogin}>
-          <Icon name="refresh" /> Log in again
+        <Button
+          variant="contained"
+          color="success"
+          onClick={relogin}
+          startIcon={<RefreshIcon />}
+        >
+          Log in again
         </Button>
       </ModalActions>
     </Modal>

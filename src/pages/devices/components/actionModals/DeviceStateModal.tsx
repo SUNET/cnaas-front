@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Button, Modal, Loader, Icon } from "semantic-ui-react";
+import { Modal, Loader, Icon } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import type { DeviceState } from "../../../../types/device";
 import { updateDevice } from "../../api/deviceListApi";
@@ -69,19 +70,23 @@ export function DeviceStateModal({
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>
-        <Button key="cancel" color="black" onClick={handleClose}>
+        <Button
+          key="cancel"
+          variant="outlined"
+          color="inherit"
+          onClick={handleClose}
+        >
           Cancel
         </Button>
         <Button
           key="submit"
+          variant="contained"
+          color="success"
           onClick={() => {
             if (deviceId != null && newState) {
               putState(deviceId, newState);
             }
           }}
-          icon
-          positive
-          labelPosition="right"
         >
           Change state
         </Button>

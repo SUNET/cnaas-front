@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Button, Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
+import { Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { useNavigate } from "react-router";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { updateDevice } from "../../api/deviceListApi";
@@ -96,17 +97,21 @@ export function HostnameModal({
       <Modal.Actions>
         {!success && (
           <>
-            <Button key="cancel" color="black" onClick={closeAction}>
+            <Button
+              key="cancel"
+              variant="outlined"
+              color="inherit"
+              onClick={closeAction}
+            >
               Cancel
             </Button>
             <Button
               key={`hostname-${hostname}-submit-btn`}
+              variant="contained"
+              color="success"
               disabled={!isNewHostnameValid || isLoading}
               onClick={putHostname}
               loading={isLoading}
-              icon
-              positive
-              labelPosition="right"
             >
               Change hostname
             </Button>
@@ -115,8 +120,8 @@ export function HostnameModal({
         {success && (
           <Button
             key={`hostname-${hostname}-sync-button`}
+            variant="contained"
             onClick={() => navigate(`/config-change?scrollTo=dry_run`)}
-            labelPosition="right"
           >
             Sync devices...
           </Button>

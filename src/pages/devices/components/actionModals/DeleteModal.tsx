@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
-  Button,
   Checkbox,
   type CheckboxProps,
   Input,
   Loader,
   Modal,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { deleteDevice } from "../../api/deviceListApi";
 import type { Device } from "../../../../types/device";
@@ -121,16 +121,20 @@ export function DeleteModal({
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>
-        <Button key="cancel" color="black" onClick={handleClose}>
+        <Button
+          key="cancel"
+          variant="outlined"
+          color="inherit"
+          onClick={handleClose}
+        >
           Cancel
         </Button>
         <Button
           key="submit"
+          variant="contained"
+          color="error"
           disabled={!isConfirmValid || isLoading}
           onClick={handleDelete}
-          icon
-          labelPosition="right"
-          negative
         >
           Delete
         </Button>

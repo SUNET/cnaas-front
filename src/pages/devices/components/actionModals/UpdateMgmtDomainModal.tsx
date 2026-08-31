@@ -1,11 +1,9 @@
 import { useState, type ChangeEvent } from "react";
 import {
-  Button,
   Form,
   FormField,
   FormGroup,
   FormInput,
-  Icon,
   Input,
   Modal,
   ModalActions,
@@ -13,6 +11,9 @@ import {
   ModalDescription,
   ModalHeader,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import CheckIcon from "@mui/icons-material/Check";
+import RemoveIcon from "@mui/icons-material/Remove";
 import { deleteMgmtDomain, updateMgmtDomain } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 
@@ -202,14 +203,24 @@ export function UpdateMgmtDomainModal({
         </ModalDescription>
       </ModalContent>
       <ModalActions>
-        <Button color="black" onClick={handleCancel}>
+        <Button variant="outlined" color="inherit" onClick={handleCancel}>
           Cancel
         </Button>
-        <Button color="red" onClick={() => setConfirmOpen(true)}>
-          Delete <Icon name="remove" />
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => setConfirmOpen(true)}
+          endIcon={<RemoveIcon />}
+        >
+          Delete
         </Button>
-        <Button color="green" onClick={handleUpdate}>
-          Update <Icon name="checkmark" />
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleUpdate}
+          endIcon={<CheckIcon />}
+        >
+          Update
         </Button>
       </ModalActions>
 
@@ -235,11 +246,16 @@ export function UpdateMgmtDomainModal({
           />
         </ModalContent>
         <ModalActions>
-          <Button color="black" onClick={() => setConfirmOpen(false)}>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => setConfirmOpen(false)}
+          >
             Cancel
           </Button>
           <Button
-            color="red"
+            variant="contained"
+            color="error"
             disabled={Number(deleteMgmtId) !== Number(mgmtId)}
             onClick={handleConfirmDelete}
           >
