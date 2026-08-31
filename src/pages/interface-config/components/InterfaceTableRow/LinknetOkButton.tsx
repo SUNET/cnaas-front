@@ -1,9 +1,9 @@
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../../components/NmsTooltip";
 import Button from "@mui/material/Button";
 
 export function LinknetOkButton() {
   return (
-    <Tooltip
+    <NmsTooltip
       title={
         <>
           <h4>Linknet OK</h4>
@@ -17,6 +17,6 @@ export function LinknetOkButton() {
           L
         </Button>
       </span>
-    </Tooltip>
+    </NmsTooltip>
   );
 }

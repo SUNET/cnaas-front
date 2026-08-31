@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Table, Icon } from "semantic-ui-react";
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../components/NmsTooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import { formatISODate } from "../../../utils/formatters";
 import type { SyncEvent, SyncHistory } from "../../../types/syncHistory";
@@ -67,7 +67,7 @@ type DeviceEntryProps = {
 function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
   return (
     <li key={hostname}>
-      <Tooltip
+      <NmsTooltip
         title={
           <ul key={`device_entry_${hostname}`}>
             {eventList.map((item) => (
@@ -77,12 +77,11 @@ function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
             ))}
           </ul>
         }
-        slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
       >
         <span className="popup-trigger">
           {hostname} ({eventList.length})
         </span>
-      </Tooltip>
+      </NmsTooltip>
     </li>
   );
 }
@@ -180,12 +179,9 @@ export function SyncStatus({ devices, synchistory, target }: SyncStatusProps) {
               rotated={expanded ? undefined : "counterclockwise"}
             />
             Target: {getCommitTargetName()}
-            <Tooltip
-              title="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized."
-              slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
-            >
+            <NmsTooltip title="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized.">
               <HelpOutlineOutlinedIcon fontSize="small" />
-            </Tooltip>
+            </NmsTooltip>
           </h2>
         </div>
         <div key="events" className="task-collapsable" hidden={!expanded}>

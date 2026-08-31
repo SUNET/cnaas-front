@@ -8,7 +8,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "./NmsTooltip";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import { styled } from "@mui/material/styles";
@@ -33,7 +33,6 @@ function ManagementIP({ ip }: { readonly ip: string | null }) {
     <>
       <span> {ip} </span>
       <IconButton
-        sx={{ border: "1px solid transparent" }}
         size="small"
         title={ip}
         onClick={() => {
@@ -43,7 +42,6 @@ function ManagementIP({ ip }: { readonly ip: string | null }) {
         <ContentCopyIcon />
       </IconButton>
       <IconButton
-        sx={{ border: "1px solid transparent" }}
         size="small"
         title={sshAddress}
         onClick={() => {
@@ -67,7 +65,7 @@ function ModelField({
   if (!info) return device.model;
 
   return (
-    <Tooltip
+    <NmsTooltip
       title={
         <>
           <a key="header" href={info.display_url}>
@@ -87,10 +85,9 @@ function ModelField({
           )}
         </>
       }
-      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
     >
       <span className="popup-trigger">{device.model}</span>
-    </Tooltip>
+    </NmsTooltip>
   );
 }
 

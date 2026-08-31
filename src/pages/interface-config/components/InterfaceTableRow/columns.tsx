@@ -1,6 +1,6 @@
 import { type SyntheticEvent } from "react";
 import { Checkbox, Dropdown, Input } from "semantic-ui-react";
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../../components/NmsTooltip";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
 // --- Tags column ---
@@ -56,7 +56,7 @@ export function JsonColumn({ data }: JsonColumnProps) {
   if (!data) return null;
 
   return (
-    <Tooltip
+    <NmsTooltip
       title={
         <>
           <h4>Raw JSON data</h4>
@@ -64,12 +64,11 @@ export function JsonColumn({ data }: JsonColumnProps) {
         </>
       }
       placement="top-end"
-      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
     >
       <span>
         <MoreHorizIcon sx={{ color: "grey" }} />
       </span>
-    </Tooltip>
+    </NmsTooltip>
   );
 }
 
@@ -120,10 +119,7 @@ export function BpduFilterColumn({
   updateFieldData,
 }: BpduFilterColumnProps) {
   return (
-    <Tooltip
-      title="Enable spanning-tree BPDU filter on this interface"
-      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
-    >
+    <NmsTooltip title="Enable spanning-tree BPDU filter on this interface">
       <span>
         <Checkbox
           name={`bpdu_filter|${interfaceName}`}
@@ -132,6 +128,6 @@ export function BpduFilterColumn({
           disabled={editDisabled}
         />
       </span>
-    </Tooltip>
+    </NmsTooltip>
   );
 }

@@ -1,4 +1,4 @@
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../../components/NmsTooltip";
 import Button from "@mui/material/Button";
 import type { LinknetMismatch } from "../../types/linknet";
 
@@ -33,16 +33,12 @@ export function LinknetWarningPopup({ mismatch }: LinknetWarningPopupProps) {
   );
 
   return (
-    <Tooltip
-      title={content}
-      placement="right"
-      slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
-    >
+    <NmsTooltip title={content} placement="right">
       <span>
         <Button size="small" sx={{ color: "warning.main", minWidth: 0 }}>
           !
         </Button>
       </span>
-    </Tooltip>
+    </NmsTooltip>
   );
 }

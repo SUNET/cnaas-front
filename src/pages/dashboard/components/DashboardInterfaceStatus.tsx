@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Grid, Divider } from "semantic-ui-react";
-import Tooltip from "@mui/material/Tooltip";
+import { NmsTooltip } from "../../../components/NmsTooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { GraphiteInterface } from "../../../components/GraphiteInterface";
 import {
@@ -106,7 +106,7 @@ export function DashboardInterfaceStatus() {
 
       interfaceList.push(
         <Grid.Column key={intf.id} textAlign="center">
-          <Tooltip
+          <NmsTooltip
             title={
               <p>
                 interface speed: {speed}
@@ -115,7 +115,6 @@ export function DashboardInterfaceStatus() {
               </p>
             }
             placement="bottom"
-            slotProps={{ tooltip: { sx: { maxWidth: "none" } } }}
           >
             <div>
               <a
@@ -128,7 +127,7 @@ export function DashboardInterfaceStatus() {
                 {description}
               </a>
             </div>
-          </Tooltip>
+          </NmsTooltip>
           <GraphiteInterface
             hostname={intf.device.name}
             interfaceName={intf.name}

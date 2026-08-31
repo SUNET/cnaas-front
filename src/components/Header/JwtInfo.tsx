@@ -1,5 +1,11 @@
 import { NavLink } from "react-router";
-import { Button, Icon, Popup } from "semantic-ui-react";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import { NmsTooltip } from "../NmsTooltip";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { useSecondsUntilExpiry } from "../../hooks/useSecondsUntilExpiry";
 import { secondsToText } from "../../utils/formatters";
@@ -9,11 +15,13 @@ export function JwtInfo() {
     useAuthToken();
   const secondsUntilExpiry = useSecondsUntilExpiry(tokenExpiry);
 
+  const settingsHighlighted =
+    process.env.NETBOX_API_URL && !localStorage.getItem("netboxToken");
+
   return (
-    <Popup
+    <NmsTooltip
       key="profile"
-      hoverable
-      content={
+      title={
         <>
           <p key="userinfo">
             {username
@@ -36,56 +44,56 @@ export function JwtInfo() {
               secondsUntilExpiry > 0 &&
               `Token expires in ${secondsToText(secondsUntilExpiry)}.`}
           </p>
-          <Popup
-            content="Copy JWT (to use from curl etc), take note of valid time listed above"
-            trigger={
-              <Button
-                onClick={() => {
-                  if (token) navigator.clipboard.writeText(token);
-                }}
-                icon="copy"
-                size="tiny"
-              />
-            }
-            position="bottom right"
-          />
-          <Popup
-            content="Try to refresh the access token now, if it can't be refresh automatically you will be asked to log in again"
-            trigger={
-              <Button onClick={doTokenRefresh} icon="refresh" size="tiny" />
-            }
-            position="bottom right"
-          />
-          <Popup
-            content="Make changes to user settings for this browser session"
-            trigger={
-              <NavLink
-                end
-                className={({ isActive }) => (isActive ? "active" : undefined)}
-                to="/settings"
-                key="settings"
+          <NmsTooltip
+            title="Copy JWT (to use from curl etc), take note of valid time listed above"
+            placement="bottom-end"
+          >
+            <IconButton
+              size="small"
+              onClick={() => {
+                if (token) navigator.clipboard.writeText(token);
+              }}
+            >
+              <ContentCopyIcon fontSize="small" />
+            </IconButton>
+          </NmsTooltip>
+          <NmsTooltip
+            title="Try to refresh the access token now, if it can't be refresh automatically you will be asked to log in again"
+            placement="bottom-end"
+          >
+            <IconButton size="small" onClick={doTokenRefresh}>
+              <RefreshIcon fontSize="small" />
+            </IconButton>
+          </NmsTooltip>
+          <NmsTooltip
+            title="Make changes to user settings for this browser session"
+            placement="bottom-end"
+          >
+            <NavLink
+              end
+              className={({ isActive }) => (isActive ? "active" : undefined)}
+              to="/settings"
+              key="settings"
+            >
+              <IconButton
+                size="small"
+                color={settingsHighlighted ? "warning" : "default"}
               >
-                <Button
-                  icon="settings"
-                  size="tiny"
-                  color={
-                    process.env.NETBOX_API_URL &&
-                    !localStorage.getItem("netboxToken")
-                      ? "orange"
-                      : undefined
-                  }
-                />
-              </NavLink>
-            }
-            position="bottom right"
-          />
+                <SettingsIcon fontSize="small" />
+              </IconButton>
+            </NavLink>
+          </NmsTooltip>
           <p key="logout">
-            <Button onClick={logout}>Log out</Button>
+            <Button variant="contained" onClick={logout}>
+              Log out
+            </Button>
           </p>
         </>
       }
-      trigger={<Icon name="user circle" size="big" />}
-      wide
-    />
+    >
+      <span>
+        <AccountCircleIcon fontSize="large" />
+      </span>
+    </NmsTooltip>
   );
 }
