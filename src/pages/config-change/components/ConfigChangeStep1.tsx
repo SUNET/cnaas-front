@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Icon } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
@@ -148,33 +149,36 @@ export function ConfigChangeStep1({
           {prettifyCommit(commitInfo.templates)}
         </div>
         <div className="info">
-          <button
-            type="button"
+          <Button
+            variant="contained"
+            color="secondary"
             hidden={!permissionsCheck("Config change", "write")}
             disabled={!!buttonsDisabled}
             onClick={() => refreshRepo("settings")}
           >
             Refresh settings
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
             hidden={!permissionsCheck("Config change", "write")}
             disabled={!!buttonsDisabled}
             onClick={() => handleRefreshAndDryRun("settings")}
           >
             Refresh settings + dry run
-          </button>
+          </Button>
           <p>{commitUpdateInfo.settings}</p>
         </div>
         <div className="info">
-          <button
-            type="button"
+          <Button
+            variant="contained"
+            color="secondary"
             hidden={!permissionsCheck("Config change", "write")}
             disabled={!!buttonsDisabled}
             onClick={() => refreshRepo("templates")}
           >
             Refresh templates
-          </button>
+          </Button>
           <p>{commitUpdateInfo.templates}</p>
         </div>
         <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />

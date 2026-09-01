@@ -6,13 +6,9 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  Dropdown,
-  Label,
-  Loader,
-} from "semantic-ui-react";
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import { Dropdown, Label, Loader } from "semantic-ui-react";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { Tooltip } from "../../../../components/Tooltip";
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import { actions } from "../../stores/interfaceConfigReducer";

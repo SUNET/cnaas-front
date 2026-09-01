@@ -1,3 +1,4 @@
+import Button from "@mui/material/Button";
 import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
 
 function renderHostname(hostname: string) {
@@ -42,7 +43,9 @@ export function FirmwareStep1() {
     <div className="task-container">
       <div className="heading">
         <h2>Current OS version (1/3)</h2>
-        <button className="close">Close</button>
+        <Button variant="text" className="close">
+          Close
+        </Button>
       </div>
       <div className="task-collapsable">
         <p>

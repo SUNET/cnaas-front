@@ -1,4 +1,5 @@
 import { SyntheticEvent } from "react";
+import Button from "@mui/material/Button";
 
 type LoginOIDCProps = {
   readonly login: (event?: SyntheticEvent) => void;
@@ -9,9 +10,9 @@ function LoginOIDC({ login, errorMessage }: LoginOIDCProps) {
   return (
     <form onSubmit={login}>
       <p className="title error">{errorMessage}</p>
-      <button className="submit" type="submit">
+      <Button className="submit" type="submit" variant="contained">
         Login with SSO
-      </button>
+      </Button>
     </form>
   );
 }

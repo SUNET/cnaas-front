@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Checkbox, Form, Icon } from "semantic-ui-react";
 import type { CheckboxProps } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { Tooltip } from "../../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import permissionsCheck from "../../../../utils/permissions/permissionsCheck";
@@ -79,22 +80,26 @@ export function DryRun({
             />
           </div>
           <div className="info">
-            <button
+            <Button
               id="dryrunButton"
+              variant="contained"
+              color="secondary"
               hidden={!permissionsCheck("Config change", "write")}
               disabled={repoWorkingState === true || dryRunDisable}
               onClick={() => dryRunSyncStart({ resync })}
             >
               Dry run
-            </button>
-            <button
+            </Button>
+            <Button
               id="resetButton"
+              variant="contained"
+              color="secondary"
               hidden={!permissionsCheck("Config change", "write")}
               disabled={dryRunJobStatus !== "FINISHED"}
               onClick={resetState}
             >
               Start over
-            </button>
+            </Button>
           </div>
         </Form>
         <DryRunProgressBar

@@ -152,7 +152,9 @@ export function FirmwareStep3() {
     <div className="task-container">
       <div className="heading">
         <h2>Reboot devices (3/3)</h2>
-        <button className="close">Close</button>
+        <Button variant="text" className="close">
+          Close
+        </Button>
       </div>
       <div className="task-collapsable">
         <p>
@@ -171,31 +173,35 @@ export function FirmwareStep3() {
         If left empty devices will reboot immediately
         <Form>
           <div className="info">
-            <button
+            <Button
               id="step3button"
+              variant="contained"
               onClick={openConfirm}
               disabled={disableStartButton}
             >
               Start reboots
-            </button>
+            </Button>
             <Tooltip title="Only for groups of ACCESS only devices. Will reboot devices in steps to minimize impact.">
               <div>
-                <button
+                <Button
                   id={"step3buttonStaggered"}
+                  variant="contained"
                   onClick={openStaggeredConfirm}
                   disabled={disableStaggeredButton}
                 >
                   Staggered reboots...
-                </button>
+                </Button>
               </div>
             </Tooltip>
-            <button
+            <Button
               id="step3abortButton"
+              variant="contained"
+              color="error"
               disabled={step3abortDisabled}
               onClick={onClickStep3Abort}
             >
               Abort!
-            </button>
+            </Button>
           </div>
         </Form>
         <Confirm

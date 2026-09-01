@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Confirm, Icon, Input, Select } from "semantic-ui-react";
 import type { InputOnChangeData } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import ErrorIcon from "@mui/icons-material/Error";
@@ -208,14 +209,15 @@ export function ConfigChangeStep4({
           }
         />
         <br />
-        <button
+        <Button
           id="confirmButton"
-          type="button"
+          variant="contained"
+          color="secondary"
           disabled={commitButtonDisabled}
           onClick={() => setConfirmDiagOpen(true)}
         >
           Deploy change (live run)
-        </button>{" "}
+        </Button>{" "}
         {warnings}
         <Select
           disabled={confirmModeDefault === -1}
