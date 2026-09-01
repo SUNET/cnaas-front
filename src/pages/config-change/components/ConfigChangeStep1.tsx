@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Icon } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
@@ -128,10 +128,12 @@ export function ConfigChangeStep1({
     <div className="task-container">
       <div className="heading">
         <h2 id="refreshrepo_section">
-          <Icon
-            name="dropdown"
+          <ArrowDropDownIcon
             onClick={() => setExpanded((prev) => !prev)}
-            rotated={expanded ? undefined : "counterclockwise"}
+            sx={{
+              cursor: "pointer",
+              transform: expanded ? undefined : "rotate(-90deg)",
+            }}
           />
           Optional: Refresh repositories (1/4)
           <Tooltip title="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository.">

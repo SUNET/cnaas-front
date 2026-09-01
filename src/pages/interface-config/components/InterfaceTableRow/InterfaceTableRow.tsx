@@ -1,5 +1,6 @@
 import { type SyntheticEvent, type ReactNode } from "react";
-import { ButtonGroup, Checkbox, Icon, Input, Table } from "semantic-ui-react";
+import { ButtonGroup, Checkbox, Input, Table } from "semantic-ui-react";
+import CircularProgress from "@mui/material/CircularProgress";
 import { VlanColumn } from "./VlanColumn";
 import {
   TagsColumn,
@@ -425,7 +426,7 @@ export function InterfaceTableRow({
   ));
 
   // Render status icon
-  let statusIcon: ReactNode = <Icon loading color="grey" name="spinner" />;
+  let statusIcon: ReactNode = <CircularProgress size="1em" />;
   const interfaceStatusDataLower: Record<
     string,
     Record<string, unknown>

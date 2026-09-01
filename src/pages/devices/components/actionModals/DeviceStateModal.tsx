@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Modal, Loader, Icon } from "semantic-ui-react";
+import { Modal, Loader } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import CancelIcon from "@mui/icons-material/Cancel";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import type { DeviceState } from "../../../../types/device";
 import { updateDevice } from "../../api/deviceListApi";
@@ -62,7 +63,7 @@ export function DeviceStateModal({
           <p>
             {error && (
               <>
-                <Icon name="delete" color="red" />
+                <CancelIcon sx={{ color: "error.main" }} />
                 <label>{error}</label>
               </>
             )}

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Icon,
   Loader,
   Table,
   TableBody,
@@ -9,6 +8,8 @@ import {
   TableHeaderCell,
   TableRow,
 } from "semantic-ui-react";
+import SyncIcon from "@mui/icons-material/Sync";
+import MemoryIcon from "@mui/icons-material/Memory";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { extractErrorMessage } from "../../utils/extractErrorMessage";
@@ -68,7 +69,7 @@ function GroupResult({
                     href={`/config-change?group=${group}`}
                     title="Go to config change/sync page"
                   >
-                    <Icon name="sync" /> Sync...
+                    <SyncIcon sx={{ verticalAlign: "middle" }} /> Sync...
                   </a>
                 )}
                 <br />
@@ -77,7 +78,8 @@ function GroupResult({
                     href={`/firmware-upgrade?group=${group}`}
                     title="Go to firmware upgrade page"
                   >
-                    <Icon name="microchip" /> Firmware upgrade...
+                    <MemoryIcon sx={{ verticalAlign: "middle" }} /> Firmware
+                    upgrade...
                   </a>
                 )}
               </div>

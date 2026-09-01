@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Confirm, Icon, Input, Select } from "semantic-ui-react";
+import { Confirm, Input, Select } from "semantic-ui-react";
 import type { InputOnChangeData } from "semantic-ui-react";
 import Button from "@mui/material/Button";
-import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import { Tooltip } from "../../../components/Tooltip";
 
 import { getData } from "../../../utils/getData";
 import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
@@ -173,10 +174,12 @@ export function ConfigChangeStep4({
     <div className="task-container">
       <div className="heading">
         <h2>
-          <Icon
-            name="dropdown"
+          <ArrowDropDownIcon
             onClick={() => setExpanded((prev) => !prev)}
-            rotated={expanded ? undefined : "counterclockwise"}
+            sx={{
+              cursor: "pointer",
+              transform: expanded ? undefined : "rotate(-90deg)",
+            }}
           />
           Commit configuration (4/4)
           <Tooltip title="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log.">
