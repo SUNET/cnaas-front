@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Modal, Input, Loader, Segment } from "semantic-ui-react";
+import { Modal, Input } from "semantic-ui-react";
+import Paper from "@mui/material/Paper";
+import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckIcon from "@mui/icons-material/Check";
@@ -68,7 +70,7 @@ export function HostnameModal({
       <Modal.Header>Change hostname for {hostname}</Modal.Header>
       <Modal.Content>
         <Modal.Description>
-          <Segment>
+          <Paper variant="outlined" sx={{ padding: "var(--size-md)" }}>
             Type the new hostname:{" "}
             <Input
               type="text"
@@ -77,7 +79,7 @@ export function HostnameModal({
               value={newHostname}
               fluid
             />
-            {isLoading && <Loader className="modalloader" />}
+            {isLoading && <CircularProgress />}
             <p>
               {error && (
                 <>
@@ -93,7 +95,7 @@ export function HostnameModal({
                 </>
               )}
             </p>
-          </Segment>
+          </Paper>
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>

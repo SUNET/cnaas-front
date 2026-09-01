@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Modal, Loader } from "semantic-ui-react";
+import { Modal } from "semantic-ui-react";
+import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
@@ -59,7 +60,7 @@ export function DeviceStateModal({
             Are you sure you want to change the state of device {hostname} to{" "}
             {newState}?
           </p>
-          {isLoading && <Loader className="modalloader" />}
+          {isLoading && <CircularProgress />}
           <p>
             {error && (
               <>

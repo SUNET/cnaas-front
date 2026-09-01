@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
-import { Modal, Table, Header, Label, Message } from "semantic-ui-react";
+import { Modal, Table, Header } from "semantic-ui-react";
+import Alert from "@mui/material/Alert";
+import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
@@ -261,16 +263,18 @@ export function BgpNeighborModal({
     loadData();
   };
 
-  const sessionStateColor = (state: string) => {
-    if (state === "ESTABLISHED") return "green";
+  const sessionStateColor = (
+    state: string,
+  ): "success" | "warning" | "error" => {
+    if (state === "ESTABLISHED") return "success";
     if (
       state === "ACTIVE" ||
       state === "CONNECT" ||
       state === "OPENSENT" ||
       state === "OPENCONFIRM"
     )
-      return "yellow";
-    return "red";
+      return "warning";
+    return "error";
   };
 
   const stripOcPrefix = (s: string | null) => {
@@ -311,10 +315,10 @@ export function BgpNeighborModal({
           </p>
         )}
 
-        {error && <Message negative>{error}</Message>}
+        {error && <Alert severity="error">{error}</Alert>}
 
         {loadingPhase === "done" && !error && vrfData.length === 0 && (
-          <Message info>No BGP data loaded yet.</Message>
+          <Alert severity="info">No BGP data loaded yet.</Alert>
         )}
 
         {vrfData.map((vd) => (
@@ -329,11 +333,11 @@ export function BgpNeighborModal({
                 <CircularProgress size="1em" /> Fetching BGP neighbors...
               </p>
             ) : vd.error ? (
-              <Message warning>
+              <Alert severity="warning">
                 Error fetching neighbors for {vd.vrf.name}: {vd.error}
-              </Message>
+              </Alert>
             ) : vd.neighbors.length === 0 ? (
-              <Message>No BGP neighbors found in this VRF.</Message>
+              <Alert severity="info">No BGP neighbors found in this VRF.</Alert>
             ) : (
               <Table compact celled structured>
                 <Table.Header>
@@ -387,13 +391,12 @@ export function BgpNeighborModal({
                             </div>
                           }
                         >
-                          <Label
+                          <Chip
+                            label={n.sessionState}
                             color={sessionStateColor(n.sessionState)}
                             size="small"
-                            style={{ cursor: "pointer" }}
-                          >
-                            {n.sessionState}
-                          </Label>
+                            sx={{ cursor: "pointer" }}
+                          />
                         </Tooltip>
                       </Table.Cell>
                       <Table.Cell>{n.afiSafi || "-"}</Table.Cell>

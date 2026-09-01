@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   ButtonGroup,
-  Loader,
   Modal,
   ModalActions,
   ModalContent,
@@ -10,7 +9,6 @@ import {
   Grid,
   GridRow,
   GridColumn,
-  Segment,
   Dropdown,
   DropdownDivider,
   DropdownHeader,
@@ -18,6 +16,8 @@ import {
 } from "semantic-ui-react";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
+import CircularProgress from "@mui/material/CircularProgress";
+import Paper from "@mui/material/Paper";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -354,13 +354,13 @@ export function ShowConfigModal({
               </Tooltip>
             )}
           </ButtonGroup>
-          <Segment>
+          <Paper variant="outlined" sx={{ padding: "var(--size-md)" }}>
             {status === "loading" ? (
-              <Loader className="modalloader" active inline="centered" />
+              <CircularProgress />
             ) : (
               <pre className="fullconfig">{config}</pre>
             )}
-          </Segment>
+          </Paper>
         </GridColumn>
       );
     })
@@ -371,14 +371,14 @@ export function ShowConfigModal({
       <ModalHeader>Show config for {hostname}</ModalHeader>
       <ModalContent>
         <ModalDescription>
-          <Segment>
+          <Paper variant="outlined" sx={{ padding: "var(--size-md)" }}>
             <Dropdown key="left" text="Left column" button>
               <Dropdown.Menu>{buildColumnItems("left")}</Dropdown.Menu>
             </Dropdown>
             <Dropdown key="right" text="Right column" button>
               <Dropdown.Menu>{buildColumnItems("right")}</Dropdown.Menu>
             </Dropdown>
-          </Segment>
+          </Paper>
           <Grid columns="equal">
             <GridRow>{columnContents}</GridRow>
             <GridRow>

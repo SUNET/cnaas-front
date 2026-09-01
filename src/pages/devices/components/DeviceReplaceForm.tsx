@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Select, Loader, type DropdownProps } from "semantic-ui-react";
+import { Select, type DropdownProps } from "semantic-ui-react";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
   fetchDiscoveredDevices,
   fetchLldpNeighbors,
@@ -150,9 +151,10 @@ export function DeviceReplaceForm({
 
   if (deviceAlive === null) {
     return (
-      <Loader active inline>
-        Making sure old device is not still alive...
-      </Loader>
+      <span>
+        <CircularProgress size="1em" /> Making sure old device is not still
+        alive...
+      </span>
     );
   }
   if (deviceAlive) {

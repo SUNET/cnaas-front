@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Loader,
   Table,
   TableBody,
   TableCell,
@@ -8,6 +7,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "semantic-ui-react";
+import CircularProgress from "@mui/material/CircularProgress";
 import SyncIcon from "@mui/icons-material/Sync";
 import MemoryIcon from "@mui/icons-material/Memory";
 import { useAuthToken } from "../../stores/AuthTokenContext";
@@ -20,9 +20,7 @@ function GroupLoading() {
     <TableBody>
       <TableRow key="Loading">
         <TableCell colSpan="5">
-          <Loader active inline="centered">
-            Loading groups...{" "}
-          </Loader>
+          <CircularProgress size="1em" /> Loading groups...
         </TableCell>
       </TableRow>
     </TableBody>
