@@ -1,5 +1,9 @@
 import { useBlocker } from "react-router";
-import { Confirm } from "semantic-ui-react";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
 
 type NavigationBlockerProps = {
   readonly when: boolean;
@@ -7,22 +11,35 @@ type NavigationBlockerProps = {
 };
 
 /**
- * Blocks navigation when `when` is true, showing a Semantic UI Confirm dialog
- * instead of window.confirm. This avoids the React scheduler conflict
- * ("Should not already be working") caused by unstable_usePrompt's synchronous
+ * Blocks navigation when `when` is true, showing a MUI Dialog instead of
+ * window.confirm. This avoids the React scheduler conflict ("Should not
+ * already be working") caused by unstable_usePrompt's synchronous
  * window.confirm call inside a React effect.
  */
 export function NavigationBlocker({ when, message }: NavigationBlockerProps) {
   const blocker = useBlocker(when);
 
   return (
-    <Confirm
+    <Dialog
       open={blocker.state === "blocked"}
-      content={message}
-      onCancel={() => blocker.reset?.()}
-      onConfirm={() => blocker.proceed?.()}
-      cancelButton="Stay on page"
-      confirmButton="Leave page"
-    />
+      onClose={() => blocker.reset?.()}
+      transitionDuration={0}
+    >
+      <DialogContent>
+        <DialogContentText>{message}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={() => blocker.reset?.()}
+        >
+          Stay on page
+        </Button>
+        <Button variant="contained" onClick={() => blocker.proceed?.()}>
+          Leave page
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

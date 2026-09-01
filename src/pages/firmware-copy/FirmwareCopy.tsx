@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Grid,
-  GridColumn,
   Table,
   TableBody,
   TableCell,
@@ -109,8 +107,14 @@ function FirmwareTableRow({
       </TableRow>
       <TableRow hidden={!open} style={{ flexDirection: "column" }}>
         <TableCell style={{ display: "block" }}>
-          <Grid columns={2}>
-            <GridColumn>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
+              gap: "var(--size-md)",
+            }}
+          >
+            <div>
               <Table compact basic="very" collapsing>
                 <TableBody>
                   <TableRow>
@@ -147,8 +151,8 @@ function FirmwareTableRow({
                   )}
                 </TableBody>
               </Table>
-            </GridColumn>
-            <GridColumn width={16} style={{ paddingTop: 0 }}>
+            </div>
+            <div style={{ paddingTop: 0 }}>
               <FirmwareCopyForm
                 filename={firmware.filename}
                 sha1sum={firmware.sha1sum}
@@ -157,8 +161,8 @@ function FirmwareTableRow({
                 linkedTo={firmware.linked_to}
                 reloadFirmwareFiles={reloadFirmwareFiles}
               />
-            </GridColumn>
-          </Grid>
+            </div>
+          </div>
         </TableCell>
       </TableRow>
     </>

@@ -1,5 +1,6 @@
 import { type SyntheticEvent } from "react";
-import { Dropdown, Table, Checkbox } from "semantic-ui-react";
+import { Dropdown, Table } from "semantic-ui-react";
+import Checkbox from "@mui/material/Checkbox";
 import { Tooltip } from "../../../../components/Tooltip";
 
 const CONFIG_TYPE_OPTIONS = [
@@ -55,7 +56,12 @@ export function PortTypeCellAccess({
               name={`redundant_link|${item.name}`}
               defaultChecked={Boolean(fields.redundant_link)}
               disabled={editDisabled}
-              onChange={updateFieldData}
+              onChange={(e) =>
+                updateFieldData(e, {
+                  name: `redundant_link|${item.name}`,
+                  checked: e.target.checked,
+                })
+              }
             />
           </span>
         </Tooltip>

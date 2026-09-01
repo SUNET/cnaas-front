@@ -1,13 +1,14 @@
-import {
-  Icon,
-  Modal,
-  Accordion,
-  type AccordionTitleProps,
-} from "semantic-ui-react";
+import { Modal } from "semantic-ui-react";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
 import SettingsIcon from "@mui/icons-material/Settings";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import CheckIcon from "@mui/icons-material/Check";
+import CancelIcon from "@mui/icons-material/Cancel";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { initCheckDevice, type InitCheckResult } from "../../api/deviceListApi";
@@ -80,14 +81,8 @@ export function DeviceInitCheckModal({
     token,
   ]);
 
-  const accordionClick = (
-    _e: React.MouseEvent<HTMLDivElement>,
-    titleProps: AccordionTitleProps,
-  ) => {
-    const { index } = titleProps;
-    setAccordionActiveIndex((prevIndex) =>
-      prevIndex === index ? -1 : Number(index),
-    );
+  const handleAccordionChange = (index: number) => {
+    setAccordionActiveIndex((prevIndex) => (prevIndex === index ? -1 : index));
   };
 
   let initcheckHtml: ReactNode = <CircularProgress />;
@@ -121,51 +116,47 @@ export function DeviceInitCheckModal({
       }
 
       initcheckHtml = (
-        <Accordion>
-          <Accordion.Title
-            active={accordionActiveIndex === 1}
-            index={1}
-            onClick={accordionClick}
+        <>
+          <Accordion
+            expanded={accordionActiveIndex === 1}
+            onChange={() => handleAccordionChange(1)}
           >
-            <Icon name="dropdown" />
-            Linknets: {compatibleLinknets}
-            <Icon
-              name={
-                initcheckOutput.linknets_compatible ? "checkmark" : "cancel"
-              }
-            />
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 1}>
-            {linknets}
-          </Accordion.Content>
-          <Accordion.Title
-            active={accordionActiveIndex === 2}
-            index={2}
-            onClick={accordionClick}
+            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
+              Linknets: {compatibleLinknets}
+              {initcheckOutput.linknets_compatible ? (
+                <CheckIcon sx={{ color: "success.main" }} />
+              ) : (
+                <CancelIcon sx={{ color: "error.main" }} />
+              )}
+            </AccordionSummary>
+            <AccordionDetails>{linknets}</AccordionDetails>
+          </Accordion>
+          <Accordion
+            expanded={accordionActiveIndex === 2}
+            onChange={() => handleAccordionChange(2)}
           >
-            <Icon name="dropdown" />
-            Compatible neighbors: {compatibleNeighbors}
-            <Icon
-              name={
-                initcheckOutput.neighbors_compatible ? "checkmark" : "cancel"
-              }
-            />
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 2}>
-            {neighbors}
-          </Accordion.Content>
-          <Accordion.Title
-            active={accordionActiveIndex === 3}
-            index={3}
-            onClick={accordionClick}
+            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
+              Compatible neighbors: {compatibleNeighbors}
+              {initcheckOutput.neighbors_compatible ? (
+                <CheckIcon sx={{ color: "success.main" }} />
+              ) : (
+                <CancelIcon sx={{ color: "error.main" }} />
+              )}
+            </AccordionSummary>
+            <AccordionDetails>{neighbors}</AccordionDetails>
+          </Accordion>
+          <Accordion
+            expanded={accordionActiveIndex === 3}
+            onChange={() => handleAccordionChange(3)}
           >
-            <Icon name="dropdown" />
-            Detailed output
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 3}>
-            <pre>{JSON.stringify(initcheckOutput, null, 2)}</pre>
-          </Accordion.Content>
-        </Accordion>
+            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
+              Detailed output
+            </AccordionSummary>
+            <AccordionDetails>
+              <pre>{JSON.stringify(initcheckOutput, null, 2)}</pre>
+            </AccordionDetails>
+          </Accordion>
+        </>
       );
     } catch {
       initcheckHtml = <pre>{JSON.stringify(initcheckOutput, null, 2)}</pre>;

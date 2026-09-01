@@ -1,6 +1,8 @@
 import { useState, type SyntheticEvent } from "react";
-import { Checkbox, Select } from "semantic-ui-react";
+import { Select } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import CloseIcon from "@mui/icons-material/Close";
@@ -110,11 +112,15 @@ export function DeviceTableButtonGroup({
           <ul>
             {EXTRA_COLUMNS.map((columnName) => (
               <li key={columnName}>
-                <Checkbox
-                  defaultChecked={activeColumns.includes(columnName)}
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      defaultChecked={activeColumns.includes(columnName)}
+                      name={columnName}
+                      onClick={() => columnSelectorChange(columnName)}
+                    />
+                  }
                   label={COLUMN_MAP[columnName]}
-                  name={columnName}
-                  onClick={() => columnSelectorChange(columnName)}
                 />
               </li>
             ))}

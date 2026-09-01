@@ -1,21 +1,17 @@
 import { type ReactNode } from "react";
-import {
-  Accordion,
-  type AccordionTitleProps,
-  Icon,
-  Modal,
-} from "semantic-ui-react";
+import { Modal } from "semantic-ui-react";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
 import IconButton from "@mui/material/IconButton";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Tooltip } from "../../../components/Tooltip";
 import YAML from "yaml";
 
 type CommitModalAccessProps = {
   readonly accordionActiveIndex: number;
-  readonly accordionClick: (
-    e: React.MouseEvent<HTMLDivElement>,
-    titleProps: AccordionTitleProps,
-  ) => void;
+  readonly onAccordionChange: (index: number) => void;
   readonly autoPushJobsHTML: ReactNode[];
   readonly errorMessage: string | null;
   readonly interfaceDataUpdatedJSON: Record<string, unknown>;
@@ -23,7 +19,7 @@ type CommitModalAccessProps = {
 
 export function CommitModalAccess({
   accordionActiveIndex,
-  accordionClick,
+  onAccordionChange,
   autoPushJobsHTML,
   errorMessage,
   interfaceDataUpdatedJSON,
@@ -31,40 +27,38 @@ export function CommitModalAccess({
   return (
     <Modal.Content>
       <Modal.Description>
-        <Accordion>
-          <Accordion.Title
-            active={accordionActiveIndex === 1}
-            index={1}
-            onClick={accordionClick}
-          >
-            <Icon name="dropdown" />
+        <Accordion
+          expanded={accordionActiveIndex === 1}
+          onChange={() => onAccordionChange(1)}
+        >
+          <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
             POST JSON:
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 1}>
+          </AccordionSummary>
+          <AccordionDetails>
             <pre>{JSON.stringify(interfaceDataUpdatedJSON, null, 2)}</pre>
-          </Accordion.Content>
-          <Accordion.Title
-            active={accordionActiveIndex === 2}
-            index={2}
-            onClick={accordionClick}
-          >
-            <Icon name="dropdown" />
+          </AccordionDetails>
+        </Accordion>
+        <Accordion
+          expanded={accordionActiveIndex === 2}
+          onChange={() => onAccordionChange(2)}
+        >
+          <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
             POST error:
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 2}>
+          </AccordionSummary>
+          <AccordionDetails>
             <p>{errorMessage}</p>
-          </Accordion.Content>
-          <Accordion.Title
-            active={accordionActiveIndex === 3}
-            index={3}
-            onClick={accordionClick}
-          >
-            <Icon name="dropdown" />
+          </AccordionDetails>
+        </Accordion>
+        <Accordion
+          expanded={accordionActiveIndex === 3}
+          onChange={() => onAccordionChange(3)}
+        >
+          <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
             Job output:
-          </Accordion.Title>
-          <Accordion.Content active={accordionActiveIndex === 3}>
+          </AccordionSummary>
+          <AccordionDetails>
             <ul>{autoPushJobsHTML}</ul>
-          </Accordion.Content>
+          </AccordionDetails>
         </Accordion>
       </Modal.Description>
     </Modal.Content>
@@ -87,12 +81,11 @@ export function CommitModalDist({
   return (
     <Modal.Content>
       <Modal.Description>
-        <Accordion>
-          <Accordion.Title active index={1}>
-            <Icon name="dropdown" />
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
             YAML:
-          </Accordion.Title>
-          <Accordion.Content active>
+          </AccordionSummary>
+          <AccordionDetails>
             <pre>{yaml}</pre>
             <Tooltip title="Copy YAML" placement="bottom-end">
               <IconButton
@@ -120,7 +113,7 @@ export function CommitModalDist({
                 </>
               ) : null}
             </p>
-          </Accordion.Content>
+          </AccordionDetails>
         </Accordion>
       </Modal.Description>
     </Modal.Content>

@@ -1,13 +1,13 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import {
   FormInput,
   FormGroup,
   Form,
-  Checkbox,
   type InputOnChangeData,
-  type CheckboxProps,
 } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import Switch from "@mui/material/Switch";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import Container from "@mui/material/Container";
 import { Tooltip } from "../../components/Tooltip";
 import HelpIcon from "@mui/icons-material/Help";
@@ -31,11 +31,8 @@ export function Settings() {
     setFormData((prev) => ({ ...prev, netboxToken: data.value }));
   }
 
-  function handleCheckboxChange(
-    _event: FormEvent<HTMLInputElement>,
-    data: CheckboxProps,
-  ) {
-    setFormData((prev) => ({ ...prev, distPortConfig: data.checked ?? false }));
+  function handleCheckboxChange(checked: boolean) {
+    setFormData((prev) => ({ ...prev, distPortConfig: checked }));
   }
 
   function handleSave() {
@@ -84,13 +81,15 @@ export function Settings() {
         <Form>
           <FormGroup>{netboxField}</FormGroup>
           <FormGroup>
-            <Checkbox
-              key="distPortConfig"
-              name="distPortConfig"
-              toggle
+            <FormControlLabel
+              control={
+                <Switch
+                  name="distPortConfig"
+                  defaultChecked={distPortConfig}
+                  onChange={(e) => handleCheckboxChange(e.target.checked)}
+                />
+              }
               label='Enable experimental "configure ports" on DIST action dropdown menu'
-              defaultChecked={distPortConfig}
-              onChange={handleCheckboxChange}
             />
           </FormGroup>
         </Form>

@@ -1,6 +1,6 @@
-import { Checkbox } from "semantic-ui-react";
-import type { CheckboxProps } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import { DryRunFailList } from "./DryRunFailList";
 import type { DeviceSyncOptions } from "../../api/configChangeApi";
 
@@ -30,13 +30,15 @@ export function DryRunError({
         >
           Retry
         </Button>
-        <Checkbox
-          label="Force overwrite of local changes"
-          name="force"
-          checked={synctoForce}
-          onChange={(_e: unknown, data: CheckboxProps) =>
-            setSynctoForce(data.checked === true)
+        <FormControlLabel
+          control={
+            <Checkbox
+              name="force"
+              checked={synctoForce}
+              onChange={(e) => setSynctoForce(e.target.checked)}
+            />
           }
+          label="Force overwrite of local changes"
         />
       </div>
     </div>

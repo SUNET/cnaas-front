@@ -6,9 +6,6 @@ import {
   ModalContent,
   ModalDescription,
   ModalHeader,
-  Grid,
-  GridRow,
-  GridColumn,
   Dropdown,
   DropdownDivider,
   DropdownHeader,
@@ -322,7 +319,7 @@ export function ShowConfigModal({
       if (!content) return null;
       const { headerText, config, status, jobId } = content;
       return (
-        <GridColumn key={colName}>
+        <div key={colName}>
           <h1>{headerText}</h1>
           <ButtonGroup>
             <Tooltip title={`Copy ${headerText}`} placement="bottom-end">
@@ -361,7 +358,7 @@ export function ShowConfigModal({
               <pre className="fullconfig">{config}</pre>
             )}
           </Paper>
-        </GridColumn>
+        </div>
       );
     })
     .filter((node) => node !== null);
@@ -379,18 +376,20 @@ export function ShowConfigModal({
               <Dropdown.Menu>{buildColumnItems("right")}</Dropdown.Menu>
             </Dropdown>
           </Paper>
-          <Grid columns="equal">
-            <GridRow>{columnContents}</GridRow>
-            <GridRow>
-              <GridColumn>
-                <ul id="error_list" style={{ color: "red" }}>
-                  {errors.map((err) => (
-                    <li key={err.message}>{err.message}</li>
-                  ))}
-                </ul>
-              </GridColumn>
-            </GridRow>
-          </Grid>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
+              gap: "var(--size-md)",
+            }}
+          >
+            {columnContents}
+          </div>
+          <ul id="error_list" style={{ color: "red" }}>
+            {errors.map((err) => (
+              <li key={err.message}>{err.message}</li>
+            ))}
+          </ul>
         </ModalDescription>
       </ModalContent>
       <ModalActions>

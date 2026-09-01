@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Checkbox, type CheckboxProps, Input, Modal } from "semantic-ui-react";
+import { Input, Modal } from "semantic-ui-react";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
@@ -102,14 +104,16 @@ export function DeleteModal({
             placeholder="confirm hostname"
             onChange={(e) => setConfirmName(e.target.value)}
           />
-          <Checkbox
-            label="Reset device to factory default settings when deleting"
-            name="factory_default"
-            checked={factoryDefault}
-            disabled={!canFactoryDefault}
-            onChange={(_e: unknown, data: CheckboxProps) =>
-              setFactoryDefault(Boolean(data.checked))
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="factory_default"
+                checked={factoryDefault}
+                disabled={!canFactoryDefault}
+                onChange={(e) => setFactoryDefault(e.target.checked)}
+              />
             }
+            label="Reset device to factory default settings when deleting"
           />
           {isLoading && <CircularProgress />}
           {errorMessage && <p>Error deleting device: {errorMessage}</p>}

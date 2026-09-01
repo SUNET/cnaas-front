@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "../../../components/toast";
-import {
-  Grid,
-  GridColumn,
-  GridRow,
-  Pagination,
-  Table,
-} from "semantic-ui-react";
+import { Pagination, Table } from "semantic-ui-react";
 
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import {
@@ -270,39 +264,44 @@ export function DeviceList() {
   return (
     <DeviceListPageActionsProvider value={{ handleFilterChange }}>
       <section>
-        <Grid divided="vertically">
-          <GridRow columns={2}>
-            <GridColumn>
-              <h2>Devices</h2>
-            </GridColumn>
-            <GridColumn textAlign="right" verticalAlign="bottom">
-              <DeviceTableButtonGroup
-                activeColumns={[...activeColumns]}
-                setFilterActive={(value) => {
-                  const next =
-                    typeof value === "function" ? value(filterActive) : value;
-                  dispatch({ type: actions.SET_FILTER_ACTIVE, active: next });
-                }}
-                handleFilterChange={handleFilterChange}
-                columnSelectorChange={columnSelectorChange}
-                resultsPerPage={resultsPerPage}
-                setActivePage={(page) =>
-                  dispatch({ type: actions.SET_ACTIVE_PAGE, page })
-                }
-                setResultsPerPage={(perPage) =>
-                  dispatch({ type: actions.SET_RESULTS_PER_PAGE, perPage })
-                }
-                clearSort={() =>
-                  dispatch({
-                    type: actions.SET_SORT,
-                    column: null,
-                    direction: null,
-                  })
-                }
-              />
-            </GridColumn>
-          </GridRow>
-        </Grid>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+            gap: "var(--size-md)",
+            borderBottom: "1px solid var(--color-divider)",
+            paddingBottom: "var(--size-sm)",
+          }}
+        >
+          <h2>Devices</h2>
+          <div>
+            <DeviceTableButtonGroup
+              activeColumns={[...activeColumns]}
+              setFilterActive={(value) => {
+                const next =
+                  typeof value === "function" ? value(filterActive) : value;
+                dispatch({ type: actions.SET_FILTER_ACTIVE, active: next });
+              }}
+              handleFilterChange={handleFilterChange}
+              columnSelectorChange={columnSelectorChange}
+              resultsPerPage={resultsPerPage}
+              setActivePage={(page) =>
+                dispatch({ type: actions.SET_ACTIVE_PAGE, page })
+              }
+              setResultsPerPage={(perPage) =>
+                dispatch({ type: actions.SET_RESULTS_PER_PAGE, perPage })
+              }
+              clearSort={() =>
+                dispatch({
+                  type: actions.SET_SORT,
+                  column: null,
+                  direction: null,
+                })
+              }
+            />
+          </div>
+        </div>
 
         <DeviceStateModal
           isOpen={deviceStateModal.isOpen}

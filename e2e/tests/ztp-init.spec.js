@@ -176,8 +176,13 @@ test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
       console.log("Initcheck passed — expanding detailed output...");
 
       // Expand the "Detailed output" accordion so it appears in the screenshot
-      await modal.getByText("Detailed output").click();
-      await expect(modal.locator(".content.active pre")).toBeVisible({
+      const detailedAccordion = modal
+        .locator(".MuiAccordion-root")
+        .filter({ hasText: "Detailed output" });
+      await detailedAccordion.getByText("Detailed output").click();
+      await expect(
+        detailedAccordion.locator(".MuiAccordionDetails-root pre"),
+      ).toBeVisible({
         timeout: 5000,
       });
 

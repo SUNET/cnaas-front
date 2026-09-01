@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Checkbox, Form } from "semantic-ui-react";
-import type { CheckboxProps } from "semantic-ui-react";
+import { Form } from "semantic-ui-react";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import Button from "@mui/material/Button";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Tooltip } from "../../../../components/Tooltip";
@@ -73,13 +74,15 @@ export function DryRun({
         </p>
         <Form>
           <div className="info">
-            <Checkbox
-              label="Re-sync devices (check for local changes made outside of NMS)"
-              name="resync"
-              checked={resync}
-              onChange={(_e: unknown, data: CheckboxProps) =>
-                setResync(data.checked === true)
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="resync"
+                  checked={resync}
+                  onChange={(e) => setResync(e.target.checked)}
+                />
               }
+              label="Re-sync devices (check for local changes made outside of NMS)"
             />
           </div>
           <div className="info">

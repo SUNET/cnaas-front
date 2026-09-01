@@ -1,5 +1,16 @@
-import { Grid, Divider } from "semantic-ui-react";
+import Divider from "@mui/material/Divider";
+import { styled } from "@mui/material/styles";
 import { Tooltip } from "./Tooltip";
+
+// Responsive card grid: as many ~14rem columns as fit, wrapping on narrow
+// viewports (replaces Semantic UI `<Grid columns stackable>`).
+const CardGrid = styled("div")({
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))",
+  gap: "var(--size-md)",
+  justifyItems: "center",
+  textAlign: "center",
+});
 
 const gitlogo = new URL("../assets/gitlogo.svg", import.meta.url).href;
 const navlogo = new URL("../assets/navlogo.svg", import.meta.url).href;
@@ -116,29 +127,27 @@ export function DashboardLinkgrid() {
 
   return (
     <>
-      <Divider horizontal>Links</Divider>
-      <Grid columns={4} stackable>
+      <Divider textAlign="center">Links</Divider>
+      <CardGrid>
         {links.map((link) => (
-          <Grid.Column key={link.title} textAlign="center">
-            <Tooltip title={link.description} placement="bottom">
-              <span>
-                <a href={link.url} target="_blank" rel="noreferrer">
-                  <img
-                    src={link.icon}
-                    alt={`${link.title} icon`}
-                    style={{
-                      width: "10em",
-                      height: "10em",
-                      backgroundColor: link.backgroundColor || "transparent",
-                    }}
-                  />
-                  <div>{link.title}</div>
-                </a>
-              </span>
-            </Tooltip>
-          </Grid.Column>
+          <Tooltip key={link.title} title={link.description} placement="bottom">
+            <span>
+              <a href={link.url} target="_blank" rel="noreferrer">
+                <img
+                  src={link.icon}
+                  alt={`${link.title} icon`}
+                  style={{
+                    width: "10em",
+                    height: "10em",
+                    backgroundColor: link.backgroundColor || "transparent",
+                  }}
+                />
+                <div>{link.title}</div>
+              </a>
+            </span>
+          </Tooltip>
         ))}
-      </Grid>
+      </CardGrid>
     </>
   );
 }

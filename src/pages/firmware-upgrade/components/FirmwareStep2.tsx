@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import {
   Form,
-  Confirm,
   Select,
   type DropdownProps,
   type DropdownItemProps,
 } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import {
@@ -230,7 +230,7 @@ export function FirmwareStep2() {
             </Button>
           </div>
         </Form>
-        <Confirm
+        <ConfirmDialog
           content="Are you sure all selected devices already have the target firmware downloaded and activated?"
           open={confirmDiagOpen}
           onCancel={() => setConfirmDiagOpen(false)}
