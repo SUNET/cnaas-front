@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Modal, Input, Loader, Icon, Segment } from "semantic-ui-react";
+import { Modal, Input, Loader, Segment } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckIcon from "@mui/icons-material/Check";
 import { useNavigate } from "react-router";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { updateDevice } from "../../api/deviceListApi";
@@ -79,13 +81,13 @@ export function HostnameModal({
             <p>
               {error && (
                 <>
-                  <Icon name="delete" color="red" />
+                  <CancelIcon sx={{ color: "error.main" }} />
                   <label>{error}</label>
                 </>
               )}
               {success && (
                 <>
-                  <Icon name="check" color="green" />
+                  <CheckIcon sx={{ color: "success.main" }} />
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                   <label>Hostname changed</label>
                 </>

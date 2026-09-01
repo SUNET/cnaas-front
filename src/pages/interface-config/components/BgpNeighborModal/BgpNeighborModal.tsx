@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
-import { Icon, Modal, Table, Header, Label, Message } from "semantic-ui-react";
+import { Modal, Table, Header, Label, Message } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { Tooltip } from "../../../../components/Tooltip";
@@ -306,7 +307,7 @@ export function BgpNeighborModal({
       <Modal.Content scrolling>
         {loadingPhase === "settings" && (
           <p>
-            <Icon loading name="spinner" /> Fetching VRF settings...
+            <CircularProgress size="1em" /> Fetching VRF settings...
           </p>
         )}
 
@@ -325,7 +326,7 @@ export function BgpNeighborModal({
 
             {loadingVrfs.has(vd.vrf.name) ? (
               <p>
-                <Icon loading name="spinner" /> Fetching BGP neighbors...
+                <CircularProgress size="1em" /> Fetching BGP neighbors...
               </p>
             ) : vd.error ? (
               <Message warning>

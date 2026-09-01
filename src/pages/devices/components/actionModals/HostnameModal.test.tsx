@@ -108,7 +108,7 @@ test("shows error message when backend request fails", async () => {
   await waitFor(() => {
     expect(screen.getByText(/hostname already exists/i)).toBeInTheDocument();
   });
-  expect(document.querySelector(".red.delete.icon")).toBeInTheDocument();
+  expect(screen.getByTestId("CancelIcon")).toBeInTheDocument();
   expect(screen.queryByText(/hostname changed/i)).not.toBeInTheDocument();
   expect(mockOnSuccess).not.toHaveBeenCalled();
   expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
@@ -130,6 +130,6 @@ test("shows error message when network request throws exception", async () => {
   await waitFor(() => {
     expect(screen.getByText(/network connection failed/i)).toBeInTheDocument();
   });
-  expect(document.querySelector(".red.delete.icon")).toBeInTheDocument();
+  expect(screen.getByTestId("CancelIcon")).toBeInTheDocument();
   expect(mockOnSuccess).not.toHaveBeenCalled();
 });

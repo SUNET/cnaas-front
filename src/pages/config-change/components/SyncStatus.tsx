@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from "react";
-import { Table, Icon } from "semantic-ui-react";
+import { Table } from "semantic-ui-react";
 import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { formatISODate } from "../../../utils/formatters";
 import type { SyncEvent, SyncHistory } from "../../../types/syncHistory";
 import type {
@@ -173,10 +174,12 @@ export function SyncStatus({ devices, synchistory, target }: SyncStatusProps) {
       <div key="container" className="task-container">
         <div key="heading" className="heading">
           <h2>
-            <Icon
-              name="dropdown"
+            <ArrowDropDownIcon
               onClick={() => setExpanded((prev) => !prev)}
-              rotated={expanded ? undefined : "counterclockwise"}
+              sx={{
+                cursor: "pointer",
+                transform: expanded ? undefined : "rotate(-90deg)",
+              }}
             />
             Target: {getCommitTargetName()}
             <Tooltip title="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized.">

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Icon,
   Modal,
   ModalActions,
   ModalContent,
@@ -9,6 +8,7 @@ import {
 import Button from "@mui/material/Button";
 import LogoutIcon from "@mui/icons-material/Logout";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { useSecondsUntilExpiry } from "../../hooks/useSecondsUntilExpiry";
 import { secondsToText } from "../../utils/formatters";
@@ -44,7 +44,7 @@ function ReloginModal({ isOpen }: ReloginModalProps) {
       size="small"
     >
       <SemanticHeader icon>
-        <Icon name="time" />
+        <AccessTimeIcon sx={{ fontSize: "2em" }} />
         Session timeout
       </SemanticHeader>
       <ModalContent>

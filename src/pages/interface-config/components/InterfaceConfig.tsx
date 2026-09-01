@@ -10,13 +10,13 @@ import { Link, useNavigate } from "react-router";
 import {
   type AccordionTitleProps,
   Checkbox,
-  Icon,
   Modal,
   Table,
 } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
 import IconButton from "@mui/material/IconButton";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import { styled } from "@mui/material/styles";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
@@ -24,6 +24,9 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import LinkIcon from "@mui/icons-material/Link";
+import CheckIcon from "@mui/icons-material/Check";
+import CancelIcon from "@mui/icons-material/Cancel";
+import WarningIcon from "@mui/icons-material/Warning";
 import { Tooltip } from "../../../components/Tooltip";
 import { showToast } from "../../../components/toast";
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
@@ -363,11 +366,11 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   const autoPushJobsHTML: ReactNode[] = state.autoPushJobs.map((job, index) => {
     let jobIcon: ReactNode = null;
     if (job.status === "RUNNING") {
-      jobIcon = <Icon loading name="cog" color="grey" />;
+      jobIcon = <CircularProgress size="1em" />;
     } else if (job.status === "FINISHED") {
-      jobIcon = <Icon name="check" color="green" />;
+      jobIcon = <CheckIcon sx={{ color: "success.main" }} />;
     } else {
-      jobIcon = <Icon name="delete" color="red" />;
+      jobIcon = <CancelIcon sx={{ color: "error.main" }} />;
     }
 
     const label = index === 0 ? "Dry run" : "Live run";
@@ -463,15 +466,15 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         <p>
           Sync state:{" "}
           {synchronized ? (
-            <Icon name="check" color="green" />
+            <CheckIcon sx={{ color: "success.main" }} />
           ) : (
-            <Icon name="delete" color="red" />
+            <CancelIcon sx={{ color: "error.main" }} />
           )}
         </p>
 
         {!synchronized && (
           <p>
-            <Icon name="warning sign" color="orange" size="large" />
+            <WarningIcon sx={{ color: "warning.main", fontSize: "2em" }} />
             Device is not synchronized, use dry_run and verify diff to apply
             changes.
           </p>
@@ -479,7 +482,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
 
         {state.thirdPartyUpdate && (
           <p>
-            <Icon name="warning sign" color="orange" size="large" />
+            <WarningIcon sx={{ color: "warning.main", fontSize: "2em" }} />
             Device has been updated
             {state.updatedBy ? ` by ${state.updatedBy}` : " by a third party"}.
             Reload page to get the latest changes (local changes will be lost).{" "}

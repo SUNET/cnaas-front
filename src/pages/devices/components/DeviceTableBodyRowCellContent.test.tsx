@@ -56,22 +56,22 @@ describe("DeviceTableBodyRowCellContent", () => {
   });
 
   test("id column shows angle-down icon when open", () => {
-    const { container } = renderCell({
+    renderCell({
       device: device(),
       column: "id",
       open: true,
     });
-    expect(container.querySelector("i.angle.down.icon")).not.toBeNull();
+    expect(screen.getByTestId("angle-down")).not.toBeNull();
     expect(screen.getByText("42")).toBeInTheDocument();
   });
 
   test("id column shows angle-right icon when closed", () => {
-    const { container } = renderCell({
+    renderCell({
       device: device(),
       column: "id",
       open: false,
     });
-    expect(container.querySelector("i.angle.right.icon")).not.toBeNull();
+    expect(screen.getByTestId("angle-right")).not.toBeNull();
   });
 
   test("hostname column on MANAGED ACCESS renders interface-config link", () => {

@@ -5,6 +5,7 @@ import {
   type AccordionTitleProps,
 } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import SettingsIcon from "@mui/icons-material/Settings";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useEffect, useState, type ReactNode } from "react";
@@ -89,7 +90,7 @@ export function DeviceInitCheckModal({
     );
   };
 
-  let initcheckHtml: ReactNode = <Icon name="spinner" loading />;
+  let initcheckHtml: ReactNode = <CircularProgress />;
   let initcheckOk = false;
   if (initcheckOutput !== null && typeof initcheckOutput !== "string") {
     try {

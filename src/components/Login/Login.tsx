@@ -1,5 +1,6 @@
-import { Container, Icon } from "semantic-ui-react";
+import { Container } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { usePermissions } from "../../stores/PermissionsContext";
@@ -23,7 +24,7 @@ function Login() {
   }
 
   if (loggedIn && permissionsLoading) {
-    return <Icon name="spinner" loading />;
+    return <CircularProgress />;
   }
 
   if (loggedIn && !permissionsLoading) {

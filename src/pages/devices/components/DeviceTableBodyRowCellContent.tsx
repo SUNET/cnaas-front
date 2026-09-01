@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { Icon } from "semantic-ui-react";
+import CheckIcon from "@mui/icons-material/Check";
+import CancelIcon from "@mui/icons-material/Cancel";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import PowerIcon from "@mui/icons-material/Power";
 
 import type { DeviceColumnKey } from "../types/table";
 import type { Device } from "../../../types/device";
@@ -25,18 +29,32 @@ export function DeviceTableBodyRowCellContent({
     return (
       <>
         {synchronized ? "Synchronized" : "Unsynchronized"}
-        <Icon
-          name={synchronized ? "check" : "delete"}
-          color={synchronized ? "green" : "red"}
-          style={{ marginLeft: "5px" }}
-        />
+        {synchronized ? (
+          <CheckIcon
+            sx={{ color: "success.main", ml: "5px", verticalAlign: "middle" }}
+          />
+        ) : (
+          <CancelIcon
+            sx={{ color: "error.main", ml: "5px", verticalAlign: "middle" }}
+          />
+        )}
       </>
     );
   }
   if (column === "id") {
     return (
       <>
-        <Icon name={open ? "angle down" : "angle right"} />
+        {open ? (
+          <KeyboardArrowDownIcon
+            data-testid="angle-down"
+            sx={{ verticalAlign: "middle" }}
+          />
+        ) : (
+          <KeyboardArrowRightIcon
+            data-testid="angle-right"
+            sx={{ verticalAlign: "middle" }}
+          />
+        )}
         {device.id}
       </>
     );
@@ -49,7 +67,7 @@ export function DeviceTableBodyRowCellContent({
           key="interfaceconfig"
           to={`/interface-config?hostname=${device.hostname}`}
         >
-          <Icon name="plug" link />
+          <PowerIcon sx={{ verticalAlign: "middle" }} />
         </Link>
       </>
     );

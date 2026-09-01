@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Grid,
   GridColumn,
-  Icon,
   Loader,
   Table,
   TableBody,
@@ -17,6 +16,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import StarIcon from "@mui/icons-material/Star";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { FirmwareCopyForm } from "./FirmwareCopyForm";
@@ -93,7 +94,11 @@ function FirmwareTableRow({
     <>
       <TableRow style={{ flexDirection: "column" }}>
         <TableCell onClick={() => setOpen((prev) => !prev)}>
-          <Icon name={open ? "angle down" : "angle right"} />
+          {open ? (
+            <KeyboardArrowDownIcon sx={{ verticalAlign: "middle" }} />
+          ) : (
+            <KeyboardArrowRightIcon sx={{ verticalAlign: "middle" }} />
+          )}
           <label style={{ paddingRight: "5px" }}>{firmware.filename}</label>
           {firmware.present_in_repo && <PopupPresentInRepo />}
           {firmware.already_downloaded && <PopupAlreadyDownloaded />}

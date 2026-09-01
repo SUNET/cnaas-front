@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Checkbox, Form, Icon } from "semantic-ui-react";
+import { Checkbox, Form } from "semantic-ui-react";
 import type { CheckboxProps } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Tooltip } from "../../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import permissionsCheck from "../../../../utils/permissions/permissionsCheck";
@@ -47,10 +48,12 @@ export function DryRun({
     <div className="task-container">
       <div className="heading">
         <h2 id="dry_run_section">
-          <Icon
-            name="dropdown"
+          <ArrowDropDownIcon
             onClick={() => setExpanded((prev) => !prev)}
-            rotated={expanded ? undefined : "counterclockwise"}
+            sx={{
+              cursor: "pointer",
+              transform: expanded ? undefined : "rotate(-90deg)",
+            }}
           />
           Dry run (2/4)
           <Tooltip

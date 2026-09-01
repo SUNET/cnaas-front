@@ -1,4 +1,4 @@
-import { Icon } from "semantic-ui-react";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect, useState } from "react";
 import { fetchRunningConfig } from "../../api/deviceApi";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
@@ -41,6 +41,6 @@ export function InterfaceCurrentConfig({
   return config ? (
     <textarea key="config" defaultValue={config} rows={3} cols={50} readOnly />
   ) : (
-    <Icon name="spinner" loading />
+    <CircularProgress />
   );
 }
