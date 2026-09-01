@@ -6,7 +6,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { Dropdown, Label, Loader } from "semantic-ui-react";
+import { Dropdown } from "semantic-ui-react";
+import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { Tooltip } from "../../../../components/Tooltip";
@@ -132,7 +134,7 @@ export function VlanColumn({
   );
 
   if (!settings) {
-    return <Loader inline active />;
+    return <CircularProgress />;
   }
 
   if (vlanOptions.length === 0) {
@@ -148,7 +150,7 @@ export function VlanColumn({
       {displayVlanTagged ? (
         <Tooltip
           open={rangeError !== null}
-          title={rangeError ? <Label color="red">{rangeError}</Label> : ""}
+          title={rangeError ? <Chip label={rangeError} color="error" /> : ""}
           placement="top"
         >
           <Dropdown

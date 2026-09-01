@@ -1,12 +1,7 @@
 import { useState } from "react";
-import {
-  Checkbox,
-  type CheckboxProps,
-  Input,
-  Loader,
-  Modal,
-} from "semantic-ui-react";
+import { Checkbox, type CheckboxProps, Input, Modal } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { deleteDevice } from "../../api/deviceListApi";
 import type { Device } from "../../../../types/device";
@@ -116,7 +111,7 @@ export function DeleteModal({
               setFactoryDefault(Boolean(data.checked))
             }
           />
-          {isLoading && <Loader className="modalloader" />}
+          {isLoading && <CircularProgress />}
           {errorMessage && <p>Error deleting device: {errorMessage}</p>}
         </Modal.Description>
       </Modal.Content>

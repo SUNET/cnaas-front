@@ -1,4 +1,5 @@
-import { Loader, TableBody, TableCell, TableRow } from "semantic-ui-react";
+import { TableBody, TableCell, TableRow } from "semantic-ui-react";
+import CircularProgress from "@mui/material/CircularProgress";
 import type { DeviceColumnKey } from "../types/table";
 import type { Device } from "../../../types/device";
 import { DeviceTableBodyRow } from "./DeviceTableBodyRow";
@@ -21,9 +22,7 @@ export function DeviceTableBody({
       <TableBody>
         <TableRow>
           <TableCell>
-            <Loader active inline="centered">
-              Loading
-            </Loader>
+            <CircularProgress size="1em" /> Loading
           </TableCell>
         </TableRow>
       </TableBody>

@@ -3,12 +3,12 @@ import {
   FormInput,
   FormGroup,
   Form,
-  Container,
   Checkbox,
   type InputOnChangeData,
   type CheckboxProps,
 } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
 import { Tooltip } from "../../components/Tooltip";
 import HelpIcon from "@mui/icons-material/Help";
 

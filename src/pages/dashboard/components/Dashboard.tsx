@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Container, Grid } from "semantic-ui-react";
+import { Grid } from "semantic-ui-react";
+import Container from "@mui/material/Container";
 import { Tooltip } from "../../../components/Tooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { DashboardLinkgrid } from "../../../components/DashboardLinkgrid";

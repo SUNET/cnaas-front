@@ -1,6 +1,8 @@
 import { Component, type ReactNode } from "react";
-import { Container, Message } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+import Container from "@mui/material/Container";
 import { Outlet, useLocation } from "react-router";
 
 type ErrorBoundaryState = {
@@ -48,11 +50,11 @@ class ErrorBoundaryInner extends Component<
 
     if (error) {
       return (
-        <Container text style={{ marginTop: "2em" }}>
-          <Message negative>
-            <Message.Header>Something went wrong</Message.Header>
+        <Container maxWidth="sm" style={{ marginTop: "2em" }}>
+          <Alert severity="error">
+            <AlertTitle>Something went wrong</AlertTitle>
             <p>{error.message}</p>
-          </Message>
+          </Alert>
           <Button
             variant="contained"
             color="primary"

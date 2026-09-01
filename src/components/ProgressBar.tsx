@@ -1,4 +1,4 @@
-import { Progress } from "semantic-ui-react";
+import LinearProgress from "@mui/material/LinearProgress";
 
 type ProgressBarProps = {
   readonly jobStatus?: string | null;
@@ -13,10 +13,8 @@ function ProgressBar({
   total,
   hidden = false,
 }: ProgressBarProps) {
-  let active = false;
+  let color: "secondary" | "success" | "error" | "inherit" = "secondary";
   let disabled = true;
-  let success = false;
-  let error = false;
 
   if (jobStatus !== undefined) {
     switch (jobStatus) {
@@ -26,24 +24,17 @@ function ProgressBar({
       case "RUNNING":
       case "ABORTING":
         disabled = false;
-        active = true;
         break;
       case "FINISHED":
-        if (value === total) {
-          success = true;
-        } else {
-          error = true;
-        }
+        disabled = false;
+        color = value === total ? "success" : "error";
         break;
       case "EXCEPTION":
-        error = true;
-        break;
       case "ABORTED":
-        error = true;
+        disabled = false;
+        color = "error";
         break;
       case null:
-        disabled = true;
-        break;
       case "":
         disabled = true;
         break;
@@ -52,18 +43,15 @@ function ProgressBar({
     }
   }
 
+  const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+
   return (
     <div id="progressbar" hidden={hidden}>
-      <Progress
-        value={value}
-        total={total}
-        progress
-        precision={0}
-        color="orange"
-        disabled={disabled}
-        active={active}
-        success={success}
-        error={error}
+      <LinearProgress
+        variant="determinate"
+        value={percent}
+        color={disabled ? "inherit" : color}
+        sx={{ opacity: disabled ? 0.4 : 1 }}
       />
       <label>
         {value}/{total} devices finished

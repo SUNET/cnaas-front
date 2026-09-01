@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Grid,
   GridColumn,
-  Loader,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +10,7 @@ import {
   TableRow,
 } from "semantic-ui-react";
 import { Tooltip } from "../../components/Tooltip";
+import CircularProgress from "@mui/material/CircularProgress";
 import CloudIcon from "@mui/icons-material/Cloud";
 import SaveIcon from "@mui/icons-material/Save";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -205,9 +205,7 @@ export function FirmwareCopy() {
               {loading ? (
                 <TableRow>
                   <TableCell>
-                    <Loader active inline="centered">
-                      Loading firmware...{" "}
-                    </Loader>
+                    <CircularProgress size="1em" /> Loading firmware...
                   </TableCell>
                 </TableRow>
               ) : (
