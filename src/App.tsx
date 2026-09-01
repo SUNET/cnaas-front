@@ -58,12 +58,21 @@ const theme = createTheme({
     fontFamily: '"Karla", sans-serif',
   },
   components: {
-    // The app's buttons are not uppercased; disable MUI's default
-    // text-transform: uppercase so migrated buttons keep their label casing.
     MuiButton: {
       styleOverrides: {
         root: {
+          // The app's buttons are not uppercased.
           textTransform: "none",
+          // Slightly larger, more comfortable default sizing.
+          fontSize: "var(--size-md)",
+          padding: "var(--size-xs) var(--size-md)",
+          // Buttons almost always want breathing room around them; bake in a
+          // small margin so callers don't need per-container gap/margin hacks.
+          // Buttons inside a ButtonGroup are excluded (the group joins them and
+          // manages its own spacing/borders).
+          "&:not(.MuiButtonGroup-grouped)": {
+            margin: "var(--size-xxs)",
+          },
         },
       },
     },

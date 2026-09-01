@@ -6,6 +6,7 @@ import {
   type DropdownProps,
   type DropdownItemProps,
 } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
 import {
@@ -185,7 +186,9 @@ export function FirmwareStep2() {
     <div className="task-container">
       <div className="heading">
         <h2>Activate firmware (2/3)</h2>
-        <button className="close">Close</button>
+        <Button variant="text" className="close">
+          Close
+        </Button>
       </div>
       <div className="task-collapsable">
         <p>
@@ -200,27 +203,31 @@ export function FirmwareStep2() {
             disabled={firmwareLocked}
           />
           <div className="info">
-            <button
+            <Button
               id="step2button"
+              variant="contained"
               disabled={step2disabled}
               onClick={() => onClickStep2()}
             >
               Start activate firmware
-            </button>
-            <button
+            </Button>
+            <Button
               id="step2skipButton"
+              variant="contained"
               disabled={step2disabled}
               onClick={() => setConfirmDiagOpen(true)}
             >
               Skip to step 3
-            </button>
-            <button
+            </Button>
+            <Button
               id="step2abortButton"
+              variant="contained"
+              color="error"
               disabled={step2abortDisabled}
               onClick={() => onClickStep2Abort()}
             >
               Abort!
-            </button>
+            </Button>
           </div>
         </Form>
         <Confirm

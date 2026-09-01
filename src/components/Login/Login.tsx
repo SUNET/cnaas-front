@@ -1,4 +1,5 @@
 import { Container, Icon } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { usePermissions } from "../../stores/PermissionsContext";
@@ -29,9 +30,14 @@ function Login() {
     return (
       <div>
         <p className="title error">{permissionsErrorMsg}</p>
-        <button type="button" className="logout" onClick={logout}>
+        <Button
+          type="button"
+          variant="contained"
+          className="logout"
+          onClick={logout}
+        >
           Logout
-        </button>
+        </Button>
       </div>
     );
   }

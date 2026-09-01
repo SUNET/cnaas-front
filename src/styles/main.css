@@ -122,14 +122,6 @@ button:not(.MuiButtonBase-root):disabled {
   background: var(--color-disabled-bg);
 }
 
-/* MUI buttons are excluded from the native button margin above, so a horizontal
-   row of them in a SUIR modal's actions bar would sit flush. Space adjacent
-   text buttons there only — not icon buttons or vertically-stacked buttons
-   (those get their gap from their own grid container). */
-.actions .MuiButton-root + .MuiButton-root {
-  margin-left: var(--size-sm);
-}
-
 section {
   display: flex;
   flex: 1;

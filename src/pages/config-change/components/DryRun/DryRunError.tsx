@@ -1,5 +1,6 @@
 import { Checkbox } from "semantic-ui-react";
 import type { CheckboxProps } from "semantic-ui-react";
+import Button from "@mui/material/Button";
 import { DryRunFailList } from "./DryRunFailList";
 import type { DeviceSyncOptions } from "../../api/configChangeApi";
 
@@ -22,7 +23,13 @@ export function DryRunError({
     <div>
       <DryRunFailList devices={devices} />
       <div>
-        <button onClick={() => dryRunSyncStart({ resync })}>Retry</button>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => dryRunSyncStart({ resync })}
+        >
+          Retry
+        </Button>
         <Checkbox
           label="Force overwrite of local changes"
           name="force"

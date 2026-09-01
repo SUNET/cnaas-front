@@ -16,10 +16,10 @@ import { useFirmwareCopyJob } from "./useFirmwareCopyJob";
 // Single-column grid stacks the firmware action buttons with a consistent gap.
 const ButtonStack = styled("div")({
   display: "grid",
-  gridTemplateColumns: "1fr",
-  gap: "var(--size-xxs)",
-  width: "fit-content",
-  justifyItems: "start",
+  gridAutoFlow: "column",
+  gridAutoColumns: "max-content",
+  justifyContent: "start",
+  alignItems: "center",
 });
 
 type FirmwareCopyFormProps = {
@@ -101,7 +101,7 @@ export function FirmwareCopyForm({
         ) : (
           <ButtonStack>
             <Button
-              variant="text"
+              variant="contained"
               disabled={removeDisabled}
               onClick={submitDelete}
               endIcon={<DeleteOutlinedIcon />}
@@ -110,9 +110,9 @@ export function FirmwareCopyForm({
             </Button>
             {!linkedTo && (
               <Button
-                variant="text"
+                variant="contained"
                 onClick={submitSetDefault}
-                endIcon={<StarIcon sx={{ color: "primary.main" }} />}
+                endIcon={<StarIcon />}
               >
                 Set as default
               </Button>
@@ -128,7 +128,7 @@ export function FirmwareCopyForm({
       {errorMessage && <p>{errorMessage}</p>}
       <ButtonStack>
         <Button
-          variant="text"
+          variant="contained"
           disabled={copyJobId !== null || !sha1sum}
           onClick={submitCopy}
           endIcon={<CloudDownloadIcon />}
