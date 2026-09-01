@@ -1,7 +1,6 @@
 import { useCallback, useState, type ChangeEvent, type ReactNode } from "react";
 import {
   Form,
-  Confirm,
   Input,
   Modal,
   ModalHeader,
@@ -9,6 +8,7 @@ import {
   ModalActions,
 } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { Tooltip } from "../../../components/Tooltip";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
@@ -204,7 +204,7 @@ export function FirmwareStep3() {
             </Button>
           </div>
         </Form>
-        <Confirm
+        <ConfirmDialog
           content="Are you sure you want to (schedule) reboot devices?"
           open={confirmDiagOpen}
           onCancel={closeConfirm}

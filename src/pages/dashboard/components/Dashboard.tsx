@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Grid } from "semantic-ui-react";
 import Container from "@mui/material/Container";
+import { styled } from "@mui/material/styles";
 import { Tooltip } from "../../../components/Tooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { DashboardLinkgrid } from "../../../components/DashboardLinkgrid";
@@ -12,6 +12,14 @@ import {
 } from "../api/dashboardApi";
 import { DashboardInterfaceStatus } from "./DashboardInterfaceStatus";
 import { DashboardNetboxTenant } from "./DashboardNetboxTenant";
+
+// Two-column dashboard layout that stacks on narrow viewports (replaces
+// Semantic UI `<Grid columns={2}>`).
+const TwoColGrid = styled("div")({
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
+  gap: "var(--size-md)",
+});
 
 const REPO_DATA_REGEX =
   /Commit (?<commit_id>\w+) (?<branch>[-a-zA-Z0-9._]+) by (?<name>.+) at (?<date>[0-9- :]+)/;
@@ -102,8 +110,8 @@ export function Dashboard() {
   return (
     <div>
       <Container>
-        <Grid columns={2}>
-          <Grid.Column width={8}>
+        <TwoColGrid>
+          <div>
             <p>
               <RepoInfo
                 label="Settings"
@@ -118,8 +126,8 @@ export function Dashboard() {
                 webUrl={process.env.TEMPLATES_WEB_URL}
               />
             </p>
-          </Grid.Column>
-          <Grid.Column width={8}>
+          </div>
+          <div>
             <p>
               Managed devices:{" "}
               <a href="/devices?filter[state]=MANAGED">{deviceCount.managed}</a>
@@ -130,8 +138,8 @@ export function Dashboard() {
                 {deviceCount.unsynchronized}
               </a>
             </p>
-          </Grid.Column>
-          <Grid.Column width={8}>
+          </div>
+          <div>
             <p>
               <Tooltip
                 title={`Detailed git commit version: ${systemVersion.git_version}`}
@@ -148,8 +156,8 @@ export function Dashboard() {
                 </span>
               </Tooltip>
             </p>
-          </Grid.Column>
-        </Grid>
+          </div>
+        </TwoColGrid>
         {process.env.NETBOX_API_URL && process.env.NETBOX_TENANT_ID && (
           <DashboardInterfaceStatus />
         )}

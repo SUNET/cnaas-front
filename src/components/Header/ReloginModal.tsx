@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  Modal,
-  ModalActions,
-  ModalContent,
-  Header as SemanticHeader,
-} from "semantic-ui-react";
+import { Modal, ModalActions, ModalContent } from "semantic-ui-react";
 import Button from "@mui/material/Button";
 import LogoutIcon from "@mui/icons-material/Logout";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -43,10 +38,12 @@ function ReloginModal({ isOpen }: ReloginModalProps) {
       open={!closedByUser && isOpen}
       size="small"
     >
-      <SemanticHeader icon>
-        <AccessTimeIcon sx={{ fontSize: "2em" }} />
-        Session timeout
-      </SemanticHeader>
+      <div style={{ textAlign: "center", padding: "var(--size-md)" }}>
+        <AccessTimeIcon
+          sx={{ fontSize: "2em", display: "block", mx: "auto" }}
+        />
+        <h2>Session timeout</h2>
+      </div>
       <ModalContent>
         <p>
           {secondsUntilExpiry === null && `Your session does not expire.`}

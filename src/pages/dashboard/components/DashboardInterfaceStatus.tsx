@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Grid, Divider } from "semantic-ui-react";
+import Divider from "@mui/material/Divider";
+import { styled } from "@mui/material/styles";
 import { Tooltip } from "../../../components/Tooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { GraphiteInterface } from "../../../components/GraphiteInterface";
@@ -12,6 +13,14 @@ import {
   toNetboxDashboardInterface,
   type NetboxDashboardInterface,
 } from "../types/netbox";
+
+// Responsive grid of interface status cards (replaces Semantic UI
+// `<Grid columns={3} stackable>`).
+const InterfaceGrid = styled("div")({
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))",
+  gap: "var(--size-md)",
+});
 
 type DeviceRef = { readonly id: number; readonly name: string };
 
@@ -105,7 +114,7 @@ export function DashboardInterfaceStatus() {
       }
 
       interfaceList.push(
-        <Grid.Column key={intf.id} textAlign="center">
+        <div key={intf.id} style={{ textAlign: "center" }}>
           <Tooltip
             title={
               <p>
@@ -133,7 +142,7 @@ export function DashboardInterfaceStatus() {
             interfaceName={intf.name}
             showLastMeasurement={false}
           />
-        </Grid.Column>,
+        </div>,
       );
     }
   }
@@ -141,12 +150,10 @@ export function DashboardInterfaceStatus() {
   return (
     <>
       {netboxDeviceObjects.length >= 1 && (
-        <Divider horizontal>Interfaces</Divider>
+        <Divider textAlign="center">Interfaces</Divider>
       )}
       {isLoading && <p>Loading interface status...</p>}
-      <Grid columns={3} stackable>
-        {interfaceList}
-      </Grid>
+      <InterfaceGrid>{interfaceList}</InterfaceGrid>
     </>
   );
 }

@@ -3,15 +3,12 @@ import "prismjs/components/prism-log.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
-  Grid,
-  GridColumn,
   Input,
   type InputOnChangeData,
   Modal,
   ModalActions,
   ModalContent,
   ModalHeader,
-  Ref,
 } from "semantic-ui-react";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
@@ -35,7 +32,7 @@ function ExpanedLogViewer({ logs, open, setOpen }: ExpandedLogViewerProps) {
   const [filter, setFilter] = useState("");
   const [activeFilter, setActiveFilter] = useState("");
 
-  const codeRef = useRef<HTMLElement>(null);
+  const codeRef = useRef<HTMLPreElement>(null);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const safeLogs: readonly string[] = Array.isArray(logs) ? logs : [];
@@ -58,40 +55,42 @@ function ExpanedLogViewer({ logs, open, setOpen }: ExpandedLogViewerProps) {
       size="fullscreen"
     >
       <ModalHeader>
-        <Grid>
-          <GridColumn floated="left">Logs</GridColumn>
-          <GridColumn floated="right" width={3}>
-            <Input
-              onChange={(_e: unknown, data: InputOnChangeData) => {
-                //Set filter directly
-                setFilter(data.value);
-                // Clear previous debounce
-                if (debounceTimeout.current)
-                  clearTimeout(debounceTimeout.current);
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "var(--size-md)",
+          }}
+        >
+          <span>Logs</span>
+          <Input
+            onChange={(_e: unknown, data: InputOnChangeData) => {
+              //Set filter directly
+              setFilter(data.value);
+              // Clear previous debounce
+              if (debounceTimeout.current)
+                clearTimeout(debounceTimeout.current);
 
-                // Set new debounce
-                debounceTimeout.current = setTimeout(() => {
-                  setActiveFilter(data.value);
-                }, 250);
-              }}
-              value={filter}
-              placeholder="Filter"
-              size="mini"
-              fluid
-            />
-          </GridColumn>
-        </Grid>
+              // Set new debounce
+              debounceTimeout.current = setTimeout(() => {
+                setActiveFilter(data.value);
+              }, 250);
+            }}
+            value={filter}
+            placeholder="Filter"
+            size="mini"
+          />
+        </div>
       </ModalHeader>
-      <Ref innerRef={codeRef}>
-        <ModalContent scrolling className="log-viewer-modal-content">
-          <pre className="language-log expand-log-viewer">
-            <code
-              className="language-log text-wrap"
-              dangerouslySetInnerHTML={{ __html: filteredHtml }}
-            />
-          </pre>
-        </ModalContent>
-      </Ref>
+      <ModalContent scrolling className="log-viewer-modal-content">
+        <pre ref={codeRef} className="language-log expand-log-viewer">
+          <code
+            className="language-log text-wrap"
+            dangerouslySetInnerHTML={{ __html: filteredHtml }}
+          />
+        </pre>
+      </ModalContent>
       <ModalActions>
         <Button variant="contained" onClick={() => setOpen(false)}>
           Close

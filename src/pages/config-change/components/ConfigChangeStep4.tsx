@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Confirm, Input, Select } from "semantic-ui-react";
+import { Input, Select } from "semantic-ui-react";
 import type { InputOnChangeData } from "semantic-ui-react";
 import Button from "@mui/material/Button";
+import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ErrorIcon from "@mui/icons-material/Error";
@@ -229,7 +230,7 @@ export function ConfigChangeStep4({
           options={confirmModeOptions as any}
           onChange={(_e, option) => updateConfirmMode(option.value as number)}
         />
-        <Confirm
+        <ConfirmDialog
           content="Are you sure you want to commit changes to devices and overwrite any local changes?"
           open={confirmDiagOpen}
           onCancel={() => setConfirmDiagOpen(false)}

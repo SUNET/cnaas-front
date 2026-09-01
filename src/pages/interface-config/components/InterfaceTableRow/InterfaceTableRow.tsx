@@ -1,6 +1,8 @@
 import { type SyntheticEvent, type ReactNode } from "react";
-import { ButtonGroup, Checkbox, Input, Table } from "semantic-ui-react";
+import { ButtonGroup, Input, Table } from "semantic-ui-react";
 import CircularProgress from "@mui/material/CircularProgress";
+import Switch from "@mui/material/Switch";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import { VlanColumn } from "./VlanColumn";
 import {
   TagsColumn,
@@ -439,15 +441,22 @@ export function InterfaceTableRow({
       interfaceStatusDataLower[item.name.toLowerCase()];
 
     const toggleEnabled = (
-      <Checkbox
-        key={`enabled|${item.name}`}
-        name={`enabled|${item.name}`}
-        toggle
-        // eslint-disable-next-line jsx-a11y/label-has-associated-control
-        label={<label>Enable interface</label>}
-        defaultChecked={currentEnabled as boolean}
-        onChange={updateFieldData}
-        disabled={editDisabled}
+      <FormControlLabel
+        control={
+          <Switch
+            key={`enabled|${item.name}`}
+            name={`enabled|${item.name}`}
+            defaultChecked={currentEnabled as boolean}
+            onChange={(e) =>
+              updateFieldData(e, {
+                name: `enabled|${item.name}`,
+                checked: e.target.checked,
+              })
+            }
+            disabled={editDisabled}
+          />
+        }
+        label="Enable interface"
       />
     );
 

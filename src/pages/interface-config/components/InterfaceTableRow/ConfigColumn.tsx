@@ -1,5 +1,4 @@
 import { type SyntheticEvent, useState, type MouseEvent } from "react";
-import { TextArea } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
 import IconButton from "@mui/material/IconButton";
 import ExpandCircleDownOutlinedIcon from "@mui/icons-material/ExpandCircleDownOutlined";
@@ -27,13 +26,18 @@ export function ConfigColumn({
 
   return (
     <>
-      <TextArea
+      <textarea
         name={`config|${interfaceName}`}
         defaultValue={config}
         rows={3}
         cols={50}
         hidden={currentIfClass !== "custom"}
-        onChange={updateFieldData}
+        onChange={(e) =>
+          updateFieldData(e, {
+            name: `config|${interfaceName}`,
+            value: e.target.value,
+          })
+        }
       />
       <IconButton
         size="small"

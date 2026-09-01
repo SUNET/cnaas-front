@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Grid, Divider } from "semantic-ui-react";
+import Divider from "@mui/material/Divider";
+import { styled } from "@mui/material/styles";
 import { Tooltip } from "../../../components/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -15,6 +16,14 @@ import {
   type NetboxTenant,
   type NetboxContact,
 } from "../types/netbox";
+
+// Two-column layout that stacks on narrow viewports (replaces Semantic UI
+// `<Grid columns={2} stackable>`).
+const TwoColGrid = styled("div")({
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
+  gap: "var(--size-md)",
+});
 
 export function DashboardNetboxTenant() {
   const { token } = useAuthToken();
@@ -57,9 +66,9 @@ export function DashboardNetboxTenant() {
 
   return (
     <>
-      <Divider horizontal>NetBox Tenant</Divider>
-      <Grid columns={2} stackable>
-        <Grid.Column>
+      <Divider textAlign="center">NetBox Tenant</Divider>
+      <TwoColGrid>
+        <div>
           {netboxTenant ? (
             <>
               <h3>
@@ -150,8 +159,8 @@ export function DashboardNetboxTenant() {
               )}
             </p>
           )}
-        </Grid.Column>
-        <Grid.Column>
+        </div>
+        <div>
           <h3>Contacts</h3>
           {netboxContacts.length > 0 ? (
             netboxContacts.map((contact) => (
@@ -191,8 +200,8 @@ export function DashboardNetboxTenant() {
           ) : (
             <p>No contacts found.</p>
           )}
-        </Grid.Column>
-      </Grid>
+        </div>
+      </TwoColGrid>
     </>
   );
 }

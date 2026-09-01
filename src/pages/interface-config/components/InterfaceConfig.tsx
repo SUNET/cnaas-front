@@ -7,13 +7,10 @@ import {
   type ReactNode,
 } from "react";
 import { Link, useNavigate } from "react-router";
-import {
-  type AccordionTitleProps,
-  Checkbox,
-  Modal,
-  Table,
-} from "semantic-ui-react";
+import { Modal, Table } from "semantic-ui-react";
 import Popover from "@mui/material/Popover";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -218,11 +215,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
     [toggleUntagged],
   );
 
-  const handleAccordionClick = (
-    _e: React.MouseEvent<HTMLDivElement>,
-    titleProps: AccordionTitleProps,
-  ) => {
-    const index = Number(titleProps.index);
+  const handleAccordionChange = (index: number) => {
     setAccordionActiveIndex((prev) => (prev === index ? -1 : index));
   };
 
@@ -406,12 +399,18 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
     );
     return (
       <li key={col}>
-        <Checkbox
-          defaultChecked={checked}
-          disabled={disabled}
+        <FormControlLabel
+          control={
+            <Checkbox
+              defaultChecked={checked}
+              disabled={disabled}
+              name={col}
+              onChange={(e) =>
+                handleColumnChange(e, { name: col, checked: e.target.checked })
+              }
+            />
+          }
           label={allowedColumns[col]}
-          name={col}
-          onChange={handleColumnChange}
         />
       </li>
     );
@@ -424,7 +423,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
     commitModal = (
       <CommitModalAccess
         accordionActiveIndex={accordionActiveIndex}
-        accordionClick={handleAccordionClick}
+        onAccordionChange={handleAccordionChange}
         autoPushJobsHTML={autoPushJobsHTML}
         errorMessage={errorMessage}
         interfaceDataUpdatedJSON={prepareSendJson()}

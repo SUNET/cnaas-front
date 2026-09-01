@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Modal, Table, Header } from "semantic-ui-react";
+import { Modal, Table } from "semantic-ui-react";
 import Alert from "@mui/material/Alert";
 import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
@@ -323,10 +323,12 @@ export function BgpNeighborModal({
 
         {vrfData.map((vd) => (
           <div key={vd.vrf.name} style={{ marginBottom: "2em" }}>
-            <Header as="h3">
+            <h3>
               VRF: {vd.vrf.name}
-              <Header.Subheader>Local AS: {vd.vrf.local_as}</Header.Subheader>
-            </Header>
+              <div style={{ fontWeight: "normal", fontSize: "0.9em" }}>
+                Local AS: {vd.vrf.local_as}
+              </div>
+            </h3>
 
             {loadingVrfs.has(vd.vrf.name) ? (
               <p>

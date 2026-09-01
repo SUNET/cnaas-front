@@ -1,5 +1,6 @@
 import { type SyntheticEvent } from "react";
-import { Checkbox, Dropdown, Input } from "semantic-ui-react";
+import { Dropdown, Input } from "semantic-ui-react";
+import Checkbox from "@mui/material/Checkbox";
 import { Tooltip } from "../../../../components/Tooltip";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
@@ -124,7 +125,12 @@ export function BpduFilterColumn({
         <Checkbox
           name={`bpdu_filter|${interfaceName}`}
           defaultChecked={bpduFilter}
-          onChange={updateFieldData}
+          onChange={(e) =>
+            updateFieldData(e, {
+              name: `bpdu_filter|${interfaceName}`,
+              checked: e.target.checked,
+            })
+          }
           disabled={editDisabled}
         />
       </span>
