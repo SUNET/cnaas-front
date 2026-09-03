@@ -73,26 +73,29 @@ test("user adds an extra column to see more device details", async ({
     page.getByRole("columnheader", { name: "Hostname" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("columnheader", { name: "Management IP" }),
+    page.getByRole("columnheader", { name: /Management IP/i }),
   ).toBeHidden();
 
   // open the column selector and add Management IP
   await dismissToasts(page);
   await page.getByRole("button", { name: "Select Columns" }).click();
-  const managementIpLabel = page
-    .getByRole("listitem")
-    .filter({ hasText: "Management IP" })
-    .getByText("Management IP");
-  await managementIpLabel.click();
+  const managementIpCheckbox = page.getByRole("checkbox", {
+    name: /Management IP/i,
+  });
+  await managementIpCheckbox.check();
+  // Close the column chooser popover so it no longer overlays the table.
+  await page.keyboard.press("Escape");
 
   await expect(
-    page.getByRole("columnheader", { name: "Management IP" }),
+    page.getByRole("columnheader", { name: /Management IP/i }),
   ).toBeVisible();
 
   // remove it again so the test leaves no trace
-  await managementIpLabel.click();
+  await page.getByRole("button", { name: /Select Columns/ }).click();
+  await managementIpCheckbox.uncheck();
+  await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("columnheader", { name: "Management IP" }),
+    page.getByRole("columnheader", { name: /Management IP/i }),
   ).toBeHidden();
 });
 
@@ -109,7 +112,7 @@ test("user opens the rename dialog, validates the form, and cancels", async ({
   await expect(page.getByText("Change hostname for eosdist1")).toBeVisible();
 
   // submit is disabled until a valid new hostname is typed
-  const submit = page.getByRole("button", { name: "Change hostname" });
+  const submit = page.getByRole("button", { name: /Change hostname/ });
   await expect(submit).toBeDisabled();
 
   const input = page.getByPlaceholder("new hostname...");

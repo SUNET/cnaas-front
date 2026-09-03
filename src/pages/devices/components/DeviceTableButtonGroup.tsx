@@ -37,7 +37,10 @@ type DeviceTableButtonGroupProps = {
     value: boolean | ((prev: boolean) => boolean),
   ) => void;
   readonly handleFilterChange: (next: FilterData) => void;
-  readonly columnSelectorChange: (column: DeviceColumnKey) => void;
+  readonly columnSelectorChange: (
+    column: DeviceColumnKey,
+    checked?: boolean,
+  ) => void;
   readonly resultsPerPage: number;
   readonly setActivePage: (page: number) => void;
   readonly setResultsPerPage: (perPage: number) => void;
@@ -115,9 +118,11 @@ export function DeviceTableButtonGroup({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      defaultChecked={activeColumns.includes(columnName)}
+                      checked={activeColumns.includes(columnName)}
                       name={columnName}
-                      onClick={() => columnSelectorChange(columnName)}
+                      onChange={(e) =>
+                        columnSelectorChange(columnName, e.target.checked)
+                      }
                     />
                   }
                   label={COLUMN_MAP[columnName]}

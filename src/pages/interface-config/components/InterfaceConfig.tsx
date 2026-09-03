@@ -402,7 +402,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         <FormControlLabel
           control={
             <Checkbox
-              defaultChecked={checked}
+              checked={checked}
               disabled={disabled}
               name={col}
               onChange={(e) =>

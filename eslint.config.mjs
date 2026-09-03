@@ -78,7 +78,14 @@ const commonRules = {
 
 export default defineConfig([
   // Global ignores - files to skip entirely
-  globalIgnores([".cache/", "dist/", "node_modules/", "package-lock.json"]),
+  globalIgnores([
+    ".cache/",
+    "dist/",
+    "node_modules/",
+    "package-lock.json",
+    "playwright-report/",
+    "test-results/",
+  ]),
 
   // Base config - applies to ALL files
   {
