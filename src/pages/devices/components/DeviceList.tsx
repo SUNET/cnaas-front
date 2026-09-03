@@ -249,10 +249,11 @@ export function DeviceList() {
     dispatch({ type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL, isOpen: false });
   };
 
-  const columnSelectorChange = (column: DeviceColumnKey) => {
-    const newColumns: DeviceColumnKey[] = activeColumns.includes(column)
-      ? activeColumns.filter((c) => c !== column)
-      : [...activeColumns, column];
+  const columnSelectorChange = (column: DeviceColumnKey, checked?: boolean) => {
+    const shouldShow = checked ?? !activeColumns.includes(column);
+    const newColumns: DeviceColumnKey[] = shouldShow
+      ? [...new Set([...activeColumns, column])]
+      : activeColumns.filter((c) => c !== column);
 
     newColumns.sort(
       (a, b) =>

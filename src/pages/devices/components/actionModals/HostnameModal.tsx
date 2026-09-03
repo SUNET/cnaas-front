@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Modal, Input } from "semantic-ui-react";
+import { Modal } from "semantic-ui-react";
+import TextField from "@mui/material/TextField";
 import Paper from "@mui/material/Paper";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
@@ -72,12 +73,13 @@ export function HostnameModal({
         <Modal.Description>
           <Paper variant="outlined" sx={{ padding: "var(--size-md)" }}>
             Type the new hostname:{" "}
-            <Input
+            <TextField
               type="text"
               placeholder="new hostname..."
               onChange={(e) => setNewHostname(e.target.value)}
               value={newHostname}
-              fluid
+              fullWidth
+              size="small"
             />
             {isLoading && <CircularProgress />}
             <p>

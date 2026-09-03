@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Input, Modal } from "semantic-ui-react";
+import { Modal } from "semantic-ui-react";
+import TextField from "@mui/material/TextField";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Button from "@mui/material/Button";
@@ -100,8 +101,9 @@ export function DeleteModal({
             Are you sure you want to delete device {device.hostname} with device
             ID {device.id}? Confirm hostname below to delete
           </p>
-          <Input
+          <TextField
             placeholder="confirm hostname"
+            size="small"
             onChange={(e) => setConfirmName(e.target.value)}
           />
           <FormControlLabel

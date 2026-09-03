@@ -12,9 +12,9 @@ test.describe("Interface config page", () => {
     });
 
     const eosaccessRow = page.locator("tr", { hasText: "eosaccess" });
+    // The interface-config link is icon-only; target it by its stable href.
     await eosaccessRow
-      .getByRole("link")
-      .filter({ has: page.locator("i.plug.icon") }) // cable icon
+      .locator('a[href*="interface-config?hostname=eosaccess"]')
       .click();
 
     await expect(page).toHaveURL(/\/interface-config\?hostname=eosaccess/);
@@ -63,29 +63,34 @@ test.describe("Interface config page", () => {
     await columnButton.click();
 
     // "VLANs" checkbox should be visible in the popup
-    // Semantic UI Checkbox hides the real input; target the label text
-    const vlansCheckbox = page.locator(".ui.checkbox", { hasText: "VLANs" });
+    const vlansCheckbox = page.getByRole("checkbox", { name: "VLANs" });
     await expect(vlansCheckbox).toBeVisible();
 
     // Check current state — VLANs may or may not be visible by default
     const vlansHeader = page.getByRole("columnheader", { name: "VLANs" });
     const vlansVisible = await vlansHeader.isVisible();
 
-    // Toggle the checkbox
-    await vlansCheckbox.click();
-
+    // Toggle the checkbox to the opposite state, then close the popover so it
+    // no longer overlays the table.
     if (vlansVisible) {
+      await vlansCheckbox.uncheck();
+      await page.keyboard.press("Escape");
       await expect(vlansHeader).not.toBeVisible();
     } else {
+      await vlansCheckbox.check();
+      await page.keyboard.press("Escape");
       await expect(vlansHeader).toBeVisible();
     }
 
     // Toggle back to restore original state
-    await vlansCheckbox.click();
-
+    await columnButton.click();
     if (vlansVisible) {
+      await vlansCheckbox.check();
+      await page.keyboard.press("Escape");
       await expect(vlansHeader).toBeVisible();
     } else {
+      await vlansCheckbox.uncheck();
+      await page.keyboard.press("Escape");
       await expect(vlansHeader).not.toBeVisible();
     }
   });

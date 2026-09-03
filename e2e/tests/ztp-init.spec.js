@@ -175,14 +175,15 @@ test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
       await expect(modal.getByText("Compatible neighbors:")).toBeVisible();
       console.log("Initcheck passed — expanding detailed output...");
 
-      // Expand the "Detailed output" accordion so it appears in the screenshot
+      // Expand the "Detailed output" accordion so it appears in the screenshot.
+      // Scope to that accordion (all three panels contain a <pre>).
       const detailedAccordion = modal
         .locator(".MuiAccordion-root")
         .filter({ hasText: "Detailed output" });
-      await detailedAccordion.getByText("Detailed output").click();
-      await expect(
-        detailedAccordion.locator(".MuiAccordionDetails-root pre"),
-      ).toBeVisible({
+      await detailedAccordion
+        .getByRole("button", { name: "Detailed output" })
+        .click();
+      await expect(detailedAccordion.locator("pre")).toBeVisible({
         timeout: 5000,
       });
 
