@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableHeaderCell,
-  TableRow,
-} from "semantic-ui-react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import CircularProgress from "@mui/material/CircularProgress";
 import SyncIcon from "@mui/icons-material/Sync";
 import MemoryIcon from "@mui/icons-material/Memory";
@@ -19,7 +17,7 @@ function GroupLoading() {
   return (
     <TableBody>
       <TableRow key="Loading">
-        <TableCell colSpan="5">
+        <TableCell align="center" colSpan={3}>
           <CircularProgress size="1em" /> Loading groups...
         </TableCell>
       </TableRow>
@@ -31,7 +29,9 @@ function GroupError({ message }: { readonly message: string }) {
   return (
     <TableBody>
       <TableRow key="error">
-        <TableCell colSpan="5">API error: {message}</TableCell>
+        <TableCell align="center" colSpan={3}>
+          API error: {message}
+        </TableCell>
       </TableRow>
     </TableBody>
   );
@@ -41,7 +41,9 @@ function GroupEmptyResult() {
   return (
     <TableBody>
       <TableRow>
-        <TableCell colSpan="5">Empty result</TableCell>
+        <TableCell align="center" colSpan={3}>
+          Empty result
+        </TableCell>
       </TableRow>
     </TableBody>
   );
@@ -131,18 +133,20 @@ export function GroupList() {
   return (
     <section>
       <h2>Groups</h2>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHeaderCell>Group name</TableHeaderCell>
-            <TableHeaderCell>Group members</TableHeaderCell>
-            <TableHeaderCell hidden={!permissionsCheck("Groups", "read")}>
-              Actions
-            </TableHeaderCell>
-          </TableRow>
-        </TableHeader>
-        <GroupTableBody />
-      </Table>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Group name</TableCell>
+              <TableCell>Group members</TableCell>
+              <TableCell hidden={!permissionsCheck("Groups", "read")}>
+                Actions
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <GroupTableBody />
+        </Table>
+      </TableContainer>
     </section>
   );
 }
