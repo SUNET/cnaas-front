@@ -24,6 +24,7 @@ export function makeDevice(
     vendor: null,
     model: null,
     os_version: null,
+    cpu_arch: null,
     synchronized: true,
     confhash: null,
     last_seen: null,

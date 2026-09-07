@@ -99,6 +99,7 @@ export type Device = {
   readonly vendor: string | null;
   readonly model: string | null;
   readonly os_version: string | null;
+  readonly cpu_arch: string | null;
   readonly synchronized: boolean | null;
   readonly confhash: string | null;
   readonly last_seen: string | null; // "YYYY-MM-DD HH:MM:SS.ffffff", not ISO 8601

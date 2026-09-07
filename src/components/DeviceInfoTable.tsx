@@ -219,6 +219,10 @@ export function DeviceInfoTable({
             <TableCell key="osversion">OS Version</TableCell>
             <TableCell key="osversion_value">{device.os_version}</TableCell>
           </TableRow>
+          <TableRow key="row_cpu_arch">
+            <TableCell key="cpu_arch">CPU Architectue</TableCell>
+            <TableCell key="cpu_arch_value">{device.cpu_arch}</TableCell>
+          </TableRow>
           <TableRow key="row_serial">
             <TableCell key="serial">Serial</TableCell>
             <TableCell key="serial_value">{device.serial}</TableCell>
