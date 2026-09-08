@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import {
-  Form,
-  Select,
-  type DropdownProps,
-  type DropdownItemProps,
-} from "semantic-ui-react";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import AdjustIcon from "@mui/icons-material/Adjust";
+import CircleIcon from "@mui/icons-material/Circle";
 import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
 import { FirmwareProgressInfo } from "./FirmwareProgressInfo";
@@ -16,6 +17,16 @@ import {
 import { FirmwareError } from "./FirmwareError";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
+import { Task } from "../../../components/Task";
+
+/** A single selectable entry in the firmware dropdown. */
+type FirmwareOption = {
+  readonly key: number;
+  readonly value: string;
+  readonly text: string;
+  readonly icon?: "circle" | "adjust";
+  readonly disabled?: boolean;
+};
 
 export function FirmwareStep2() {
   const { token } = useAuthToken();
@@ -30,9 +41,7 @@ export function FirmwareStep2() {
   } = useFirmwareUpgrade();
 
   const [filename, setFilename] = useState<string | null>(null);
-  const [firmwareOptions, setFirmwareOptions] = useState<DropdownItemProps[]>(
-    [],
-  );
+  const [firmwareOptions, setFirmwareOptions] = useState<FirmwareOption[]>([]);
   const [firmwareLocked, setFirmwareLocked] = useState(false);
   const [firmwareSelected, setFirmwareSelected] = useState(false);
   const [confirmDiagOpen, setConfirmDiagOpen] = useState(false);
@@ -47,12 +56,9 @@ export function FirmwareStep2() {
     skipStep2();
   };
 
-  const updateFilename = (
-    _e: React.SyntheticEvent<HTMLElement>,
-    option: DropdownProps,
-  ) => {
+  const updateFilename = (event: SelectChangeEvent) => {
     if (firmwareLocked === false) {
-      setFilename(String(option.value));
+      setFilename(event.target.value);
     }
     setFirmwareSelected(true);
   };
@@ -75,18 +81,18 @@ export function FirmwareStep2() {
   };
 
   /**
-   * Fetches the firmware files from the API and returns them as an array of DropdownItemProps.
+   * Fetches the firmware files from the API and returns them as an array of FirmwareOption.
    *
    * EOS firmware files are assumed to be named according to architectures:
    *   - "EOS-": 32-bit
    *   - "EOS64-": 64-bit
    *   - "EOSarm-": ARM
    *
-   * @returns {Promise<DropdownItemProps[]>} An array of DropdownItemProps representing the firmware files.
+   * @returns {Promise<FirmwareOption[]>} An array of FirmwareOption representing the firmware files.
    */
-  const getFirmwareFiles = async (): Promise<DropdownItemProps[]> => {
+  const getFirmwareFiles = async (): Promise<FirmwareOption[]> => {
     const fetchedFileNames = await fetchFirmwareFiles(token);
-    const newFirmwareOptions: DropdownItemProps[] = [];
+    const newFirmwareOptions: FirmwareOption[] = [];
     fetchedFileNames.forEach((fetchedFileName, index) => {
       if (process.env.ARISTA_DETECT_ARCH === "true") {
         const [prefix, version] = fetchedFileName.split(/-(.*)/);
@@ -185,72 +191,85 @@ export function FirmwareStep2() {
     !firmwareSelected || firmwareLocked || devicesMissingArch.length > 0;
 
   return (
-    <div className="task-container">
-      <div className="heading">
-        <h2>Activate firmware (2/3)</h2>
-        <Button variant="text" className="close">
-          Close
-        </Button>
-      </div>
-      <div className="task-collapsable">
-        <p>
-          Step 2 of 3: Download firmware to device and activate it for next
-          reboot
-        </p>
-        <Form>
-          <Select
-            placeholder="filename"
-            options={firmwareOptions}
-            onChange={updateFilename}
-            disabled={firmwareLocked}
-          />
-          <div className="info">
-            <Button
-              id="step2button"
-              variant="contained"
-              disabled={step2disabled}
-              onClick={() => onClickStep2()}
+    <Task title="Activate firmware (2/3)">
+      <Typography>
+        Step 2 of 3: Download firmware to device and activate it for next reboot
+      </Typography>
+      <Box component="form">
+        <Select
+          value={filename ?? ""}
+          onChange={updateFilename}
+          disabled={firmwareLocked}
+          displayEmpty
+          renderValue={(selected) =>
+            firmwareOptions.find((option) => option.value === selected)?.text ||
+            selected ||
+            "filename"
+          }
+          inputProps={{ "aria-label": "firmware file" }}
+        >
+          {firmwareOptions.map((option) => (
+            <MenuItem
+              key={option.key}
+              value={option.value}
+              disabled={option.disabled}
             >
-              Start activate firmware
-            </Button>
-            <Button
-              id="step2skipButton"
-              variant="contained"
-              disabled={step2disabled}
-              onClick={() => setConfirmDiagOpen(true)}
-            >
-              Skip to step 3
-            </Button>
-            <Button
-              id="step2abortButton"
-              variant="contained"
-              color="error"
-              disabled={step2abortDisabled}
-              onClick={() => onClickStep2Abort()}
-            >
-              Abort!
-            </Button>
-          </div>
-        </Form>
-        <ConfirmDialog
-          content="Are you sure all selected devices already have the target firmware downloaded and activated?"
-          open={confirmDiagOpen}
-          onCancel={() => setConfirmDiagOpen(false)}
-          onConfirm={okConfirm}
-        />
-        <FirmwareProgressBar
-          jobStatus={jobStatus}
-          jobFinishedDevices={jobFinishedDevices}
-          totalCount={totalCount}
-        />
-        <FirmwareProgressInfo
-          jobStatus={jobStatus}
-          jobId={jobId}
-          jobData={jobData}
-          logLines={logLines}
-        />
-      </div>
+              {option.icon === "circle" && (
+                <CircleIcon fontSize="small" sx={{ marginRight: 1 }} />
+              )}
+              {option.icon === "adjust" && (
+                <AdjustIcon fontSize="small" sx={{ marginRight: 1 }} />
+              )}
+              {option.text}
+            </MenuItem>
+          ))}
+        </Select>
+        <Stack direction="row" spacing={2} sx={{ alignItems: "baseline" }}>
+          <Button
+            id="step2button"
+            variant="contained"
+            disabled={step2disabled}
+            onClick={() => onClickStep2()}
+          >
+            Start activate firmware
+          </Button>
+          <Button
+            id="step2skipButton"
+            variant="contained"
+            disabled={step2disabled}
+            onClick={() => setConfirmDiagOpen(true)}
+          >
+            Skip to step 3
+          </Button>
+          <Button
+            id="step2abortButton"
+            variant="contained"
+            color="error"
+            disabled={step2abortDisabled}
+            onClick={() => onClickStep2Abort()}
+          >
+            Abort!
+          </Button>
+        </Stack>
+      </Box>
+      <ConfirmDialog
+        content="Are you sure all selected devices already have the target firmware downloaded and activated?"
+        open={confirmDiagOpen}
+        onCancel={() => setConfirmDiagOpen(false)}
+        onConfirm={okConfirm}
+      />
+      <FirmwareProgressBar
+        jobStatus={jobStatus}
+        jobFinishedDevices={jobFinishedDevices}
+        totalCount={totalCount}
+      />
+      <FirmwareProgressInfo
+        jobStatus={jobStatus}
+        jobId={jobId}
+        jobData={jobData}
+        logLines={logLines}
+      />
       {error}
-    </div>
+    </Task>
   );
 }

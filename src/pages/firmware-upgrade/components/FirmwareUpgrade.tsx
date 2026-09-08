@@ -1,5 +1,8 @@
-import { Input } from "semantic-ui-react";
+import { Fragment } from "react";
 import Alert from "@mui/material/Alert";
+import Link from "@mui/material/Link";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { NavigationBlocker } from "../../../components/NavigationBlocker";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";
@@ -11,19 +14,15 @@ const NAVIGATION_BLOCKER_MESSAGE =
   "A job is currently running, you sure you want to leave? The job will continue to run in the background even if you leave.";
 
 function renderHostnameLink({ hostname }: TargetDeviceUpgradeInfo) {
-  return (
-    <a key={hostname} href={`/devices?filter[hostname]=${hostname}`}>
-      {hostname}
-    </a>
-  );
+  return <Link href={`/devices?filter[hostname]=${hostname}`}>{hostname}</Link>;
 }
 
 function joinLinks(devices: readonly TargetDeviceUpgradeInfo[]) {
   return devices.map((device, i) => (
-    <span key={device.hostname}>
+    <Fragment key={device.hostname}>
       {i > 0 && ", "}
       {renderHostnameLink(device)}
-    </span>
+    </Fragment>
   ));
 }
 
@@ -46,12 +45,18 @@ export function FirmwareUpgrade() {
         message={NAVIGATION_BLOCKER_MESSAGE}
       />
       <section>
-        <h1>Firmware upgrade</h1>
-        <p>
+        <Typography variant="h4" component="h1">
+          Firmware upgrade
+        </Typography>
+        <Typography>
           Firmware upgrade target:{" "}
           {group || targetDevices?.map((h) => h.hostname).join(", ") || "N/A"}
-        </p>
-        {startError && <p className="error">{startError}</p>}
+        </Typography>
+        {startError && (
+          <Alert severity="error" sx={{ marginBottom: "var(--size-md)" }}>
+            {startError}
+          </Alert>
+        )}
         {devicesMissingArch.length > 0 && (
           <Alert severity="error" sx={{ marginBottom: "var(--size-md)" }}>
             CPU architecture is unknown for these devices:{" "}
@@ -66,19 +71,19 @@ export function FirmwareUpgrade() {
             them to get more accurate firmware compatibility checks.
           </Alert>
         )}
-        <p>Describe the change:</p>
-        <Input
+        <Typography>Describe the change:</Typography>
+        <TextField
           placeholder="comment"
-          maxLength={255}
-          className="job_comment"
           onChange={updateComment}
+          sx={{ width: "50em", marginBottom: "var(--size-md)" }}
+          slotProps={{ htmlInput: { maxLength: 255 } }}
         />
-        <p>Enter service ticket ID reference:</p>
-        <Input
+        <Typography>Enter service ticket ID reference:</Typography>
+        <TextField
           placeholder="ticket reference"
-          maxLength={32}
-          className="job_ticket_ref"
           onChange={updateTicketRef}
+          sx={{ width: "15em", marginBottom: "var(--size-md)" }}
+          slotProps={{ htmlInput: { maxLength: 32 } }}
         />
         <FirmwareStep1 />
         <FirmwareStep2 />

@@ -102,7 +102,7 @@ function renderComponent(search = "?hostname=test-switch") {
 }
 
 async function selectFirmware(name: RegExp) {
-  const dropdown = await screen.findByRole("listbox");
+  const dropdown = await screen.findByRole("combobox");
   await userEvent.click(dropdown);
   const option = await screen.findByRole("option", { name });
   await userEvent.click(option);
