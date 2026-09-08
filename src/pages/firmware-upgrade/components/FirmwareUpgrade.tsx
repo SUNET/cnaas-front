@@ -12,9 +12,10 @@ export function FirmwareUpgrade() {
   const {
     blockNavigation,
     startError,
-    commitTargetName,
+    targetDevices,
     updateComment,
     updateTicketRef,
+    group,
   } = useFirmwareUpgrade();
 
   return (
@@ -25,7 +26,10 @@ export function FirmwareUpgrade() {
       />
       <section>
         <h1>Firmware upgrade</h1>
-        <p>Firmware upgrade target {commitTargetName}</p>
+        <p>
+          Firmware upgrade target:{" "}
+          {group || targetDevices?.map((h) => h.hostname).join(", ") || "N/A"}
+        </p>
         {startError && <p className="error">{startError}</p>}
         <p>Describe the change:</p>
         <Input

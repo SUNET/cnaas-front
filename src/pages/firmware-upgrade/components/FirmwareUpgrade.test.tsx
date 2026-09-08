@@ -41,7 +41,7 @@ const DEVICE = { hostname: "test-switch", os_version: "4.28.0F" };
 type GetDataOptions = {
   readonly devices?: ReadonlyArray<{ hostname: string; os_version: string }>;
   readonly files?: readonly string[];
-  readonly groups?: Record<string, Record<string, string[]>>;
+  readonly groups?: Record<string, string[]>;
   readonly job?: Job;
 };
 
@@ -109,7 +109,7 @@ test("renders firmware upgrade page with target hostname", async () => {
 
   expect(screen.getByText("Firmware upgrade")).toBeInTheDocument();
   expect(
-    screen.getByText("Firmware upgrade target hostname: test-switch"),
+    screen.getByText(/Firmware upgrade target: test-switch/),
   ).toBeInTheDocument();
 
   await waitFor(() => {
@@ -121,13 +121,18 @@ test("renders firmware upgrade page with target hostname", async () => {
 
 test("renders firmware upgrade page with target group", async () => {
   mockGetDataResponses({
-    groups: { "test-group": { "4.28.0F": ["dev1", "dev2"] } },
+    groups: { "test-group": ["dev1", "dev2"] },
+    devices: [
+      { hostname: "dev1", os_version: "4.28.0F" },
+      { hostname: "dev2", os_version: "4.28.0F" },
+    ],
   });
 
   renderComponent("?group=test-group");
 
+  // target line only appears after fetchDevicesInGroup promise settles.
   expect(
-    screen.getByText("Firmware upgrade target group: test-group"),
+    screen.getByText(/Firmware upgrade target: test-group/),
   ).toBeInTheDocument();
 
   expect(await screen.findByText("4.28.0F:")).toBeInTheDocument();
@@ -163,7 +168,7 @@ test("step 2: user selects firmware file and starts activation job", async () =>
       expect.stringContaining("/api/v1.0/firmware/upgrade"),
       "test-token",
       expect.objectContaining({
-        hostname: "test-switch",
+        hostname: ["test-switch"],
         filename: "firmware-4.29.0.bin",
         activate: true,
         download: true,
@@ -211,7 +216,7 @@ test("step 3: user starts reboot after skipping step 2", async () => {
       expect.stringContaining("/api/v1.0/firmware/upgrade"),
       "test-token",
       expect.objectContaining({
-        hostname: "test-switch",
+        hostname: ["test-switch"],
         post_flight: true,
         reboot: true,
       }),
