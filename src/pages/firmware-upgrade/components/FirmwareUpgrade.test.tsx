@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router";
 
@@ -11,6 +11,7 @@ import {
 } from "../../../utils/sendData";
 import { makeJob } from "../../../test-utils/makeJob";
 import type { Job } from "../../../types/job";
+import type { TargetDeviceUpgradeInfo } from "../stores/firmwareUpgradeReducer";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../utils/sendData");
@@ -36,10 +37,15 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-const DEVICE = { hostname: "test-switch", os_version: "4.28.0F" };
+const DEVICE: TargetDeviceUpgradeInfo = {
+  hostname: "test-switch",
+  os_version: "4.28.0F",
+  cpu_arch: "x86_64",
+  platform: "eos",
+};
 
 type GetDataOptions = {
-  readonly devices?: ReadonlyArray<{ hostname: string; os_version: string }>;
+  readonly devices?: readonly TargetDeviceUpgradeInfo[];
   readonly files?: readonly string[];
   readonly groups?: Record<string, string[]>;
   readonly job?: Job;
@@ -119,12 +125,46 @@ test("renders firmware upgrade page with target hostname", async () => {
   expect(screen.getByText("Reboot devices (3/3)")).toBeInTheDocument();
 });
 
+test("blocks step 2 and shows a warning when cpu_arch is unknown", async () => {
+  mockGetDataResponses({
+    devices: [
+      { hostname: "test-switch", os_version: "4.28.0F", cpu_arch: null },
+    ],
+  });
+
+  renderComponent();
+
+  const alertText = await screen.findByText(
+    /CPU architecture is unknown for these devices/,
+  );
+  const alert = alertText.closest('[role="alert"]') ?? alertText;
+  expect(
+    within(alert as HTMLElement).getByRole("link", { name: "test-switch" }),
+  ).toBeInTheDocument();
+
+  await selectFirmware(/firmware-4.29.0.bin/);
+  const startButton = screen.getByRole("button", {
+    name: /start activate firmware/i,
+  });
+  expect(startButton).toBeDisabled();
+});
+
 test("renders firmware upgrade page with target group", async () => {
   mockGetDataResponses({
     groups: { "test-group": ["dev1", "dev2"] },
     devices: [
-      { hostname: "dev1", os_version: "4.28.0F" },
-      { hostname: "dev2", os_version: "4.28.0F" },
+      {
+        hostname: "dev1",
+        os_version: "4.28.0F",
+        cpu_arch: "x86_64",
+        platform: "eos",
+      },
+      {
+        hostname: "dev2",
+        os_version: "4.28.0F",
+        cpu_arch: "x86_64",
+        platform: "eos",
+      },
     ],
   });
 

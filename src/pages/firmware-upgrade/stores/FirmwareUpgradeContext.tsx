@@ -84,6 +84,18 @@ type FirmwareUpgradeContextValue = {
    * per-host `cpu_arch`. `null` for mixed or unknown targets (left unfiltered).
    */
   readonly targetArch: DeviceArch | null;
+  /**
+   * Hosts whose `cpu_arch` fetch has completed but came back null (unknown to
+   * the backend). Blocking: without a known arch, the step 2 firmware dropdown
+   * can't be safely filtered, and the backend has no ARM-vs-x86 safety net.
+   */
+  readonly devicesMissingArch: readonly TargetDeviceUpgradeInfo[];
+  /**
+   * Hosts whose `platform` fetch has completed but came back null. Advisory
+   * only: the backend already rejects a wrong-platform device per-host at
+   * upgrade time, so this is just earlier feedback, not a hard requirement.
+   */
+  readonly devicesMissingPlatform: readonly TargetDeviceUpgradeInfo[];
   readonly updateComment: (e: ChangeEvent<HTMLInputElement>) => void;
   readonly updateTicketRef: (e: ChangeEvent<HTMLInputElement>) => void;
   readonly skipStep2: () => void;
@@ -193,7 +205,10 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
         .map((hostname) => ({ hostname })) ?? [];
 
     if (hostnames.length > 0) {
-      dispatch({ type: actions.UPSERT_TARGET_DEVICE_INFO, targetDevices: hostnames });
+      dispatch({
+        type: actions.UPSERT_TARGET_DEVICE_INFO,
+        targetDevices: hostnames,
+      });
     }
   }, []);
 
@@ -296,6 +311,19 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     const [only] = [...arches];
     return only;
   }, [targetDevices]);
+
+  // Hosts where the arch/platform fetch has completed (`in`) but came back
+  // null — genuinely unknown to the backend, not just "not fetched yet".
+  const devicesMissingArch = useMemo(
+    () =>
+      targetDevices?.filter((h) => "cpu_arch" in h && h.cpu_arch == null) ?? [],
+    [targetDevices],
+  );
+  const devicesMissingPlatform = useMemo(
+    () =>
+      targetDevices?.filter((h) => "platform" in h && h.platform == null) ?? [],
+    [targetDevices],
+  );
 
   // --- Polling ---
   //
@@ -417,8 +445,8 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     ): Promise<void> => {
       const baseUrl =
         process.env.FIRMWARE_URL &&
-          typeof process.env.FIRMWARE_URL === "string" &&
-          process.env.FIRMWARE_URL.startsWith("http")
+        typeof process.env.FIRMWARE_URL === "string" &&
+        process.env.FIRMWARE_URL.startsWith("http")
           ? process.env.FIRMWARE_URL
           : `${process.env.API_URL}/firmware/`;
 
@@ -581,6 +609,8 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       commitTarget,
       commitTargetName: commitTargetToName(commitTarget),
       targetArch,
+      devicesMissingArch,
+      devicesMissingPlatform,
       updateComment,
       updateTicketRef,
       skipStep2,
@@ -603,6 +633,8 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       group,
       targetDevices,
       targetArch,
+      devicesMissingArch,
+      devicesMissingPlatform,
       updateComment,
       updateTicketRef,
       skipStep2,
