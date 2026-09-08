@@ -9,32 +9,33 @@ const VersionGroups = styled("dl")({
   gap: "var(--size-md)",
 });
 
-function renderHostname(hostname: string) {
+function renderHostname(host: TargetDeviceUpgradeInfo) {
   return (
-    <li key={hostname}>
-      <a href={`/devices?filter[hostname]=${hostname}`}>{hostname}</a>
+    <li key={host.hostname}>
+      <a href={`/devices?filter[hostname]=${host.hostname}`}>{host.hostname}</a>
+      {host.cpu_arch && ` (${host.cpu_arch})`}
     </li>
   );
 }
 
-/** Group hostnames by their current OS version for display. */
+/** Group hosts by their current OS version for display. */
 function groupByOsVersion(
   hosts: readonly TargetDeviceUpgradeInfo[],
-): Record<string, string[]> {
-  const byVersion: Record<string, string[]> = {};
+): Record<string, TargetDeviceUpgradeInfo[]> {
+  const byVersion: Record<string, TargetDeviceUpgradeInfo[]> = {};
   for (const host of hosts) {
     const version = host.os_version ?? "unknown";
-    (byVersion[version] ??= []).push(host.hostname);
+    (byVersion[version] ??= []).push(host);
   }
   return byVersion;
 }
 
 export function FirmwareStep1() {
-  const { targetDevices: hostFirmware } = useFirmwareUpgrade();
+  const { targetDevices } = useFirmwareUpgrade();
 
   let osVersionList = <p>None</p>;
-  if (hostFirmware && hostFirmware.length > 0) {
-    const byVersion = groupByOsVersion(hostFirmware);
+  if (targetDevices && targetDevices.length > 0) {
+    const byVersion = groupByOsVersion(targetDevices);
     osVersionList = (
       <>
         {Object.keys(byVersion).map((osVersion) => (

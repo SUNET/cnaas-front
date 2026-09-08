@@ -23,6 +23,7 @@ export function FirmwareStep2() {
     step2: { jobId, jobData, totalCount },
     logLines,
     targetArch,
+    devicesMissingArch,
     skipStep2,
     firmwareUpgradeStart,
     firmwareUpgradeAbort,
@@ -180,7 +181,8 @@ export function FirmwareStep2() {
   const step2abortDisabled = !(
     jobStatus === "RUNNING" || jobStatus === "SCHEDULED"
   );
-  const step2disabled = !firmwareSelected || firmwareLocked;
+  const step2disabled =
+    !firmwareSelected || firmwareLocked || devicesMissingArch.length > 0;
 
   return (
     <div className="task-container">
