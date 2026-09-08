@@ -10,29 +10,29 @@ import {
   type ReactNode,
 } from "react";
 import { useSearchParams } from "react-router";
-import { useAuthToken } from "../../../stores/AuthTokenContext";
-import { useFreshRef } from "../../../hooks/useFreshRef";
 import { useBeforeUnloadWarning } from "../../../hooks/useBeforeUnloadWarning";
-import { getData } from "../../../utils/getData";
-import { post, putData } from "../../../utils/sendData";
+import { useFreshRef } from "../../../hooks/useFreshRef";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { type DeviceArch } from "../../../types/device";
+import { isTerminalJobStatus, type Job } from "../../../types/job";
 import {
   extractErrorMessage,
   extractErrorMessageAsync,
 } from "../../../utils/extractErrorMessage";
-import { isTerminalJobStatus, type Job } from "../../../types/job";
-import { archForModel, type DeviceArch } from "../../../types/device";
+import { getData } from "../../../utils/getData";
+import { post, putData } from "../../../utils/sendData";
 import {
-  fetchDeviceOsVersion,
-  fetchGroupOsVersion,
+  fetchDeviceUpgradeFacts,
+  fetchDevicesInGroup,
   type CommitTarget,
 } from "../api/firmwareUpgradeApi";
+import { useFirmwareUpgradeSocket } from "../hooks/useFirmwareUpgradeSocket";
 import {
+  TargetDeviceUpgradeInfo,
   actions,
   firmwareUpgradeReducer,
   initialState,
-  type FirmwareInfo,
 } from "./firmwareUpgradeReducer";
-import { useFirmwareUpgradeSocket } from "../hooks/useFirmwareUpgradeSocket";
 
 /**
  * Body of POST /firmware/upgrade. On success `job_id` is set; most validation
@@ -75,16 +75,13 @@ type FirmwareUpgradeContextValue = {
   readonly activateStep3: boolean;
   readonly blockNavigation: boolean;
   readonly startError: string | null;
+  readonly group: string | null;
+  readonly targetDevices: TargetDeviceUpgradeInfo[] | null;
   readonly commitTarget: CommitTarget;
   readonly commitTargetName: string;
   /**
-   * Current OS version info for the target (single device or group), fetched
-   * once here and read by every step. `null` until loaded.
-   */
-  readonly firmwareInfo: FirmwareInfo;
-  /**
-   * Architecture of a single-device target, used to filter firmware options.
-   * `null` for group targets (no single model) — those are left unfiltered.
+   * Firmware-filtering architecture for the target, derived from the fetched
+   * per-host `cpu_arch`. `null` for mixed or unknown targets (left unfiltered).
    */
   readonly targetArch: DeviceArch | null;
   readonly updateComment: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -124,6 +121,11 @@ function commitTargetToName(target: CommitTarget): string {
   return "unknown";
 }
 
+/** Map a device `cpu_arch` string to a firmware-filtering architecture. */
+function archForCpu(cpuArch: string): DeviceArch {
+  return cpuArch.toLowerCase().includes("arm") ? "arm" : "x86";
+}
+
 const POLL_INTERVAL_MS = 5000;
 
 // --- Provider ---
@@ -140,7 +142,8 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
   const [state, dispatch] = useReducer(firmwareUpgradeReducer, initialState);
   const {
     blockNavigation,
-    firmwareInfo,
+    group,
+    targetDevices,
     step2TotalCount,
     step2JobId,
     step2JobData,
@@ -169,60 +172,130 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
   // Stream backend log events into the reducer's log buffer.
   useFirmwareUpgradeSocket(token, dispatch);
 
-  // Commit target from URL params. Returns `{}` (not null) so callers can
-  // spread it unconditionally into request bodies.
-  const commitTarget = useMemo((): CommitTarget => {
-    const hostname = searchParams.get("hostname");
-    if (hostname) return { hostname };
-    const group = searchParams.get("group");
-    if (group) return { group };
-    return {};
-  }, [searchParams]);
-
-  // Current OS version info for the target, fetched once here into the reducer
-  // and shared with every step.
+  // Parse the URL params once on mount: seed the group and any hostnames listed
+  // directly in the URL. Group membership and per-device OS/arch info are then
+  // filled in by the effects below. Runs once — searchParams is read via a ref
+  // so later param changes don't retrigger seeding (and cause dispatch loops).
+  const searchParamsRef = useFreshRef(searchParams);
   useEffect(() => {
-    const { hostname, group } = commitTarget;
-    if (!hostname && !group) {
-      dispatch({ type: actions.SET_FIRMWARE_INFO, info: null });
-      return;
+    const params = searchParamsRef.current;
+    const groupParam = params.get("group");
+    if (groupParam) {
+      dispatch({ type: actions.SET_GROUP, group: groupParam });
     }
+
+    const hostnames =
+      params
+        .get("hostname")
+        ?.split(",")
+        .map((h) => h.trim())
+        .filter(Boolean)
+        .map((hostname) => ({ hostname })) ?? [];
+
+    if (hostnames.length > 0) {
+      dispatch({ type: actions.UPSERT_TARGET_DEVICE_INFO, targetDevices: hostnames });
+    }
+  }, []);
+
+  // Commit target for the upgrade POST, derived purely from state (no dispatch).
+  const commitTarget = useMemo((): CommitTarget => {
+    const hostname = targetDevices?.map((h) => h.hostname) ?? [];
+    return {
+      ...(hostname.length > 0 ? { hostname } : {}),
+      ...(group ? { group } : {}),
+    };
+  }, [targetDevices, group]);
+
+  // Fetch the hostnames of all devices in a group target, if any.
+  useEffect(() => {
     const controller = new AbortController();
-    const fetchFirmwareInfo = async () => {
+    const fetchDeviceNames = async () => {
+      if (!group) return;
       try {
-        let info: FirmwareInfo = null;
-        if (hostname) {
-          info = await fetchDeviceOsVersion(
-            hostname,
-            tokenRef.current,
-            controller.signal,
-          );
-        } else if (group) {
-          info = await fetchGroupOsVersion(
-            group,
-            tokenRef.current,
-            controller.signal,
-          );
-        }
-        dispatch({ type: actions.SET_FIRMWARE_INFO, info });
+        const devicesInGroup = await fetchDevicesInGroup(
+          group,
+          tokenRef.current,
+        );
+        const newHostnames = devicesInGroup.map((hostname) => ({
+          hostname: hostname,
+        }));
+        dispatch({
+          type: actions.UPSERT_TARGET_DEVICE_INFO,
+          targetDevices: newHostnames,
+        });
       } catch (error) {
         if (controller.signal.aborted) return;
         console.error("Failed to fetch firmware info:", error);
       }
     };
-    fetchFirmwareInfo();
-    return () => controller.abort();
-  }, [commitTarget, tokenRef]);
 
-  // Architecture of a single-device target, derived from its model and used to
-  // filter firmware options. `null` for group targets (no single model), which
-  // leaves them unfiltered.
-  const targetArch = useMemo((): DeviceArch | null => {
-    if (firmwareInfo && "devices" in firmwareInfo) {
-      return archForModel(firmwareInfo.devices[0]?.model);
+    fetchDeviceNames();
+
+    return () => controller.abort();
+  }, [group]);
+
+  // Current OS version, CPU arch, and firmware for target. Keys off presence
+  // (not truthiness) of `os_version`/`cpu_arch` — those fields are absent
+  // until fetched, then always present (even when the backend legitimately
+  // returns a null cpu_arch), so this naturally stops re-fetching once every
+  // host has been hydrated without needing a separate "fetched" flag.
+  useEffect(() => {
+    if (!targetDevices?.length) {
+      return;
     }
-    return null;
-  }, [firmwareInfo]);
+
+    const controller = new AbortController();
+    const fetchDeviceInfo = async () => {
+      const hostsMissingInfo = targetDevices
+        .filter((h) => !("cpu_arch" in h) || !("os_version" in h))
+        .map((h) => h.hostname);
+      if (hostsMissingInfo.length === 0) {
+        return;
+      }
+
+      try {
+        const deviceInfo = await fetchDeviceUpgradeFacts(
+          hostsMissingInfo,
+          tokenRef.current,
+          controller.signal,
+        );
+        if (controller.signal.aborted) return;
+        const targetDevices = deviceInfo.map((h) => ({
+          hostname: h.hostname,
+          os_version: h.os_version,
+          cpu_arch: h.cpu_arch,
+          platform: h.platform,
+        }));
+        dispatch({
+          type: actions.UPSERT_TARGET_DEVICE_INFO,
+          targetDevices,
+        });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Failed to fetch firmware info:", error);
+      }
+    };
+
+    fetchDeviceInfo();
+
+    return () => controller.abort();
+  }, [targetDevices, tokenRef]);
+
+  // Firmware-filtering architecture for the target. Derived from the fetched
+  // per-host `cpu_arch`. Only returns a concrete arch when every host agrees;
+  // mixed or unknown (null cpu_arch) targets stay `null` and are left
+  // unfiltered (e.g. group upgrades spanning multiple architectures).
+  const targetArch = useMemo((): DeviceArch | null => {
+    if (!targetDevices?.length) return null;
+    const arches = new Set(
+      targetDevices.map((h) =>
+        h.cpu_arch == null ? null : archForCpu(h.cpu_arch),
+      ),
+    );
+    if (arches.size !== 1) return null;
+    const [only] = [...arches];
+    return only;
+  }, [targetDevices]);
 
   // --- Polling ---
   //
@@ -344,8 +417,8 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     ): Promise<void> => {
       const baseUrl =
         process.env.FIRMWARE_URL &&
-        typeof process.env.FIRMWARE_URL === "string" &&
-        process.env.FIRMWARE_URL.startsWith("http")
+          typeof process.env.FIRMWARE_URL === "string" &&
+          process.env.FIRMWARE_URL.startsWith("http")
           ? process.env.FIRMWARE_URL
           : `${process.env.API_URL}/firmware/`;
 
@@ -503,9 +576,10 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       activateStep3,
       blockNavigation,
       startError,
+      group,
+      targetDevices,
       commitTarget,
       commitTargetName: commitTargetToName(commitTarget),
-      firmwareInfo,
       targetArch,
       updateComment,
       updateTicketRef,
@@ -526,7 +600,8 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       blockNavigation,
       startError,
       commitTarget,
-      firmwareInfo,
+      group,
+      targetDevices,
       targetArch,
       updateComment,
       updateTicketRef,

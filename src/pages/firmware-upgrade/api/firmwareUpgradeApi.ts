@@ -6,7 +6,7 @@ const API = process.env.API_URL;
 
 /** What the upgrade targets: either a single device or a whole group. */
 export type CommitTarget = {
-  readonly hostname?: string;
+  readonly hostname?: string[];
   readonly group?: string;
 };
 
@@ -29,48 +29,37 @@ export function getExceptionDevices(result: unknown): FailedDevices {
   return {};
 }
 
-/** Body of the `data` envelope from GET /devices?filter[hostname]=. */
-export type DeviceOsVersionData = {
-  readonly devices: readonly Device[];
-};
+/** Per-device OS/arch info from GET /devices?filter[hostname][in]=. */
+export type DeviceOsVersionData = readonly Pick<
+  Device,
+  "hostname" | "os_version" | "cpu_arch" | "platform"
+>[];
 
-/**
- * Body of the `data` envelope from GET /groups/{group}/os_version.
- * `groups[groupName][osVersion]` lists the hostnames currently running that
- * OS version.
- */
-export type GroupOsVersionData = {
-  readonly groups: Readonly<
-    Record<string, Readonly<Record<string, readonly string[]>>>
-  >;
-};
+export async function fetchDevicesInGroup(
+  group: string,
+  token: string | null,
+  signal?: AbortSignal,
+): Promise<string[]> {
+  const { data } = await getData(
+    `${API}/api/v1.0/groups/${encodeURIComponent(group)}`,
+    token,
+    signal,
+  );
+  return data.groups[group] ?? [];
+}
 
-/** Current OS version(s) for a single device, keyed by hostname. */
-export async function fetchDeviceOsVersion(
-  hostname: string,
+/** Current OS/arch info for the given devices (GET /devices?filter[hostname][in]=). */
+export async function fetchDeviceUpgradeFacts(
+  hostname: string[],
   token: string | null,
   signal?: AbortSignal,
 ): Promise<DeviceOsVersionData> {
   const { data } = await getData(
-    `${API}/api/v1.0/devices?filter[hostname]=${encodeURIComponent(hostname)}`,
+    `${API}/api/v1.0/devices?filter[hostname][in]=${encodeURIComponent(hostname.join(","))}`,
     token,
     signal,
   );
-  return data;
-}
-
-/** Current OS versions for every device in a group. */
-export async function fetchGroupOsVersion(
-  group: string,
-  token: string | null,
-  signal?: AbortSignal,
-): Promise<GroupOsVersionData> {
-  const { data } = await getData(
-    `${API}/api/v1.0/groups/${encodeURIComponent(group)}/os_version`,
-    token,
-    signal,
-  );
-  return data;
+  return data.devices ?? [];
 }
 
 /** Firmware image filenames downloaded to this NMS instance (GET /firmware). */

@@ -1,5 +1,4 @@
 import { makeJob } from "../../../test-utils/makeJob";
-import type { Device } from "../../../types/device";
 import {
   actions,
   firmwareUpgradeReducer,
@@ -46,13 +45,24 @@ test("SET_START_ERROR stores whatever message it is handed", () => {
   expect(next.startError).toBe("boom");
 });
 
-test("SET_FIRMWARE_INFO stores the device info", () => {
-  const info = {
-    devices: [{ hostname: "sw1", model: "CCS-710P-16P" } as Device],
-  };
+test("UPSERT_HOST_FIRMWARE adds new hosts", () => {
   const next = firmwareUpgradeReducer(initialState, {
-    type: actions.SET_FIRMWARE_INFO,
-    info,
+    type: actions.UPSERT_TARGET_DEVICE_INFO,
+    targetDevices: [{ hostname: "sw1" }],
   });
-  expect(next.firmwareInfo).toBe(info);
+  expect(next.targetDevices).toEqual([{ hostname: "sw1" }]);
+});
+
+test("UPSERT_HOST_FIRMWARE merges info into existing hosts", () => {
+  const seeded: FirmwareUpgradeState = {
+    ...initialState,
+    targetDevices: [{ hostname: "sw1" }],
+  };
+  const next = firmwareUpgradeReducer(seeded, {
+    type: actions.UPSERT_TARGET_DEVICE_INFO,
+    targetDevices: [{ hostname: "sw1", os_version: "4.30", cpu_arch: null }],
+  });
+  expect(next.targetDevices).toEqual([
+    { hostname: "sw1", os_version: "4.30", cpu_arch: null },
+  ]);
 });
