@@ -1,13 +1,14 @@
 import { useCallback, useState, type ChangeEvent, type ReactNode } from "react";
-import {
-  Form,
-  Input,
-  Modal,
-  ModalHeader,
-  ModalContent,
-  ModalActions,
-} from "semantic-ui-react";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import InputAdornment from "@mui/material/InputAdornment";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { Tooltip } from "../../../components/Tooltip";
 import { FirmwareProgressBar } from "./FirmwareProgressBar";
@@ -19,6 +20,7 @@ import {
 } from "../api/firmwareUpgradeApi";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
+import { Task } from "../../../components/Task";
 
 const dateRegEx = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})?$/;
 
@@ -91,12 +93,16 @@ export function FirmwareStep3() {
 
   const getStaggeredSteps = useCallback(async () => {
     try {
-      setStaggeredSteps(<p>Loading staggered steps...</p>);
+      setStaggeredSteps(<Typography>Loading staggered steps...</Typography>);
       const groups = await fetchStaggeredSteps(commitTarget.group ?? "", token);
       const stepElements: ReactNode[] = [];
       // enumerate groups and add step <index> to stepElements
       for (const [index, group] of groups.entries()) {
-        stepElements.push(<h2 key={`stepheader${index}`}>Step {index + 1}</h2>);
+        stepElements.push(
+          <Typography key={`stepheader${index}`} variant="h6" component="h2">
+            Step {index + 1}
+          </Typography>,
+        );
         const devicesElements: ReactNode[] = [];
         for (const device of group) {
           devicesElements.push(<li key={device}>{device}</li>);
@@ -109,11 +115,15 @@ export function FirmwareStep3() {
       if (error instanceof Response && error.status === 400) {
         const errorMessage = await error.json();
         setStaggeredSteps(
-          <p>Error fetching staggered steps: {errorMessage.message}</p>,
+          <Typography>
+            Error fetching staggered steps: {errorMessage.message}
+          </Typography>,
         );
       } else {
         const message = error instanceof Error ? error.message : String(error);
-        setStaggeredSteps(<p>Error fetching staggered steps: {message}</p>);
+        setStaggeredSteps(
+          <Typography>Error fetching staggered steps: {message}</Typography>,
+        );
       }
     }
   }, [token, commitTarget]);
@@ -149,111 +159,106 @@ export function FirmwareStep3() {
   }
 
   return (
-    <div className="task-container">
-      <div className="heading">
-        <h2>Reboot devices (3/3)</h2>
-        <Button variant="text" className="close">
-          Close
-        </Button>
-      </div>
-      <div className="task-collapsable">
-        <p>
-          Step 3 of 3: Reboot devices and check that they start with new
-          firmware
-        </p>
-        <Input
-          label={{ basic: true, content: "UTC" }}
-          labelPosition="right"
+    <Task title="Reboot devices (3/3)">
+      <Typography>
+        Step 3 of 3: Reboot devices and check that they start with new firmware
+      </Typography>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <TextField
           placeholder="2020-01-30 03:00:00"
           error={startAtError}
           onChange={onUpdateStartAt}
           value={startAt}
           disabled={jobStarted}
-        />{" "}
-        If left empty devices will reboot immediately
-        <Form>
-          <div className="info">
-            <Button
-              id="step3button"
-              variant="contained"
-              onClick={openConfirm}
-              disabled={disableStartButton}
-            >
-              Start reboots
-            </Button>
-            <Tooltip title="Only for groups of ACCESS only devices. Will reboot devices in steps to minimize impact.">
-              <div>
-                <Button
-                  id={"step3buttonStaggered"}
-                  variant="contained"
-                  onClick={openStaggeredConfirm}
-                  disabled={disableStaggeredButton}
-                >
-                  Staggered reboots...
-                </Button>
-              </div>
-            </Tooltip>
-            <Button
-              id="step3abortButton"
-              variant="contained"
-              color="error"
-              disabled={step3abortDisabled}
-              onClick={onClickStep3Abort}
-            >
-              Abort!
-            </Button>
-          </div>
-        </Form>
-        <ConfirmDialog
-          content="Are you sure you want to (schedule) reboot devices?"
-          open={confirmDiagOpen}
-          onCancel={closeConfirm}
-          onConfirm={okConfirm}
+          slotProps={{
+            input: {
+              endAdornment: <InputAdornment position="end">UTC</InputAdornment>,
+            },
+          }}
         />
-        <Modal
-          open={confirmStaggeredDiagOpen}
-          onClose={closeStaggeredConfirm}
-          size="small"
-        >
-          <ModalHeader>Staggered Reboots Steps</ModalHeader>
-          <ModalContent>
-            <p>
-              Are you sure you want to (schedule) reboot devices in the
-              following steps?
-            </p>
-            {staggeredSteps}
-          </ModalContent>
-          <ModalActions>
+        <Typography>If left empty devices will reboot immediately</Typography>
+      </Stack>
+      <Box component="form">
+        <Stack direction="row" spacing={2} sx={{ alignItems: "baseline" }}>
+          <Button
+            id="step3button"
+            variant="contained"
+            onClick={openConfirm}
+            disabled={disableStartButton}
+          >
+            Start reboots
+          </Button>
+          <Tooltip title="Only for groups of ACCESS only devices. Will reboot devices in steps to minimize impact.">
             <Button
-              variant="outlined"
-              color="inherit"
-              onClick={closeStaggeredConfirm}
-            >
-              Cancel
-            </Button>
-            <Button
+              id={"step3buttonStaggered"}
               variant="contained"
-              color="primary"
-              onClick={okStaggeredConfirm}
-              disabled={!staggeredCompatible}
+              onClick={openStaggeredConfirm}
+              disabled={disableStaggeredButton}
             >
-              OK
+              Staggered reboots...
             </Button>
-          </ModalActions>
-        </Modal>
-        <FirmwareProgressBar
-          jobStatus={jobStatus}
-          jobFinishedDevices={jobFinishedDevices}
-          totalCount={totalCount}
-        />
-        <FirmwareProgressInfo
-          jobStatus={jobStatus}
-          jobId={jobId}
-          jobData={jobData}
-          logLines={logLines}
-        />
-      </div>
+          </Tooltip>
+          <Button
+            id="step3abortButton"
+            variant="contained"
+            color="error"
+            disabled={step3abortDisabled}
+            onClick={onClickStep3Abort}
+          >
+            Abort!
+          </Button>
+        </Stack>
+      </Box>
+      <ConfirmDialog
+        content="Are you sure you want to (schedule) reboot devices?"
+        open={confirmDiagOpen}
+        onCancel={closeConfirm}
+        onConfirm={okConfirm}
+      />
+      <Dialog
+        open={confirmStaggeredDiagOpen}
+        onClose={closeStaggeredConfirm}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Staggered Reboots Steps</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to (schedule) reboot devices in the following
+            steps?
+          </Typography>
+          {staggeredSteps}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={closeStaggeredConfirm}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={okStaggeredConfirm}
+            disabled={!staggeredCompatible}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <FirmwareProgressBar
+        jobStatus={jobStatus}
+        jobFinishedDevices={jobFinishedDevices}
+        totalCount={totalCount}
+      />
+      <FirmwareProgressInfo
+        jobStatus={jobStatus}
+        jobId={jobId}
+        jobData={jobData}
+        logLines={logLines}
+      />
       {error}
-    </div>
+    </Task>
   );
 }

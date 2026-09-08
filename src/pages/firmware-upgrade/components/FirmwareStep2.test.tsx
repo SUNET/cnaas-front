@@ -40,7 +40,7 @@ afterEach(() => {
 });
 
 async function openDropdown() {
-  await userEvent.click(await screen.findByRole("listbox"));
+  await userEvent.click(await screen.findByRole("combobox"));
 }
 
 test("lists EOSarm firmware as a selectable arm option", async () => {

@@ -213,12 +213,16 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
   }, []);
 
   // Commit target for the upgrade POST, derived purely from state (no dispatch).
+  // Only one of hostname/group is sent to the upgrade API. `targetDevices` is
+  // populated with per-host info for a group target too (to show OS
+  // version/arch per host in step 1), so it can't be used to decide which
+  // target type this is — `group` presence is the only reliable signal.
   const commitTarget = useMemo((): CommitTarget => {
+    if (group) {
+      return { group };
+    }
     const hostname = targetDevices?.map((h) => h.hostname) ?? [];
-    return {
-      ...(hostname.length > 0 ? { hostname } : {}),
-      ...(group ? { group } : {}),
-    };
+    return hostname.length > 0 ? { hostname } : {};
   }, [targetDevices, group]);
 
   // Fetch the hostnames of all devices in a group target, if any.
