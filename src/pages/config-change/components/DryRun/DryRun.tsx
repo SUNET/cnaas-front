@@ -3,9 +3,9 @@ import { Form } from "semantic-ui-react";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Button from "@mui/material/Button";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Tooltip } from "../../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import { Task } from "../../../../components/Task";
 import permissionsCheck from "../../../../utils/permissions/permissionsCheck";
 import { DryRunError } from "./DryRunError";
 import { DryRunProgressBar } from "./DryRunProgressBar";
@@ -43,31 +43,24 @@ export function DryRun({
   logLines,
 }: DryRunProps) {
   const [resync, setResync] = useState(false);
-  const [expanded, setExpanded] = useState(true);
 
   return (
-    <div className="task-container">
-      <div className="heading">
-        <h2 id="dry_run_section">
-          <ArrowDropDownIcon
-            onClick={() => setExpanded((prev) => !prev)}
-            sx={{
-              cursor: "pointer",
-              transform: expanded ? undefined : "rotate(-90deg)",
-            }}
-          />
-          Dry run (2/4)
-          <Tooltip
-            title={
-              "This step will generate new configurations and send them to the targeted devices, and the devices will then compare their currently running configuration to the newly generated and return a diff." +
-              " No configuration will be changed. If any device has been configured outside of NMS you will get a configuration hash mismatch error, and need to do a force retry to see which local changes a commit would overwrite."
-            }
-          >
-            <HelpOutlineOutlinedIcon fontSize="small" />
-          </Tooltip>
-        </h2>
-      </div>
-      <div className="task-collapsable" hidden={!expanded}>
+    <>
+      <Task
+        title={
+          <>
+            Dry run (2/4)
+            <Tooltip
+              title={
+                "This step will generate new configurations and send them to the targeted devices, and the devices will then compare their currently running configuration to the newly generated and return a diff." +
+                " No configuration will be changed. If any device has been configured outside of NMS you will get a configuration hash mismatch error, and need to do a force retry to see which local changes a commit would overwrite."
+              }
+            >
+              <HelpOutlineOutlinedIcon fontSize="small" />
+            </Tooltip>
+          </>
+        }
+      >
         <p>
           Step 2 of 4: Sending generated configuration to devices to calculate
           diff and check sanity
@@ -119,7 +112,7 @@ export function DryRun({
           jobId={jobId}
           logLines={logLines}
         />
-      </div>
+      </Task>
       {dryRunJobStatus === "EXCEPTION" && (
         <DryRunError
           dryRunSyncStart={dryRunSyncStart}
@@ -129,6 +122,6 @@ export function DryRun({
           setSynctoForce={setSynctoForce}
         />
       )}
-    </div>
+    </>
   );
 }
