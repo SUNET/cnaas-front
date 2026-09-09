@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Table } from "semantic-ui-react";
 import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import { Task } from "../../../components/Task";
 import { formatISODate } from "../../../utils/formatters";
 import type { SyncEvent, SyncHistory } from "../../../types/syncHistory";
 import type {
@@ -139,8 +139,6 @@ type SyncStatusProps = {
 };
 
 export function SyncStatus({ devices, synchistory, target }: SyncStatusProps) {
-  const [expanded, setExpanded] = useState(false);
-
   const renderDeviceList = () => {
     const causes = getCauses(devices, synchistory);
     const columns = Object.entries(causes).map(([cause, devices]) => ({
@@ -171,29 +169,22 @@ export function SyncStatus({ devices, synchistory, target }: SyncStatusProps) {
   return (
     <>
       <h1 key="header">Commit configuration changes (syncto)</h1>
-      <div key="container" className="task-container">
-        <div key="heading" className="heading">
-          <h2>
-            <ArrowDropDownIcon
-              onClick={() => setExpanded((prev) => !prev)}
-              sx={{
-                cursor: "pointer",
-                transform: expanded ? undefined : "rotate(-90deg)",
-              }}
-            />
+      <Task
+        defaultExpanded={false}
+        title={
+          <>
             Target: {getCommitTargetName()}
             <Tooltip title="Specifies the target devices for the dry run and confirm commit actions below. Synchronization events are previous events that has caused the target devices to have become unsynchronized.">
               <HelpOutlineOutlinedIcon fontSize="small" />
             </Tooltip>
-          </h2>
-        </div>
-        <div key="events" className="task-collapsable" hidden={!expanded}>
-          <p key="syncstatus">
-            Synchronization events for: {getCommitTargetName()}
-          </p>
-          {renderDeviceList()}
-        </div>
-      </div>
+          </>
+        }
+      >
+        <p key="syncstatus">
+          Synchronization events for: {getCommitTargetName()}
+        </p>
+        {renderDeviceList()}
+      </Task>
     </>
   );
 }
