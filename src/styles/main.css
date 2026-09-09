@@ -84,11 +84,6 @@ p {
   font-weight: 400;
 }
 
-p.tokenexpired {
-  font-weight: bold;
-  color: var(--color-error);
-}
-
 /* p:first-child {
   margin-top: 16px;
 } */
@@ -140,74 +135,6 @@ footer {
   border-top: var(--color-secondary) solid 1px;
   display: flex;
   padding: var(--size-md);
-}
-
-/* task styles */
-.task-container {
-  border: solid gray 1px;
-  margin: var(--size-md) 0;
-}
-
-.task-container h2,
-.task-container p,
-.task-container ul {
-  padding: 0 var(--size-md);
-}
-
-.task-container p,
-.task-container ul {
-  font-size: var(--size-lg);
-  font-weight: 400;
-}
-
-.task-container .heading {
-  display: flex;
-  justify-content: space-between;
-  background-color: var(--color-surface);
-}
-
-.task-container .heading h2 {
-  margin: var(--size-xl) 0 var(--size-xl) 0;
-}
-
-.task-container .close {
-  background: transparent;
-  border: none;
-  text-transform: capitalize;
-  color: var(--color-secondary);
-}
-
-.task-container .close:hover {
-  background-color: transparent;
-  border: none;
-  border-radius: 0;
-  text-decoration: underline;
-}
-
-.task-collapsable {
-  margin-top: var(--size-md);
-}
-
-.task-collapsable .tablecontainer {
-  margin: var(--size-md);
-}
-
-.task-collapsable .info {
-  display: flex;
-  align-items: baseline;
-}
-
-.ui.checkbox {
-  margin: var(--size-md);
-}
-
-.task-container .ui.input.job_comment,
-.task-container .ui.input.job_ticket_ref {
-  margin-left: var(--size-md);
-}
-
-.task-container .job_comment {
-  width: 50em;
 }
 
 table,
@@ -317,49 +244,12 @@ progress::-moz-progress-bar {
   width: fit-content;
 }
 
-#data .device_details_table {
-  width: 100%;
-  table-layout: fixed;
-}
-
-#data .device_details_table td {
-  padding: 4px;
-}
-
-#data .device_details_table tr td:first-child {
-  min-width: 20em;
-  max-width: 25em;
-}
-
 /* error styles */
 .error {
   color: var(--color-secondary);
 }
 
 /* diff box styles */
-#diff-box {
-  background-color: var(--color-surface);
-  margin: 0 var(--size-md);
-}
-
-#diff-box li {
-  margin: var(--size-md) 0;
-}
-
-#diff-box li .device-name {
-  background-color: var(--color-surface);
-}
-
-#diff-box .device-name {
-  color: var(--color-primary);
-  padding: var(--size-md);
-  margin: 0;
-}
-
-#diff-box pre {
-  padding-left: var(--size-md);
-}
-
 .diff-box pre.exception {
   white-space: pre-wrap;
   color: var(--color-secondary);
