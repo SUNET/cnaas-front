@@ -1,9 +1,14 @@
 import { Fragment } from "react";
+import { useNavigate } from "react-router";
 import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
 import Link from "@mui/material/Link";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { updateDeviceFacts } from "../../../api/deviceApi";
 import { NavigationBlocker } from "../../../components/NavigationBlocker";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { FirmwareStep1 } from "./FirmwareStep1";
 import { FirmwareStep2 } from "./FirmwareStep2";
 import { FirmwareStep3 } from "./FirmwareStep3";
@@ -27,16 +32,24 @@ function joinLinks(devices: readonly TargetDeviceUpgradeInfo[]) {
 }
 
 export function FirmwareUpgrade() {
+  const { token } = useAuthToken();
+  const navigate = useNavigate();
   const {
     blockNavigation,
     startError,
     targetDevices,
     devicesMissingArch,
-    devicesMissingPlatform,
     updateComment,
     updateTicketRef,
     group,
   } = useFirmwareUpgrade();
+
+  const updateFacts = (devices: readonly TargetDeviceUpgradeInfo[]) => {
+    Promise.all(
+      devices.map(({ hostname }) => updateDeviceFacts(hostname, token)),
+    ).catch((error) => console.error("Failed to update facts:", error));
+    navigate("/jobs");
+  };
 
   return (
     <>
@@ -53,36 +66,43 @@ export function FirmwareUpgrade() {
           {group || targetDevices?.map((h) => h.hostname).join(", ") || "N/A"}
         </Typography>
         {startError && (
-          <Alert severity="error" sx={{ marginBottom: "var(--size-md)" }}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {startError}
           </Alert>
         )}
         {devicesMissingArch.length > 0 && (
-          <Alert severity="error" sx={{ marginBottom: "var(--size-md)" }}>
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button
+                variant="contained"
+                color="secondary"
+                size="small"
+                endIcon={<OpenInNewIcon />}
+                onClick={() => updateFacts(devicesMissingArch)}
+              >
+                Update facts
+              </Button>
+            }
+          >
             CPU architecture is unknown for these devices:{" "}
             {joinLinks(devicesMissingArch)}. Run &quot;Update facts&quot; on
             them before proceeding.
-          </Alert>
-        )}
-        {devicesMissingPlatform.length > 0 && (
-          <Alert severity="warning" sx={{ marginBottom: "var(--size-md)" }}>
-            Platform is unknown for these devices:{" "}
-            {joinLinks(devicesMissingPlatform)}. Run &quot;Update facts&quot; on
-            them to get more accurate firmware compatibility checks.
           </Alert>
         )}
         <Typography>Describe the change:</Typography>
         <TextField
           placeholder="comment"
           onChange={updateComment}
-          sx={{ width: "50em", marginBottom: "var(--size-md)" }}
+          sx={{ width: "50em", mb: 2 }}
           slotProps={{ htmlInput: { maxLength: 255 } }}
         />
         <Typography>Enter service ticket ID reference:</Typography>
         <TextField
           placeholder="ticket reference"
           onChange={updateTicketRef}
-          sx={{ width: "15em", marginBottom: "var(--size-md)" }}
+          sx={{ width: "15em", mb: 2 }}
           slotProps={{ htmlInput: { maxLength: 32 } }}
         />
         <FirmwareStep1 />
