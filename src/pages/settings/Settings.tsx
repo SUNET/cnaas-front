@@ -85,7 +85,7 @@ export function Settings() {
               control={
                 <Switch
                   name="distPortConfig"
-                  defaultChecked={distPortConfig}
+                  checked={distPortConfig}
                   onChange={(e) => handleCheckboxChange(e.target.checked)}
                 />
               }
