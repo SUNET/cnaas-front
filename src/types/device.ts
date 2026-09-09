@@ -170,6 +170,18 @@ export function isDeviceType(value: unknown): value is DeviceType {
 /** Firmware architecture a device runs: arm (EOSarm-) or x86 (EOS/EOS64-). */
 export type DeviceArch = "arm" | "x86";
 
+export type CpuArchitecture = "X86_32" | "X86_64" | "ARM64";
+
+export function isCpuArchitecture(
+  cpuArch: string | null | undefined,
+): cpuArch is CpuArchitecture {
+  return cpuArch === "X86_32" || cpuArch === "X86_64" || cpuArch === "ARM64";
+}
+
+export function isArm(arch: CpuArchitecture): arch is "ARM64" {
+  return arch === "ARM64";
+}
+
 /**
  * Model families that run the ARM EOS image (`EOSarm-`). Matched as a substring
  * of the device `model` so all SKU variants (port/optics/fan suffixes such as
