@@ -34,6 +34,7 @@ export function FirmwareStep2() {
     step2: { jobId, jobData, totalCount },
     logLines,
     targetArch,
+    targetDeviceArches,
     devicesMissingArch,
     skipStep2,
     firmwareUpgradeStart,
@@ -93,6 +94,8 @@ export function FirmwareStep2() {
   const getFirmwareFiles = async (): Promise<FirmwareOption[]> => {
     const fetchedFileNames = await fetchFirmwareFiles(token);
     const newFirmwareOptions: FirmwareOption[] = [];
+    const requires32bit = targetDeviceArches.includes("X86_32");
+    const requires64bit = targetDeviceArches.includes("X86_64");
     fetchedFileNames.forEach((fetchedFileName, index) => {
       if (process.env.ARISTA_DETECT_ARCH === "true") {
         const [prefix, version] = fetchedFileName.split(/-(.*)/);
@@ -122,9 +125,20 @@ export function FirmwareStep2() {
               // build combined entry for both 32+64bit images if both are found
               newFirmwareOptions.push({
                 key: index,
-                value: `detect_arch-${fetchedFileName}`,
+                value: fetchedFileName,
                 text: `${fetchedFileName.substring(6)} (32+64bit)`,
                 icon: "circle",
+              });
+            } else if (requires32bit) {
+              // Target devices include 32-bit-only hardware, but the matching
+              // EOS-<version> file hasn't been downloaded, so those devices
+              // would fail to download this firmware.
+              newFirmwareOptions.push({
+                key: index,
+                value: fetchedFileName,
+                text: `${fetchedFileName} (not dual-arch, missing 32-bit image)`,
+                icon: "adjust",
+                disabled: true,
               });
             } else {
               newFirmwareOptions.push({
@@ -141,13 +155,25 @@ export function FirmwareStep2() {
               // combined entry for both 32+64bit images already added, skip this 32bit image
               break;
             }
-            newFirmwareOptions.push({
-              key: index,
-              value: fetchedFileName,
-              text: `${fetchedFileName} (not dual-arch)`,
-              icon: "adjust",
-              disabled: true,
-            });
+            if (requires64bit) {
+              // Target devices include 64-bit-capable hardware, but the
+              // matching EOS64-<version> file hasn't been downloaded, so
+              // those devices would fail to download this firmware.
+              newFirmwareOptions.push({
+                key: index,
+                value: fetchedFileName,
+                text: `${fetchedFileName} (not dual-arch, missing 64-bit image)`,
+                icon: "adjust",
+                disabled: true,
+              });
+            } else {
+              newFirmwareOptions.push({
+                key: index,
+                value: fetchedFileName,
+                text: `${fetchedFileName} (not dual-arch)`,
+                icon: "adjust",
+              });
+            }
             break;
 
           default:
@@ -178,7 +204,7 @@ export function FirmwareStep2() {
     };
     fetchData();
     // Re-fetch/re-filter when the target architecture resolves.
-  }, [targetArch, token]);
+  }, [targetArch, targetDeviceArches, token]);
 
   const error =
     jobStatus === "EXCEPTION" ? (

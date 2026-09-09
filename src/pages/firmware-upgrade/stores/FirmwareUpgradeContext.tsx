@@ -13,7 +13,12 @@ import { useSearchParams } from "react-router";
 import { useBeforeUnloadWarning } from "../../../hooks/useBeforeUnloadWarning";
 import { useFreshRef } from "../../../hooks/useFreshRef";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
-import { type DeviceArch } from "../../../types/device";
+import {
+  isArm,
+  isCpuArchitecture,
+  type CpuArchitecture,
+  type DeviceArch,
+} from "../../../types/device";
 import { isTerminalJobStatus, type Job } from "../../../types/job";
 import {
   extractErrorMessage,
@@ -80,10 +85,18 @@ type FirmwareUpgradeContextValue = {
   readonly commitTarget: CommitTarget;
   readonly commitTargetName: string;
   /**
-   * Firmware-filtering architecture for the target, derived from the fetched
-   * per-host `cpu_arch`. `null` for mixed or unknown targets (left unfiltered).
+   * Firmware-filtering architecture family for the target, derived from the
+   * fetched per-host `cpu_arch`. `null` for mixed (e.g. arm and x86 devices
+   * together) or unknown targets (left unfiltered).
    */
   readonly targetArch: DeviceArch | null;
+  /**
+   * Distinct precise `cpu_arch` values present among target devices (ignoring
+   * hosts with unknown/unfetched `cpu_arch`). Unlike `targetArch`, this keeps
+   * the 32-bit/64-bit x86 distinction, so it can tell whether a group needs
+   * both `EOS-` and `EOS64-` firmware files downloaded.
+   */
+  readonly targetDeviceArches: readonly CpuArchitecture[];
   /**
    * Hosts whose `cpu_arch` fetch has completed but came back null (unknown to
    * the backend). Blocking: without a known arch, the step 2 firmware dropdown
@@ -131,11 +144,6 @@ function commitTargetToName(target: CommitTarget): string {
     return `group: ${target.group}`;
   }
   return "unknown";
-}
-
-/** Map a device `cpu_arch` string to a firmware-filtering architecture. */
-function archForCpu(cpuArch: string): DeviceArch {
-  return cpuArch.toLowerCase().includes("arm") ? "arm" : "x86";
 }
 
 const POLL_INTERVAL_MS = 5000;
@@ -300,20 +308,31 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
     return () => controller.abort();
   }, [targetDevices, tokenRef]);
 
-  // Firmware-filtering architecture for the target. Derived from the fetched
-  // per-host `cpu_arch`. Only returns a concrete arch when every host agrees;
-  // mixed or unknown (null cpu_arch) targets stay `null` and are left
-  // unfiltered (e.g. group upgrades spanning multiple architectures).
+  // Firmware-filtering architecture family for the target. Derived from the
+  // fetched per-host `cpu_arch`. Only returns a concrete family when every
+  // host agrees; mixed (arm + x86) or unknown targets stay `null` and are
+  // left unfiltered (e.g. group upgrades spanning multiple architectures).
   const targetArch = useMemo((): DeviceArch | null => {
     if (!targetDevices?.length) return null;
-    const arches = new Set(
+    const isArmValues = new Set(
       targetDevices.map((h) =>
-        h.cpu_arch == null ? null : archForCpu(h.cpu_arch),
+        isCpuArchitecture(h.cpu_arch) ? isArm(h.cpu_arch) : null,
       ),
     );
-    if (arches.size !== 1) return null;
-    const [only] = [...arches];
-    return only;
+    if (isArmValues.size !== 1) return null;
+    const [onlyIsArm] = [...isArmValues];
+    if (onlyIsArm === null) return null;
+    return onlyIsArm ? "arm" : "x86";
+  }, [targetDevices]);
+
+  // Distinct precise cpu_arch values present among target devices, keeping
+  // the 32-bit/64-bit x86 distinction that `targetArch` collapses. Hosts with
+  // an unknown/unfetched cpu_arch are excluded (see devicesMissingArch below).
+  const targetDeviceArches = useMemo((): readonly CpuArchitecture[] => {
+    const arches = new Set(
+      (targetDevices ?? []).map((h) => h.cpu_arch).filter(isCpuArchitecture),
+    );
+    return [...arches];
   }, [targetDevices]);
 
   // Hosts where the arch/platform fetch has completed (`in`) but came back
@@ -613,6 +632,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       commitTarget,
       commitTargetName: commitTargetToName(commitTarget),
       targetArch,
+      targetDeviceArches,
       devicesMissingArch,
       devicesMissingPlatform,
       updateComment,
@@ -637,6 +657,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       group,
       targetDevices,
       targetArch,
+      targetDeviceArches,
       devicesMissingArch,
       devicesMissingPlatform,
       updateComment,
