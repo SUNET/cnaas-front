@@ -220,7 +220,7 @@ export function DeviceInfoTable({
             <TableCell key="osversion_value">{device.os_version}</TableCell>
           </TableRow>
           <TableRow key="row_cpu_arch">
-            <TableCell key="cpu_arch">CPU Architectue</TableCell>
+            <TableCell key="cpu_arch">CPU Architecture</TableCell>
             <TableCell key="cpu_arch_value">{device.cpu_arch}</TableCell>
           </TableRow>
           <TableRow key="row_serial">
