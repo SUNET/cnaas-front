@@ -4,10 +4,10 @@ import type { InputOnChangeData } from "semantic-ui-react";
 import Button from "@mui/material/Button";
 import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import { Task } from "../../../components/Task";
 import { Tooltip } from "../../../components/Tooltip";
 
 import { getData } from "../../../utils/getData";
@@ -98,7 +98,6 @@ export function ConfigChangeStep4({
   const [confirmModeOptions, setConfirmModeOptions] = useState<
     ConfirmModeOption[]
   >([]);
-  const [expanded, setExpanded] = useState(true);
   const [jobComment, setJobComment] = useState("");
   const [jobTicketRef, setJobTicketRef] = useState("");
   const { token } = useAuthToken();
@@ -172,100 +171,92 @@ export function ConfigChangeStep4({
       );
 
   return (
-    <div className="task-container">
-      <div className="heading">
-        <h2>
-          <ArrowDropDownIcon
-            onClick={() => setExpanded((prev) => !prev)}
-            sx={{
-              cursor: "pointer",
-              transform: expanded ? undefined : "rotate(-90deg)",
-            }}
-          />
+    <Task
+      title={
+        <>
           Commit configuration (4/4)
           <Tooltip title="This will send the newly generated configurations to the targeted devices and activate it. It's a good idea to describe the change or give a ticket reference so you can understand what was the intention when looking in the job history log.">
             <HelpOutlineOutlinedIcon fontSize="small" />
           </Tooltip>
-        </h2>
-      </div>
-      <div className="task-collapsable" hidden={!expanded}>
-        <p>Step 4 of 4: Final step, commit new configuration to devices</p>
-        <p>Describe the change:</p>
-        <div className="info">
-          <Input
-            placeholder="comment"
-            maxLength="255"
-            className="job_comment"
-            error={!jobTicketRef && !jobComment}
-            onChange={(_e: unknown, data: InputOnChangeData) =>
-              setJobComment(data.value)
-            }
-          />
-        </div>
-        <p>Enter service ticket ID reference:</p>
+        </>
+      }
+    >
+      <p>Step 4 of 4: Final step, commit new configuration to devices</p>
+      <p>Describe the change:</p>
+      <div className="info">
         <Input
-          placeholder="ticket reference"
-          maxLength="32"
-          className="job_ticket_ref"
+          placeholder="comment"
+          maxLength="255"
+          className="job_comment"
           error={!jobTicketRef && !jobComment}
           onChange={(_e: unknown, data: InputOnChangeData) =>
-            setJobTicketRef(data.value)
+            setJobComment(data.value)
           }
         />
-        <br />
-        <Button
-          id="confirmButton"
-          variant="contained"
-          color="secondary"
-          disabled={commitButtonDisabled}
-          onClick={() => setConfirmDiagOpen(true)}
-        >
-          Deploy change (live run)
-        </Button>{" "}
-        {warnings}
-        <Select
-          disabled={confirmModeDefault === -1}
-          placeholder="commit confirm mode (use server default)"
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Semantic UI Select types expect string values but we use numbers
-          options={confirmModeOptions as any}
-          onChange={(_e, option) => updateConfirmMode(option.value as number)}
-        />
-        <ConfirmDialog
-          content="Are you sure you want to commit changes to devices and overwrite any local changes?"
-          open={confirmDiagOpen}
-          onCancel={() => setConfirmDiagOpen(false)}
-          onConfirm={() => okConfirm()}
-        />
-        <DryRunProgressBar
-          dryRunJobStatus={liveRunJobStatus}
-          dryRunProgressData={liveRunProgressData}
-          totalDevices={totalCount}
-          keyNum={1}
-        />
-        <DryRunProgressInfo
-          dryRunJobStatus={liveRunJobStatus}
-          dryRunProgressData={liveRunProgressData}
-          jobId={jobId}
-          logLines={logLines}
-          keyNum={1}
-        />
-        <p hidden={confirmMode !== 2}>Confirm progress: </p>
-        <DryRunProgressBar
-          hidden={confirmMode !== 2}
-          dryRunJobStatus={confirmRunJobStatus}
-          dryRunProgressData={confirmRunProgressData}
-          totalDevices={totalCount}
-          keyNum={2}
-        />
-        <DryRunProgressInfo
-          hidden={confirmMode !== 2}
-          dryRunJobStatus={confirmRunJobStatus}
-          dryRunProgressData={confirmRunProgressData}
-          jobId={confirmJobId}
-          logLines={logLines}
-          keyNum={2}
-        />
       </div>
-    </div>
+      <p>Enter service ticket ID reference:</p>
+      <Input
+        placeholder="ticket reference"
+        maxLength="32"
+        className="job_ticket_ref"
+        error={!jobTicketRef && !jobComment}
+        onChange={(_e: unknown, data: InputOnChangeData) =>
+          setJobTicketRef(data.value)
+        }
+      />
+      <br />
+      <Button
+        id="confirmButton"
+        variant="contained"
+        color="secondary"
+        disabled={commitButtonDisabled}
+        onClick={() => setConfirmDiagOpen(true)}
+      >
+        Deploy change (live run)
+      </Button>{" "}
+      {warnings}
+      <Select
+        disabled={confirmModeDefault === -1}
+        placeholder="commit confirm mode (use server default)"
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Semantic UI Select types expect string values but we use numbers
+        options={confirmModeOptions as any}
+        onChange={(_e, option) => updateConfirmMode(option.value as number)}
+      />
+      <ConfirmDialog
+        content="Are you sure you want to commit changes to devices and overwrite any local changes?"
+        open={confirmDiagOpen}
+        onCancel={() => setConfirmDiagOpen(false)}
+        onConfirm={() => okConfirm()}
+      />
+      <DryRunProgressBar
+        dryRunJobStatus={liveRunJobStatus}
+        dryRunProgressData={liveRunProgressData}
+        totalDevices={totalCount}
+        keyNum={1}
+      />
+      <DryRunProgressInfo
+        dryRunJobStatus={liveRunJobStatus}
+        dryRunProgressData={liveRunProgressData}
+        jobId={jobId}
+        logLines={logLines}
+        keyNum={1}
+      />
+      <p hidden={confirmMode !== 2}>Confirm progress: </p>
+      <DryRunProgressBar
+        hidden={confirmMode !== 2}
+        dryRunJobStatus={confirmRunJobStatus}
+        dryRunProgressData={confirmRunProgressData}
+        totalDevices={totalCount}
+        keyNum={2}
+      />
+      <DryRunProgressInfo
+        hidden={confirmMode !== 2}
+        dryRunJobStatus={confirmRunJobStatus}
+        dryRunProgressData={confirmRunProgressData}
+        jobId={confirmJobId}
+        logLines={logLines}
+        keyNum={2}
+      />
+    </Task>
   );
 }
