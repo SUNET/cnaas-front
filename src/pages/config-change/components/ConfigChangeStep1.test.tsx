@@ -31,7 +31,7 @@ beforeEach(() => {
   });
 });
 
-test("loads and displays 3 enabled buttons", async () => {
+test("loads and displays 4 enabled buttons", async () => {
   await act(async () =>
     render(
       <ConfigChangeStep1
@@ -42,7 +42,8 @@ test("loads and displays 3 enabled buttons", async () => {
   );
   const buttons = screen.getAllByRole("button");
 
-  expect(buttons.length).toBe(3);
+  // 3 action buttons + the Task accordion's expand/collapse toggle.
+  expect(buttons.length).toBe(4);
   buttons.forEach((button) => expect(button).toBeEnabled());
 });
 
