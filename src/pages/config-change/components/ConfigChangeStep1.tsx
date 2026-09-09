@@ -44,7 +44,8 @@ export function ConfigChangeStep1({
   });
   const { permissionsCheck } = usePermissions();
   const { token } = useAuthToken();
-  const { dispatch, state } = useConfigChange();
+  const { dispatch, settingsCommitsBehind, templatesCommitsBehind } =
+    useConfigChange();
 
   const buttonsDisabled =
     dryRunJobStatus ||
@@ -168,11 +169,7 @@ export function ConfigChangeStep1({
           disabled={!!buttonsDisabled}
           onClick={() => refreshRepo("settings")}
         >
-          <Badge
-            badgeContent={state.settingsCommitsBehind}
-            color="primary"
-            max={100}
-          >
+          <Badge badgeContent={settingsCommitsBehind} color="primary" max={100}>
             Refresh settings
           </Badge>
         </Button>
@@ -184,11 +181,7 @@ export function ConfigChangeStep1({
           onClick={() => handleRefreshAndDryRun("settings")}
         >
           {" "}
-          <Badge
-            badgeContent={state.settingsCommitsBehind}
-            color="primary"
-            max={100}
-          >
+          <Badge badgeContent={settingsCommitsBehind} color="primary" max={100}>
             Refresh settings + dry run
           </Badge>
         </Button>
@@ -203,7 +196,7 @@ export function ConfigChangeStep1({
           onClick={() => refreshRepo("templates")}
         >
           <Badge
-            badgeContent={state.templatesCommitsBehind}
+            badgeContent={templatesCommitsBehind}
             color="primary"
             max={100}
           >
