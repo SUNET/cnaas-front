@@ -1,5 +1,7 @@
 import { getData } from "../utils/getData";
+import { postData } from "../utils/sendData";
 import type { Device } from "../types/device";
+import type { ScheduledJobResponse } from "../types/job";
 
 /**
  * Cross-page shared device helpers. Page-specific device fetchers live
@@ -44,6 +46,19 @@ export async function fetchDevice(
     console.error(`Failed to fetch device ${hostname}:`, error);
     return null;
   }
+}
+
+/**
+ * Schedule an update_facts job for a device.
+ *
+ * Cross-page shared helper (used by the DeviceList and FirmwareUpgrade pages).
+ */
+export async function updateDeviceFacts(
+  hostname: string,
+  token: string | null,
+): Promise<ScheduledJobResponse> {
+  const url = `${process.env.API_URL}/api/v1.0/device_update_facts`;
+  return postData(url, token, { hostname });
 }
 
 /**
