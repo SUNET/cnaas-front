@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
-import Button from "@mui/material/Button";
-import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import Badge from "@mui/material/Badge";
+import Button from "@mui/material/Button";
+import { useEffect, useState } from "react";
+import LogViewer from "../../../components/LogViewer";
 import { Task } from "../../../components/Task";
+import { Tooltip } from "../../../components/Tooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { usePermissions } from "../../../stores/PermissionsContext";
+import { matchesJobId } from "../../../types/job";
 import { getData } from "../../../utils/getData";
 import { putData } from "../../../utils/sendData";
-import { matchesJobId } from "../../../types/job";
-import LogViewer from "../../../components/LogViewer";
+import { useConfigChange } from "../stores/ConfigChangeContext";
+import { actions, type RepoName } from "../stores/configChangeReducer";
 
 function filterLogLinesByJobIds(jobIds: number[]) {
   const matchers = jobIds.map((id) => matchesJobId(id));
@@ -41,18 +44,28 @@ export function ConfigChangeStep1({
   });
   const { permissionsCheck } = usePermissions();
   const { token } = useAuthToken();
+  const { dispatch, state } = useConfigChange();
 
   const buttonsDisabled =
     dryRunJobStatus ||
     commitUpdateInfo.settings === "updating..." ||
     commitUpdateInfo.templates === "updating...";
 
+  function setCommitsBehind(repoName: RepoName, commitsBehind: number | null) {
+    dispatch(
+      repoName === "settings"
+        ? { type: actions.SET_SETTINGS_COMMITS_BEHIND, commitsBehind }
+        : { type: actions.SET_TEMPLATES_COMMITS_BEHIND, commitsBehind },
+    );
+  }
+
   useEffect(() => {
-    async function getRepoStatus(repoName: string) {
+    async function getRepoStatus(repoName: RepoName) {
       const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
       try {
         const data = await getData(url, token);
         setCommitInfo((prev) => ({ ...prev, [repoName]: data.data }));
+        setCommitsBehind(repoName, data.commits_behind ?? null);
       } catch (error) {
         console.error(`Failed to fetch ${repoName} repo status:`, error);
       }
@@ -63,7 +76,7 @@ export function ConfigChangeStep1({
     }
   }, [token]);
 
-  async function refreshRepo(repoName: string) {
+  async function refreshRepo(repoName: RepoName) {
     setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "updating..." }));
     setRepoWorking(true);
 
@@ -81,6 +94,11 @@ export function ConfigChangeStep1({
         ...prev,
         [repoName]: success ? "success" : "error",
       }));
+      // The refresh response doesn't include commits_behind (only GET does),
+      // but a successful refresh means we just pulled to match origin.
+      if (success) {
+        setCommitsBehind(repoName, 0);
+      }
       return success;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -92,7 +110,7 @@ export function ConfigChangeStep1({
     }
   }
 
-  async function handleRefreshAndDryRun(repoName: string) {
+  async function handleRefreshAndDryRun(repoName: RepoName) {
     const success = await refreshRepo(repoName);
     if (success) {
       onDryRunReady();
@@ -150,7 +168,13 @@ export function ConfigChangeStep1({
           disabled={!!buttonsDisabled}
           onClick={() => refreshRepo("settings")}
         >
-          Refresh settings
+          <Badge
+            badgeContent={state.settingsCommitsBehind}
+            color="primary"
+            max={100}
+          >
+            Refresh settings
+          </Badge>
         </Button>
         <Button
           variant="contained"
@@ -159,7 +183,14 @@ export function ConfigChangeStep1({
           disabled={!!buttonsDisabled}
           onClick={() => handleRefreshAndDryRun("settings")}
         >
-          Refresh settings + dry run
+          {" "}
+          <Badge
+            badgeContent={state.settingsCommitsBehind}
+            color="primary"
+            max={100}
+          >
+            Refresh settings + dry run
+          </Badge>
         </Button>
         <p>{commitUpdateInfo.settings}</p>
       </div>
@@ -171,7 +202,13 @@ export function ConfigChangeStep1({
           disabled={!!buttonsDisabled}
           onClick={() => refreshRepo("templates")}
         >
-          Refresh templates
+          <Badge
+            badgeContent={state.templatesCommitsBehind}
+            color="primary"
+            max={100}
+          >
+            Refresh templates
+          </Badge>
         </Button>
         <p>{commitUpdateInfo.templates}</p>
       </div>
