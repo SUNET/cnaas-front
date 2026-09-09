@@ -39,6 +39,7 @@ export function FirmwareUpgrade() {
     startError,
     targetDevices,
     devicesMissingArch,
+    devicesNonEos,
     updateComment,
     updateTicketRef,
     group,
@@ -89,6 +90,13 @@ export function FirmwareUpgrade() {
             CPU architecture is unknown for these devices:{" "}
             {joinLinks(devicesMissingArch)}. Run &quot;Update facts&quot; on
             them before proceeding.
+          </Alert>
+        )}
+        {devicesNonEos.length > 0 && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Firmware upgrade currently only supports Arista EOS devices. These
+            devices have a different platform and likely won&apos;t upgrade
+            successfully: {joinLinks(devicesNonEos)}.
           </Alert>
         )}
         <Typography>Describe the change:</Typography>

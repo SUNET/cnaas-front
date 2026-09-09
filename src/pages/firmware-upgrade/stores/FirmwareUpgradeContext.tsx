@@ -109,6 +109,12 @@ type FirmwareUpgradeContextValue = {
    * upgrade time, so this is just earlier feedback, not a hard requirement.
    */
   readonly devicesMissingPlatform: readonly TargetDeviceUpgradeInfo[];
+  /**
+   * Hosts whose `platform` is known but isn't "eos". Advisory only: firmware
+   * upgrade currently only supports Arista EOS devices, so these devices are
+   * unlikely to upgrade successfully via this flow.
+   */
+  readonly devicesNonEos: readonly TargetDeviceUpgradeInfo[];
   readonly updateComment: (e: ChangeEvent<HTMLInputElement>) => void;
   readonly updateTicketRef: (e: ChangeEvent<HTMLInputElement>) => void;
   readonly skipStep2: () => void;
@@ -345,6 +351,13 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
   const devicesMissingPlatform = useMemo(
     () =>
       targetDevices?.filter((h) => "platform" in h && h.platform == null) ?? [],
+    [targetDevices],
+  );
+  const devicesNonEos = useMemo(
+    () =>
+      targetDevices?.filter(
+        (h) => "platform" in h && h.platform != null && h.platform !== "eos",
+      ) ?? [],
     [targetDevices],
   );
 
@@ -635,6 +648,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       targetDeviceArches,
       devicesMissingArch,
       devicesMissingPlatform,
+      devicesNonEos,
       updateComment,
       updateTicketRef,
       skipStep2,
@@ -660,6 +674,7 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
       targetDeviceArches,
       devicesMissingArch,
       devicesMissingPlatform,
+      devicesNonEos,
       updateComment,
       updateTicketRef,
       skipStep2,

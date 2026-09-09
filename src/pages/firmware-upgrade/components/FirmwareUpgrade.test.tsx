@@ -149,6 +149,35 @@ test("blocks step 2 and shows a warning when cpu_arch is unknown", async () => {
   expect(startButton).toBeDisabled();
 });
 
+test("shows a warning (but does not block step 2) for non-EOS devices", async () => {
+  mockGetDataResponses({
+    devices: [
+      {
+        hostname: "test-switch",
+        os_version: "15.2(2)E6",
+        cpu_arch: "x86_64",
+        platform: "ios",
+      },
+    ],
+  });
+
+  renderComponent();
+
+  const alertText = await screen.findByText(
+    /Firmware upgrade currently only supports Arista EOS devices/,
+  );
+  const alert = alertText.closest('[role="alert"]') ?? alertText;
+  expect(
+    within(alert as HTMLElement).getByRole("link", { name: "test-switch" }),
+  ).toBeInTheDocument();
+
+  await selectFirmware(/firmware-4.29.0.bin/);
+  const startButton = screen.getByRole("button", {
+    name: /start activate firmware/i,
+  });
+  expect(startButton).toBeEnabled();
+});
+
 test("renders firmware upgrade page with target group", async () => {
   mockGetDataResponses({
     groups: { "test-group": ["dev1", "dev2"] },
