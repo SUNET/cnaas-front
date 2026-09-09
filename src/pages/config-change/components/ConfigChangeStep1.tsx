@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import { Task } from "../../../components/Task";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import { usePermissions } from "../../../stores/PermissionsContext";
 import { getData } from "../../../utils/getData";
@@ -39,7 +39,6 @@ export function ConfigChangeStep1({
     settings: null,
     templates: null,
   });
-  const [expanded, setExpanded] = useState(true);
   const { permissionsCheck } = usePermissions();
   const { token } = useAuthToken();
 
@@ -125,66 +124,58 @@ export function ConfigChangeStep1({
   }
 
   return (
-    <div className="task-container">
-      <div className="heading">
-        <h2 id="refreshrepo_section">
-          <ArrowDropDownIcon
-            onClick={() => setExpanded((prev) => !prev)}
-            sx={{
-              cursor: "pointer",
-              transform: expanded ? undefined : "rotate(-90deg)",
-            }}
-          />
+    <Task
+      title={
+        <>
           Optional: Refresh repositories (1/4)
           <Tooltip title="Pull latest commits from git repository to NMS server. You can skip this step if you know there are no changes in the git repository.">
             <HelpOutlineOutlinedIcon fontSize="small" />
           </Tooltip>
-        </h2>
+        </>
+      }
+    >
+      <div className="info">
+        <p>Latest settings repo commit: </p>
+        {prettifyCommit(commitInfo.settings)}
       </div>
-      <div className="task-collapsable" hidden={!expanded}>
-        <div className="info">
-          <p>Latest settings repo commit: </p>
-          {prettifyCommit(commitInfo.settings)}
-        </div>
-        <div className="info">
-          <p>Latest templates repo commit: </p>
-          {prettifyCommit(commitInfo.templates)}
-        </div>
-        <div className="info">
-          <Button
-            variant="contained"
-            color="secondary"
-            hidden={!permissionsCheck("Config change", "write")}
-            disabled={!!buttonsDisabled}
-            onClick={() => refreshRepo("settings")}
-          >
-            Refresh settings
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            hidden={!permissionsCheck("Config change", "write")}
-            disabled={!!buttonsDisabled}
-            onClick={() => handleRefreshAndDryRun("settings")}
-          >
-            Refresh settings + dry run
-          </Button>
-          <p>{commitUpdateInfo.settings}</p>
-        </div>
-        <div className="info">
-          <Button
-            variant="contained"
-            color="secondary"
-            hidden={!permissionsCheck("Config change", "write")}
-            disabled={!!buttonsDisabled}
-            onClick={() => refreshRepo("templates")}
-          >
-            Refresh templates
-          </Button>
-          <p>{commitUpdateInfo.templates}</p>
-        </div>
-        <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />
+      <div className="info">
+        <p>Latest templates repo commit: </p>
+        {prettifyCommit(commitInfo.templates)}
       </div>
-    </div>
+      <div className="info">
+        <Button
+          variant="contained"
+          color="secondary"
+          hidden={!permissionsCheck("Config change", "write")}
+          disabled={!!buttonsDisabled}
+          onClick={() => refreshRepo("settings")}
+        >
+          Refresh settings
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          hidden={!permissionsCheck("Config change", "write")}
+          disabled={!!buttonsDisabled}
+          onClick={() => handleRefreshAndDryRun("settings")}
+        >
+          Refresh settings + dry run
+        </Button>
+        <p>{commitUpdateInfo.settings}</p>
+      </div>
+      <div className="info">
+        <Button
+          variant="contained"
+          color="secondary"
+          hidden={!permissionsCheck("Config change", "write")}
+          disabled={!!buttonsDisabled}
+          onClick={() => refreshRepo("templates")}
+        >
+          Refresh templates
+        </Button>
+        <p>{commitUpdateInfo.templates}</p>
+      </div>
+      <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />
+    </Task>
   );
 }
