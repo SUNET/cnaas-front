@@ -7,6 +7,7 @@ import {
   useEffect,
   useCallback,
   type ReactNode,
+  type Dispatch,
 } from "react";
 import { useSearchParams } from "react-router";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
@@ -25,6 +26,7 @@ import {
   actions,
   type ConfigChangeState,
   type CommitTarget,
+  type Action,
 } from "./configChangeReducer";
 import {
   isDevicesJobResult,
@@ -99,6 +101,7 @@ function deriveConfirmRun(job: Job | null): ConfirmRunState {
 
 type ConfigChangeContextValue = {
   readonly state: ConfigChangeState;
+  readonly dispatch: Dispatch<Action>;
   readonly dryRun: DryRunState;
   readonly liveRun: LiveRunState;
   readonly confirmRun: ConfirmRunState;
@@ -378,6 +381,7 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
   const value = useMemo(
     (): ConfigChangeContextValue => ({
       state,
+      dispatch,
       dryRun,
       liveRun,
       confirmRun,

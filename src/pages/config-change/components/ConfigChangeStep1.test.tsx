@@ -11,6 +11,9 @@ import { usePermissions as usePermissionsImport } from "../../../stores/Permissi
 jest.mock("../../../utils/getData");
 jest.mock("../../../utils/sendData");
 jest.mock("../../../stores/PermissionsContext");
+jest.mock("../stores/ConfigChangeContext", () => ({
+  useConfigChange: () => ({ dispatch: jest.fn() }),
+}));
 
 const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
 const mockPutData = putDataImport as jest.MockedFunction<typeof putDataImport>;

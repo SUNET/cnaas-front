@@ -15,6 +15,8 @@ export type CommitTarget = {
   readonly all?: true;
 };
 
+export type RepoName = "settings" | "templates";
+
 export type ConfigChangeState = {
   readonly devices: SyncTargetDevice[];
   readonly syncHistory: SyncHistory;
@@ -30,6 +32,8 @@ export type ConfigChangeState = {
   readonly isRepoRefreshing: boolean;
   readonly repoJobId: number | null;
   readonly stoppedRepoJobs: readonly number[];
+  readonly settingsCommitsBehind: number | null;
+  readonly templatesCommitsBehind: number | null;
 };
 
 // --- Action types ---
@@ -50,6 +54,8 @@ export const actions = {
   SET_REPO_REFRESHING: "SET_REPO_REFRESHING",
   SET_REPO_JOB_ID: "SET_REPO_JOB_ID",
   REPO_JOB_STOPPED: "REPO_JOB_STOPPED",
+  SET_SETTINGS_COMMITS_BEHIND: "SET_SETTINGS_COMMITS_BEHIND",
+  SET_TEMPLATES_COMMITS_BEHIND: "SET_TEMPLATES_COMMITS_BEHIND",
 } as const;
 
 export type Action =
@@ -67,7 +73,15 @@ export type Action =
   | { type: typeof actions.RESET_STATE }
   | { type: typeof actions.SET_REPO_REFRESHING; refreshing: boolean }
   | { type: typeof actions.SET_REPO_JOB_ID; jobId: number | null }
-  | { type: typeof actions.REPO_JOB_STOPPED };
+  | { type: typeof actions.REPO_JOB_STOPPED }
+  | {
+      type: typeof actions.SET_SETTINGS_COMMITS_BEHIND;
+      commitsBehind: number | null;
+    }
+  | {
+      type: typeof actions.SET_TEMPLATES_COMMITS_BEHIND;
+      commitsBehind: number | null;
+    };
 
 // --- Initial state ---
 
@@ -86,6 +100,8 @@ export const initialState: ConfigChangeState = {
   isRepoRefreshing: false,
   repoJobId: null,
   stoppedRepoJobs: [],
+  settingsCommitsBehind: null,
+  templatesCommitsBehind: null,
 };
 
 // --- Reducer ---
@@ -162,6 +178,12 @@ export function configChangeReducer(
 
     case actions.RESET_STATE:
       return { ...initialState };
+
+    case actions.SET_SETTINGS_COMMITS_BEHIND:
+      return { ...state, settingsCommitsBehind: action.commitsBehind };
+
+    case actions.SET_TEMPLATES_COMMITS_BEHIND:
+      return { ...state, templatesCommitsBehind: action.commitsBehind };
 
     default:
       return state;
