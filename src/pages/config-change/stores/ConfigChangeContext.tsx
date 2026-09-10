@@ -109,6 +109,7 @@ type ConfigChangeContextValue = {
   readonly isRepoRefreshing: boolean;
   readonly settingsCommitsBehind: number | null;
   readonly templatesCommitsBehind: number | null;
+  readonly autoDryRunAfterRefresh: boolean;
   readonly deviceSyncStart: (options?: DeviceSyncOptions) => Promise<void>;
   readonly handleRepoRefreshing: (isRefreshing: boolean) => Promise<void>;
   readonly handleDryRunReady: () => void;
@@ -403,6 +404,7 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
       isRepoRefreshing: state.isRepoRefreshing,
       settingsCommitsBehind: state.settingsCommitsBehind,
       templatesCommitsBehind: state.templatesCommitsBehind,
+      autoDryRunAfterRefresh: state.autoDryRunAfterRefresh,
       deviceSyncStart,
       handleRepoRefreshing,
       handleDryRunReady,

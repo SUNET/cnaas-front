@@ -1,7 +1,10 @@
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import Badge from "@mui/material/Badge";
-import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
+import { BadgeButton } from "../../../components/BadgeButton";
 import LogViewer from "../../../components/LogViewer";
 import { Task } from "../../../components/Task";
 import { Tooltip } from "../../../components/Tooltip";
@@ -47,7 +50,11 @@ export function ConfigChangeStep1({
   });
   const { permissionsCheck } = usePermissions();
   const { token } = useAuthToken();
-  const { settingsCommitsBehind, templatesCommitsBehind } = useConfigChange();
+  const {
+    autoDryRunAfterRefresh,
+    settingsCommitsBehind,
+    templatesCommitsBehind,
+  } = useConfigChange();
   const dispatch = useConfigChangeDispatch();
 
   const buttonsDisabled =
@@ -123,6 +130,14 @@ export function ConfigChangeStep1({
     }
   }
 
+  function handleRefreshSettings() {
+    if (autoDryRunAfterRefresh) {
+      handleRefreshAndDryRun("settings");
+    } else {
+      refreshRepo("settings");
+    }
+  }
+
   function prettifyCommit(commitStr: unknown) {
     if (typeof commitStr !== "string") {
       if (commitStr == null) return <p />;
@@ -145,6 +160,21 @@ export function ConfigChangeStep1({
     );
   }
 
+  function renderUpdateStatus(status: string | null) {
+    if (status === "updating...") {
+      return <Typography color="text.secondary">Updating…</Typography>;
+    }
+    if (status === "success") {
+      return (
+        <Typography color="success.main">✓ Refreshed successfully</Typography>
+      );
+    }
+    if (status === "error") {
+      return <Typography color="error.main">✗ Refresh failed</Typography>;
+    }
+    return null;
+  }
+
   return (
     <Task
       title={
@@ -165,48 +195,42 @@ export function ConfigChangeStep1({
         {prettifyCommit(commitInfo.templates)}
       </div>
       <div className="info">
-        <Button
-          variant="contained"
-          color="secondary"
-          hidden={!permissionsCheck("Config change", "write")}
-          disabled={!!buttonsDisabled}
-          onClick={() => refreshRepo("settings")}
-        >
-          <Badge badgeContent={settingsCommitsBehind} color="primary" max={100}>
+        <Stack direction="row" spacing={1}>
+          <BadgeButton
+            badgeCount={settingsCommitsBehind}
+            hidden={!permissionsCheck("Config change", "write")}
+            disabled={!!buttonsDisabled}
+            onClick={handleRefreshSettings}
+          >
             Refresh settings
-          </Badge>
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          hidden={!permissionsCheck("Config change", "write")}
-          disabled={!!buttonsDisabled}
-          onClick={() => handleRefreshAndDryRun("settings")}
-        >
-          {" "}
-          <Badge badgeContent={settingsCommitsBehind} color="primary" max={100}>
-            Refresh settings + dry run
-          </Badge>
-        </Button>
-        <p>{commitUpdateInfo.settings}</p>
+          </BadgeButton>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={autoDryRunAfterRefresh}
+                onChange={(event) =>
+                  dispatch({
+                    type: actions.SET_AUTO_DRY_RUN_AFTER_REFRESH,
+                    enabled: event.target.checked,
+                  })
+                }
+              />
+            }
+            label="Auto dry run after refresh settings"
+          />
+        </Stack>
+        {renderUpdateStatus(commitUpdateInfo.settings)}
       </div>
       <div className="info">
-        <Button
-          variant="contained"
-          color="secondary"
+        <BadgeButton
+          badgeCount={templatesCommitsBehind}
           hidden={!permissionsCheck("Config change", "write")}
           disabled={!!buttonsDisabled}
           onClick={() => refreshRepo("templates")}
         >
-          <Badge
-            badgeContent={templatesCommitsBehind}
-            color="primary"
-            max={100}
-          >
-            Refresh templates
-          </Badge>
-        </Button>
-        <p>{commitUpdateInfo.templates}</p>
+          Refresh templates
+        </BadgeButton>
+        {renderUpdateStatus(commitUpdateInfo.templates)}
       </div>
       <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />
     </Task>
