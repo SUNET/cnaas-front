@@ -81,20 +81,21 @@ export async function fetchNmsFirmware(
   }
 }
 
-// Order firmware for display: 64-bit images (EOS64-…) first, then 32-bit
-// (EOS-…); within each group newest version on top. We treat the token before
-// the first "-" as the platform prefix ("EOS64"/"EOS") and compare the version
-// that follows segment-by-segment so dotted patch releases rank correctly
-// (4.32.5.1 is newer than 4.32.5).
-function is64bit(filename: string): boolean {
-  return filename.split("-")[0].includes("64");
+// Order firmware for display: grouped by platform prefix — 64-bit x86
+// (EOS64-…) first, then 32-bit x86 (EOS-…), then arm (EOSarm-…) last, with any
+// unrecognized prefix after that — and within each group, newest version on
+// top.
+const PLATFORM_ORDER = ["EOS64", "EOS", "EOSarm"] as const;
+
+function platformOf(filename: string): string {
+  return filename.split("-")[0];
 }
 
 // Numeric version segments of a firmware filename, e.g.
 // "EOS-4.32.5.1M.swi" -> [4, 32, 5, 1]. Non-numeric tokens such as "stable"
 // have no segments and rank newest, so they map to [Infinity] to float to top.
 function versionSegments(filename: string): number[] {
-  const token = filename.replace(/^EOS(64)?-/, "").replace(/\.swi$/, "");
+  const token = filename.replace(/^EOS(64|arm)?-/, "").replace(/\.swi$/, "");
   const segments = token
     .split(".")
     .map((part) => Number.parseInt(part, 10))
@@ -111,11 +112,40 @@ function compareSegments(a: number[], b: number[]): number {
   return headA === headB ? compareSegments(restA, restB) : headB - headA;
 }
 
-export function compareFirmwareFiles(a: string, b: string): number {
-  const a64 = is64bit(a);
-  const b64 = is64bit(b);
-  if (a64 !== b64) return a64 ? -1 : 1;
+function compareByVersion(a: string, b: string): number {
   return compareSegments(versionSegments(a), versionSegments(b));
+}
+
+// Group firmware files by platform prefix, sort each group newest-first, then
+// concatenate the groups in PLATFORM_ORDER (unrecognized prefixes last, in
+// first-seen order).
+export function sortFirmwareFiles(
+  files: readonly FirmwareFile[],
+): FirmwareFile[] {
+  const groups = new Map<string, FirmwareFile[]>();
+  for (const file of files) {
+    const key = platformOf(file.filename);
+    const group = groups.get(key);
+    if (group) {
+      group.push(file);
+    } else {
+      groups.set(key, [file]);
+    }
+  }
+
+  const orderedKeys = [
+    ...PLATFORM_ORDER,
+    ...[...groups.keys()].filter(
+      (key) => !PLATFORM_ORDER.includes(key as never),
+    ),
+  ];
+
+  return orderedKeys.flatMap(
+    (key) =>
+      groups
+        .get(key)
+        ?.sort((a, b) => compareByVersion(a.filename, b.filename)) ?? [],
+  );
 }
 
 // Combine repo + NMS views into a single sorted list. Pure — never mutates its
@@ -142,24 +172,31 @@ export function mergeFirmwareData(
     (firmware) => !repoData.some((f) => f.filename === firmware.filename),
   );
 
-  return [...merged, ...nmsOnly].sort((a, b) =>
-    compareFirmwareFiles(a.filename, b.filename),
-  );
+  return sortFirmwareFiles([...merged, ...nmsOnly]);
 }
 
 // Kick off a background job that downloads `filename` from the central repo to
 // this NMS instance. Resolves with the job id to track over Socket.IO.
+// Prefers verifying via sha512 (the new default checksum going forward) and
+// falls back to sha1 for repo entries that only carry the older checksum. The
+// BE expects a `{ algorithm, checksum }` object (the legacy flat `sha1` field
+// still works too, with algorithm assumed to be sha1, but being explicit here
+// avoids relying on that legacy behavior).
 export async function copyFirmware(
   filename: string,
   sha1sum: string | undefined,
+  sha512sum: string | undefined,
   token: string | null,
 ): Promise<number> {
+  const checksum = sha512sum
+    ? { algorithm: "sha512", checksum: sha512sum }
+    : { algorithm: "sha1", checksum: sha1sum };
   const data: { job_id?: unknown } = await postData(
     `${API}/api/v1.0/firmware`,
     token,
     {
       url: `${process.env.FIRMWARE_REPO_URL}${filename}`,
-      sha1: sha1sum,
+      checksum,
       verify_tls: true,
     },
   );
