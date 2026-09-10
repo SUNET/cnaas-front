@@ -237,7 +237,7 @@ test("step 2: user selects firmware file and starts activation job", async () =>
       expect.stringContaining("/api/v1.0/firmware/upgrade"),
       "test-token",
       expect.objectContaining({
-        hostname: ["test-switch"],
+        hostname: "test-switch",
         filename: "firmware-4.29.0.bin",
         activate: true,
         download: true,
