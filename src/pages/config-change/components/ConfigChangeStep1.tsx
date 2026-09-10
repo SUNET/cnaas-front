@@ -10,7 +10,10 @@ import { usePermissions } from "../../../stores/PermissionsContext";
 import { matchesJobId } from "../../../types/job";
 import { getData } from "../../../utils/getData";
 import { putData } from "../../../utils/sendData";
-import { useConfigChange } from "../stores/ConfigChangeContext";
+import {
+  useConfigChange,
+  useConfigChangeDispatch,
+} from "../stores/ConfigChangeContext";
 import { actions, type RepoName } from "../stores/configChangeReducer";
 
 function filterLogLinesByJobIds(jobIds: number[]) {
@@ -44,8 +47,8 @@ export function ConfigChangeStep1({
   });
   const { permissionsCheck } = usePermissions();
   const { token } = useAuthToken();
-  const { dispatch, settingsCommitsBehind, templatesCommitsBehind } =
-    useConfigChange();
+  const { settingsCommitsBehind, templatesCommitsBehind } = useConfigChange();
+  const dispatch = useConfigChangeDispatch();
 
   const buttonsDisabled =
     dryRunJobStatus ||

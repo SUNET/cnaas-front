@@ -1,18 +1,24 @@
 import {
   createContext,
+  useCallback,
   useContext,
+  useEffect,
+  useMemo,
   useReducer,
   useRef,
-  useMemo,
-  useEffect,
-  useCallback,
-  type ReactNode,
   type Dispatch,
+  type ReactNode,
 } from "react";
 import { useSearchParams } from "react-router";
-import { useAuthToken } from "../../../stores/AuthTokenContext";
-import { useFreshRef } from "../../../hooks/useFreshRef";
 import { useBeforeUnloadWarning } from "../../../hooks/useBeforeUnloadWarning";
+import { useFreshRef } from "../../../hooks/useFreshRef";
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import {
+  isDevicesJobResult,
+  isLiveRunResult,
+  type DeviceResult,
+  type Job,
+} from "../../../types/job";
 import {
   fetchDeviceList,
   fetchJobStatus,
@@ -20,21 +26,15 @@ import {
   startDeviceSync,
   type DeviceSyncOptions,
 } from "../api/configChangeApi";
+import { useConfigChangeSocket } from "../hooks/useConfigChangeSocket";
 import {
+  actions,
   configChangeReducer,
   initialState,
-  actions,
-  type ConfigChangeState,
-  type CommitTarget,
   type Action,
+  type CommitTarget,
+  type ConfigChangeState,
 } from "./configChangeReducer";
-import {
-  isDevicesJobResult,
-  isLiveRunResult,
-  type DeviceResult,
-  type Job,
-} from "../../../types/job";
-import { useConfigChangeSocket } from "../hooks/useConfigChangeSocket";
 
 // --- Derived state ---
 
@@ -101,7 +101,6 @@ function deriveConfirmRun(job: Job | null): ConfirmRunState {
 
 type ConfigChangeContextValue = {
   readonly state: ConfigChangeState;
-  readonly dispatch: Dispatch<Action>;
   readonly dryRun: DryRunState;
   readonly liveRun: LiveRunState;
   readonly confirmRun: ConfirmRunState;
@@ -120,11 +119,24 @@ type ConfigChangeContextValue = {
 const ConfigChangeContext = createContext<ConfigChangeContextValue | null>(
   null,
 );
+const ConfigChangeDispatchContext = createContext<Dispatch<Action> | null>(
+  null,
+);
 
 export function useConfigChange(): ConfigChangeContextValue {
   const ctx = useContext(ConfigChangeContext);
   if (ctx == null) {
     throw new Error("useConfigChange must be used within ConfigChangeProvider");
+  }
+  return ctx;
+}
+
+export function useConfigChangeDispatch(): Dispatch<Action> {
+  const ctx = useContext(ConfigChangeDispatchContext);
+  if (ctx == null) {
+    throw new Error(
+      "useConfigChangeDispatch must be used within ConfigChangeProvider",
+    );
   }
   return ctx;
 }
@@ -383,7 +395,6 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
   const value = useMemo(
     (): ConfigChangeContextValue => ({
       state,
-      dispatch,
       dryRun,
       liveRun,
       confirmRun,
@@ -415,7 +426,9 @@ export function ConfigChangeProvider({ children }: ProviderProps) {
 
   return (
     <ConfigChangeContext.Provider value={value}>
-      {children}
+      <ConfigChangeDispatchContext.Provider value={dispatch}>
+        {children}
+      </ConfigChangeDispatchContext.Provider>
     </ConfigChangeContext.Provider>
   );
 }
