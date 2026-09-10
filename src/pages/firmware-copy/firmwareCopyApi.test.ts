@@ -138,6 +138,24 @@ describe("mergeFirmwareData", () => {
     ]);
   });
 
+  it("sorts arm after 64-bit and 32-bit x86, newest version first", () => {
+    const repo = [
+      repoFile({ filename: "EOSarm-4.32.5M.swi" }),
+      repoFile({ filename: "EOSarm-4.34.6M.swi" }),
+      repoFile({ filename: "EOS-4.34.6M.swi" }),
+      repoFile({ filename: "EOS64-4.34.6M.swi" }),
+    ];
+
+    const result = mergeFirmwareData(repo, []).map((f) => f.filename);
+
+    expect(result).toEqual([
+      "EOS64-4.34.6M.swi",
+      "EOS-4.34.6M.swi",
+      "EOSarm-4.34.6M.swi",
+      "EOSarm-4.32.5M.swi",
+    ]);
+  });
+
   it("ranks a dotted patch release as newer than its base version", () => {
     const repo = [
       repoFile({ filename: "EOS-4.32.5M.swi" }),
@@ -215,10 +233,15 @@ describe("copyFirmware", () => {
     process.env.FIRMWARE_REPO_URL = "http://repo.example/firmware/";
   });
 
-  it("posts the repo URL + sha1 and returns the job id", async () => {
+  it("prefers sha512 over sha1 when both are present", async () => {
     postData.mockResolvedValue({ job_id: 42 });
 
-    const jobId = await copyFirmware("EOS-4.30.0F.swi", "abc123", "tok");
+    const jobId = await copyFirmware(
+      "EOS-4.30.0F.swi",
+      "abc123",
+      "def456",
+      "tok",
+    );
 
     expect(jobId).toBe(42);
     expect(postData).toHaveBeenCalledWith(
@@ -226,7 +249,29 @@ describe("copyFirmware", () => {
       "tok",
       {
         url: "http://repo.example/firmware/EOS-4.30.0F.swi",
-        sha1: "abc123",
+        checksum: { algorithm: "sha512", checksum: "def456" },
+        verify_tls: true,
+      },
+    );
+  });
+
+  it("falls back to sha1 when sha512 is missing", async () => {
+    postData.mockResolvedValue({ job_id: 42 });
+
+    const jobId = await copyFirmware(
+      "EOS-4.30.0F.swi",
+      "abc123",
+      undefined,
+      "tok",
+    );
+
+    expect(jobId).toBe(42);
+    expect(postData).toHaveBeenCalledWith(
+      `${process.env.API_URL}/api/v1.0/firmware`,
+      "tok",
+      {
+        url: "http://repo.example/firmware/EOS-4.30.0F.swi",
+        checksum: { algorithm: "sha1", checksum: "abc123" },
         verify_tls: true,
       },
     );
@@ -236,7 +281,7 @@ describe("copyFirmware", () => {
     postData.mockResolvedValue({});
 
     await expect(
-      copyFirmware("EOS-4.30.0F.swi", "abc123", "tok"),
+      copyFirmware("EOS-4.30.0F.swi", "abc123", undefined, "tok"),
     ).rejects.toThrow(/job_id/);
   });
 });

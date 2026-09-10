@@ -25,6 +25,7 @@ const ButtonStack = styled("div")({
 type FirmwareCopyFormProps = {
   readonly filename: string;
   readonly sha1sum?: string;
+  readonly sha512sum?: string;
   readonly alreadyDownloaded: boolean;
   readonly defaultFirmware?: string;
   readonly linkedTo?: string;
@@ -34,6 +35,7 @@ type FirmwareCopyFormProps = {
 export function FirmwareCopyForm({
   filename,
   sha1sum,
+  sha512sum,
   alreadyDownloaded,
   defaultFirmware,
   linkedTo,
@@ -54,7 +56,7 @@ export function FirmwareCopyForm({
 
   const submitCopy = async () => {
     try {
-      const jobId = await copyFirmware(filename, sha1sum, token);
+      const jobId = await copyFirmware(filename, sha1sum, sha512sum, token);
       setCopyJobId(jobId);
       setCopyJobStatus("RUNNING");
     } catch (err) {
@@ -129,7 +131,7 @@ export function FirmwareCopyForm({
       <ButtonStack>
         <Button
           variant="contained"
-          disabled={copyJobId !== null || !sha1sum}
+          disabled={copyJobId !== null || (!sha1sum && !sha512sum)}
           onClick={submitCopy}
           endIcon={<CloudDownloadIcon />}
         >
