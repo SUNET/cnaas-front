@@ -1,16 +1,16 @@
+import { getData as getDataImport } from "../../utils/getData";
 import {
-  type FirmwareFile,
+  deleteData as deleteDataImport,
+  postData as postDataImport,
+} from "../../utils/sendData";
+import {
   copyFirmware,
   deleteFirmware,
   fetchRepoFirmware,
   mergeFirmwareData,
   setDefaultFirmware,
 } from "./firmwareCopyApi";
-import { getData as getDataImport } from "../../utils/getData";
-import {
-  deleteData as deleteDataImport,
-  postData as postDataImport,
-} from "../../utils/sendData";
+import type { FirmwareFile } from "./types/firmware";
 
 jest.mock("../../utils/getData");
 jest.mock("../../utils/sendData");
