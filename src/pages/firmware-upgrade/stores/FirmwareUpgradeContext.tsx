@@ -488,6 +488,13 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
 
       const dataToSend = {
         ...commitTarget,
+        // The upgrade POST endpoint doesn't support a single-item hostname
+        // list yet, so a lone target device is sent as a plain string
+        // instead of string[].
+        ...(Array.isArray(commitTarget.hostname) &&
+          commitTarget.hostname.length === 1 && {
+            hostname: commitTarget.hostname[0],
+          }),
         url: baseUrl,
         comment: jobCommentRef.current,
         ticket_ref: jobTicketRefRef.current,
@@ -500,13 +507,6 @@ export function FirmwareUpgradeProvider({ children }: ProviderProps) {
         ...(step === 3 && {
           post_flight: true,
           reboot: true,
-          // The step 3 (reboot) endpoint doesn't support a single-item
-          // hostname list yet, so send a lone target device as a plain
-          // string instead of string[].
-          ...(Array.isArray(commitTarget.hostname) &&
-            commitTarget.hostname.length === 1 && {
-              hostname: commitTarget.hostname[0],
-            }),
         }),
         ...(startAt && { start_at: startAt }),
         ...(staggeredUpgrade && { staggered_upgrade: staggeredUpgrade }),
