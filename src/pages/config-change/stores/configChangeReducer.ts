@@ -34,6 +34,7 @@ export type ConfigChangeState = {
   readonly stoppedRepoJobs: readonly number[];
   readonly settingsCommitsBehind: number | null;
   readonly templatesCommitsBehind: number | null;
+  readonly autoDryRunAfterRefresh: boolean;
 };
 
 // --- Action types ---
@@ -56,6 +57,7 @@ export const actions = {
   REPO_JOB_STOPPED: "REPO_JOB_STOPPED",
   SET_SETTINGS_COMMITS_BEHIND: "SET_SETTINGS_COMMITS_BEHIND",
   SET_TEMPLATES_COMMITS_BEHIND: "SET_TEMPLATES_COMMITS_BEHIND",
+  SET_AUTO_DRY_RUN_AFTER_REFRESH: "SET_AUTO_DRY_RUN_AFTER_REFRESH",
 } as const;
 
 export type Action =
@@ -81,7 +83,8 @@ export type Action =
   | {
       type: typeof actions.SET_TEMPLATES_COMMITS_BEHIND;
       commitsBehind: number | null;
-    };
+    }
+  | { type: typeof actions.SET_AUTO_DRY_RUN_AFTER_REFRESH; enabled: boolean };
 
 // --- Initial state ---
 
@@ -102,6 +105,7 @@ export const initialState: ConfigChangeState = {
   stoppedRepoJobs: [],
   settingsCommitsBehind: null,
   templatesCommitsBehind: null,
+  autoDryRunAfterRefresh: true,
 };
 
 // --- Reducer ---
@@ -184,6 +188,9 @@ export function configChangeReducer(
 
     case actions.SET_TEMPLATES_COMMITS_BEHIND:
       return { ...state, templatesCommitsBehind: action.commitsBehind };
+
+    case actions.SET_AUTO_DRY_RUN_AFTER_REFRESH:
+      return { ...state, autoDryRunAfterRefresh: action.enabled };
 
     default:
       return state;
