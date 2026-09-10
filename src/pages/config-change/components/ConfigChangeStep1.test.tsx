@@ -13,10 +13,10 @@ jest.mock("../../../utils/sendData");
 jest.mock("../../../stores/PermissionsContext");
 jest.mock("../stores/ConfigChangeContext", () => ({
   useConfigChange: () => ({
-    dispatch: jest.fn(),
     settingsCommitsBehind: null,
     templatesCommitsBehind: null,
   }),
+  useConfigChangeDispatch: () => jest.fn(),
 }));
 
 const mockGetData = getDataImport as jest.MockedFunction<typeof getDataImport>;
