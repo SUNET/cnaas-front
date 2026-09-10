@@ -285,7 +285,7 @@ test("step 3: user starts reboot after skipping step 2", async () => {
       expect.stringContaining("/api/v1.0/firmware/upgrade"),
       "test-token",
       expect.objectContaining({
-        hostname: ["test-switch"],
+        hostname: "test-switch",
         post_flight: true,
         reboot: true,
       }),
