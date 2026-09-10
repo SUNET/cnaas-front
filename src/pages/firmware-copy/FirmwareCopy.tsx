@@ -1,3 +1,11 @@
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CloudIcon from "@mui/icons-material/Cloud";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import SaveIcon from "@mui/icons-material/Save";
+import StarIcon from "@mui/icons-material/Star";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -8,23 +16,15 @@ import {
   TableRow,
 } from "semantic-ui-react";
 import { Tooltip } from "../../components/Tooltip";
-import CircularProgress from "@mui/material/CircularProgress";
-import CloudIcon from "@mui/icons-material/Cloud";
-import SaveIcon from "@mui/icons-material/Save";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
-import StarIcon from "@mui/icons-material/Star";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import permissionsCheck from "../../utils/permissions/permissionsCheck";
 import { FirmwareCopyForm } from "./FirmwareCopyForm";
 import {
-  type FirmwareFile,
   fetchNmsFirmware,
   fetchRepoFirmware,
   mergeFirmwareData,
 } from "./firmwareCopyApi";
+import type { FirmwareFile } from "./types/firmware";
 import { useFirmwareCopySocket } from "./useFirmwareCopySocket";
 
 function PopupPresentInRepo() {
