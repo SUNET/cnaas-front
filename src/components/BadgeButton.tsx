@@ -1,19 +1,7 @@
 import Badge from "@mui/material/Badge";
 import Button from "@mui/material/Button";
-import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { Tooltip } from "./Tooltip";
-
-// Buttons in this app get a theme-wide margin (see MuiButton styleOverrides
-// in App.tsx). Badge positions itself relative to its child's margin box, so
-// without this offset the badge would float away from the button's visible
-// corner by that same margin. Nudge it back in by that amount.
-const OffsetBadge = styled(Badge)(({ theme }) => ({
-  "& .MuiBadge-badge": {
-    top: theme.spacing(1),
-    right: theme.spacing(1),
-  },
-}));
 
 type BadgeButtonProps = {
   readonly children: ReactNode;
@@ -52,7 +40,7 @@ export function BadgeButton({
 }: BadgeButtonProps) {
   return (
     <Tooltip title={getBadgeTooltip(badgeCount)}>
-      <OffsetBadge
+      <Badge
         hidden={hidden}
         badgeContent={getBadgeContent(badgeCount)}
         color={getBadgeColor(badgeCount)}
@@ -66,7 +54,7 @@ export function BadgeButton({
         >
           {children}
         </Button>
-      </OffsetBadge>
+      </Badge>
     </Tooltip>
   );
 }

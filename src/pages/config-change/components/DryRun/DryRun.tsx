@@ -1,17 +1,18 @@
-import { useState } from "react";
-import { Form } from "semantic-ui-react";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import { Stack } from "@mui/material";
+import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Button from "@mui/material/Button";
-import { Tooltip } from "../../../../components/Tooltip";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import { useState } from "react";
+import { Form } from "semantic-ui-react";
 import { Task } from "../../../../components/Task";
+import { Tooltip } from "../../../../components/Tooltip";
+import type { Job } from "../../../../types/job";
 import permissionsCheck from "../../../../utils/permissions/permissionsCheck";
+import type { DeviceSyncOptions } from "../../api/configChangeApi";
 import { DryRunError } from "./DryRunError";
 import { DryRunProgressBar } from "./DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRunProgressInfo";
-import type { DeviceSyncOptions } from "../../api/configChangeApi";
-import type { Job } from "../../../../types/job";
 
 type DryRunProps = {
   readonly devices: Record<string, unknown>;
@@ -79,26 +80,28 @@ export function DryRun({
             />
           </div>
           <div className="info">
-            <Button
-              id="dryrunButton"
-              variant="contained"
-              color="secondary"
-              hidden={!permissionsCheck("Config change", "write")}
-              disabled={repoWorkingState === true || dryRunDisable}
-              onClick={() => dryRunSyncStart({ resync })}
-            >
-              Dry run
-            </Button>
-            <Button
-              id="resetButton"
-              variant="contained"
-              color="secondary"
-              hidden={!permissionsCheck("Config change", "write")}
-              disabled={dryRunJobStatus !== "FINISHED"}
-              onClick={resetState}
-            >
-              Start over
-            </Button>
+            <Stack direction="row" spacing={2}>
+              <Button
+                id="dryrunButton"
+                variant="contained"
+                color="secondary"
+                hidden={!permissionsCheck("Config change", "write")}
+                disabled={repoWorkingState === true || dryRunDisable}
+                onClick={() => dryRunSyncStart({ resync })}
+              >
+                Dry run
+              </Button>
+              <Button
+                id="resetButton"
+                variant="contained"
+                color="secondary"
+                hidden={!permissionsCheck("Config change", "write")}
+                disabled={dryRunJobStatus !== "FINISHED"}
+                onClick={resetState}
+              >
+                Start over
+              </Button>
+            </Stack>
           </div>
         </Form>
         <DryRunProgressBar

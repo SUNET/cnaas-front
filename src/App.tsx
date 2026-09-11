@@ -41,10 +41,7 @@ const router = createBrowserRouter([
   },
 ]);
 
-// Palette mirrors the design tokens in src/styles/variables.css. MUI's color
-// math (alpha/lighten/darken) can't parse var(), so the hex values are
-// duplicated here instead of referencing the custom properties. Keep them in
-// sync with variables.css.
+// Palette mirrors the design tokens in src/styles/variables.css which are deprecated
 const theme = createTheme({
   palette: {
     primary: { main: "#003049" }, // --color-primary
@@ -56,26 +53,6 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: '"Karla", sans-serif',
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          // The app's buttons are not uppercased.
-          textTransform: "none",
-          // Slightly larger, more comfortable default sizing.
-          fontSize: "var(--size-md)",
-          padding: "var(--size-xs) var(--size-md)",
-          // Buttons almost always want breathing room around them; bake in a
-          // small margin so callers don't need per-container gap/margin hacks.
-          // Buttons inside a ButtonGroup are excluded (the group joins them and
-          // manages its own spacing/borders).
-          "&:not(.MuiButtonGroup-grouped)": {
-            margin: "var(--size-xxs)",
-          },
-        },
-      },
-    },
   },
 });
 
