@@ -239,7 +239,6 @@ export function ConfigChangeStep1({
           Refresh templates
         </BadgeButton>
         {renderUpdateStatus(commitUpdateInfo.templates)}
-
       </Stack>
       <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />
     </Task>

@@ -4,7 +4,6 @@ import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { useState } from "react";
-import { Form } from "semantic-ui-react";
 import { Task } from "../../../../components/Task";
 import { Tooltip } from "../../../../components/Tooltip";
 import type { Job } from "../../../../types/job";
@@ -66,44 +65,40 @@ export function DryRun({
           Step 2 of 4: Sending generated configuration to devices to calculate
           diff and check sanity
         </p>
-        <Form>
-          <div className="info">
-            <FormControlLabel
-              control={
-                <Checkbox
-                  name="resync"
-                  checked={resync}
-                  onChange={(e) => setResync(e.target.checked)}
-                />
-              }
-              label="Re-sync devices (check for local changes made outside of NMS)"
-            />
-          </div>
-          <div className="info">
-            <Stack direction="row" spacing={2}>
-              <Button
-                id="dryrunButton"
-                variant="contained"
-                color="secondary"
-                hidden={!permissionsCheck("Config change", "write")}
-                disabled={repoWorkingState === true || dryRunDisable}
-                onClick={() => dryRunSyncStart({ resync })}
-              >
-                Dry run
-              </Button>
-              <Button
-                id="resetButton"
-                variant="contained"
-                color="secondary"
-                hidden={!permissionsCheck("Config change", "write")}
-                disabled={dryRunJobStatus !== "FINISHED"}
-                onClick={resetState}
-              >
-                Start over
-              </Button>
-            </Stack>
-          </div>
-        </Form>
+        <Stack spacing={2}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="resync"
+                checked={resync}
+                onChange={(e) => setResync(e.target.checked)}
+              />
+            }
+            label="Re-sync devices (check for local changes made outside of NMS)"
+          />
+          <Stack direction="row" spacing={2}>
+            <Button
+              id="dryrunButton"
+              variant="contained"
+              color="secondary"
+              hidden={!permissionsCheck("Config change", "write")}
+              disabled={repoWorkingState === true || dryRunDisable}
+              onClick={() => dryRunSyncStart({ resync })}
+            >
+              Dry run
+            </Button>
+            <Button
+              id="resetButton"
+              variant="contained"
+              color="secondary"
+              hidden={!permissionsCheck("Config change", "write")}
+              disabled={dryRunJobStatus !== "FINISHED"}
+              onClick={resetState}
+            >
+              Start over
+            </Button>
+          </Stack>
+        </Stack>
         <DryRunProgressBar
           dryRunJobStatus={dryRunJobStatus}
           dryRunProgressData={dryRunProgressData}

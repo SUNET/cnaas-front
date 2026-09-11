@@ -317,7 +317,3 @@ progress::-moz-progress-bar {
 .language-log span.keyword {
   display: inherit;
 }
-
-.job_ticket_ref {
-  width: 15em;
-}

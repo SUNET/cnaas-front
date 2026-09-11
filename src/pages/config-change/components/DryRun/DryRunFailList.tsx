@@ -1,3 +1,5 @@
+import Typography from "@mui/material/Typography";
+
 type DryRunFailListProps = {
   readonly devices: Record<string, unknown>;
 };
@@ -17,7 +19,7 @@ export function DryRunFailList({ devices }: DryRunFailListProps) {
       <ul>
         {failedDeviceNames.map((name) => (
           <li key={name}>
-            <p className="error">{name}</p>
+            <Typography color="error">{name}</Typography>
           </li>
         ))}
       </ul>

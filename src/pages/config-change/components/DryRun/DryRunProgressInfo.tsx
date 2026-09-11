@@ -1,3 +1,4 @@
+import Typography from "@mui/material/Typography";
 import LogViewer from "../../../../components/LogViewer";
 import { matchesJobId, type Job } from "../../../../types/job";
 
@@ -35,7 +36,7 @@ export function DryRunProgressInfo({
       <p>
         status: {dryRunJobStatus} (job #{jobId})
       </p>
-      <p className="error">{exceptionMessage}</p>
+      <Typography color="error">{exceptionMessage}</Typography>
       <p>start time: {jobStartTime}</p>
       <p>finish time: {jobFinishTime}</p>
       {logViewer}

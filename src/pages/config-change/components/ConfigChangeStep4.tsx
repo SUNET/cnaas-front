@@ -1,21 +1,22 @@
-import { useEffect, useState } from "react";
-import { Input, Select } from "semantic-ui-react";
-import type { InputOnChangeData } from "semantic-ui-react";
-import Button from "@mui/material/Button";
-import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import Button from "@mui/material/Button";
+import FormHelperText from "@mui/material/FormHelperText";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import { useEffect, useState } from "react";
+import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { Task } from "../../../components/Task";
 import { Tooltip } from "../../../components/Tooltip";
 
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import type { Job } from "../../../types/job";
 import { getData } from "../../../utils/getData";
+import type { DeviceSyncOptions } from "../api/configChangeApi";
 import { DryRunProgressBar } from "./DryRun/DryRunProgressBar";
 import { DryRunProgressInfo } from "./DryRun/DryRunProgressInfo";
-import { useAuthToken } from "../../../stores/AuthTokenContext";
-import type { DeviceSyncOptions } from "../api/configChangeApi";
-import type { Job } from "../../../types/job";
 
 type ConfirmModeOption = {
   readonly value: number;
@@ -38,20 +39,11 @@ type ConfigChangeStep4Props = {
 };
 
 function createWarningPopups(
-  jobTicketRef: string,
-  jobComment: string,
   dryRunChangeScore: number | null,
   synctoForce: boolean,
 ) {
   const warnings = [];
 
-  if (!jobTicketRef && !jobComment) {
-    warnings.push(
-      <Tooltip key="popup1" title="Ticket reference or comment is missing">
-        <ErrorIcon fontSize="large" sx={{ color: "warning.main" }} />
-      </Tooltip>,
-    );
-  }
   const warnChangeScore = 90;
   if (dryRunChangeScore != null && dryRunChangeScore > warnChangeScore) {
     warnings.push(
@@ -67,14 +59,6 @@ function createWarningPopups(
       </Tooltip>,
     );
   }
-  if (!warnings.length) {
-    warnings.push(
-      <Tooltip key="popup4" title="No warnings">
-        <CheckBoxIcon fontSize="large" sx={{ color: "success.main" }} />
-      </Tooltip>,
-    );
-  }
-
   return warnings;
 }
 
@@ -98,8 +82,15 @@ export function ConfigChangeStep4({
   const [confirmModeOptions, setConfirmModeOptions] = useState<
     ConfirmModeOption[]
   >([]);
+  // Tracks what the user explicitly picked in the Select, kept separate from
+  // `confirmMode` so the placeholder keeps showing until the user chooses,
+  // even after the server default has loaded.
+  const [selectedConfirmModeOption, setSelectedConfirmModeOption] = useState<
+    number | ""
+  >("");
   const [jobComment, setJobComment] = useState("");
   const [jobTicketRef, setJobTicketRef] = useState("");
+  const missingTicketOrComment = !jobTicketRef && !jobComment;
   const { token } = useAuthToken();
 
   function okConfirm() {
@@ -153,6 +144,7 @@ export function ConfigChangeStep4({
   }, [token]);
 
   function updateConfirmMode(value: number) {
+    setSelectedConfirmModeOption(value);
     setConfirmMode(value === -1 ? confirmModeDefault : value);
   }
 
@@ -163,12 +155,7 @@ export function ConfigChangeStep4({
 
   const warnings = commitButtonDisabled
     ? []
-    : createWarningPopups(
-        jobTicketRef,
-        jobComment,
-        dryRunChangeScore,
-        synctoForce,
-      );
+    : createWarningPopups(dryRunChangeScore, synctoForce);
 
   return (
     <Task
@@ -182,46 +169,67 @@ export function ConfigChangeStep4({
       }
     >
       <p>Step 4 of 4: Final step, commit new configuration to devices</p>
-      <p>Describe the change:</p>
-      <div className="info">
-        <Input
+      <Stack spacing={2}>
+        <TextField
+          label="Describe the change"
           placeholder="comment"
-          maxLength="255"
-          className="job_comment"
-          error={!jobTicketRef && !jobComment}
-          onChange={(_e: unknown, data: InputOnChangeData) =>
-            setJobComment(data.value)
-          }
+          size="small"
+          onChange={(e) => setJobComment(e.target.value)}
+          sx={{ width: "50em", mb: 2 }}
+          slotProps={{ htmlInput: { maxLength: 255 } }}
         />
-      </div>
-      <p>Enter service ticket ID reference:</p>
-      <Input
-        placeholder="ticket reference"
-        maxLength="32"
-        className="job_ticket_ref"
-        error={!jobTicketRef && !jobComment}
-        onChange={(_e: unknown, data: InputOnChangeData) =>
-          setJobTicketRef(data.value)
-        }
-      />
-      <br />
-      <Button
-        id="confirmButton"
-        variant="contained"
-        color="secondary"
-        disabled={commitButtonDisabled}
-        onClick={() => setConfirmDiagOpen(true)}
-      >
-        Deploy change (live run)
-      </Button>{" "}
-      {warnings}
-      <Select
-        disabled={confirmModeDefault === -1}
-        placeholder="commit confirm mode (use server default)"
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Semantic UI Select types expect string values but we use numbers
-        options={confirmModeOptions as any}
-        onChange={(_e, option) => updateConfirmMode(option.value as number)}
-      />
+        <TextField
+          label="Service ticket ID reference"
+          placeholder="ticket reference"
+          size="small"
+          onChange={(e) => setJobTicketRef(e.target.value)}
+          sx={{ width: "15em", mb: 2 }}
+          slotProps={{ htmlInput: { maxLength: 32 } }}
+        />
+        <FormHelperText
+          sx={{
+            mt: -1,
+            color: "warning.main",
+            visibility: missingTicketOrComment ? "visible" : "hidden",
+          }}
+        >
+          Ticket reference or comment missing!
+        </FormHelperText>
+      </Stack>
+
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center", mt: 2 }}>
+        <Button
+          id="confirmButton"
+          variant="contained"
+          color="secondary"
+          disabled={commitButtonDisabled}
+          onClick={() => setConfirmDiagOpen(true)}
+        >
+          Deploy change (live run)
+        </Button>
+        {warnings}
+        <Select
+          disabled={confirmModeDefault === -1}
+          displayEmpty
+          size="small"
+          value={selectedConfirmModeOption}
+          renderValue={(value) =>
+            value === ""
+              ? "commit confirm mode (use server default)"
+              : confirmModeOptions.find((option) => option.value === value)
+                  ?.text
+          }
+          onChange={(e: SelectChangeEvent<number | "">) =>
+            updateConfirmMode(e.target.value as number)
+          }
+        >
+          {confirmModeOptions.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.text}
+            </MenuItem>
+          ))}
+        </Select>
+      </Stack>
       <ConfirmDialog
         content="Are you sure you want to commit changes to devices and overwrite any local changes?"
         open={confirmDiagOpen}
