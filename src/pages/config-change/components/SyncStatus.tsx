@@ -1,10 +1,15 @@
-import type { ReactNode } from "react";
-import { Table } from "semantic-ui-react";
-import { Tooltip } from "../../../components/Tooltip";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import type { ReactNode } from "react";
 import { Task } from "../../../components/Task";
-import { formatISODate } from "../../../utils/formatters";
+import { Tooltip } from "../../../components/Tooltip";
 import type { SyncEvent, SyncHistory } from "../../../types/syncHistory";
+import { formatISODate } from "../../../utils/formatters";
 import type {
   CommitTarget,
   SyncTargetDevice,
@@ -36,27 +41,27 @@ type EventsTableProps = {
 
 function EventsTable({ columns }: EventsTableProps) {
   return (
-    <div key="tablecontainer" className="tablecontainer">
-      <Table key="synceventlist" celled collapsing>
-        <Table.Header>
-          <Table.Row>
+    <TableContainer key="tablecontainer">
+      <Table key="synceventlist" size="small" sx={{ width: "auto" }}>
+        <TableHead>
+          <TableRow>
             {columns.map(({ cause }) => (
-              <Table.HeaderCell key={cause}>{cause}</Table.HeaderCell>
+              <TableCell key={cause}>{cause}</TableCell>
             ))}
-          </Table.Row>
-        </Table.Header>
+          </TableRow>
+        </TableHead>
 
-        <Table.Body>
-          <Table.Row>
+        <TableBody>
+          <TableRow>
             {columns.map(({ cause, devices }) => (
-              <Table.Cell key={cause}>
+              <TableCell key={cause}>
                 <ul>{devices}</ul>
-              </Table.Cell>
+              </TableCell>
             ))}
-          </Table.Row>
-        </Table.Body>
+          </TableRow>
+        </TableBody>
       </Table>
-    </div>
+    </TableContainer>
   );
 }
 
@@ -79,7 +84,7 @@ function DeviceEntry({ hostname, eventList }: DeviceEntryProps) {
           </ul>
         }
       >
-        <span className="popup-trigger">
+        <span>
           {hostname} ({eventList.length})
         </span>
       </Tooltip>
