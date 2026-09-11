@@ -1,9 +1,10 @@
-import { useState } from "react";
-import Button from "@mui/material/Button";
-import { styled } from "@mui/material/styles";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import StarIcon from "@mui/icons-material/Star";
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
+import { styled } from "@mui/material/styles";
+import { useState } from "react";
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { extractErrorMessageAsync } from "../../utils/extractErrorMessage";
 import {
@@ -101,7 +102,7 @@ export function FirmwareCopyForm({
             during ZTP.
           </p>
         ) : (
-          <ButtonStack>
+          <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
               disabled={removeDisabled}
@@ -119,7 +120,7 @@ export function FirmwareCopyForm({
                 Set as default
               </Button>
             )}
-          </ButtonStack>
+          </Stack>
         )}
       </>
     );

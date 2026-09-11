@@ -34,6 +34,29 @@ type ConfigChangeStep1Props = {
   readonly logLines?: string[];
 };
 
+function PrettyCommit({ commitStr }: { readonly commitStr: unknown }) {
+  if (typeof commitStr !== "string") {
+    if (commitStr == null) return null;
+    return <Typography component="div">{JSON.stringify(commitStr)}</Typography>;
+  }
+
+  const gitCommitRegex =
+    /Commit ([a-z0-9]{8})([a-z0-9]{32}) (\w+) by (.+) at ([0-9:-\s]+)/i;
+  const match = gitCommitRegex.exec(commitStr);
+  if (!match) return <Typography component="div">{commitStr}</Typography>;
+
+  const commitPopup = (
+    <Tooltip title={match[1] + match[2]}>
+      <u>{match[1]}</u>
+    </Tooltip>
+  );
+  return (
+    <Typography component="div">
+      Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}
+    </Typography>
+  );
+}
+
 export function ConfigChangeStep1({
   setRepoWorking,
   dryRunJobStatus,
@@ -138,28 +161,6 @@ export function ConfigChangeStep1({
     }
   }
 
-  function prettifyCommit(commitStr: unknown) {
-    if (typeof commitStr !== "string") {
-      if (commitStr == null) return <p />;
-      return <p>{JSON.stringify(commitStr)}</p>;
-    }
-
-    const gitCommitRegex =
-      /Commit ([a-z0-9]{8})([a-z0-9]{32}) (\w+) by (.+) at ([0-9:-\s]+)/i;
-    const match = gitCommitRegex.exec(commitStr);
-    if (!match) return <p>{commitStr}</p>;
-    const commitPopup = (
-      <Tooltip title={match[1] + match[2]}>
-        <u>{match[1]}</u>
-      </Tooltip>
-    );
-    return (
-      <p>
-        Commit {commitPopup} {match[3]} by {match[4]} at {match[5]}
-      </p>
-    );
-  }
-
   function renderUpdateStatus(status: string | null) {
     if (status === "updating...") {
       return <Typography color="text.secondary">Updating…</Typography>;
@@ -186,16 +187,23 @@ export function ConfigChangeStep1({
         </>
       }
     >
-      <div className="info">
-        <p>Latest settings repo commit: </p>
-        {prettifyCommit(commitInfo.settings)}
-      </div>
-      <div className="info">
-        <p>Latest templates repo commit: </p>
-        {prettifyCommit(commitInfo.templates)}
-      </div>
-      <div className="info">
-        <Stack direction="row" spacing={1}>
+      <Stack spacing={2}>
+        <Stack spacing={0.25}>
+          <Typography component="div" sx={{ fontWeight: "bold" }}>
+            Latest settings repo commit:
+          </Typography>
+          <PrettyCommit commitStr={commitInfo.settings} />
+        </Stack>
+        <Stack spacing={0.25}>
+          <Typography component="div" sx={{ fontWeight: "bold" }}>
+            Latest templates repo commit:
+          </Typography>
+          <PrettyCommit commitStr={commitInfo.templates} />
+        </Stack>
+      </Stack>
+
+      <Stack spacing={2} sx={{ mt: 4, alignItems: "flex-start" }}>
+        <Stack direction="row" spacing={2}>
           <BadgeButton
             badgeCount={settingsCommitsBehind}
             hidden={!permissionsCheck("Config change", "write")}
@@ -204,6 +212,7 @@ export function ConfigChangeStep1({
           >
             Refresh settings
           </BadgeButton>
+
           <FormControlLabel
             control={
               <Checkbox
@@ -220,8 +229,7 @@ export function ConfigChangeStep1({
           />
         </Stack>
         {renderUpdateStatus(commitUpdateInfo.settings)}
-      </div>
-      <div className="info">
+
         <BadgeButton
           badgeCount={templatesCommitsBehind}
           hidden={!permissionsCheck("Config change", "write")}
@@ -231,7 +239,8 @@ export function ConfigChangeStep1({
           Refresh templates
         </BadgeButton>
         {renderUpdateStatus(commitUpdateInfo.templates)}
-      </div>
+
+      </Stack>
       <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />
     </Task>
   );
