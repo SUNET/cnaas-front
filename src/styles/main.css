@@ -286,13 +286,6 @@ progress::-moz-progress-bar {
   margin: var(--size-md);
 }
 
-.button-expand-log-viewer {
-  position: absolute;
-  bottom: var(--size-xxs);
-  right: var(--size-xxs);
-  margin: 0;
-}
-
 .language-log.expand-log-viewer {
   line-height: normal;
   height: 100%;

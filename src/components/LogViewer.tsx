@@ -2,17 +2,16 @@ import Prism from "prismjs";
 import "prismjs/components/prism-log.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  Input,
-  type InputOnChangeData,
-  Modal,
-  ModalActions,
-  ModalContent,
-  ModalHeader,
-} from "semantic-ui-react";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import { Tooltip } from "./Tooltip";
 
 import "../styles/prism.css";
@@ -48,55 +47,47 @@ function ExpanedLogViewer({ logs, open, setOpen }: ExpandedLogViewerProps) {
   }, [open, filteredHtml]);
 
   return (
-    <Modal
-      open={open}
-      onClose={() => setOpen(false)}
-      closeOnDimmerClick
-      size="fullscreen"
-    >
-      <ModalHeader>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "var(--size-md)",
-          }}
+    <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xl" fullWidth>
+      <DialogTitle>
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ justifyContent: "space-between", alignItems: "center" }}
         >
           <span>Logs</span>
-          <Input
-            onChange={(_e: unknown, data: InputOnChangeData) => {
+          <TextField
+            onChange={(e) => {
               //Set filter directly
-              setFilter(data.value);
+              setFilter(e.target.value);
               // Clear previous debounce
               if (debounceTimeout.current)
                 clearTimeout(debounceTimeout.current);
 
               // Set new debounce
               debounceTimeout.current = setTimeout(() => {
-                setActiveFilter(data.value);
+                setActiveFilter(e.target.value);
               }, 250);
             }}
             value={filter}
             placeholder="Filter"
-            size="mini"
+            size="small"
           />
-        </div>
-      </ModalHeader>
-      <ModalContent scrolling className="log-viewer-modal-content">
+        </Stack>
+      </DialogTitle>
+      <DialogContent className="log-viewer-modal-content" dividers>
         <pre ref={codeRef} className="language-log expand-log-viewer">
           <code
             className="language-log text-wrap"
             dangerouslySetInnerHTML={{ __html: filteredHtml }}
           />
         </pre>
-      </ModalContent>
-      <ModalActions>
+      </DialogContent>
+      <DialogActions>
         <Button variant="contained" onClick={() => setOpen(false)}>
           Close
         </Button>
-      </ModalActions>
-    </Modal>
+      </DialogActions>
+    </Dialog>
   );
 }
 
@@ -125,24 +116,22 @@ function LogViewer({ logs }: LogViewerProps) {
   return (
     <>
       <ExpanedLogViewer logs={logs} open={open} setOpen={setOpen} />
-      <div className="div-inline-log-viewer">
+      <Box className="div-inline-log-viewer" sx={{ position: "relative" }}>
         <pre ref={codeRef} className="language-log inline-log-viewer">
           <code
             className="language-log text-wrap"
             dangerouslySetInnerHTML={{ __html: html }}
           />
 
-          <Tooltip title="Expand logs">
-            <IconButton
-              size="small"
-              className="button-expand-log-viewer"
-              onClick={() => setOpen((prev) => !prev)}
-            >
-              <OpenInFullIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <Box sx={{ position: "absolute", bottom: 1, right: 1 }}>
+            <Tooltip title="Expand logs">
+              <IconButton size="small" onClick={() => setOpen((prev) => !prev)}>
+                <OpenInFullIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </pre>
-      </div>
+      </Box>
     </>
   );
 }
