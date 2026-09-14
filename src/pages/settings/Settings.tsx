@@ -1,16 +1,11 @@
-import { useState, type ChangeEvent } from "react";
-import {
-  FormInput,
-  FormGroup,
-  Form,
-  type InputOnChangeData,
-} from "semantic-ui-react";
-import Button from "@mui/material/Button";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Container from "@mui/material/Container";
-import { Tooltip } from "../../components/Tooltip";
 import HelpIcon from "@mui/icons-material/Help";
+import { Box, Container, Paper, TextField, Typography } from "@mui/material";
+import Button from "@mui/material/Button";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormGroup from "@mui/material/FormGroup";
+import Switch from "@mui/material/Switch";
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import { Tooltip } from "../../components/Tooltip";
 
 type SettingsForm = {
   netboxToken: string;
@@ -22,65 +17,64 @@ export function Settings() {
     netboxToken: localStorage.getItem("netboxToken") ?? "",
     distPortConfig: localStorage.getItem("distPortConfig") === "true",
   });
+  const [hasSavedNetboxToken, setHasSavedNetboxToken] = useState(
+    Boolean(localStorage.getItem("netboxToken")),
+  );
   const { netboxToken, distPortConfig } = formData;
 
-  function handleChange(
-    _event: ChangeEvent<HTMLInputElement>,
-    data: InputOnChangeData,
-  ) {
-    setFormData((prev) => ({ ...prev, netboxToken: data.value }));
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    setFormData((prev) => ({ ...prev, netboxToken: event.target.value }));
   }
 
   function handleCheckboxChange(checked: boolean) {
     setFormData((prev) => ({ ...prev, distPortConfig: checked }));
   }
 
-  function handleSave() {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     localStorage.setItem("netboxToken", netboxToken);
     localStorage.setItem("distPortConfig", String(distPortConfig));
-  }
-
-  let netboxField = null;
-  if (process.env.NETBOX_API_URL) {
-    netboxField = (
-      <FormInput
-        label={
-          <p>
-            Netbox API token
-            <Tooltip
-              title={
-                <>
-                  Provide Netbox API token to allow read-write access
-                  <a href={`${process.env.NETBOX_API_URL}/user/api-tokens/`}>
-                    Netbox API tokens
-                  </a>
-                </>
-              }
-            >
-              <HelpIcon
-                fontSize="small"
-                color={
-                  localStorage.getItem("netboxToken") ? "inherit" : "warning"
-                }
-              />
-            </Tooltip>
-          </p>
-        }
-        name="netboxToken"
-        type="text"
-        value={netboxToken}
-        onChange={handleChange}
-      />
-    );
+    setHasSavedNetboxToken(Boolean(netboxToken));
   }
 
   return (
-    <div className="container">
-      <Container>
-        <h1>User Settings</h1>
-        <Form>
-          <FormGroup>{netboxField}</FormGroup>
-          <FormGroup>
+    <Container maxWidth="sm">
+      <Paper elevation={4} sx={{ m: 2, p: 4 }}>
+        <Typography component="h1" variant="h3" sx={{ textAlign: "center" }}>
+          User Settings
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit}>
+          {process.env.NETBOX_API_URL && (
+            <Box sx={{ mt: 1, display: "flex", alignItems: "center", gap: 1 }}>
+              <TextField
+                label="Netbox API token"
+                placeholder="Enter Netbox API token"
+                name="netboxToken"
+                type="text"
+                value={netboxToken}
+                onChange={handleChange}
+                fullWidth
+              />
+              <Tooltip
+                title={
+                  <>
+                    Provide Netbox API token to allow read-write access
+                    <a href={`${process.env.NETBOX_API_URL}/user/api-tokens/`}>
+                      Netbox API tokens
+                    </a>
+                  </>
+                }
+              >
+                <HelpIcon
+                  fontSize="small"
+                  color={hasSavedNetboxToken ? "inherit" : "warning"}
+                  sx={{ flexShrink: 0 }}
+                />
+              </Tooltip>
+            </Box>
+          )}
+
+          <FormGroup sx={{ mt: 1 }}>
             <FormControlLabel
               control={
                 <Switch
@@ -92,16 +86,18 @@ export function Settings() {
               label='Enable experimental "configure ports" on DIST action dropdown menu'
             />
           </FormGroup>
-        </Form>
-        <Button
-          type="submit"
-          variant="contained"
-          color="success"
-          onClick={handleSave}
-        >
-          Save
-        </Button>
-      </Container>
-    </div>
+
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 1 }}
+          >
+            Save
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
   );
 }

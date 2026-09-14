@@ -15,7 +15,7 @@ import { GroupList } from "./pages/groups";
 import { InterfaceConfigPage } from "./pages/interface-config";
 import { JobListPage } from "./pages/jobs";
 import Login from "./components/Login/Login";
-import { Settings } from "./pages/settings";
+import { Settings } from "./pages/settings/Settings";
 
 const router = createBrowserRouter([
   {
