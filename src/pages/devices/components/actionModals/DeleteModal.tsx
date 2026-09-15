@@ -1,14 +1,20 @@
-import { useState } from "react";
-import { Modal } from "semantic-ui-react";
-import TextField from "@mui/material/TextField";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
+import Checkbox from "@mui/material/Checkbox";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import { useState } from "react";
+
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
-import { deleteDevice } from "../../api/deviceListApi";
 import type { Device } from "../../../../types/device";
 import { isAccessDevice, isManaged } from "../../../../types/device";
+import { deleteDevice } from "../../api/deviceListApi";
 
 type DeleteModalProps = {
   readonly addDeviceJob: (deviceId: number, jobId: number) => void;
@@ -93,35 +99,47 @@ export function DeleteModal({
   };
 
   return (
-    <Modal onClose={handleClose} open={isOpen}>
-      <Modal.Header>Delete device {device.hostname}</Modal.Header>
-      <Modal.Content>
-        <Modal.Description>
-          <p key="confirm">
+    <Dialog
+      aria-labelledby="delete-dialog"
+      aria-describedby="delete-dialog-description"
+      onClose={handleClose}
+      open={isOpen}
+    >
+      <DialogTitle id="delete-dialog">
+        Delete device {device.hostname}
+      </DialogTitle>
+      <DialogContent>
+        <Stack spacing={2}>
+          <DialogContentText id="delete-dialog-description">
             Are you sure you want to delete device {device.hostname} with device
             ID {device.id}? Confirm hostname below to delete
-          </p>
+          </DialogContentText>
           <TextField
+            disabled={isLoading}
+            label="Confirm hostname"
+            onChange={(e) => setConfirmName(e.target.value)}
             placeholder="confirm hostname"
             size="small"
-            onChange={(e) => setConfirmName(e.target.value)}
           />
           <FormControlLabel
             control={
               <Checkbox
                 name="factory_default"
                 checked={factoryDefault}
-                disabled={!canFactoryDefault}
+                disabled={!canFactoryDefault || isLoading}
                 onChange={(e) => setFactoryDefault(e.target.checked)}
               />
             }
             label="Reset device to factory default settings when deleting"
           />
-          {isLoading && <CircularProgress />}
-          {errorMessage && <p>Error deleting device: {errorMessage}</p>}
-        </Modal.Description>
-      </Modal.Content>
-      <Modal.Actions>
+          {errorMessage && (
+            <Alert severity="error">
+              Error deleting device: {errorMessage}
+            </Alert>
+          )}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
         <Button
           key="cancel"
           variant="outlined"
@@ -131,15 +149,16 @@ export function DeleteModal({
           Cancel
         </Button>
         <Button
-          key="submit"
-          variant="contained"
           color="error"
           disabled={!isConfirmValid || isLoading}
+          key="submit"
+          loading={isLoading}
           onClick={handleDelete}
+          variant="contained"
         >
           Delete
         </Button>
-      </Modal.Actions>
-    </Modal>
+      </DialogActions>
+    </Dialog>
   );
 }
