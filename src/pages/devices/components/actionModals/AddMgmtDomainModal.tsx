@@ -1,23 +1,24 @@
-import { useState, type ChangeEvent } from "react";
-import {
-  type DropdownProps,
-  Form,
-  FormField,
-  FormGroup,
-  FormInput,
-  FormSelect,
-  Modal,
-  ModalActions,
-  ModalContent,
-  ModalDescription,
-  ModalHeader,
-} from "semantic-ui-react";
-import Button from "@mui/material/Button";
-import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
-import { createMgmtDomain } from "../../api/deviceListApi";
+import CloseIcon from "@mui/icons-material/Close";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import FormControl from "@mui/material/FormControl";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import { useState, type ChangeEvent, type FormEvent } from "react";
+
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import type { Device } from "../../../../types/device";
+import { createMgmtDomain } from "../../api/deviceListApi";
 
 type AddMgmtDomainModalProps = {
   readonly deviceA?: string | null;
@@ -59,14 +60,20 @@ export function AddMgmtDomainModal({
   const { token } = useAuthToken();
   const [formData, setFormData] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<readonly string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { ipv4, ipv6, vlan } = formData;
 
+  const isFormValid =
+    Boolean(formData.deviceB) &&
+    (Boolean(ipv4) || Boolean(ipv6)) &&
+    Boolean(vlan) &&
+    !Number.isNaN(Number.parseInt(vlan, 10));
+
   const deviceBOptions =
-    deviceBCandidates?.map((device, index) => ({
+    deviceBCandidates?.map((device) => ({
       key: device.hostname,
       text: device.hostname,
-      value: index,
     })) ?? [];
 
   function clearForm() {
@@ -76,6 +83,7 @@ export function AddMgmtDomainModal({
 
   async function handleAdd() {
     if (!deviceA) return;
+    setIsLoading(true);
     try {
       const resp = await createMgmtDomain(
         {
@@ -101,6 +109,7 @@ export function AddMgmtDomainModal({
         setErrors([error instanceof Error ? error.message : String(error)]);
       }
     }
+    setIsLoading(false);
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -108,12 +117,8 @@ export function AddMgmtDomainModal({
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSelected(_e: unknown, data: DropdownProps) {
-    const selectedValue = data.value;
-    if (typeof selectedValue !== "number") return;
-    const option = deviceBOptions[selectedValue];
-    if (!option) return;
-    setFormData((prev) => ({ ...prev, deviceB: option.key }));
+  function handleSelected(event: SelectChangeEvent) {
+    setFormData((prev) => ({ ...prev, deviceB: event.target.value }));
   }
 
   function handleCancel() {
@@ -121,92 +126,129 @@ export function AddMgmtDomainModal({
     closeAction();
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void handleAdd();
+  }
+
   return (
-    <Modal open={isOpen} onClose={handleCancel}>
-      <ModalHeader>Add Management Domain</ModalHeader>
-      <ModalContent>
-        <ModalDescription>
-          <Form>
-            <FormGroup grouped>
-              <FormField>
-                <FormSelect
-                  inline
-                  id="mgmt_add_domain_b_select"
-                  name="domainB"
-                  label={
-                    <>
-                      <span style={{ fontWeight: "lighter" }}>
-                        Devices in managament domain:
-                      </span>
-                      {deviceA},{" "}
-                    </>
-                  }
-                  placeholder="device_b"
-                  selection
-                  options={deviceBOptions}
-                  onChange={handleSelected}
-                />
-              </FormField>
+    <Dialog
+      aria-labelledby="add-mgmt-domain-dialog"
+      aria-describedby="add-mgmt-domain-dialog-description"
+      open={isOpen}
+      onClose={handleCancel}
+    >
+      <DialogTitle id="add-mgmt-domain-dialog">
+        Add Management Domain
+      </DialogTitle>
+      <DialogContent>
+        <Stack spacing={2}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ alignItems: "center", flexWrap: "wrap" }}
+          >
+            <DialogContentText
+              id="add-mgmt-domain-dialog-description"
+              sx={{ mb: 0 }}
+            >
+              Devices in management domain: {deviceA},
+            </DialogContentText>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <Select
+                id="mgmt-add-domain-b-select"
+                aria-label="Device B"
+                displayEmpty
+                disabled={isLoading}
+                name="domainB"
+                value={formData.deviceB}
+                onChange={handleSelected}
+              >
+                <MenuItem value="" disabled>
+                  Select device
+                </MenuItem>
+                {deviceBOptions.map((option) => (
+                  <MenuItem key={option.key} value={option.key}>
+                    {option.text}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+          <Box
+            component="form"
+            id="add-mgmt-domain-form"
+            onSubmit={handleSubmit}
+          >
+            <Stack spacing={2}>
+              <TextField
+                id="mgmt-add-ipv4-input"
+                label="IPv4 Gateway"
+                name="ipv4"
+                type="text"
+                value={ipv4}
+                onChange={handleChange}
+                disabled={isLoading}
+                fullWidth
+              />
 
-              <FormField>
-                <FormInput
-                  id="mgmt_add_ipv4_input"
-                  label="IPv4 Gateway"
-                  name="ipv4"
-                  type="text"
-                  value={ipv4}
-                  onChange={handleChange}
-                />
-              </FormField>
+              <TextField
+                id="mgmt-add-ipv6-input"
+                label="IPv6 Gateway"
+                name="ipv6"
+                type="text"
+                value={ipv6}
+                onChange={handleChange}
+                disabled={isLoading}
+                fullWidth
+              />
 
-              <FormField>
-                <FormInput
-                  id="mgmt_add_ipv6_input"
-                  label="IPv6 Gateway"
-                  name="ipv6"
-                  type="text"
-                  value={ipv6}
-                  onChange={handleChange}
-                />
-              </FormField>
-
-              <FormField>
-                <FormInput
-                  id="mgmt_add_vlan_input"
-                  label="VLAN ID"
-                  name="vlan"
-                  type="text"
-                  value={vlan}
-                  onChange={handleChange}
-                />
-              </FormField>
-            </FormGroup>
-          </Form>
-          <ul id="mgmt_add_error_list" style={{ color: "red" }}>
-            {errors.map((err) => (
-              <li key={err}>{err}</li>
-            ))}
-          </ul>
-        </ModalDescription>
-      </ModalContent>
-      <ModalActions>
-        <Button
-          variant="outlined"
-          color="inherit"
-          onClick={handleCancel}
-          endIcon={<CloseIcon />}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={handleAdd}
-          endIcon={<CheckIcon />}
-        >
-          Add
-        </Button>
-      </ModalActions>
-    </Modal>
+              <TextField
+                id="mgmt-add-vlan-input"
+                label="VLAN ID"
+                name="vlan"
+                type="text"
+                value={vlan}
+                onChange={handleChange}
+                disabled={isLoading}
+                fullWidth
+              />
+            </Stack>
+          </Box>
+          {errors.length > 0 && (
+            <Alert severity="error">
+              <ul id="mgmt-add-error-list">
+                {errors.map((err) => (
+                  <li key={err}>{err}</li>
+                ))}
+              </ul>
+            </Alert>
+          )}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <ButtonGroup>
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={handleCancel}
+            endIcon={<CloseIcon />}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="add-mgmt-domain-form"
+            variant="contained"
+            color="success"
+            loading={isLoading}
+            endIcon={<CheckIcon />}
+            disabled={!isFormValid || isLoading}
+          >
+            Add
+          </Button>
+        </ButtonGroup>
+      </DialogActions>
+    </Dialog>
   );
 }

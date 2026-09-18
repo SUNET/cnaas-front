@@ -42,7 +42,7 @@ function renderComponent() {
 test("renders", async () => {
   renderComponent();
 
-  expect(screen.getByRole("button", { name: /add/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /add/i })).toBeDisabled();
   expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
   // with no errors
   expect(screen.queryAllByRole("listitem").length).toBe(0);
@@ -51,11 +51,9 @@ test("renders", async () => {
 test("type input and click add", async () => {
   renderComponent();
 
-  const domainBSelect = screen.getByText("device_b");
-  userEvent.click(domainBSelect);
-  expect(domainBSelect.textContent).toBe("device_b");
-  const dropdownOptions = screen.getAllByRole("option");
-  await userEvent.click(dropdownOptions[1]);
+  const domainBSelect = screen.getByRole("combobox", { name: /device b/i });
+  await userEvent.click(domainBSelect);
+  await userEvent.click(screen.getByRole("option", { name: "b" }));
 
   const ipv4Input = screen.getByLabelText(/ipv4 gateway/i);
   await userEvent.type(ipv4Input, "1.2.3.4/24");
@@ -67,6 +65,7 @@ test("type input and click add", async () => {
   await userEvent.type(vlanInput, "1950");
 
   const addButton = screen.getByRole("button", { name: /add/i });
+  expect(addButton).toBeEnabled();
   await userEvent.click(addButton);
 
   expect(mockCreateMgmtDomain).toHaveBeenCalledTimes(1);
@@ -85,12 +84,11 @@ test("type input and click add", async () => {
 test("type input and click cancel should clear fields", async () => {
   renderComponent();
 
-  const domainBSelect = screen.getByText("device_b");
-  const dropdownOptions = screen.getAllByRole("option");
+  const domainBSelect = screen.getByRole("combobox", { name: /device b/i });
   expect(domainBSelect).toBeVisible();
-  userEvent.click(domainBSelect);
-  await userEvent.click(dropdownOptions[1]);
-  expect(domainBSelect).not.toBeVisible();
+  await userEvent.click(domainBSelect);
+  await userEvent.click(screen.getByRole("option", { name: "b" }));
+  expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
 
   const ipv4Input = screen.getByLabelText(/ipv4 gateway/i) as HTMLInputElement;
   await userEvent.type(ipv4Input, "1.2.3.4/24");
