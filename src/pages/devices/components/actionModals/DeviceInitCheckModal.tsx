@@ -1,27 +1,29 @@
-import { Modal } from "semantic-ui-react";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckIcon from "@mui/icons-material/Check";
+import Accordion from "@mui/material/Accordion";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import SettingsIcon from "@mui/icons-material/Settings";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import CheckIcon from "@mui/icons-material/Check";
-import CancelIcon from "@mui/icons-material/Cancel";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { initCheckDevice, type InitCheckResult } from "../../api/deviceListApi";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
-import { extractErrorMessageAsync } from "../../../../utils/extractErrorMessage";
 import type { DeviceType } from "../../../../types/device";
+import { extractErrorMessageAsync } from "../../../../utils/extractErrorMessage";
+import { initCheckDevice, type InitCheckResult } from "../../api/deviceListApi";
 
 type DeviceInitCheckModalProps = {
   readonly disabled?: boolean;
   readonly submitInit: () => void;
   readonly deviceId: number;
   readonly hostname: string;
-  readonly deviceType: DeviceType;
+  readonly deviceType: DeviceType | null;
   readonly mlagPeerHostname?: string | null;
   readonly mlagPeerId?: number | null;
 };
@@ -40,11 +42,11 @@ export function DeviceInitCheckModal({
   const [initcheckOutput, setInitcheckOutput] = useState<InitCheckOutput>(null);
   const [accordionActiveIndex, setAccordionActiveIndex] = useState<number>(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { token } = useAuthToken();
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || deviceType === null) return;
 
     let cancelled = false;
     const payload = {
@@ -166,47 +168,53 @@ export function DeviceInitCheckModal({
   }
 
   return (
-    <Modal
-      onClose={() => setIsOpen(false)}
-      open={isOpen}
-      trigger={
-        <Button
-          variant="contained"
-          disabled={disabled || submitting}
-          endIcon={submitting ? <SettingsIcon /> : <OpenInNewIcon />}
-          onClick={() => setIsOpen(true)}
-        >
-          {submitting ? "Initializing..." : "Initialize..."}
-        </Button>
-      }
-    >
-      <Modal.Header>Init compatability check</Modal.Header>
-      <Modal.Content>
-        <Modal.Description>{initcheckHtml}</Modal.Description>
-      </Modal.Content>
-      <Modal.Actions>
-        <Button
-          key="cancel"
-          variant="outlined"
-          color="inherit"
-          onClick={() => setIsOpen(false)}
-        >
-          Cancel
-        </Button>
-        <Button
-          key="submit"
-          variant="contained"
-          color="success"
-          onClick={() => {
-            setSubmitting(true);
-            setIsOpen(false);
-            submitInit();
-          }}
-          disabled={!initcheckOk}
-        >
-          Start initialization
-        </Button>
-      </Modal.Actions>
-    </Modal>
+    <>
+      <Button
+        variant="contained"
+        disabled={disabled || isLoading}
+        loading={isLoading}
+        onClick={() => setIsOpen(true)}
+      >
+        Initialize
+      </Button>
+      <Dialog
+        aria-labelledby="device-init-check-dialog"
+        aria-describedby="device-init-check-dialog-description"
+        onClose={() => setIsOpen(false)}
+        open={isOpen}
+      >
+        <DialogTitle id="device-init-check-dialog">
+          Init compatability check
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="device-init-check-dialog-description">
+            {initcheckHtml}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            key="cancel"
+            variant="outlined"
+            color="inherit"
+            onClick={() => setIsOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            key="submit"
+            variant="contained"
+            color="success"
+            onClick={() => {
+              setIsLoading(true);
+              setIsOpen(false);
+              submitInit();
+            }}
+            disabled={!initcheckOk}
+          >
+            Start initialization
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

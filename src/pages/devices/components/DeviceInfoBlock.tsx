@@ -1,9 +1,12 @@
-import type { ReactNode } from "react";
-import { Dropdown } from "semantic-ui-react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Menu from "@mui/material/Menu";
 import { styled } from "@mui/material/styles";
-import { usePermissions } from "../../../stores/PermissionsContext";
+import { useState, type MouseEvent, type ReactNode } from "react";
+
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
 import LogViewer from "../../../components/LogViewer";
+import { usePermissions } from "../../../stores/PermissionsContext";
 import type { Device } from "../../../types/device";
 
 type DeviceInfoBlockProps = {
@@ -16,24 +19,23 @@ type DeviceInfoBlockProps = {
 };
 
 // Table and its side extras (MLAG/uplink/mgmt buttons) sit side by side when
-// there's horizontal room, and wrap to a stacked layout on narrow viewports.
-// The table keeps a comfortable width and the extras take the leftover space;
-// flex-wrap drops the extras below the table when the row can't fit.
-const InfoLayout = styled("div")({
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "var(--size-md)",
-  alignItems: "flex-start",
-});
-
-const TableCell = styled("div")({
-  flex: "1 1 640px",
-  minWidth: "min(100%, 640px)",
-});
-
-const ExtrasCell = styled("div")({
-  flex: "1 1 auto",
-});
+// there's horizontal room, and stack on narrow viewports. Using grid tracks
+// (rather than flex) means each column's width is capped by its own track
+// definition - `minmax(0, ...)` overrides the browser's implicit
+// min-width/min-content floor, so wide content in the extras column (e.g.
+// DeviceInitForm's fields) is clipped/wrapped within its own column instead
+// of growing the whole row and pushing the table.
+const InfoLayout = styled("div", {
+  shouldForwardProp: (prop) => prop !== "hasExtra",
+})<{ hasExtra: boolean }>(({ theme, hasExtra }) => ({
+  display: "grid",
+  gridTemplateColumns: hasExtra ? "minmax(0, 640px) minmax(0, 640px)" : "1fr",
+  gap: theme.spacing(2),
+  alignItems: "start",
+  [theme.breakpoints.down("md")]: {
+    gridTemplateColumns: "1fr",
+  },
+}));
 
 export function DeviceInfoBlock({
   device,
@@ -46,32 +48,57 @@ export function DeviceInfoBlock({
   const { permissionsCheck } = usePermissions();
   const deviceLogs = log[device.id];
   const hasLogs = Boolean(deviceLogs && deviceLogs.length > 0);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const menuOpen = Boolean(anchorEl);
+
+  const handleMenuOpen = (event: MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <div>
       {permissionsCheck("Devices", "write") && (
-        <Dropdown
-          text="Actions"
-          button
-          style={{ marginBottom: "var(--size-md)" }}
-        >
-          <Dropdown.Menu>{menuActions}</Dropdown.Menu>
-        </Dropdown>
+        <>
+          <Button
+            id="device-actions-button"
+            aria-controls={menuOpen ? "device-actions-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={menuOpen ? "true" : undefined}
+            onClick={handleMenuOpen}
+            variant="outlined"
+            sx={{ mb: 2 }}
+          >
+            Actions
+          </Button>
+          <Menu
+            id="device-actions-menu"
+            anchorEl={anchorEl}
+            open={menuOpen}
+            onClose={handleMenuClose}
+            onClick={handleMenuClose}
+            slotProps={{ list: { "aria-labelledby": "device-actions-button" } }}
+          >
+            {menuActions}
+          </Menu>
+        </>
       )}
-      <InfoLayout>
-        <TableCell>
+      <InfoLayout hasExtra={Boolean(deviceStateExtra)}>
+        <Box>
           <DeviceInfoTable
             device={device}
             model={model}
             netboxDevice={netboxDevice}
           />
-        </TableCell>
-        {deviceStateExtra && <ExtrasCell>{deviceStateExtra}</ExtrasCell>}
+        </Box>
+        {deviceStateExtra && <Box>{deviceStateExtra}</Box>}
       </InfoLayout>
       {hasLogs && (
-        <div style={{ overflow: "hidden", marginTop: "var(--size-md)" }}>
+        <Box sx={{ overflow: "hidden", mt: 2 }}>
           <LogViewer logs={deviceLogs as string[]} />
-        </div>
+        </Box>
       )}
     </div>
   );

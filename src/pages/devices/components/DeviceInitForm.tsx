@@ -1,9 +1,16 @@
+import Box from "@mui/material/Box";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import { useState, type ChangeEvent } from "react";
-import { Select, Input, type DropdownProps } from "semantic-ui-react";
+
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { isDeviceType, type DeviceType } from "../../../types/device";
 import { fetchDiscoveredDevices, initDevice } from "../api/deviceListApi";
 import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
-import { useAuthToken } from "../../../stores/AuthTokenContext";
-import { type DeviceType, isDeviceType } from "../../../types/device";
 
 type DeviceInitFormProps = {
   readonly deviceId: number;
@@ -87,19 +94,21 @@ export function DeviceInitForm({
     }
   };
 
-  const onChangeDevicetype = (_e: unknown, data: DropdownProps) => {
-    if (data.value === "ACCESSMLAG") {
+  const onChangeDevicetype = (event: SelectChangeEvent) => {
+    const value = event.target.value;
+    if (value === "ACCESSMLAG") {
       getMlagPeerCandidates();
       setDeviceType("ACCESS");
       setMlagInit(true);
     } else {
-      setDeviceType(isDeviceType(data.value) ? data.value : null);
+      setDeviceType(isDeviceType(value) ? value : null);
       setMlagInit(false);
     }
   };
 
-  const onChangePeerdevice = (_e: unknown, data: DropdownProps) => {
-    setMlagPeerId(typeof data.value === "number" ? data.value : null);
+  const onChangePeerdevice = (event: SelectChangeEvent) => {
+    const value = event.target.value;
+    setMlagPeerId(value === "" ? null : Number(value));
   };
 
   const submitInit = () => {
@@ -119,53 +128,88 @@ export function DeviceInitForm({
     }
   };
 
+  const deviceTypeSelectValue =
+    deviceType === null ? "" : mlagInit ? "ACCESSMLAG" : deviceType;
+
   return (
-    <div>
-      <Input key="hostname" placeholder="hostname" onChange={updateHostname} />
-      <Select
-        key="device_type"
-        placeholder="Device type"
-        onChange={onChangeDevicetype}
-        options={[
-          { key: "ACCESS", value: "ACCESS", text: "Access" },
-          {
-            key: "ACCESSMLAG",
-            value: "ACCESSMLAG",
-            text: "Access MLAG pair",
-          },
-          { key: "DIST", value: "DIST", text: "Distribution" },
-          { key: "CORE", value: "CORE", text: "Core" },
-        ]}
-      />
-      {mlagInit && (
-        <>
-          <Select
-            key="mlag_peer_id"
-            placeholder="peer device"
-            onChange={onChangePeerdevice}
-            options={[...mlagPeerCandidates]}
-          />
-          <Input
-            key="mlag_peer_hostname"
-            placeholder="peer hostname"
-            onChange={updatePeerHostname}
-          />
-        </>
-      )}
-      {deviceType && (
-        <DeviceInitCheckModal
-          disabled={
-            !hostname.trim() ||
-            (mlagInit && (!mlagPeerHostname?.trim() || mlagPeerId == null))
-          }
-          submitInit={submitInit}
-          deviceId={deviceId}
-          hostname={hostname}
-          deviceType={deviceType}
-          mlagPeerHostname={mlagPeerHostname}
-          mlagPeerId={mlagPeerId}
+    // 2-column grid so each field's column stays the same size whether one
+    // row (no MLAG) or two rows (MLAG) are shown, and the Initialize button
+    // always sits on its own row below. Width itself is now bounded by the
+    // parent DeviceInfoBlock's grid track, not a fixed value here.
+    <Stack spacing={1} sx={{ mt: 1 }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 1,
+        }}
+      >
+        <TextField
+          key="hostname"
+          size="small"
+          label="Hostname"
+          placeholder="Enter hostname"
+          value={hostname}
+          onChange={updateHostname}
+          fullWidth
         />
-      )}
-    </div>
+        <FormControl size="small" fullWidth>
+          <InputLabel id="device-type-label">Device type</InputLabel>
+          <Select
+            key="device_type"
+            labelId="device-type-label"
+            label="Device type"
+            value={deviceTypeSelectValue}
+            onChange={onChangeDevicetype}
+          >
+            <MenuItem value="ACCESS">Access</MenuItem>
+            <MenuItem value="ACCESSMLAG">Access MLAG pair</MenuItem>
+            <MenuItem value="DIST">Distribution</MenuItem>
+            <MenuItem value="CORE">Core</MenuItem>
+          </Select>
+        </FormControl>
+        {mlagInit && (
+          <>
+            <FormControl size="small" fullWidth>
+              <InputLabel id="mlag-peer-device-label">Peer device</InputLabel>
+              <Select
+                key="mlag_peer_id"
+                labelId="mlag-peer-device-label"
+                label="Peer device"
+                value={mlagPeerId === null ? "" : String(mlagPeerId)}
+                onChange={onChangePeerdevice}
+              >
+                {mlagPeerCandidates.map((option) => (
+                  <MenuItem key={option.key} value={String(option.value)}>
+                    {option.text}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              key="mlag_peer_hostname"
+              size="small"
+              label="Peer hostname"
+              value={mlagPeerHostname ?? ""}
+              onChange={updatePeerHostname}
+              fullWidth
+            />
+          </>
+        )}
+      </Box>
+      <DeviceInitCheckModal
+        disabled={
+          !deviceType ||
+          !hostname.trim() ||
+          (mlagInit && (!mlagPeerHostname?.trim() || mlagPeerId == null))
+        }
+        submitInit={submitInit}
+        deviceId={deviceId}
+        hostname={hostname}
+        deviceType={deviceType}
+        mlagPeerHostname={mlagPeerHostname}
+        mlagPeerId={mlagPeerId}
+      />
+    </Stack>
   );
 }

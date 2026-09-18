@@ -1,11 +1,10 @@
+import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom";
-
 import { ComponentProps } from "react";
 
-import { DeviceInitCheckModal } from "./DeviceInitCheckModal";
 import { initCheckDevice, InitCheckResponse } from "../../api/deviceListApi";
+import { DeviceInitCheckModal } from "./DeviceInitCheckModal";
 
 jest.mock("../../api/deviceListApi");
 jest.mock("../../../../stores/AuthTokenContext", () => ({
@@ -59,7 +58,7 @@ test("renders trigger button with provided text", () => {
   renderComponent();
 
   const triggerButton = screen.getByRole("button", {
-    name: /initialize\.\.\./i,
+    name: /^initialize$/i,
   });
   expect(triggerButton).toBeInTheDocument();
   expect(triggerButton).toBeEnabled();
@@ -68,18 +67,14 @@ test("renders trigger button with provided text", () => {
 test("trigger button is disabled when disabled prop is true", () => {
   renderComponent({ disabled: true });
 
-  expect(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  ).toBeDisabled();
+  expect(screen.getByRole("button", { name: /^initialize$/i })).toBeDisabled();
 });
 
 test("opens modal and calls initcheck API on trigger click", async () => {
   mockInitCheckDevice.mockResolvedValue(compatibleResponse);
   renderComponent();
 
-  await userEvent.click(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^initialize$/i }));
 
   expect(screen.getByText(/init compatability check/i)).toBeInTheDocument();
 
@@ -94,9 +89,7 @@ test("includes MLAG peer data in API call when provided", async () => {
   mockInitCheckDevice.mockResolvedValue(compatibleResponse);
   renderComponent({ mlagPeerHostname: "peer-switch", mlagPeerId: 11 });
 
-  await userEvent.click(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^initialize$/i }));
 
   expect(mockInitCheckDevice).toHaveBeenCalledWith(
     10,
@@ -114,9 +107,7 @@ test("enables start initialization button when check is compatible", async () =>
   mockInitCheckDevice.mockResolvedValue(compatibleResponse);
   renderComponent();
 
-  await userEvent.click(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^initialize$/i }));
 
   const startButton = await screen.findByRole("button", {
     name: /start initialization/i,
@@ -128,9 +119,7 @@ test("disables start initialization button when check is incompatible", async ()
   mockInitCheckDevice.mockResolvedValue(incompatibleResponse);
   renderComponent();
 
-  await userEvent.click(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^initialize$/i }));
 
   const startButton = await screen.findByRole("button", {
     name: /start initialization/i,
@@ -142,9 +131,7 @@ test("shows linknets and neighbors counts after successful check", async () => {
   mockInitCheckDevice.mockResolvedValue(compatibleResponse);
   renderComponent();
 
-  await userEvent.click(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^initialize$/i }));
 
   await waitFor(() => {
     expect(screen.getByText(/linknets: 1/i)).toBeInTheDocument();
@@ -156,9 +143,7 @@ test("clicking start initialization calls submitInit and closes modal", async ()
   mockInitCheckDevice.mockResolvedValue(compatibleResponse);
   renderComponent();
 
-  await userEvent.click(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^initialize$/i }));
 
   const startButton = await screen.findByRole("button", {
     name: /start initialization/i,
@@ -172,9 +157,7 @@ test("clicking cancel closes modal without calling submitInit", async () => {
   mockInitCheckDevice.mockResolvedValue(compatibleResponse);
   renderComponent();
 
-  await userEvent.click(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^initialize$/i }));
 
   await screen.findByRole("button", { name: /start initialization/i });
 
@@ -187,9 +170,7 @@ test("displays error output when initcheck API fails", async () => {
   mockInitCheckDevice.mockRejectedValue(new Error("Connection refused"));
   renderComponent();
 
-  await userEvent.click(
-    screen.getByRole("button", { name: /initialize\.\.\./i }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^initialize$/i }));
 
   await waitFor(() => {
     expect(screen.getByText(/connection refused/i)).toBeInTheDocument();
