@@ -1,4 +1,4 @@
-import { Dropdown } from "semantic-ui-react";
+import MenuItem from "@mui/material/MenuItem";
 
 import type { Device } from "../../../types/device";
 import { useDeviceListActions } from "../hooks/useDeviceListActions";
@@ -43,12 +43,13 @@ export function DeviceActionsMenu({ device }: DeviceActionsMenuProps) {
   return (
     <>
       {getMenuActionsConfig(device, handlers).map((action) => (
-        <Dropdown.Item
+        <MenuItem
           key={action.key}
-          text={action.text}
           onClick={action.onClick}
           disabled={action.disabled}
-        />
+        >
+          {action.text}
+        </MenuItem>
       ))}
     </>
   );

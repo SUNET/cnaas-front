@@ -1,13 +1,12 @@
-import { createMemoryRouter, RouterProvider } from "react-router";
+import "@testing-library/jest-dom";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom";
+import { createMemoryRouter, RouterProvider } from "react-router";
 
-import { DeviceListPage } from "../DeviceListPage";
-
+import { Device } from "../../../types/device";
 import { getData, getResponse } from "../../../utils/getData";
 import { deleteData } from "../../../utils/sendData";
-import { Device } from "../../../types/device";
+import { DeviceListPage } from "../DeviceListPage";
 
 jest.mock("../../../utils/getData");
 jest.mock("../../../utils/sendData");
@@ -212,14 +211,14 @@ describe("action menu by device state and type", () => {
     let trigger: HTMLElement | undefined;
     await waitFor(() => {
       trigger = screen
-        .getAllByText("Actions")
+        .getAllByRole("button", { name: "Actions" })
         .find((el) => el.closest("tr:not([hidden])"));
       expect(trigger).toBeDefined();
     });
-    const dropdown = trigger?.closest(".ui.dropdown");
-    if (!trigger || !dropdown) throw new Error("No Actions dropdown");
+    if (!trigger) throw new Error("No Actions dropdown");
     await user.click(trigger);
-    return within(dropdown as HTMLElement);
+    const menu = await screen.findByRole("menu");
+    return within(menu);
   }
 
   test("MANAGED ACCESS device shows full action set", async () => {
