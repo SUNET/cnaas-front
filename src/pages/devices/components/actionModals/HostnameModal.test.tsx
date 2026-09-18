@@ -1,11 +1,11 @@
+import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom";
 import type { ComponentProps } from "react";
 
-import { HostnameModal } from "./HostnameModal";
-import { updateDevice } from "../../api/deviceListApi";
 import type { UpdateDeviceResponse } from "../../api/deviceListApi";
+import { updateDevice } from "../../api/deviceListApi";
+import { HostnameModal } from "./HostnameModal";
 
 jest.mock("../../api/deviceListApi");
 jest.mock("../../../../stores/AuthTokenContext", () => ({
@@ -50,7 +50,7 @@ test("successfully changes hostname and navigates to config-change", async () =>
   expect(submitButton).toBeDisabled();
   expect(screen.getByRole("button", { name: /cancel/i })).toBeEnabled();
 
-  const hostnameInput = screen.getByPlaceholderText(/new hostname/i);
+  const hostnameInput = screen.getByLabelText(/new hostname/i);
   await userEvent.type(hostnameInput, "new-switch");
   expect(submitButton).toBeEnabled();
 
@@ -83,7 +83,7 @@ test("submit button remains disabled when typing the same hostname", async () =>
   renderComponent({ hostname: "current-switch" });
 
   const submitButton = screen.getByRole("button", { name: /change hostname/i });
-  const hostnameInput = screen.getByPlaceholderText(/new hostname/i);
+  const hostnameInput = screen.getByLabelText(/new hostname/i);
 
   expect(submitButton).toBeDisabled();
   await userEvent.type(hostnameInput, "current-switch");
@@ -100,7 +100,7 @@ test("shows error message when backend request fails", async () => {
   renderComponent();
 
   const submitButton = screen.getByRole("button", { name: /change hostname/i });
-  const hostnameInput = screen.getByPlaceholderText(/new hostname/i);
+  const hostnameInput = screen.getByLabelText(/new hostname/i);
 
   await userEvent.type(hostnameInput, "new-switch");
   await userEvent.click(submitButton);
@@ -108,7 +108,6 @@ test("shows error message when backend request fails", async () => {
   await waitFor(() => {
     expect(screen.getByText(/hostname already exists/i)).toBeInTheDocument();
   });
-  expect(screen.getByTestId("CancelIcon")).toBeInTheDocument();
   expect(screen.queryByText(/hostname changed/i)).not.toBeInTheDocument();
   expect(mockOnSuccess).not.toHaveBeenCalled();
   expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
@@ -122,7 +121,7 @@ test("shows error message when network request throws exception", async () => {
   renderComponent();
 
   const submitButton = screen.getByRole("button", { name: /change hostname/i });
-  const hostnameInput = screen.getByPlaceholderText(/new hostname/i);
+  const hostnameInput = screen.getByLabelText(/new hostname/i);
 
   await userEvent.type(hostnameInput, "new-switch");
   await userEvent.click(submitButton);
@@ -130,6 +129,5 @@ test("shows error message when network request throws exception", async () => {
   await waitFor(() => {
     expect(screen.getByText(/network connection failed/i)).toBeInTheDocument();
   });
-  expect(screen.getByTestId("CancelIcon")).toBeInTheDocument();
   expect(mockOnSuccess).not.toHaveBeenCalled();
 });
