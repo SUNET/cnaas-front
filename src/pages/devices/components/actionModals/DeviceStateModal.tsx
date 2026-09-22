@@ -1,12 +1,17 @@
-import { useState } from "react";
-import { Modal } from "semantic-ui-react";
-import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
-import CancelIcon from "@mui/icons-material/Cancel";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Stack from "@mui/material/Stack";
+import { useState } from "react";
+
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import type { DeviceState } from "../../../../types/device";
-import { updateDevice } from "../../api/deviceListApi";
 import { extractErrorMessage } from "../../../../utils/extractErrorMessage";
+import { updateDevice } from "../../api/deviceListApi";
 
 type DeviceStateModalProps = {
   readonly isOpen: boolean;
@@ -51,27 +56,26 @@ export function DeviceStateModal({
   };
 
   return (
-    <Modal onClose={handleClose} open={isOpen}>
-      <Modal.Header>Device state needs to change</Modal.Header>
-      <Modal.Content>
-        <Modal.Description>
-          <p key="confirm">
+    <Dialog
+      aria-labelledby="device-state-dialog"
+      aria-describedby="device-state-dialog-description"
+      onClose={handleClose}
+      open={isOpen}
+    >
+      <DialogTitle id="device-state-dialog">
+        Device state needs to change
+      </DialogTitle>
+      <DialogContent>
+        <Stack spacing={2}>
+          <DialogContentText id="device-state-dialog-description">
             To perform this action, the device state needs to be changed first.
             Are you sure you want to change the state of device {hostname} to{" "}
             {newState}?
-          </p>
-          {isLoading && <CircularProgress />}
-          <p>
-            {error && (
-              <>
-                <CancelIcon sx={{ color: "error.main" }} />
-                <label>{error}</label>
-              </>
-            )}
-          </p>
-        </Modal.Description>
-      </Modal.Content>
-      <Modal.Actions>
+          </DialogContentText>
+          {error && <Alert severity="error">{error}</Alert>}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
         <Button
           key="cancel"
           variant="outlined"
@@ -84,6 +88,8 @@ export function DeviceStateModal({
           key="submit"
           variant="contained"
           color="success"
+          disabled={isLoading}
+          loading={isLoading}
           onClick={() => {
             if (deviceId != null && newState) {
               putState(deviceId, newState);
@@ -92,7 +98,7 @@ export function DeviceStateModal({
         >
           Change state
         </Button>
-      </Modal.Actions>
-    </Modal>
+      </DialogActions>
+    </Dialog>
   );
 }
