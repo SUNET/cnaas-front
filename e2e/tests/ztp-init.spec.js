@@ -270,7 +270,7 @@ test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
     // Filter the JobList by function_name so we don't depend on pagination —
     // a real test environment can accumulate many scheduled jobs (e.g.
     // periodic sync_devices) that push the ZTP jobs off page 1.
-    const searchFieldDropdown = page.locator("form .ui.selection.dropdown");
+    const searchFieldDropdown = page.getByRole("combobox");
 
     await test.step("Verify discover_device job FINISHED", async () => {
       // Switch the search field to function_name once; the second step reuses it.
