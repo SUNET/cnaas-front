@@ -1,33 +1,37 @@
-import { useEffect, useState } from "react";
-import {
-  ButtonGroup,
-  Modal,
-  ModalActions,
-  ModalContent,
-  ModalDescription,
-  ModalHeader,
-  Dropdown,
-  DropdownDivider,
-  DropdownHeader,
-  DropdownItem,
-} from "semantic-ui-react";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import CircularProgress from "@mui/material/CircularProgress";
-import Paper from "@mui/material/Paper";
+import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import CloseIcon from "@mui/icons-material/Close";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
+import Checkbox from "@mui/material/Checkbox";
+import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import Divider from "@mui/material/Divider";
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import IconButton from "@mui/material/IconButton";
+import InputLabel from "@mui/material/InputLabel";
+import ListSubheader from "@mui/material/ListSubheader";
+import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import { useEffect, useState } from "react";
+
 import { Tooltip } from "../../../../components/Tooltip";
+import { useAuthToken } from "../../../../stores/AuthTokenContext";
+import type { DeviceState } from "../../../../types/device";
+import { extractErrorMessageAsync } from "../../../../utils/extractErrorMessage";
 import {
   fetchGenerateConfig,
   fetchPreviousConfig,
   fetchRunningConfig,
 } from "../../api/deviceListApi";
-import { useAuthToken } from "../../../../stores/AuthTokenContext";
-import { extractErrorMessageAsync } from "../../../../utils/extractErrorMessage";
-import type { DeviceState } from "../../../../types/device";
 
 type ShowConfigModalProps = {
   readonly hostname: string | null;
@@ -75,6 +79,180 @@ const EMPTY_PREVIOUS: Record<number, PreviousConfigEntry> = {
   3: EMPTY_PREVIOUS_ENTRY,
 };
 
+type ColumnContent = {
+  headerText: string;
+  config: string;
+  status: LoadStatus;
+  jobId: number;
+};
+
+// Labels shared between the Select's menu items and its closed-state
+// display (`renderValue`), so both stay in sync from one source.
+const COLUMN_LABELS: Record<string, string> = {
+  running_config: "Running config",
+  generate_config: "Generate config from latest templates",
+  previous_0: "Last syncto job generated config (0)",
+  previous_1: "Second from last syncto job generated config (-1)",
+  previous_2: "Third from last syncto job generated config (-2)",
+  previous_3: "Fourth from last syncto job generated config (-3)",
+  available_variables: "Available variables for templates",
+};
+
+const COLUMN_PICKER_LABELS: Record<"left" | "right", string> = {
+  left: "Left column",
+  right: "Right column",
+};
+
+function buildColumnMenuItems() {
+  return [
+    <ListSubheader key="device_header">Device config</ListSubheader>,
+    <MenuItem key="running_config" value="running_config">
+      {COLUMN_LABELS.running_config}
+    </MenuItem>,
+    <Divider key="divider" />,
+    <ListSubheader key="nms_header">NMS generated</ListSubheader>,
+    <MenuItem key="generate_config" value="generate_config">
+      {COLUMN_LABELS.generate_config}
+    </MenuItem>,
+    <MenuItem key="previous_0" value="previous_0">
+      {COLUMN_LABELS.previous_0}
+    </MenuItem>,
+    <MenuItem key="previous_1" value="previous_1">
+      {COLUMN_LABELS.previous_1}
+    </MenuItem>,
+    <MenuItem key="previous_2" value="previous_2">
+      {COLUMN_LABELS.previous_2}
+    </MenuItem>,
+    <MenuItem key="previous_3" value="previous_3">
+      {COLUMN_LABELS.previous_3}
+    </MenuItem>,
+    <MenuItem key="available_variables" value="available_variables">
+      {COLUMN_LABELS.available_variables}
+    </MenuItem>,
+  ];
+}
+
+type ColumnPaneProps = {
+  readonly side: "left" | "right";
+  readonly defaultValue: string;
+  readonly getColumnContent: (colValue: string) => ColumnContent | null;
+  readonly columnRefreshFunctions: Record<string, () => void>;
+  readonly onSelectPrevious: (number: number) => void;
+  readonly hidden?: boolean;
+};
+
+// One column pane: the picker Select at the top, followed by that
+// column's header/actions/config body. When `hidden` (right side only,
+// toggled via the "Show right column" checkbox in the dialog title), the
+// pane is just `display: none`'d rather than unmounted, so its own
+// selection isn't lost if the user shows it again.
+function ColumnPane({
+  side,
+  defaultValue,
+  getColumnContent,
+  columnRefreshFunctions,
+  onSelectPrevious,
+  hidden = false,
+}: ColumnPaneProps) {
+  const [colValue, setColValue] = useState(defaultValue);
+  const content = getColumnContent(colValue);
+  const labelId = `${side}-column-label`;
+
+  function handleChange(val: string) {
+    if (val.startsWith("previous_")) {
+      const number = Number.parseInt(val.replace("previous_", ""), 10);
+      onSelectPrevious(number);
+    }
+    setColValue(val);
+  }
+
+  return (
+    <Box
+      sx={{ p: 2, flex: 1, minWidth: 0, display: hidden ? "none" : undefined }}
+    >
+      <FormControl size="small" sx={{ minWidth: 220, maxWidth: 320, mb: 1 }}>
+        <InputLabel id={labelId}>{COLUMN_PICKER_LABELS[side]}</InputLabel>
+        <Select
+          labelId={labelId}
+          label={COLUMN_PICKER_LABELS[side]}
+          value={colValue}
+          onChange={(event: SelectChangeEvent) =>
+            handleChange(event.target.value)
+          }
+          renderValue={(val) => (
+            <Box
+              component="span"
+              sx={{
+                display: "block",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {COLUMN_LABELS[val] ?? val}
+            </Box>
+          )}
+        >
+          {buildColumnMenuItems()}
+        </Select>
+      </FormControl>
+      {content && (
+        <>
+          <h1>{content.headerText}</h1>
+          <ButtonGroup>
+            <Tooltip
+              title={`Copy ${content.headerText}`}
+              placement="bottom-end"
+            >
+              <IconButton
+                size="small"
+                onClick={() => navigator.clipboard.writeText(content.config)}
+              >
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            {colValue.startsWith("previous_") && (
+              <Tooltip
+                title={`Copy Job ID #${content.jobId}`}
+                placement="bottom-end"
+              >
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    navigator.clipboard.writeText(String(content.jobId))
+                  }
+                >
+                  <FormatListNumberedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {colValue in columnRefreshFunctions && (
+              <Tooltip
+                title={`Refresh ${content.headerText}`}
+                placement="bottom-end"
+              >
+                <IconButton
+                  size="small"
+                  onClick={() => columnRefreshFunctions[colValue]()}
+                >
+                  <RefreshIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </ButtonGroup>
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            {content.status === "loading" ? (
+              <CircularProgress />
+            ) : (
+              <pre className="fullconfig">{content.config}</pre>
+            )}
+          </Paper>
+        </>
+      )}
+    </Box>
+  );
+}
+
 export function ShowConfigModal({
   hostname,
   state = "MANAGED",
@@ -89,10 +267,7 @@ export function ShowConfigModal({
   const [previousConfig, setPreviousConfig] =
     useState<Record<number, PreviousConfigEntry>>(EMPTY_PREVIOUS);
   const [errors, setErrors] = useState<readonly Error[]>([]);
-  const [columnValues, setColumnValues] = useState({
-    left: "running_config",
-    right: "generate_config",
-  });
+  const [showRightColumn, setShowRightColumn] = useState(true);
 
   function clearForm() {
     setErrors([]);
@@ -189,73 +364,6 @@ export function ShowConfigModal({
     return () => controller.abort();
   }, []);
 
-  // Builds the menu children for a column dropdown. Children form is required
-  // because semantic-ui-react's `options` prop expects option objects, not
-  // rendered DropdownHeader/DropdownItem/DropdownDivider elements — those
-  // belong inside <Dropdown.Menu>.
-  function buildColumnItems(side: "left" | "right") {
-    const selectColumn = (val: string) => {
-      if (val.startsWith("previous_")) {
-        const number = Number.parseInt(val.replace("previous_", ""), 10);
-        getPreviousConfig(number);
-      }
-      if (val !== columnValues[side]) {
-        setColumnValues((current) => ({ ...current, [side]: val }));
-      }
-    };
-    const items = [
-      <DropdownHeader key="device_header" content="Device config" />,
-      <DropdownItem
-        key="running_config"
-        text="Running config"
-        onClick={() => selectColumn("running_config")}
-      />,
-      <DropdownDivider key="divider" />,
-      <DropdownHeader key="nms_header" content="NMS generated" />,
-      <DropdownItem
-        key="generate_config"
-        text="Generate config from latest templates"
-        onClick={() => selectColumn("generate_config")}
-      />,
-      <DropdownItem
-        key="previous_0"
-        text="Last syncto job generated config (0)"
-        onClick={() => selectColumn("previous_0")}
-      />,
-      <DropdownItem
-        key="previous_1"
-        text="Second from last syncto job generated config (-1)"
-        onClick={() => selectColumn("previous_1")}
-      />,
-      <DropdownItem
-        key="previous_2"
-        text="Third from last syncto job generated config (-2)"
-        onClick={() => selectColumn("previous_2")}
-      />,
-      <DropdownItem
-        key="previous_3"
-        text="Fourth from last syncto job generated config (-3)"
-        onClick={() => selectColumn("previous_3")}
-      />,
-      <DropdownItem
-        key="available_variables"
-        text="Available variables for templates"
-        onClick={() => selectColumn("available_variables")}
-      />,
-    ];
-    if (side === "right") {
-      items.push(
-        <DropdownDivider key="right_only_divider" />,
-        <DropdownItem
-          key="hide"
-          text="Hide column"
-          onClick={() => selectColumn("hide")}
-        />,
-      );
-    }
-    return items;
-  }
-
   const columnHeaders: Record<string, string> = {
     running_config: "Device running config",
     generate_config: "NMS generated config",
@@ -266,13 +374,6 @@ export function ShowConfigModal({
     running_config: getRunningConfig,
     generate_config: getGeneratedConfig,
     available_variables: getGeneratedConfig,
-  };
-
-  type ColumnContent = {
-    headerText: string;
-    config: string;
-    status: LoadStatus;
-    jobId: number;
   };
 
   function getColumnContent(colValue: string): ColumnContent | null {
@@ -313,86 +414,59 @@ export function ShowConfigModal({
     return null;
   }
 
-  const columnContents = Object.entries(columnValues)
-    .map(([colName, colValue]) => {
-      const content = getColumnContent(colValue);
-      if (!content) return null;
-      const { headerText, config, status, jobId } = content;
-      return (
-        <div key={colName}>
-          <h1>{headerText}</h1>
-          <ButtonGroup>
-            <Tooltip title={`Copy ${headerText}`} placement="bottom-end">
-              <IconButton
-                size="small"
-                onClick={() => navigator.clipboard.writeText(config)}
-              >
-                <ContentCopyIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            {colValue.startsWith("previous_") && (
-              <Tooltip title={`Copy Job ID #${jobId}`} placement="bottom-end">
-                <IconButton
-                  size="small"
-                  onClick={() => navigator.clipboard.writeText(String(jobId))}
-                >
-                  <FormatListNumberedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {colValue in columnRefreshFunctions && (
-              <Tooltip title={`Refresh ${headerText}`} placement="bottom-end">
-                <IconButton
-                  size="small"
-                  onClick={() => columnRefreshFunctions[colValue]()}
-                >
-                  <RefreshIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-          </ButtonGroup>
-          <Paper variant="outlined" sx={{ padding: "var(--size-md)" }}>
-            {status === "loading" ? (
-              <CircularProgress />
-            ) : (
-              <pre className="fullconfig">{config}</pre>
-            )}
-          </Paper>
-        </div>
-      );
-    })
-    .filter((node) => node !== null);
-
   return (
-    <Modal open={isOpen} onClose={handleCancel} size="fullscreen">
-      <ModalHeader>Show config for {hostname}</ModalHeader>
-      <ModalContent>
-        <ModalDescription>
-          <Paper variant="outlined" sx={{ padding: "var(--size-md)" }}>
-            <Dropdown key="left" text="Left column" button>
-              <Dropdown.Menu>{buildColumnItems("left")}</Dropdown.Menu>
-            </Dropdown>
-            <Dropdown key="right" text="Right column" button>
-              <Dropdown.Menu>{buildColumnItems("right")}</Dropdown.Menu>
-            </Dropdown>
-          </Paper>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
-              gap: "var(--size-md)",
-            }}
-          >
-            {columnContents}
-          </div>
-          <ul id="error_list" style={{ color: "red" }}>
-            {errors.map((err) => (
-              <li key={err.message}>{err.message}</li>
-            ))}
-          </ul>
-        </ModalDescription>
-      </ModalContent>
-      <ModalActions>
+    <Dialog
+      aria-labelledby="show-config-dialog"
+      aria-describedby="show-config-dialog-description"
+      onClose={handleCancel}
+      open={isOpen}
+      fullScreen
+      sx={{ m: 6 }}
+    >
+      <DialogTitle
+        id="show-config-dialog"
+        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+      >
+        <Box sx={{ flex: 1 }}>Show config for {hostname}</Box>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={showRightColumn}
+              onChange={(event) => setShowRightColumn(event.target.checked)}
+            />
+          }
+          label="Show right column"
+        />
+      </DialogTitle>
+      <DialogContent id="show-config-dialog-description">
+        {!!errors.length && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            <ul>
+              {errors.map((err) => (
+                <li key={err.message}>{err.message}</li>
+              ))}
+            </ul>
+          </Alert>
+        )}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <ColumnPane
+            side="left"
+            defaultValue="running_config"
+            getColumnContent={getColumnContent}
+            columnRefreshFunctions={columnRefreshFunctions}
+            onSelectPrevious={getPreviousConfig}
+          />
+          <ColumnPane
+            side="right"
+            defaultValue="generate_config"
+            getColumnContent={getColumnContent}
+            columnRefreshFunctions={columnRefreshFunctions}
+            onSelectPrevious={getPreviousConfig}
+            hidden={!showRightColumn}
+          />
+        </Box>
+      </DialogContent>
+      <DialogActions>
         <Button
           variant="outlined"
           color="inherit"
@@ -401,7 +475,7 @@ export function ShowConfigModal({
         >
           Close
         </Button>
-      </ModalActions>
-    </Modal>
+      </DialogActions>
+    </Dialog>
   );
 }
