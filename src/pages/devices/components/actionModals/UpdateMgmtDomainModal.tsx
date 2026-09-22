@@ -1,21 +1,17 @@
-import { useState, type ChangeEvent } from "react";
-import {
-  Form,
-  FormField,
-  FormGroup,
-  FormInput,
-  Input,
-  Modal,
-  ModalActions,
-  ModalContent,
-  ModalDescription,
-  ModalHeader,
-} from "semantic-ui-react";
-import Button from "@mui/material/Button";
 import CheckIcon from "@mui/icons-material/Check";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { deleteMgmtDomain, updateMgmtDomain } from "../../api/deviceListApi";
+import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import { useState, type ChangeEvent } from "react";
+
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
+import { deleteMgmtDomain, updateMgmtDomain } from "../../api/deviceListApi";
 
 type UpdateMgmtDomainModalProps = {
   readonly mgmtId: number | null;
@@ -76,6 +72,69 @@ async function extractErrors(error: unknown): Promise<readonly string[]> {
   return [String(error)];
 }
 
+type ConfirmDeleteDialogProps = {
+  readonly mgmtId: number | null;
+  readonly deviceA?: string | null;
+  readonly deviceB?: string | null;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onConfirm: () => void;
+};
+
+// The confirm-id input's own state lives here rather than in the parent:
+// MUI Dialog unmounts its content when `open` is false (no `keepMounted`),
+// so this naturally resets every time the dialog is reopened.
+function ConfirmDeleteDialog({
+  mgmtId,
+  deviceA,
+  deviceB,
+  open,
+  onClose,
+  onConfirm,
+}: ConfirmDeleteDialogProps) {
+  const [deleteMgmtId, setDeleteMgmtId] = useState("");
+
+  return (
+    <Dialog
+      aria-labelledby="update-mgmt-domain-confirm-dialog"
+      aria-describedby="update-mgmt-domain-confirm-dialog-description"
+      onClose={onClose}
+      open={open}
+    >
+      <DialogTitle id="update-mgmt-domain-confirm-dialog">
+        Delete Management Domain {mgmtId}
+      </DialogTitle>
+      <DialogContent id="update-mgmt-domain-confirm-dialog-description">
+        <TextField
+          id="mgmt_update_delete-input"
+          value={deleteMgmtId}
+          label="Confirm ID"
+          type="string"
+          required
+          sx={{ mt: 1 }}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setDeleteMgmtId(e.target.value)
+          }
+          helperText={`Are you sure you want to delete managament domain ${mgmtId} with devices ${deviceA} and ${deviceB}?`}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button variant="outlined" color="inherit" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          color="error"
+          disabled={Number(deleteMgmtId) !== Number(mgmtId)}
+          onClick={onConfirm}
+        >
+          Confirm Delete
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export function UpdateMgmtDomainModal({
   mgmtId,
   deviceA,
@@ -90,7 +149,6 @@ export function UpdateMgmtDomainModal({
 }: UpdateMgmtDomainModalProps) {
   const { token } = useAuthToken();
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deleteMgmtId, setDeleteMgmtId] = useState("");
   const [errors, setErrors] = useState<readonly string[]>([]);
   const [formData, setFormData] = useState<FormState>({
     ipv4: ipv4Initial ?? "",
@@ -104,7 +162,6 @@ export function UpdateMgmtDomainModal({
   function clearForm() {
     setErrors([]);
     setFormData({ ipv4: "", ipv6: "", vlan: "" });
-    setDeleteMgmtId("");
   }
 
   function handleCancel() {
@@ -151,118 +208,93 @@ export function UpdateMgmtDomainModal({
   }
 
   return (
-    <Modal open={isOpen} onClose={handleCancel}>
-      <ModalHeader>Management domain {mgmtId}</ModalHeader>
-      <ModalContent>
-        <ModalDescription>
-          <span style={{ fontWeight: "lighter" }}>
-            Devices in managament domain:{" "}
-          </span>
-          <span>{`${deviceA}  ${deviceB}`}</span>
-          <Form>
-            <FormGroup grouped>
-              <FormField>
-                <FormInput
-                  id="mgmt_update_ipv4_input"
-                  label="IPv4 Gateway"
-                  name="ipv4"
-                  type="text"
-                  value={ipv4}
-                  onChange={handleChange}
-                />
-              </FormField>
-
-              <FormField>
-                <FormInput
-                  id="mgmt_update_ipv6_input"
-                  label="IPv6 Gateway"
-                  name="ipv6"
-                  type="text"
-                  value={ipv6}
-                  onChange={handleChange}
-                />
-              </FormField>
-
-              <FormField>
-                <FormInput
-                  id="mgmt_update_vlan_input"
-                  label="VLAN ID"
-                  name="vlan"
-                  type="text"
-                  value={vlan}
-                  onChange={handleChange}
-                />
-              </FormField>
-            </FormGroup>
-          </Form>
-          <ul id="mgmt_update_error_list" style={{ color: "red" }}>
-            {errors.map((err) => (
-              <li key={err}>{err}</li>
-            ))}
-          </ul>
-        </ModalDescription>
-      </ModalContent>
-      <ModalActions>
-        <Button variant="outlined" color="inherit" onClick={handleCancel}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => setConfirmOpen(true)}
-          endIcon={<RemoveIcon />}
-        >
-          Delete
-        </Button>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={handleUpdate}
-          endIcon={<CheckIcon />}
-        >
-          Update
-        </Button>
-      </ModalActions>
-
-      <Modal
-        onClose={() => setConfirmOpen(false)}
-        open={confirmOpen}
-        size="small"
+    <>
+      <Dialog
+        aria-labelledby="update-mgmt-domain-dialog"
+        aria-describedby="update-mgmt-domain-dialog-description"
+        onClose={handleCancel}
+        open={isOpen}
       >
-        <ModalHeader>Delete Management Domain {mgmtId}</ModalHeader>
-        <ModalContent>
-          <label htmlFor="delete-input" style={{ fontWeight: "lighter" }}>
-            Are you sure you want to delete managament domain {mgmtId} with
-            devices {deviceA} and {deviceB}?
-          </label>
-          <Input
-            id="mgmt_update_delete-input"
-            value={deleteMgmtId}
-            placeholder="Confirm id"
-            type="string"
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setDeleteMgmtId(e.target.value)
-            }
-          />
-        </ModalContent>
-        <ModalActions>
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={() => setConfirmOpen(false)}
-          >
+        <DialogTitle id="update-mgmt-domain-dialog">
+          Management domain {mgmtId}
+        </DialogTitle>
+        <DialogContent id="update-mgmt-domain-dialog-description">
+          <Stack spacing={2}>
+            <span style={{ fontWeight: "lighter" }}>
+              Devices in managament domain:{" "}
+            </span>
+            <span>{`${deviceA}  ${deviceB}`}</span>
+            <TextField
+              id="mgmt_update_ipv4_input"
+              label="IPv4 Gateway"
+              placeholder="Enter IPv4 Gateway"
+              name="ipv4"
+              type="text"
+              value={ipv4}
+              onChange={handleChange}
+            />
+
+            <TextField
+              id="mgmt_update_ipv6_input"
+              label="IPv6 Gateway"
+              placeholder="Enter IPv6 Gateway"
+              name="ipv6"
+              type="text"
+              value={ipv6}
+              onChange={handleChange}
+            />
+
+            <TextField
+              id="mgmt_update_vlan_input"
+              label="VLAN ID"
+              placeholder="Enter VLAN ID"
+              name="vlan"
+              type="text"
+              value={vlan}
+              onChange={handleChange}
+            />
+          </Stack>
+          {!!errors.length && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              <ul>
+                {errors.map((err) => (
+                  <li key={err}>{err}</li>
+                ))}
+              </ul>
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" color="inherit" onClick={handleCancel}>
             Cancel
           </Button>
           <Button
             variant="contained"
             color="error"
-            disabled={Number(deleteMgmtId) !== Number(mgmtId)}
-            onClick={handleConfirmDelete}
+            onClick={() => setConfirmOpen(true)}
+            endIcon={<RemoveIcon />}
           >
-            Confirm Delete
+            Delete
           </Button>
-        </ModalActions>
-      </Modal>
-    </Modal>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleUpdate}
+            endIcon={<CheckIcon />}
+          >
+            Update
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        mgmtId={mgmtId}
+        deviceA={deviceA}
+        deviceB={deviceB}
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
+    </>
   );
 }
