@@ -107,7 +107,7 @@ test("user opens the rename dialog, validates the form, and cancels", async ({
   // expand eosdist1 and open its Actions menu
   await page.getByRole("cell", { name: "eosdist1", exact: true }).click();
   await openActionsMenu(page);
-  await page.getByRole("option", { name: /change hostname/i }).click();
+  await page.getByRole("menuitem", { name: /change hostname/i }).click();
 
   await expect(page.getByText("Change hostname for eosdist1")).toBeVisible();
 
@@ -115,7 +115,7 @@ test("user opens the rename dialog, validates the form, and cancels", async ({
   const submit = page.getByRole("button", { name: /Change hostname/ });
   await expect(submit).toBeDisabled();
 
-  const input = page.getByPlaceholder("new hostname...");
+  const input = page.getByLabel("New hostname");
 
   // same hostname is invalid
   await input.fill("eosdist1");
@@ -156,11 +156,19 @@ test.describe("device mutations", () => {
       ).toBeVisible({ timeout: 10_000 });
       await page.getByRole("cell", { name: original, exact: true }).click();
       await openActionsMenu(page);
-      await page.getByRole("option", { name: /change hostname/i }).click();
+      await page.getByRole("menuitem", { name: /change hostname/i }).click();
 
       // fill in new hostname and submit
-      await page.getByPlaceholder("new hostname...").fill(renamed);
+      await page.getByLabel("New hostname").fill(renamed);
       await page.getByRole("button", { name: "Change hostname" }).click();
+
+      // The dialog stays open after success (offers a "Sync devices..."
+      // button) and marks the rest of the page aria-hidden while open, so
+      // role-based queries on the table won't resolve until it's closed.
+      await expect(page.getByText("Hostname changed")).toBeVisible({
+        timeout: 10_000,
+      });
+      await page.keyboard.press("Escape");
 
       // row updates — old hostname gone, new one visible
       await expect(
@@ -194,7 +202,7 @@ test.describe("device mutations", () => {
       ).toBeVisible({ timeout: 10_000 });
       await page.getByRole("cell", { name: hostname, exact: true }).click();
       await openActionsMenu(page);
-      await page.getByRole("option", { name: /make unmanaged/i }).click();
+      await page.getByRole("menuitem", { name: /make unmanaged/i }).click();
 
       // state cell on the device's row flips to UNMANAGED
       await expect(
@@ -228,7 +236,7 @@ test.describe("device mutations", () => {
       ).toBeVisible({ timeout: 10_000 });
       await page.getByRole("cell", { name: hostname, exact: true }).click();
       await openActionsMenu(page);
-      await page.getByRole("option", { name: /delete device/i }).click();
+      await page.getByRole("menuitem", { name: /delete device/i }).click();
 
       // confirm by typing the hostname, then click Delete
       // (the modal also has a descriptive paragraph containing the same text,

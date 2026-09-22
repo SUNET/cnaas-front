@@ -46,7 +46,7 @@ test.describe("Show configuration", () => {
     await page.goto("/devices");
     await expandDeviceRow(page, hostname);
     await openActionsMenu(page);
-    await page.getByRole("option", { name: /show configuration/i }).click();
+    await page.getByRole("menuitem", { name: /show configuration/i }).click();
 
     await expect(page.getByText(`Show config for ${hostname}`)).toBeVisible({
       timeout: 15_000,
@@ -79,7 +79,7 @@ test.describe("Navigation actions", () => {
     await page.goto("/devices");
     await expandDeviceRow(page, hostname);
     await openActionsMenu(page);
-    await page.getByRole("option", { name: /sync device/i }).click();
+    await page.getByRole("menuitem", { name: /sync device/i }).click();
 
     await expect(page).toHaveURL(
       new RegExp(`/config-change\\?hostname=${hostname}$`),
@@ -96,7 +96,7 @@ test.describe("Navigation actions", () => {
     await openActionsMenu(page);
 
     await expect(
-      page.getByRole("option", { name: /configure ports/i }),
+      page.getByRole("menuitem", { name: /configure ports/i }),
     ).toBeVisible();
   });
 });
