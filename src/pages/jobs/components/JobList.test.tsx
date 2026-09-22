@@ -361,7 +361,7 @@ test("search with function_name field uses correct params", async () => {
   });
 
   // Select "Function name" from dropdown
-  await userEvent.click(screen.getByRole("listbox"));
+  await userEvent.click(screen.getByRole("combobox"));
   await userEvent.click(screen.getByRole("option", { name: "Function name" }));
 
   fetchJobs.mockClear();
@@ -386,7 +386,7 @@ test("search with status field uses correct params", async () => {
   });
 
   // Select "Status" from dropdown
-  await userEvent.click(screen.getByRole("listbox"));
+  await userEvent.click(screen.getByRole("combobox"));
   await userEvent.click(screen.getByRole("option", { name: "Status" }));
 
   fetchJobs.mockClear();
@@ -410,7 +410,7 @@ test("search with scheduled_by field uses correct params", async () => {
     expect(screen.getByText("101")).toBeInTheDocument();
   });
 
-  await userEvent.click(screen.getByRole("listbox"));
+  await userEvent.click(screen.getByRole("combobox"));
   await userEvent.click(screen.getByRole("option", { name: "Scheduled by" }));
 
   fetchJobs.mockClear();
@@ -730,7 +730,7 @@ test("handles error without json method", async () => {
 
 // Clear search tests
 test("clearing search resets filter and reloads data", async () => {
-  const { container } = renderJobList();
+  renderJobList();
 
   await waitFor(() => {
     expect(screen.getByText("101")).toBeInTheDocument();
@@ -742,8 +742,7 @@ test("clearing search resets filter and reloads data", async () => {
   fetchJobs.mockClear();
 
   // Click clear icon
-  const clearIcon = container.querySelector("i.delete.icon");
-  await userEvent.click(clearIcon as Element);
+  await userEvent.click(screen.getByTestId("CloseIcon"));
 
   // Should call API without filter params
   expect(fetchJobs).toHaveBeenCalledWith("test-token", "-id", null, null, 1);
@@ -893,7 +892,7 @@ test("search with comment field uses correct params", async () => {
   });
 
   // Select "Comment" from dropdown
-  await userEvent.click(screen.getByRole("listbox"));
+  await userEvent.click(screen.getByRole("combobox"));
   await userEvent.click(screen.getByRole("option", { name: "Comment" }));
 
   fetchJobs.mockClear();
@@ -921,7 +920,7 @@ test("search with ticket_ref field uses correct params", async () => {
   });
 
   // Select "Ticket reference" from dropdown
-  await userEvent.click(screen.getByRole("listbox"));
+  await userEvent.click(screen.getByRole("combobox"));
   await userEvent.click(
     screen.getByRole("option", { name: "Ticket reference" }),
   );

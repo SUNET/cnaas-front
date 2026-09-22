@@ -21,7 +21,7 @@ test("displays search input, dropdown, and submit button", () => {
   renderComponent();
 
   expect(screen.getByPlaceholderText("Search...")).toBeInTheDocument();
-  expect(screen.getByRole("listbox")).toBeInTheDocument();
+  expect(screen.getByRole("combobox")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
 });
 
@@ -41,7 +41,7 @@ test("calls searchAction with selected field when form is submitted", async () =
   renderComponent();
 
   // Open dropdown and select "Status"
-  await userEvent.click(screen.getByRole("listbox"));
+  await userEvent.click(screen.getByRole("combobox"));
   await userEvent.click(screen.getByRole("option", { name: "Status" }));
 
   await userEvent.type(screen.getByPlaceholderText("Search..."), "FINISHED");
@@ -56,7 +56,7 @@ test("calls searchAction with selected field when form is submitted", async () =
 test("displays all search field options", async () => {
   renderComponent();
 
-  await userEvent.click(screen.getByRole("listbox"));
+  await userEvent.click(screen.getByRole("combobox"));
 
   const expectedOptions = [
     "ID",
@@ -75,19 +75,30 @@ test("displays all search field options", async () => {
 });
 
 test("clears search and calls searchAction with nulls when clear icon is clicked", async () => {
-  const { container } = renderComponent();
+  renderComponent();
 
   const input = screen.getByPlaceholderText("Search...");
   await userEvent.type(input, "test-query");
   expect(input).toHaveValue("test-query");
 
-  // Click the clear icon (Semantic UI Icon with link prop renders as <i> with aria-hidden)
-  const clearIcon = container.querySelector("i.delete.icon");
-  await userEvent.click(clearIcon as Element);
+  // Click the clear icon (MUI CloseIcon inside the InputAdornment)
+  await userEvent.click(screen.getByTestId("CloseIcon"));
 
   expect(input).toHaveValue("");
   expect(mockSearchAction).toHaveBeenCalledWith({
     filterField: null,
     filterValue: null,
+  });
+});
+
+test("don't error when search field is empty", async () => {
+  renderComponent();
+
+  // Field is empty by default; just submit without typing anything.
+  await userEvent.click(screen.getByRole("button", { name: "Search" }));
+
+  expect(mockSearchAction).toHaveBeenCalledWith({
+    filterField: "id",
+    filterValue: "",
   });
 });

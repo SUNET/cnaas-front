@@ -1,7 +1,13 @@
-import type { ChangeEvent, FormEvent, SyntheticEvent } from "react";
-import { useState } from "react";
-import { Select, Input, Icon } from "semantic-ui-react";
+import CloseIcon from "@mui/icons-material/Close";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Input from "@mui/material/Input";
+import InputAdornment from "@mui/material/InputAdornment";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import type { ChangeEvent, FormEvent } from "react";
+import { useState } from "react";
 
 type SearchActionOptions = {
   readonly filterField?: string | null;
@@ -40,28 +46,38 @@ export function JobSearchForm({ searchAction }: JobSearchFormProps) {
   };
 
   return (
-    <form onSubmit={submitSearch}>
-      <Input
-        type="text"
-        placeholder="Search..."
-        action
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setSearchText(e.target.value)
-        }
-        icon={<Icon name="delete" link onClick={clearSearch} />}
-        value={searchText}
-      />
-      <Select
-        options={searchOptions}
-        defaultValue="id"
-        onChange={
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (_e: SyntheticEvent, data: any) => setSearchField(String(data.value))
-        }
-      />
-      <Button type="submit" variant="contained">
-        Search
-      </Button>
-    </form>
+    <Box component="form" onSubmit={submitSearch}>
+      <Stack direction="row" spacing={1}>
+        <Input
+          id="job-search-input"
+          endAdornment={
+            <InputAdornment position="end" onClick={clearSearch}>
+              <CloseIcon />
+            </InputAdornment>
+          }
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setSearchText(e.target.value)
+          }
+          placeholder="Search..."
+          value={searchText}
+        />
+        <Select
+          defaultValue="id"
+          variant="standard"
+          onChange={(event: SelectChangeEvent) =>
+            setSearchField(String(event.target.value))
+          }
+        >
+          {searchOptions.map((option) => (
+            <MenuItem key={option.key} value={option.key}>
+              {option.text}
+            </MenuItem>
+          ))}
+        </Select>
+        <Button type="submit" variant="contained">
+          Search
+        </Button>
+      </Stack>
+    </Box>
   );
 }

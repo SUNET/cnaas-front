@@ -52,7 +52,7 @@ function buildJobsUrl(
   page: number,
 ): string {
   let filterParams = "";
-  if (filterField != null && filterValue != null) {
+  if (filterField && filterValue) {
     const operator = STRING_FIELDS.has(filterField) ? "[contains]" : "";
     filterParams = `&filter[${filterField}]${operator}=${encodeURIComponent(filterValue)}`;
   }
