@@ -1,6 +1,7 @@
 // @ts-check
 import { test, expect } from "@playwright/test";
 import { JWT_TOKEN, API_BASE } from "../constants.js";
+import { openActionsMenu } from "../helpers/ui.js";
 
 test("update facts on a MANAGED device", async ({ page }, testInfo) => {
   await page.goto("/devices");
@@ -16,18 +17,13 @@ test("update facts on a MANAGED device", async ({ page }, testInfo) => {
   const row = page.locator("tr", { hasText: "eosdist1" }).first();
   await row.locator("td").first().click();
 
-  // The expanded content is in the next sibling row
-  const expandedRow = page.locator("tr", { hasText: "eosdist1" }).nth(1);
+  // Open the "Actions" menu and click "Update facts". MUI's Menu portals to
+  // document.body, so the menu item is looked up globally, not scoped to
+  // the expanded row.
+  await openActionsMenu(page);
 
-  // Open the "Actions" dropdown and click "Update facts"
-  const actionsDropdown = expandedRow.locator(".ui.button.dropdown", {
-    hasText: "Actions",
-  });
-  await expect(actionsDropdown).toBeVisible({ timeout: 5000 });
-  await actionsDropdown.click();
-
-  const updateFactsOption = expandedRow.locator(".menu .item", {
-    hasText: "Update facts",
+  const updateFactsOption = page.getByRole("menuitem", {
+    name: /update facts/i,
   });
   await expect(updateFactsOption).toBeVisible();
   await updateFactsOption.click();

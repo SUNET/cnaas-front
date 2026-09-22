@@ -146,23 +146,28 @@ test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
       });
 
       // ── Step 4: Fill in the init form ──────────────────────────────
-      const hostnameInput = page.getByPlaceholder("hostname");
+      const hostnameInput = page.getByLabel("Hostname");
       await expect(hostnameInput).toBeVisible({ timeout: 5000 });
       await hostnameInput.fill("eosaccess");
 
       // Select "Access" from the device type dropdown
-      const deviceTypeDropdown = page.locator("div.ui.selection.dropdown");
+      const deviceTypeDropdown = page.getByLabel("Device type");
       await deviceTypeDropdown.click();
       await page.getByRole("option", { name: "Access", exact: true }).click();
       console.log("Filled in hostname and device type");
 
-      // ── Step 5: Click "Initialize..." to open the initcheck modal ──
+      // ── Step 5: Click "Initialize" to open the initcheck modal ──────
       console.log("Opening initcheck modal...");
-      const initButton = page.getByRole("button", { name: "Initialize..." });
+      const initButton = page.getByRole("button", {
+        name: "Initialize",
+        exact: true,
+      });
       await initButton.click();
 
       // ── Step 6: Wait for the initcheck to complete ─────────────────
-      const modal = page.locator(".ui.modal.visible.active");
+      const modal = page.getByRole("dialog", {
+        name: "Init compatability check",
+      });
       await expect(modal).toBeVisible({ timeout: 10000 });
       await expect(modal.getByText("Init compatability check")).toBeVisible();
 
@@ -196,8 +201,8 @@ test.describe("Device initialization", { tag: "@ztp-setup" }, () => {
       await startButton.click();
 
       await expect(
-        page.getByRole("button", { name: "Initializing..." }),
-      ).toBeVisible({ timeout: 5000 });
+        page.getByRole("button", { name: /Initialize/i }),
+      ).toBeDisabled({ timeout: 5000 });
       console.log("Initialization started");
 
       await testInfo.attach("initialization-started", {

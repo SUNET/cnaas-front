@@ -43,7 +43,7 @@ test.describe("device mutation actions (extras)", () => {
       ).toBeVisible({ timeout: 10_000 });
       await page.getByRole("cell", { name: hostname, exact: true }).click();
       await openActionsMenu(page);
-      await page.getByRole("option", { name: /make managed/i }).click();
+      await page.getByRole("menuitem", { name: /make managed/i }).click();
 
       await expect(
         page
@@ -76,7 +76,7 @@ test.describe("device mutation actions (extras)", () => {
       ).toBeVisible({ timeout: 10_000 });
       await page.getByRole("cell", { name: hostname, exact: true }).click();
       await openActionsMenu(page);
-      await page.getByRole("option", { name: /replace device/i }).click();
+      await page.getByRole("menuitem", { name: /replace device/i }).click();
 
       // For UNMANAGED devices the Replace action triggers a local
       // "UNMANAGED (Replacing)" state change instead of opening a modal.
