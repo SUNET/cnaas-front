@@ -108,7 +108,7 @@ test("click delete", async () => {
   });
   expect(confirmDeleteButton).toBeDisabled();
 
-  const confirmDeleteInput = screen.getByPlaceholderText(/confirm id/i);
+  const confirmDeleteInput = screen.getByLabelText(/confirm id/i);
   await userEvent.type(confirmDeleteInput, "42");
   expect(confirmDeleteButton).not.toBeDisabled();
 
