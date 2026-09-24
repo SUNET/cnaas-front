@@ -12,7 +12,7 @@ const SETTINGS: InitialSettings = {
   filterData: {},
   filterActive: false,
   sortColumn: null,
-  sortDirection: null,
+  sortDirection: false,
   activePage: 1,
   activeColumns: ["id", "hostname"],
   resultsPerPage: 20,
@@ -203,10 +203,10 @@ describe("deviceListReducer", () => {
     const next = deviceListReducer(baseState(), {
       type: actions.SET_SORT,
       column: "hostname",
-      direction: "ascending",
+      direction: "asc",
     });
     expect(next.sortColumn).toBe("hostname");
-    expect(next.sortDirection).toBe("ascending");
+    expect(next.sortDirection).toBe("asc");
   });
 
   test("CLEAR_FILTER_AND_SORT resets sort/filter/page", () => {
@@ -221,7 +221,7 @@ describe("deviceListReducer", () => {
     state = deviceListReducer(state, {
       type: actions.SET_SORT,
       column: "hostname",
-      direction: "ascending",
+      direction: "asc",
     });
     state = deviceListReducer(state, {
       type: actions.SET_ACTIVE_PAGE,
@@ -233,7 +233,7 @@ describe("deviceListReducer", () => {
     expect(next.filterData).toEqual({});
     expect(next.filterActive).toBe(false);
     expect(next.sortColumn).toBeNull();
-    expect(next.sortDirection).toBeNull();
+    expect(next.sortDirection).toBe(false);
     expect(next.activePage).toBe(1);
   });
 

@@ -1,5 +1,8 @@
-import { TableBody, TableCell, TableRow } from "semantic-ui-react";
+import TableBody from "@mui/material/TableBody";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
 import CircularProgress from "@mui/material/CircularProgress";
+
 import type { DeviceColumnKey } from "../types/table";
 import type { Device } from "../../../types/device";
 import { DeviceTableBodyRow } from "./DeviceTableBodyRow";
@@ -21,7 +24,7 @@ export function DeviceTableBody({
     return (
       <TableBody>
         <TableRow>
-          <TableCell>
+          <TableCell colSpan={activeColumns.length}>
             <CircularProgress size="1em" /> Loading
           </TableCell>
         </TableRow>
@@ -33,7 +36,9 @@ export function DeviceTableBody({
     return (
       <TableBody>
         <TableRow>
-          <TableCell>API Error: {error.message}</TableCell>
+          <TableCell colSpan={activeColumns.length}>
+            API Error: {error.message}
+          </TableCell>
         </TableRow>
       </TableBody>
     );
@@ -43,7 +48,7 @@ export function DeviceTableBody({
     return (
       <TableBody>
         <TableRow>
-          <TableCell>No data</TableCell>
+          <TableCell colSpan={activeColumns.length}>No data</TableCell>
         </TableRow>
       </TableBody>
     );

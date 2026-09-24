@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "../../../components/toast";
-import { Pagination, Table } from "semantic-ui-react";
+import Table from "@mui/material/Table";
+import TableContainer from "@mui/material/TableContainer";
+import Pagination from "@mui/material/Pagination";
 
 import { useAuthToken } from "../../../stores/AuthTokenContext";
 import {
@@ -23,7 +25,6 @@ import {
   fetchDevicesPage,
   fetchMgmtDomains,
 } from "../api/deviceListApi";
-
 import { UpdateMgmtDomainModal } from "./actionModals/UpdateMgmtDomainModal";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
@@ -58,7 +59,6 @@ export function DeviceList() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Page-fetch UI status — sole concern of <DeviceList>, kept local.
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -116,7 +116,7 @@ export function DeviceList() {
     };
 
     if (sortDirection && sortColumn) {
-      const prefix = sortDirection === "ascending" ? "" : "-";
+      const prefix = sortDirection === "asc" ? "" : "-";
       urlParams.sort = `${prefix}${sortColumn}`;
     }
 
@@ -181,9 +181,9 @@ export function DeviceList() {
   const sortClick = (column: string) => {
     let direction: SortDirection;
     if (column === sortColumn) {
-      direction = sortDirection === "ascending" ? "descending" : "ascending";
+      direction = sortDirection === "asc" ? "desc" : "asc";
     } else {
-      direction = "descending";
+      direction = "desc";
     }
     dispatch({ type: actions.SET_SORT, column, direction });
   };
@@ -297,7 +297,7 @@ export function DeviceList() {
                 dispatch({
                   type: actions.SET_SORT,
                   column: null,
-                  direction: null,
+                  direction: false,
                 })
               }
             />
@@ -356,6 +356,7 @@ export function DeviceList() {
           onDelete={(v: number) => handleDeleteMgmtDomain(v)}
           onUpdate={(v: number) => handleUpdateMgmtDomains(v)}
         />
+
         <HostnameModal
           key={changeHostnameModal.deviceId ?? "hostnamemodal"}
           hostname={changeHostnameModal.hostname}
@@ -388,6 +389,7 @@ export function DeviceList() {
             }
           }}
         />
+
         <ShowConfigModal
           key={showConfigModal.hostname ?? "closed"}
           hostname={showConfigModal.hostname}
@@ -397,32 +399,35 @@ export function DeviceList() {
             dispatch({ type: actions.TOGGLE_SHOW_CONFIG_MODAL, isOpen: false })
           }
         />
-        <Table sortable celled striped>
-          <DeviceTableHeader
-            activeColumns={[...activeColumns]}
-            sortColumn={sortColumn}
-            sortDirection={sortDirection}
-            filterActive={filterActive}
-            filterData={filterData}
-            sortClick={sortClick}
-            handleFilterColumnChange={handleFilterColumnChange}
-          />
-          <DeviceTableBody
-            deviceData={[...deviceData]}
-            activeColumns={[...activeColumns]}
-            loading={loading}
-            error={error}
-          />
-        </Table>
+
+        <TableContainer>
+          <Table aria-label="Devices" size="small">
+            <DeviceTableHeader
+              activeColumns={[...activeColumns]}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              filterActive={filterActive}
+              filterData={filterData}
+              sortClick={sortClick}
+              handleFilterColumnChange={handleFilterColumnChange}
+            />
+            <DeviceTableBody
+              deviceData={[...deviceData]}
+              activeColumns={[...activeColumns]}
+              loading={loading}
+              error={error}
+            />
+          </Table>
+        </TableContainer>
 
         <Pagination
-          activePage={activePage}
-          totalPages={totalPages}
-          boundaryRange={5}
-          onPageChange={(_e, { activePage: nextPage }) =>
+          aria-label="Pagination Navigation"
+          page={activePage}
+          count={totalPages}
+          onChange={(_event, page) =>
             dispatch({
               type: actions.SET_ACTIVE_PAGE,
-              page: Number(nextPage),
+              page: Number(page),
             })
           }
         />

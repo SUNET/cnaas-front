@@ -110,7 +110,13 @@ afterEach(() => {
 test("loads and displays", async () => {
   render(<MockDeviceList />);
   const buttons = await screen.findAllByRole("button");
-  buttons.forEach((button) => expect(button).toBeEnabled());
+  // Pagination correctly disables "previous"/"next" at page boundaries
+  // (e.g. page 1 of 1) — exclude those from this general "did it render"
+  // smoke check.
+  const nonPaginationButtons = buttons.filter(
+    (button) => !button.getAttribute("aria-label")?.startsWith("Go to"),
+  );
+  nonPaginationButtons.forEach((button) => expect(button).toBeEnabled());
 });
 
 describe("device table rendering", () => {

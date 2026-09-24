@@ -86,7 +86,7 @@ function buildInitialSettings(searchParams: URLSearchParams): InitialSettings {
     filterData: urlFilterData,
     filterActive: hasUrlFilters,
     sortColumn: stored.sortColumn ?? null,
-    sortDirection: stored.sortDirection ?? null,
+    sortDirection: stored.sortDirection ?? false,
     // Reset to page 1 if URL filters are present (filtering changes results).
     activePage: hasUrlFilters ? 1 : (stored.activePage ?? 1),
     activeColumns: buildActiveColumns(

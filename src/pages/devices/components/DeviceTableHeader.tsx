@@ -1,4 +1,7 @@
-import { TableHeader, TableHeaderCell, TableRow } from "semantic-ui-react";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableSortLabel from "@mui/material/TableSortLabel";
 
 import {
   COLUMN_MAP,
@@ -28,36 +31,39 @@ export function DeviceTableHeader({
   handleFilterColumnChange,
 }: DeviceTableHeaderProps) {
   return (
-    <TableHeader>
+    <TableHead>
       <TableRow>
         {activeColumns.map((column) => (
-          <TableHeaderCell
+          <TableCell
             key={column}
             onClick={() => sortClick(column)}
-            sorted={
+            sortDirection={
               sortColumn === column && sortDirection ? sortDirection : undefined
             }
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+            sx={{
+              cursor: "pointer",
               ...(column === "id" && {
                 maxWidth: "7em",
                 minWidth: "7em",
               }),
             }}
-            collapsing
           >
-            {COLUMN_MAP[column]}
-          </TableHeaderCell>
+            <TableSortLabel
+              active={sortColumn === column}
+              direction={
+                sortColumn === column && sortDirection ? sortDirection : "asc"
+              }
+            >
+              {COLUMN_MAP[column]}
+            </TableSortLabel>
+          </TableCell>
         ))}
       </TableRow>
       {filterActive && (
         <TableRow>
           {activeColumns.map((column) => (
-            <TableHeaderCell
+            <TableCell
               key={`filter_${column}`}
-              collapsing
               style={{
                 ...(column === "id" && {
                   maxWidth: "7em",
@@ -70,10 +76,10 @@ export function DeviceTableHeader({
                 filterData={filterData}
                 handleFilterColumnChange={handleFilterColumnChange}
               />
-            </TableHeaderCell>
+            </TableCell>
           ))}
         </TableRow>
       )}
-    </TableHeader>
+    </TableHead>
   );
 }
