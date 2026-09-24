@@ -432,7 +432,7 @@ export function deviceListReducer(
         filterData: {},
         filterActive: false,
         sortColumn: null,
-        sortDirection: null,
+        sortDirection: false,
         activePage: 1,
       };
 

@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import Pagination from "@mui/material/Pagination";
+import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -8,10 +8,12 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import { JobRow } from "./JobRow";
-import { JobSearchForm } from "./JobSearchForm";
+import type { ReactNode } from "react";
+
 import LogViewer from "../../../components/LogViewer";
 import { useJobList } from "../stores/JobListContext";
+import { JobRow } from "./JobRow";
+import { JobSearchForm } from "./JobSearchForm";
 
 const COLUMNS = [
   { key: "id", label: "ID" },
@@ -83,9 +85,9 @@ export function JobList() {
 
   return (
     <section>
-      <div id="search">
+      <Box sx={{ ml: 2, mt: 2 }}>
         <JobSearchForm searchAction={searchAction} />
-      </div>
+      </Box>
       <LogViewer logs={logLines} />
       <h2>Jobs</h2>
       <TableContainer>

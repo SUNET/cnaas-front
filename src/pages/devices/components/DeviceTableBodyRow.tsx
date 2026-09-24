@@ -1,4 +1,6 @@
-import { TableCell, TableRow } from "semantic-ui-react";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+
 import type { DeviceColumnKey } from "../types/table";
 import type { Device } from "../../../types/device";
 import { useDeviceList } from "../stores/DeviceListContext";
@@ -28,7 +30,6 @@ export function DeviceTableBodyRow({
         {activeColumns.map((column) => (
           <TableCell
             key={`${device.id}_${column}`}
-            collapsing
             style={{
               overflow: "hidden",
               ...(column === "id" && {
@@ -50,8 +51,6 @@ export function DeviceTableBodyRow({
           <TableCell
             colSpan={activeColumns.length}
             style={{
-              display: "flex",
-              flexDirection: "column",
               overflow: "visible",
             }}
           >

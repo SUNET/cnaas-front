@@ -25,7 +25,7 @@ export function isDeviceColumnKey(key: string): key is DeviceColumnKey {
   return Object.hasOwn(COLUMN_MAP, key);
 }
 
-export type SortDirection = "ascending" | "descending" | null;
+export type SortDirection = "asc" | "desc" | false;
 
 /**
  * Active filter values keyed by column. All keys optional — a column without
