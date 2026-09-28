@@ -54,6 +54,7 @@ export type DeviceDeletePayload = {
 export type DevicesPage = {
   readonly devices: readonly Device[];
   readonly totalPages: number;
+  readonly totalCount: number;
 };
 
 // --- Devices ---
@@ -90,7 +91,7 @@ export async function fetchDevicesPage(
     : Math.max(1, Math.ceil(totalCount / perPage));
   const body: ApiSuccess<{ readonly devices: readonly Device[] }> =
     await response.json();
-  return { devices: body.data.devices, totalPages };
+  return { devices: body.data.devices, totalPages, totalCount };
 }
 
 export async function fetchDeviceById(

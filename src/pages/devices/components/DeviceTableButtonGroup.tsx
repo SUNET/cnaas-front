@@ -10,7 +10,7 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Popover from "@mui/material/Popover";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
-import { useState, type SyntheticEvent } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 
 import {
   useDeviceList,
@@ -40,7 +40,7 @@ const EXTRA_COLUMNS: readonly DeviceColumnKey[] = [
 export function DeviceTableButtonGroup() {
   const { state, dispatch } = useDeviceList();
   const { handleFilterChange } = useDeviceListPageActions();
-  const { activeColumns, filterActive, resultsPerPage } = state;
+  const { activeColumns, filterActive, filterData, resultsPerPage } = state;
   const [columnsAnchorEl, setColumnsAnchorEl] = useState<HTMLElement | null>(
     null,
   );
@@ -57,6 +57,19 @@ export function DeviceTableButtonGroup() {
     );
     dispatch({ type: actions.SET_ACTIVE_COLUMNS, columns: newColumns });
   };
+
+  // Skip the first run so mount doesn't re-sync the URL and disturb any
+  // cold-load params (e.g. `expand`) already present in the pasted link.
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    // activeColumns has already been pruned of removed columns' filterData
+    // by the reducer by the time this effect runs, so just sync the URL.
+    handleFilterChange(filterData);
+  }, [activeColumns]);
 
   const columnsOpen = Boolean(columnsAnchorEl);
 

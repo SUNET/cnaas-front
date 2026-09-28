@@ -9,10 +9,11 @@ import type {
   ShowConfigModal,
   UpdateMgmtDomainModal,
 } from "../types/modals";
-import type {
-  DeviceColumnKey,
-  FilterData,
-  SortDirection,
+import {
+  isDeviceColumnKey,
+  type DeviceColumnKey,
+  type FilterData,
+  type SortDirection,
 } from "../types/table";
 
 // --- Types ---
@@ -43,6 +44,7 @@ export type DeviceListState = {
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly resultsPerPage: number;
   readonly totalPages: number;
+  readonly totalCount: number;
   readonly loading: boolean;
   readonly error: Error | null;
   readonly mgmtDomainsData: readonly MgmtDomain[];
@@ -78,6 +80,7 @@ export const actions = {
   SET_ACTIVE_COLUMNS: "SET_ACTIVE_COLUMNS",
   SET_RESULTS_PER_PAGE: "SET_RESULTS_PER_PAGE",
   SET_TOTAL_PAGES: "SET_TOTAL_PAGES",
+  SET_TOTAL_DEVICES: "SET_TOTAL_DEVICES",
   SET_LOADING: "SET_LOADING",
   SET_ERROR: "SET_ERROR",
   SET_MGMT_DOMAINS: "SET_MGMT_DOMAINS",
@@ -124,6 +127,7 @@ export type Action =
     }
   | { type: typeof actions.SET_RESULTS_PER_PAGE; perPage: number }
   | { type: typeof actions.SET_TOTAL_PAGES; pages: number }
+  | { type: typeof actions.SET_TOTAL_DEVICES; totalCount: number }
   | { type: typeof actions.SET_LOADING; loading: boolean }
   | { type: typeof actions.SET_ERROR; error: Error | null }
   | {
@@ -278,6 +282,7 @@ export function buildInitialState(settings: InitialSettings): DeviceListState {
     activeColumns: settings.activeColumns,
     resultsPerPage: settings.resultsPerPage,
     totalPages: 1,
+    totalCount: 0,
     loading: true,
     error: null,
     mgmtDomainsData: [],
@@ -396,14 +401,25 @@ export function deviceListReducer(
     case actions.SET_ACTIVE_PAGE:
       return { ...state, activePage: action.page };
 
-    case actions.SET_ACTIVE_COLUMNS:
-      return { ...state, activeColumns: action.columns };
+    case actions.SET_ACTIVE_COLUMNS: {
+      const activeColumns = action.columns;
+      const filterData = Object.fromEntries(
+        Object.entries(state.filterData).filter(
+          ([column]) =>
+            isDeviceColumnKey(column) && activeColumns.includes(column),
+        ),
+      );
+      return { ...state, activeColumns, filterData };
+    }
 
     case actions.SET_RESULTS_PER_PAGE:
       return { ...state, resultsPerPage: action.perPage };
 
     case actions.SET_TOTAL_PAGES:
       return { ...state, totalPages: action.pages };
+
+    case actions.SET_TOTAL_DEVICES:
+      return { ...state, totalCount: action.totalCount };
 
     case actions.SET_LOADING:
       return { ...state, loading: action.loading };
