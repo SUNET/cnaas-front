@@ -49,9 +49,9 @@ test("user finds a device by filtering on device type", async ({ page }) => {
   await page.getByRole("button", { name: "Search / Filter" }).click();
   await page
     .getByRole("columnheader")
-    .filter({ has: page.getByRole("listbox") })
+    .filter({ has: page.getByRole("combobox") })
     .first()
-    .getByRole("listbox")
+    .getByRole("combobox")
     .click();
   await page.getByRole("option", { name: "DIST", exact: true }).click();
 
