@@ -58,10 +58,14 @@ export function DeviceTableButtonGroup() {
     dispatch({ type: actions.SET_ACTIVE_COLUMNS, columns: newColumns });
   };
 
+  const columnsOpen = Boolean(columnsAnchorEl);
+
   return (
     <div>
       <IconButton
         size="small"
+        color={filterActive ? "secondary" : "default"}
+        aria-pressed={filterActive}
         onClick={() =>
           dispatch({ type: actions.SET_FILTER_ACTIVE, active: !filterActive })
         }
@@ -83,6 +87,8 @@ export function DeviceTableButtonGroup() {
       </IconButton>
       <IconButton
         size="small"
+        color={columnsOpen ? "secondary" : "default"}
+        aria-pressed={columnsOpen}
         title="Select Columns"
         aria-label="Select Columns"
         onClick={(e: SyntheticEvent) =>
@@ -93,7 +99,7 @@ export function DeviceTableButtonGroup() {
       </IconButton>
 
       <Popover
-        open={Boolean(columnsAnchorEl)}
+        open={columnsOpen}
         anchorEl={columnsAnchorEl}
         onClose={() => setColumnsAnchorEl(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
@@ -106,6 +112,7 @@ export function DeviceTableButtonGroup() {
             </InputLabel>
             <Select
               labelId="device-per-page-label-id"
+              label="Items per page"
               value={resultsPerPage}
               onChange={(event: SelectChangeEvent<number>) => {
                 const parsed = Number(event.target.value);
