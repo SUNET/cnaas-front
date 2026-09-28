@@ -1,14 +1,19 @@
-import { useState, useEffect } from "react";
-import { Select, type DropdownProps } from "semantic-ui-react";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import CircularProgress from "@mui/material/CircularProgress";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import { useEffect, useState } from "react";
+
+import { useAuthToken } from "../../../stores/AuthTokenContext";
+import type { DeviceType } from "../../../types/device";
 import {
   fetchDiscoveredDevices,
   fetchLldpNeighbors,
   initDevice,
 } from "../api/deviceListApi";
 import { DeviceInitCheckModal } from "./actionModals/DeviceInitCheckModal";
-import { useAuthToken } from "../../../stores/AuthTokenContext";
-import type { DeviceType } from "../../../types/device";
 
 type DeviceReplaceFormProps = {
   readonly hostname: string;
@@ -89,13 +94,13 @@ export function DeviceReplaceForm({
                 key: candidate.id,
                 value: candidate.id,
                 text: `ID ${candidate.id} / MAC ${candidate.ztp_mac} / SN ${candidate.serial}`,
-                label: { color: "green", empty: true, circular: true },
+                label: { color: "success.main", empty: true, circular: true },
               }
             : {
                 key: candidate.id,
                 value: candidate.id,
                 text: `ID ${candidate.id} / SN ${candidate.serial} / Model ${candidate.model}`,
-                label: { color: "red", empty: true, circular: true },
+                label: { color: "error.main", empty: true, circular: true },
               },
         );
         setReplacementCandidates(candidates);
@@ -126,15 +131,14 @@ export function DeviceReplaceForm({
     };
   }, [hostname, deviceModel, token]);
 
-  const onChangeCandidate = (_e: unknown, data: DropdownProps) => {
-    if (data.value === "") {
+  const onChangeCandidate = (event: SelectChangeEvent) => {
+    const candidateId = event.target.value;
+    if (candidateId === "") {
       clearCandidate();
       setReplacementCandidateId(null);
       return;
     }
-    setReplacementCandidateId(
-      typeof data.value === "number" ? data.value : null,
-    );
+    setReplacementCandidateId(Number(candidateId));
   };
 
   const submitInit = () => {
@@ -166,14 +170,33 @@ export function DeviceReplaceForm({
     );
   }
   return (
-    <div>
+    <FormControl fullWidth>
+      <InputLabel id="replacement-candidate-label-id">
+        Select replacement candidate
+      </InputLabel>
       <Select
-        key="replacement_candidate"
-        placeholder="Select replacement candidate"
-        clearable
+        labelId="replacement-candidate-label-id"
+        label="Select replacement candidate"
+        key={`replacement-candidate-${hostname}`}
         onChange={onChangeCandidate}
-        options={[...replacementCandidates]}
-      />
+        value={
+          replacementCandidateId === null ? "" : String(replacementCandidateId)
+        }
+        sx={{ mb: 1 }}
+      >
+        <MenuItem value="">
+          <em>None</em>
+        </MenuItem>
+        {replacementCandidates.map((option) => (
+          <MenuItem key={option.key} value={String(option.value)}>
+            <FiberManualRecordIcon
+              fontSize="small"
+              sx={{ color: option.label.color, mr: 1 }}
+            />
+            {option.text}
+          </MenuItem>
+        ))}
+      </Select>
       {replacementCandidateId !== null && (
         <DeviceInitCheckModal
           submitInit={submitInit}
@@ -184,6 +207,6 @@ export function DeviceReplaceForm({
           mlagPeerId={null}
         />
       )}
-    </div>
+    </FormControl>
   );
 }
