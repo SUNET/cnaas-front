@@ -43,6 +43,8 @@ export type DeviceListState = {
   readonly activeColumns: readonly DeviceColumnKey[];
   readonly resultsPerPage: number;
   readonly totalPages: number;
+  readonly loading: boolean;
+  readonly error: Error | null;
   readonly mgmtDomainsData: readonly MgmtDomain[];
   readonly deviceInterfaceData: InterfaceCache;
   readonly netboxModelData: NetboxModelCache;
@@ -76,6 +78,8 @@ export const actions = {
   SET_ACTIVE_COLUMNS: "SET_ACTIVE_COLUMNS",
   SET_RESULTS_PER_PAGE: "SET_RESULTS_PER_PAGE",
   SET_TOTAL_PAGES: "SET_TOTAL_PAGES",
+  SET_LOADING: "SET_LOADING",
+  SET_ERROR: "SET_ERROR",
   SET_MGMT_DOMAINS: "SET_MGMT_DOMAINS",
   CACHE_INTERFACES: "CACHE_INTERFACES",
   CACHE_NETBOX_MODEL: "CACHE_NETBOX_MODEL",
@@ -120,6 +124,8 @@ export type Action =
     }
   | { type: typeof actions.SET_RESULTS_PER_PAGE; perPage: number }
   | { type: typeof actions.SET_TOTAL_PAGES; pages: number }
+  | { type: typeof actions.SET_LOADING; loading: boolean }
+  | { type: typeof actions.SET_ERROR; error: Error | null }
   | {
       type: typeof actions.SET_MGMT_DOMAINS;
       mgmtDomains: readonly MgmtDomain[];
@@ -272,6 +278,8 @@ export function buildInitialState(settings: InitialSettings): DeviceListState {
     activeColumns: settings.activeColumns,
     resultsPerPage: settings.resultsPerPage,
     totalPages: 1,
+    loading: true,
+    error: null,
     mgmtDomainsData: [],
     deviceInterfaceData: {},
     netboxModelData: {},
@@ -364,10 +372,11 @@ export function deviceListReducer(
       return {
         ...state,
         filterData: action.filterData,
-        // Keep filter row visibility in sync with whether any filter is set.
-        // Without this, browser back/forward can desync the URL filters from
-        // the filter UI.
-        filterActive: Object.keys(action.filterData).length > 0,
+        // filterActive is user-controlled (filter icon / clear button) and
+        // intentionally left untouched here — auto-deriving it from
+        // filterData used to force-close the filter row whenever an edit
+        // emptied it (e.g. clearing the last active column filter while
+        // still editing).
         // Filter changes invalidate the current page index; without this
         // reset, a URL-driven filter change while on page >1 would fetch
         // the wrong page.
@@ -395,6 +404,12 @@ export function deviceListReducer(
 
     case actions.SET_TOTAL_PAGES:
       return { ...state, totalPages: action.pages };
+
+    case actions.SET_LOADING:
+      return { ...state, loading: action.loading };
+
+    case actions.SET_ERROR:
+      return { ...state, error: action.error };
 
     case actions.SET_MGMT_DOMAINS:
       return { ...state, mgmtDomainsData: action.mgmtDomains };

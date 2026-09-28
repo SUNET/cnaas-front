@@ -1,17 +1,23 @@
-import { useState, type SyntheticEvent } from "react";
-import { Select } from "semantic-ui-react";
-import Popover from "@mui/material/Popover";
+import CloseIcon from "@mui/icons-material/Close";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+import Box from "@mui/material/Box";
 import Checkbox from "@mui/material/Checkbox";
+import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import CloseIcon from "@mui/icons-material/Close";
-import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Popover from "@mui/material/Popover";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import { useState, type SyntheticEvent } from "react";
+
 import {
-  COLUMN_MAP,
-  type DeviceColumnKey,
-  type FilterData,
-} from "../types/table";
+  useDeviceList,
+  useDeviceListPageActions,
+} from "../stores/DeviceListContext";
+import { actions } from "../stores/deviceListReducer";
+import { COLUMN_MAP, type DeviceColumnKey } from "../types/table";
 
 const PER_PAGE_OPTIONS = [
   { key: 20, value: 20, text: "20" },
@@ -31,40 +37,34 @@ const EXTRA_COLUMNS: readonly DeviceColumnKey[] = [
   "platform",
 ];
 
-type DeviceTableButtonGroupProps = {
-  readonly activeColumns: readonly DeviceColumnKey[];
-  readonly setFilterActive: (
-    value: boolean | ((prev: boolean) => boolean),
-  ) => void;
-  readonly handleFilterChange: (next: FilterData) => void;
-  readonly columnSelectorChange: (
-    column: DeviceColumnKey,
-    checked?: boolean,
-  ) => void;
-  readonly resultsPerPage: number;
-  readonly setActivePage: (page: number) => void;
-  readonly setResultsPerPage: (perPage: number) => void;
-  readonly clearSort: () => void;
-};
-
-export function DeviceTableButtonGroup({
-  activeColumns,
-  setFilterActive,
-  handleFilterChange,
-  columnSelectorChange,
-  resultsPerPage,
-  setActivePage,
-  setResultsPerPage,
-  clearSort,
-}: DeviceTableButtonGroupProps) {
+export function DeviceTableButtonGroup() {
+  const { state, dispatch } = useDeviceList();
+  const { handleFilterChange } = useDeviceListPageActions();
+  const { activeColumns, filterActive, resultsPerPage } = state;
   const [columnsAnchorEl, setColumnsAnchorEl] = useState<HTMLElement | null>(
     null,
   );
+
+  const columnSelectorChange = (column: DeviceColumnKey, checked?: boolean) => {
+    const shouldShow = checked ?? !activeColumns.includes(column);
+    const newColumns: DeviceColumnKey[] = shouldShow
+      ? [...new Set([...activeColumns, column])]
+      : activeColumns.filter((c) => c !== column);
+
+    newColumns.sort(
+      (a, b) =>
+        Object.keys(COLUMN_MAP).indexOf(a) - Object.keys(COLUMN_MAP).indexOf(b),
+    );
+    dispatch({ type: actions.SET_ACTIVE_COLUMNS, columns: newColumns });
+  };
+
   return (
     <div>
       <IconButton
         size="small"
-        onClick={() => setFilterActive((prev) => !prev)}
+        onClick={() =>
+          dispatch({ type: actions.SET_FILTER_ACTIVE, active: !filterActive })
+        }
         title="Search / Filter"
         aria-label="Search / Filter"
       >
@@ -73,9 +73,8 @@ export function DeviceTableButtonGroup({
       <IconButton
         size="small"
         onClick={() => {
-          setFilterActive(false);
+          dispatch({ type: actions.CLEAR_FILTER_AND_SORT });
           handleFilterChange({});
-          clearSort();
         }}
         title="Clear Filter and Sorting"
         aria-label="Clear Filter and Sorting"
@@ -92,6 +91,7 @@ export function DeviceTableButtonGroup({
       >
         <ViewColumnIcon />
       </IconButton>
+
       <Popover
         open={Boolean(columnsAnchorEl)}
         anchorEl={columnsAnchorEl}
@@ -99,18 +99,32 @@ export function DeviceTableButtonGroup({
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <div style={{ padding: "var(--size-md)" }}>
-          <p>Items per page:</p>
-          <Select
-            options={PER_PAGE_OPTIONS}
-            value={resultsPerPage}
-            onChange={(_, { value }) => {
-              if (typeof value === "number") {
-                setResultsPerPage(value);
-                setActivePage(1);
-              }
-            }}
-          />
+        <Box sx={{ m: 2 }}>
+          <FormControl sx={{ minWidth: (theme) => theme.spacing(20) }}>
+            <InputLabel id="device-per-page-label-id">
+              Items per page
+            </InputLabel>
+            <Select
+              labelId="device-per-page-label-id"
+              value={resultsPerPage}
+              onChange={(event: SelectChangeEvent<number>) => {
+                const parsed = Number(event.target.value);
+                if (Number.isInteger(parsed)) {
+                  dispatch({
+                    type: actions.SET_RESULTS_PER_PAGE,
+                    perPage: event.target.value,
+                  });
+                  dispatch({ type: actions.SET_ACTIVE_PAGE, page: 1 });
+                }
+              }}
+            >
+              {PER_PAGE_OPTIONS.map((option) => (
+                <MenuItem key={option.key} value={option.value}>
+                  {option.text}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <p>Show extra columns:</p>
           <ul>
             {EXTRA_COLUMNS.map((columnName) => (
@@ -130,7 +144,7 @@ export function DeviceTableButtonGroup({
               </li>
             ))}
           </ul>
-        </div>
+        </Box>
       </Popover>
     </div>
   );

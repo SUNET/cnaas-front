@@ -1,35 +1,27 @@
+import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import TableCell from "@mui/material/TableCell";
 import TableSortLabel from "@mui/material/TableSortLabel";
 
-import {
-  COLUMN_MAP,
-  type DeviceColumnKey,
-  type FilterData,
-  type SortDirection,
-} from "../types/table";
+import { useDeviceList } from "../stores/DeviceListContext";
+import { actions } from "../stores/deviceListReducer";
+import { COLUMN_MAP, type SortDirection } from "../types/table";
 import { DeviceTableHeaderFilter } from "./DeviceTableHeaderFilter";
 
-type DeviceTableHeaderProps = {
-  readonly activeColumns: readonly DeviceColumnKey[];
-  readonly sortColumn: string | null;
-  readonly sortDirection: SortDirection;
-  readonly filterActive: boolean;
-  readonly filterData: FilterData;
-  readonly sortClick: (column: DeviceColumnKey) => void;
-  readonly handleFilterColumnChange: (column: string, value: string) => void;
-};
+export function DeviceTableHeader() {
+  const { state, dispatch } = useDeviceList();
+  const { activeColumns, sortColumn, sortDirection, filterActive } = state;
 
-export function DeviceTableHeader({
-  activeColumns,
-  sortColumn,
-  sortDirection,
-  filterActive,
-  filterData,
-  sortClick,
-  handleFilterColumnChange,
-}: DeviceTableHeaderProps) {
+  const sortClick = (column: string) => {
+    let direction: SortDirection;
+    if (column === sortColumn) {
+      direction = sortDirection === "asc" ? "desc" : "asc";
+    } else {
+      direction = "desc";
+    }
+    dispatch({ type: actions.SET_SORT, column, direction });
+  };
+
   return (
     <TableHead>
       <TableRow>
@@ -71,11 +63,7 @@ export function DeviceTableHeader({
                 }),
               }}
             >
-              <DeviceTableHeaderFilter
-                column={column}
-                filterData={filterData}
-                handleFilterColumnChange={handleFilterColumnChange}
-              />
+              <DeviceTableHeaderFilter column={column} />
             </TableCell>
           ))}
         </TableRow>

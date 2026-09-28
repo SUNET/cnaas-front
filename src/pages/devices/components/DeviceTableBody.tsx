@@ -1,25 +1,15 @@
-import TableBody from "@mui/material/TableBody";
-import TableRow from "@mui/material/TableRow";
-import TableCell from "@mui/material/TableCell";
 import CircularProgress from "@mui/material/CircularProgress";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
 
-import type { DeviceColumnKey } from "../types/table";
-import type { Device } from "../../../types/device";
+import { useDeviceList } from "../stores/DeviceListContext";
 import { DeviceTableBodyRow } from "./DeviceTableBodyRow";
 
-type DeviceTableBodyProps = {
-  readonly deviceData: readonly Device[];
-  readonly activeColumns: readonly DeviceColumnKey[];
-  readonly loading: boolean;
-  readonly error: Error | null;
-};
-
-export function DeviceTableBody({
-  deviceData,
-  activeColumns,
-  loading,
-  error,
-}: DeviceTableBodyProps) {
+export function DeviceTableBody() {
+  const {
+    state: { deviceData, activeColumns, loading, error },
+  } = useDeviceList();
   if (loading) {
     return (
       <TableBody>
@@ -57,11 +47,7 @@ export function DeviceTableBody({
   return (
     <TableBody>
       {deviceData.map((device) => (
-        <DeviceTableBodyRow
-          key={`${device.id}_row`}
-          device={device}
-          activeColumns={activeColumns}
-        />
+        <DeviceTableBodyRow key={`${device.id}_row`} device={device} />
       ))}
     </TableBody>
   );

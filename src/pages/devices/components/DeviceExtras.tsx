@@ -1,4 +1,5 @@
 import { styled } from "@mui/material/styles";
+
 import type { Device } from "../../../types/device";
 import { isCoreDevice, isDistDevice } from "../../../types/device";
 import { useDeviceList } from "../stores/DeviceListContext";
@@ -12,13 +13,13 @@ type DeviceExtrasProps = {
 
 // Single-column grid stacks the per-type buttons with a consistent gap and
 // stretches them so their icons/labels line up.
-const ExtrasLayout = styled("div")({
+const ExtrasLayout = styled("div")(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "1fr",
-  gap: "var(--size-xxs)",
+  gap: theme.spacing(1),
   width: "fit-content",
   justifyItems: "start",
-});
+}));
 
 /**
  * Per-type extras shown in the expanded-row state column:

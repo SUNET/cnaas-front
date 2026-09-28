@@ -1,7 +1,8 @@
+import Box from "@mui/material/Box";
 import Pagination from "@mui/material/Pagination";
 import Table from "@mui/material/Table";
 import TableContainer from "@mui/material/TableContainer";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "../../../components/toast";
 
@@ -19,11 +20,9 @@ import {
 } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";
 import {
-  COLUMN_MAP,
   isDeviceColumnKey,
   type DeviceColumnKey,
   type FilterData,
-  type SortDirection,
 } from "../types/table";
 import { AddMgmtDomainModal } from "./actionModals/AddMgmtDomainModal";
 import { DeleteModal } from "./actionModals/DeleteModal";
@@ -39,13 +38,9 @@ export function DeviceList() {
   const { token } = useAuthToken();
   const { state: deviceListState, dispatch } = useDeviceList();
   const {
-    deviceData,
-    filterData,
-    filterActive,
     sortColumn,
     sortDirection,
     activePage,
-    activeColumns,
     resultsPerPage,
     totalPages,
     addMgmtDomainModal,
@@ -58,9 +53,6 @@ export function DeviceList() {
   } = deviceListState;
 
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     // Sync filter + expanded ids from URL to reducer.
@@ -145,15 +137,15 @@ export function DeviceList() {
       );
       dispatch({ type: actions.SET_TOTAL_PAGES, pages });
       dispatch({ type: actions.SET_DEVICES, devices });
-      setError(null);
+      dispatch({ type: actions.SET_ERROR, error: null });
     } catch (err) {
       if (signal?.aborted) return;
       const message = await extractErrorMessageAsync(err);
-      setError(new Error(message));
+      dispatch({ type: actions.SET_ERROR, error: new Error(message) });
       dispatch({ type: actions.SET_DEVICES, devices: [] });
     } finally {
       if (!signal?.aborted) {
-        setLoading(false);
+        dispatch({ type: actions.SET_LOADING, loading: false });
       }
     }
   };
@@ -177,20 +169,6 @@ export function DeviceList() {
     resultsPerPage,
     refetchTrigger,
   ]);
-
-  const sortClick = (column: string) => {
-    let direction: SortDirection;
-    if (column === sortColumn) {
-      direction = sortDirection === "asc" ? "desc" : "asc";
-    } else {
-      direction = "desc";
-    }
-    dispatch({ type: actions.SET_SORT, column, direction });
-  };
-
-  const handleFilterColumnChange = (column: string, value: string) => {
-    handleFilterChange({ ...filterData, [column]: value });
-  };
 
   const handleFilterChange = (
     nextFilterData: FilterData,
@@ -249,78 +227,30 @@ export function DeviceList() {
     dispatch({ type: actions.TOGGLE_UPDATE_MGMT_DOMAIN_MODAL, isOpen: false });
   };
 
-  const columnSelectorChange = (column: DeviceColumnKey, checked?: boolean) => {
-    const shouldShow = checked ?? !activeColumns.includes(column);
-    const newColumns: DeviceColumnKey[] = shouldShow
-      ? [...new Set([...activeColumns, column])]
-      : activeColumns.filter((c) => c !== column);
-
-    newColumns.sort(
-      (a, b) =>
-        Object.keys(COLUMN_MAP).indexOf(a) - Object.keys(COLUMN_MAP).indexOf(b),
-    );
-    dispatch({ type: actions.SET_ACTIVE_COLUMNS, columns: newColumns });
-  };
-
   return (
     <DeviceListPageActionsProvider value={{ handleFilterChange }}>
       <section>
-        <div
-          style={{
+        <Box
+          sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-end",
-            gap: "var(--size-md)",
-            borderBottom: "1px solid var(--color-divider)",
-            paddingBottom: "var(--size-sm)",
+            gap: 2,
+            borderBottom: 1,
+            borderColor: "divider",
+            paddingBottom: 1.75,
           }}
         >
           <h2>Devices</h2>
           <div>
-            <DeviceTableButtonGroup
-              activeColumns={[...activeColumns]}
-              setFilterActive={(value) => {
-                const next =
-                  typeof value === "function" ? value(filterActive) : value;
-                dispatch({ type: actions.SET_FILTER_ACTIVE, active: next });
-              }}
-              handleFilterChange={handleFilterChange}
-              columnSelectorChange={columnSelectorChange}
-              resultsPerPage={resultsPerPage}
-              setActivePage={(page) =>
-                dispatch({ type: actions.SET_ACTIVE_PAGE, page })
-              }
-              setResultsPerPage={(perPage) =>
-                dispatch({ type: actions.SET_RESULTS_PER_PAGE, perPage })
-              }
-              clearSort={() =>
-                dispatch({
-                  type: actions.SET_SORT,
-                  column: null,
-                  direction: false,
-                })
-              }
-            />
+            <DeviceTableButtonGroup />
           </div>
-        </div>
+        </Box>
 
         <TableContainer>
           <Table aria-label="Devices" size="small">
-            <DeviceTableHeader
-              activeColumns={[...activeColumns]}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              filterActive={filterActive}
-              filterData={filterData}
-              sortClick={sortClick}
-              handleFilterColumnChange={handleFilterColumnChange}
-            />
-            <DeviceTableBody
-              deviceData={[...deviceData]}
-              activeColumns={[...activeColumns]}
-              loading={loading}
-              error={error}
-            />
+            <DeviceTableHeader />
+            <DeviceTableBody />
           </Table>
         </TableContainer>
 
