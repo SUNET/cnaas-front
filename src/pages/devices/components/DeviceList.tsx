@@ -1,7 +1,9 @@
 import Box from "@mui/material/Box";
 import Pagination from "@mui/material/Pagination";
+import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableContainer from "@mui/material/TableContainer";
+import Typography from "@mui/material/Typography";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "../../../components/toast";
@@ -43,6 +45,7 @@ export function DeviceList() {
     activePage,
     resultsPerPage,
     totalPages,
+    totalCount,
     addMgmtDomainModal,
     deleteModal,
     deviceStateModal,
@@ -129,13 +132,14 @@ export function DeviceList() {
     ).toString();
 
     try {
-      const { devices, totalPages: pages } = await fetchDevicesPage(
+      const { devices, totalPages, totalCount } = await fetchDevicesPage(
         filterString,
         resultsPerPage,
         token,
         signal,
       );
-      dispatch({ type: actions.SET_TOTAL_PAGES, pages });
+      dispatch({ type: actions.SET_TOTAL_DEVICES, totalCount });
+      dispatch({ type: actions.SET_TOTAL_PAGES, pages: totalPages });
       dispatch({ type: actions.SET_DEVICES, devices });
       dispatch({ type: actions.SET_ERROR, error: null });
     } catch (err) {
@@ -248,23 +252,28 @@ export function DeviceList() {
         </Box>
 
         <TableContainer>
-          <Table aria-label="Devices" size="small">
+          <Table aria-label="Devices" size="medium">
             <DeviceTableHeader />
             <DeviceTableBody />
           </Table>
         </TableContainer>
 
-        <Pagination
-          aria-label="Pagination Navigation"
-          page={activePage}
-          count={totalPages}
-          onChange={(_event, page) =>
-            dispatch({
-              type: actions.SET_ACTIVE_PAGE,
-              page: Number(page),
-            })
-          }
-        />
+        <Stack direction="row" sx={{ alignItems: "center" }}>
+          <Typography sx={{ color: "text.secondary" }}>
+            {totalCount} device{totalCount === 1 ? "" : "s"} in total
+          </Typography>
+          <Pagination
+            aria-label="Pagination Navigation"
+            page={activePage}
+            count={totalPages}
+            onChange={(_event, page) =>
+              dispatch({
+                type: actions.SET_ACTIVE_PAGE,
+                page: Number(page),
+              })
+            }
+          />
+        </Stack>
 
         {/* MODALS */}
         <DeviceStateModal
