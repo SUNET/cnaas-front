@@ -204,6 +204,35 @@ describe("row expansion", () => {
   });
 });
 
+describe("cold-load URL filter + expand params (pasted link)", () => {
+  function findVisible(elements: HTMLElement[]) {
+    return elements.find((el) => el.closest("tr:not([hidden])"));
+  }
+
+  test("filter[hostname] + expand in the initial URL pre-filters and auto-expands the row", async () => {
+    render(
+      <MockDeviceList initialEntry="/devices?filter[hostname]=a3&expand=152" />,
+    );
+
+    // Filter row is open and pre-populated from the URL.
+    const hostnameFilterInput = await screen.findByDisplayValue("a3");
+    expect(hostnameFilterInput).toBeVisible();
+
+    // Row for id 152 (a3) is expanded without any click.
+    await waitFor(() => {
+      expect(findVisible(screen.queryAllByText("Actions"))).toBeDefined();
+    });
+  });
+
+  test("filter[id] from a 'go to device' link auto-expands that device", async () => {
+    render(<MockDeviceList initialEntry="/devices?filter[id]=91&expand=91" />);
+
+    await waitFor(() => {
+      expect(findVisible(screen.queryAllByText("Actions"))).toBeDefined();
+    });
+  });
+});
+
 describe("action menu by device state and type", () => {
   async function expandRowAndOpenMenu(
     user: ReturnType<typeof userEvent.setup>,
