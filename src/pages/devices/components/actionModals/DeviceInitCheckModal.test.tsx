@@ -80,7 +80,11 @@ test("opens modal and calls initcheck API on trigger click", async () => {
 
   expect(mockInitCheckDevice).toHaveBeenCalledWith(
     10,
-    { hostname: "test-switch", device_type: "ACCESS" },
+    {
+      hostname: "test-switch",
+      device_type: "ACCESS",
+      replace_hostname: false,
+    },
     "test-token",
   );
 });
@@ -96,6 +100,7 @@ test("includes MLAG peer data in API call when provided", async () => {
     {
       hostname: "test-switch",
       device_type: "ACCESS",
+      replace_hostname: false,
       mlag_peer_hostname: "peer-switch",
       mlag_peer_id: 11,
     },

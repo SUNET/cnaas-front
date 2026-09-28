@@ -26,6 +26,7 @@ type DeviceInitCheckModalProps = {
   readonly deviceType: DeviceType | null;
   readonly mlagPeerHostname?: string | null;
   readonly mlagPeerId?: number | null;
+  readonly replaceHostname?: boolean;
 };
 
 type InitCheckOutput = InitCheckResult | string | null;
@@ -38,6 +39,7 @@ export function DeviceInitCheckModal({
   deviceType,
   mlagPeerHostname = null,
   mlagPeerId = null,
+  replaceHostname = false,
 }: DeviceInitCheckModalProps) {
   const [initcheckOutput, setInitcheckOutput] = useState<InitCheckOutput>(null);
   const [accordionActiveIndex, setAccordionActiveIndex] = useState<number>(0);
@@ -52,6 +54,7 @@ export function DeviceInitCheckModal({
     const payload = {
       hostname,
       device_type: deviceType,
+      replace_hostname: !!replaceHostname,
       ...(mlagPeerHostname !== null && mlagPeerId !== null
         ? { mlag_peer_hostname: mlagPeerHostname, mlag_peer_id: mlagPeerId }
         : {}),
@@ -174,6 +177,7 @@ export function DeviceInitCheckModal({
         disabled={disabled || isLoading}
         loading={isLoading}
         onClick={() => setIsOpen(true)}
+        sx={{ mb: 1 }}
       >
         Initialize
       </Button>
@@ -187,7 +191,10 @@ export function DeviceInitCheckModal({
           Init compatability check
         </DialogTitle>
         <DialogContent>
-          <DialogContentText id="device-init-check-dialog-description">
+          <DialogContentText
+            id="device-init-check-dialog-description"
+            component="div"
+          >
             {initcheckHtml}
           </DialogContentText>
         </DialogContent>

@@ -205,6 +205,7 @@ export function DeviceReplaceForm({
           deviceType={deviceType}
           mlagPeerHostname={null}
           mlagPeerId={null}
+          replaceHostname
         />
       )}
     </FormControl>
