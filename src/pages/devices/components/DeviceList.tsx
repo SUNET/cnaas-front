@@ -1,17 +1,23 @@
+import Pagination from "@mui/material/Pagination";
+import Table from "@mui/material/Table";
+import TableContainer from "@mui/material/TableContainer";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "../../../components/toast";
-import Table from "@mui/material/Table";
-import TableContainer from "@mui/material/TableContainer";
-import Pagination from "@mui/material/Pagination";
 
 import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { extractErrorMessageAsync } from "../../../utils/extractErrorMessage";
+import {
+  fetchDeviceById,
+  fetchDeviceInterfaces,
+  fetchDevicesPage,
+  fetchMgmtDomains,
+} from "../api/deviceListApi";
 import {
   DeviceListPageActionsProvider,
   useDeviceList,
 } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";
-import { extractErrorMessageAsync } from "../../../utils/extractErrorMessage";
 import {
   COLUMN_MAP,
   isDeviceColumnKey,
@@ -19,21 +25,15 @@ import {
   type FilterData,
   type SortDirection,
 } from "../types/table";
-import {
-  fetchDeviceById,
-  fetchDeviceInterfaces,
-  fetchDevicesPage,
-  fetchMgmtDomains,
-} from "../api/deviceListApi";
+import { AddMgmtDomainModal } from "./actionModals/AddMgmtDomainModal";
+import { DeleteModal } from "./actionModals/DeleteModal";
+import { DeviceStateModal } from "./actionModals/DeviceStateModal";
+import { HostnameModal } from "./actionModals/HostnameModal";
+import { ShowConfigModal } from "./actionModals/ShowConfigModal";
 import { UpdateMgmtDomainModal } from "./actionModals/UpdateMgmtDomainModal";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
-import { AddMgmtDomainModal } from "./actionModals/AddMgmtDomainModal";
-import { DeleteModal } from "./actionModals/DeleteModal";
-import { HostnameModal } from "./actionModals/HostnameModal";
-import { ShowConfigModal } from "./actionModals/ShowConfigModal";
-import { DeviceStateModal } from "./actionModals/DeviceStateModal";
 
 export function DeviceList() {
   const { token } = useAuthToken();
@@ -304,6 +304,39 @@ export function DeviceList() {
           </div>
         </div>
 
+        <TableContainer>
+          <Table aria-label="Devices" size="small">
+            <DeviceTableHeader
+              activeColumns={[...activeColumns]}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              filterActive={filterActive}
+              filterData={filterData}
+              sortClick={sortClick}
+              handleFilterColumnChange={handleFilterColumnChange}
+            />
+            <DeviceTableBody
+              deviceData={[...deviceData]}
+              activeColumns={[...activeColumns]}
+              loading={loading}
+              error={error}
+            />
+          </Table>
+        </TableContainer>
+
+        <Pagination
+          aria-label="Pagination Navigation"
+          page={activePage}
+          count={totalPages}
+          onChange={(_event, page) =>
+            dispatch({
+              type: actions.SET_ACTIVE_PAGE,
+              page: Number(page),
+            })
+          }
+        />
+
+        {/* MODALS */}
         <DeviceStateModal
           isOpen={deviceStateModal.isOpen}
           deviceId={deviceStateModal.deviceId}
@@ -397,38 +430,6 @@ export function DeviceList() {
           isOpen={showConfigModal.isOpen}
           closeAction={() =>
             dispatch({ type: actions.TOGGLE_SHOW_CONFIG_MODAL, isOpen: false })
-          }
-        />
-
-        <TableContainer>
-          <Table aria-label="Devices" size="small">
-            <DeviceTableHeader
-              activeColumns={[...activeColumns]}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              filterActive={filterActive}
-              filterData={filterData}
-              sortClick={sortClick}
-              handleFilterColumnChange={handleFilterColumnChange}
-            />
-            <DeviceTableBody
-              deviceData={[...deviceData]}
-              activeColumns={[...activeColumns]}
-              loading={loading}
-              error={error}
-            />
-          </Table>
-        </TableContainer>
-
-        <Pagination
-          aria-label="Pagination Navigation"
-          page={activePage}
-          count={totalPages}
-          onChange={(_event, page) =>
-            dispatch({
-              type: actions.SET_ACTIVE_PAGE,
-              page: Number(page),
-            })
           }
         />
       </section>
