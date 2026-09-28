@@ -1,7 +1,6 @@
-import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
 
-import type { DeviceColumnKey } from "../types/table";
 import type { Device } from "../../../types/device";
 import { useDeviceList } from "../stores/DeviceListContext";
 import { actions } from "../stores/deviceListReducer";
@@ -10,14 +9,11 @@ import { DeviceExpanded } from "./expanded/DeviceExpanded";
 
 type DeviceTableBodyRowProps = {
   readonly device: Device;
-  readonly activeColumns: readonly DeviceColumnKey[];
 };
 
-export function DeviceTableBodyRow({
-  device,
-  activeColumns,
-}: DeviceTableBodyRowProps) {
+export function DeviceTableBodyRow({ device }: DeviceTableBodyRowProps) {
   const { state, dispatch } = useDeviceList();
+  const { activeColumns } = state;
   const open = state.expandedIds.has(device.id);
 
   const handleRowClick = () => {

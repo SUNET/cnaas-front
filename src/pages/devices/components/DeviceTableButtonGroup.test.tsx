@@ -1,46 +1,63 @@
+import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom";
 
+import * as DeviceListContext from "../stores/DeviceListContext";
+import { actions, buildInitialState } from "../stores/deviceListReducer";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 
-const baseProps = () => ({
-  activeColumns: ["id", "hostname"] as const,
-  setFilterActive: jest.fn(),
-  handleFilterChange: jest.fn(),
-  columnSelectorChange: jest.fn(),
-  resultsPerPage: 20,
-  setActivePage: jest.fn(),
-  setResultsPerPage: jest.fn(),
-  clearSort: jest.fn(),
-});
+jest.mock("../stores/DeviceListContext", () => ({
+  useDeviceList: jest.fn(),
+  useDeviceListPageActions: jest.fn(),
+}));
+
+const mockUseDeviceList = DeviceListContext.useDeviceList as jest.Mock;
+const mockUseDeviceListPageActions =
+  DeviceListContext.useDeviceListPageActions as jest.Mock;
+
+const baseState = () =>
+  buildInitialState({
+    filterData: {},
+    filterActive: false,
+    sortColumn: null,
+    sortDirection: false,
+    activePage: 1,
+    activeColumns: ["id", "hostname"],
+    resultsPerPage: 20,
+  });
 
 describe("DeviceTableButtonGroup", () => {
-  test("filter button toggles filterActive via updater", async () => {
+  let dispatch: jest.Mock;
+  let handleFilterChange: jest.Mock;
+
+  beforeEach(() => {
+    dispatch = jest.fn();
+    handleFilterChange = jest.fn();
+    mockUseDeviceList.mockReturnValue({ state: baseState(), dispatch });
+    mockUseDeviceListPageActions.mockReturnValue({ handleFilterChange });
+  });
+
+  test("filter button toggles filterActive", async () => {
     const user = userEvent.setup();
-    const props = baseProps();
-    render(<DeviceTableButtonGroup {...props} />);
+    render(<DeviceTableButtonGroup />);
 
     await user.click(screen.getByTitle("Search / Filter"));
 
-    expect(props.setFilterActive).toHaveBeenCalledTimes(1);
-    const updater = props.setFilterActive.mock.calls[0][0] as (
-      prev: boolean,
-    ) => boolean;
-    expect(typeof updater).toBe("function");
-    expect(updater(false)).toBe(true);
-    expect(updater(true)).toBe(false);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: actions.SET_FILTER_ACTIVE,
+      active: true,
+    });
   });
 
-  test("clear button resets filter, sort, and disables filter UI", async () => {
+  test("clear button resets filter and sorting", async () => {
     const user = userEvent.setup();
-    const props = baseProps();
-    render(<DeviceTableButtonGroup {...props} />);
+    render(<DeviceTableButtonGroup />);
 
     await user.click(screen.getByTitle("Clear Filter and Sorting"));
 
-    expect(props.setFilterActive).toHaveBeenCalledWith(false);
-    expect(props.handleFilterChange).toHaveBeenCalledWith({});
-    expect(props.clearSort).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: actions.CLEAR_FILTER_AND_SORT,
+    });
+    expect(handleFilterChange).toHaveBeenCalledWith({});
   });
 });

@@ -165,25 +165,33 @@ describe("deviceListReducer", () => {
     expect(state.filterActive).toBe(true);
   });
 
-  test("SET_FILTER auto-syncs filterActive: true when non-empty", () => {
-    const state = deviceListReducer(baseState(), {
-      type: actions.SET_FILTER,
-      filterData: { hostname: "abc" },
-    });
-    expect(state.filterActive).toBe(true);
+  test("SET_FILTER leaves filterActive untouched when non-empty", () => {
+    const state = deviceListReducer(
+      { ...baseState(), filterActive: false },
+      {
+        type: actions.SET_FILTER,
+        filterData: { hostname: "abc" },
+      },
+    );
+    expect(state.filterActive).toBe(false);
   });
 
-  test("SET_FILTER auto-syncs filterActive: false when empty", () => {
-    let state = deviceListReducer(baseState(), {
-      type: actions.SET_FILTER,
-      filterData: { hostname: "abc" },
-    });
+  test("SET_FILTER leaves filterActive untouched when cleared to empty", () => {
+    let state = deviceListReducer(
+      { ...baseState(), filterActive: true },
+      {
+        type: actions.SET_FILTER,
+        filterData: { hostname: "abc" },
+      },
+    );
     expect(state.filterActive).toBe(true);
     state = deviceListReducer(state, {
       type: actions.SET_FILTER,
       filterData: {},
     });
-    expect(state.filterActive).toBe(false);
+    // Clearing the last active column filter must not force-close the
+    // filter row while the user is still interacting with it.
+    expect(state.filterActive).toBe(true);
   });
 
   test("SET_FILTER resets activePage to 1", () => {

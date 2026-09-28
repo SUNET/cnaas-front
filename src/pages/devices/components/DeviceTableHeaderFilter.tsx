@@ -1,18 +1,24 @@
+import ClearIcon from "@mui/icons-material/Clear";
+import IconButton from "@mui/material/IconButton";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import TextField from "@mui/material/TextField";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Input, Select, type DropdownProps } from "semantic-ui-react";
-import { Tooltip } from "../../../components/Tooltip";
 
+import { Tooltip } from "../../../components/Tooltip";
+import { DEVICE_STATES, DEVICE_TYPES } from "../../../types/device";
+import {
+  useDeviceList,
+  useDeviceListPageActions,
+} from "../stores/DeviceListContext";
 import {
   COLUMN_MAP,
   type DeviceColumnKey,
   type FilterData,
 } from "../types/table";
-import { DEVICE_STATES, DEVICE_TYPES } from "../../../types/device";
 
 type DeviceTableHeaderFilterProps = {
   readonly column: DeviceColumnKey;
-  readonly filterData: FilterData;
-  readonly handleFilterColumnChange: (column: string, value: string) => void;
 };
 
 const synchronizedOptions = [
@@ -33,15 +39,16 @@ const deviceTypeOptions = [
   ...DEVICE_TYPES.map((v) => ({ key: v, value: v, text: v })),
 ];
 
-function dropdownValueToString(value: DropdownProps["value"]): string {
+function dropdownValueToString(value: string): string {
   return typeof value === "string" ? value : "";
 }
 
 export function DeviceTableHeaderFilter({
   column,
-  filterData,
-  handleFilterColumnChange,
 }: DeviceTableHeaderFilterProps) {
+  const { state } = useDeviceList();
+  const { handleFilterChange } = useDeviceListPageActions();
+  const { filterData } = state;
   const [localFilter, setLocalFilter] = useState<FilterData>(filterData);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -56,6 +63,10 @@ export function DeviceTableHeaderFilter({
     [],
   );
 
+  const handleFilterColumnChange = (col: string, value: string) => {
+    handleFilterChange({ ...filterData, [col]: value });
+  };
+
   const onChange = (col: string, value: string) => {
     setLocalFilter((prev) => ({ ...prev, [col]: value }));
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
@@ -67,19 +78,42 @@ export function DeviceTableHeaderFilter({
   const popupContent = `Filter ${COLUMN_MAP[column]}`;
   const currentValue = localFilter[column] ?? "";
 
+  const clearAdornment = currentValue !== "" && (
+    <IconButton
+      size="small"
+      aria-label={`Clear ${COLUMN_MAP[column]} filter`}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleFilterColumnChange(column, "");
+      }}
+    >
+      <ClearIcon fontSize="small" />
+    </IconButton>
+  );
+
   if (column === "synchronized") {
     return (
       <Tooltip title={popupContent}>
         <Select
-          onChange={(_, data) => {
-            handleFilterColumnChange(column, dropdownValueToString(data.value));
+          onChange={(event: SelectChangeEvent) => {
+            handleFilterColumnChange(
+              column,
+              dropdownValueToString(event.target.value),
+            );
           }}
           value={currentValue}
-          options={synchronizedOptions}
+          startAdornment={clearAdornment}
+          variant="outlined"
+          size="small"
           style={{ minWidth: "100%" }}
-          clearable
-          closeOnEscape
-        />
+        >
+          {synchronizedOptions.map((option) => (
+            <MenuItem key={option.key} value={option.value}>
+              {option.text}
+            </MenuItem>
+          ))}
+        </Select>
       </Tooltip>
     );
   }
@@ -87,15 +121,24 @@ export function DeviceTableHeaderFilter({
     return (
       <Tooltip title={popupContent}>
         <Select
-          onChange={(_, data) => {
-            handleFilterColumnChange(column, dropdownValueToString(data.value));
+          onChange={(event: SelectChangeEvent) => {
+            handleFilterColumnChange(
+              column,
+              dropdownValueToString(event.target.value),
+            );
           }}
           value={currentValue}
-          options={stateOptions}
+          startAdornment={clearAdornment}
+          variant="outlined"
+          size="small"
           style={{ minWidth: "100%" }}
-          clearable
-          closeOnEscape
-        />
+        >
+          {stateOptions.map((option) => (
+            <MenuItem key={option.key} value={option.value}>
+              {option.text}
+            </MenuItem>
+          ))}
+        </Select>
       </Tooltip>
     );
   }
@@ -103,26 +146,36 @@ export function DeviceTableHeaderFilter({
     return (
       <Tooltip title={popupContent}>
         <Select
-          onChange={(_, data) => {
-            handleFilterColumnChange(column, dropdownValueToString(data.value));
+          onChange={(event: SelectChangeEvent) => {
+            handleFilterColumnChange(
+              column,
+              dropdownValueToString(event.target.value),
+            );
           }}
           value={currentValue}
-          options={deviceTypeOptions}
+          startAdornment={clearAdornment}
+          variant="outlined"
+          size="small"
           style={{ minWidth: "100%" }}
-          clearable
-          closeOnEscape
-        />
+        >
+          {deviceTypeOptions.map((option) => (
+            <MenuItem key={option.key} value={option.value}>
+              {option.text}
+            </MenuItem>
+          ))}
+        </Select>
       </Tooltip>
     );
   }
   return (
     <Tooltip title={popupContent}>
-      <Input
+      <TextField
+        size="small"
         value={currentValue}
         onChange={(e: ChangeEvent<HTMLInputElement>) =>
           onChange(column, e.target.value)
         }
-        style={{ minWidth: "100%" }}
+        sx={{ minWidth: "100%" }}
       />
     </Tooltip>
   );
