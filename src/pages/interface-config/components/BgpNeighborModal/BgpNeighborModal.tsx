@@ -1,16 +1,28 @@
-import { useState, useCallback } from "react";
-import { Modal, Table } from "semantic-ui-react";
-import Alert from "@mui/material/Alert";
-import Chip from "@mui/material/Chip";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import { useCallback, useState } from "react";
+
 import { Tooltip } from "../../../../components/Tooltip";
 import { useAuthToken } from "../../../../stores/AuthTokenContext";
 import { formatISODate } from "../../../../utils/formatters";
-import { fetchBgpSettings } from "../../api/settingsApi";
 import { fetchBgpNeighbors } from "../../api/gnmiApi";
+import { fetchBgpSettings } from "../../api/settingsApi";
 
 interface BgpNeighborModalProps {
   readonly hostname: string;
@@ -109,9 +121,7 @@ export function parsePrefixes(
       return entry;
     }
     // Otherwise keep as fallback
-    if (!fallback) {
-      fallback = entry;
-    }
+    fallback ??= entry;
   }
 
   return fallback ?? { prefixes: defaultPrefixes, afiSafi: "" };
@@ -290,153 +300,172 @@ export function BgpNeighborModal({
     return String(v);
   };
 
-  return (
-    <Modal
-      open={open}
-      onClose={() => setOpen(false)}
-      size="fullscreen"
-      trigger={
-        <Button
-          variant="contained"
-          endIcon={<SwapHorizIcon />}
-          onClick={handleOpen}
-        >
-          BGP Neighbors
-        </Button>
-      }
-    >
-      <Modal.Header>
-        BGP Neighbors — {hostname} ({managementIp} - {platform})
-      </Modal.Header>
-      <Modal.Content scrolling>
-        {loadingPhase === "settings" && (
-          <p>
-            <CircularProgress size="1em" /> Fetching VRF settings...
-          </p>
-        )}
+  const renderVrfBody = (vd: VrfBgpData) => {
+    if (loadingVrfs.has(vd.vrf.name)) {
+      return (
+        <p>
+          <CircularProgress size="1em" /> Fetching BGP neighbors...
+        </p>
+      );
+    }
 
-        {error && <Alert severity="error">{error}</Alert>}
+    if (vd.error) {
+      return (
+        <Alert severity="warning">
+          Error fetching neighbors for {vd.vrf.name}: {vd.error}
+        </Alert>
+      );
+    }
 
-        {loadingPhase === "done" && !error && vrfData.length === 0 && (
-          <Alert severity="info">No BGP data loaded yet.</Alert>
-        )}
+    if (vd.neighbors.length === 0) {
+      return <Alert severity="info">No BGP neighbors found in this VRF.</Alert>;
+    }
 
-        {vrfData.map((vd) => (
-          <div key={vd.vrf.name} style={{ marginBottom: "2em" }}>
-            <h3>
-              VRF: {vd.vrf.name}
-              <div style={{ fontWeight: "normal", fontSize: "0.9em" }}>
-                Local AS: {vd.vrf.local_as}
-              </div>
-            </h3>
-
-            {loadingVrfs.has(vd.vrf.name) ? (
-              <p>
-                <CircularProgress size="1em" /> Fetching BGP neighbors...
-              </p>
-            ) : vd.error ? (
-              <Alert severity="warning">
-                Error fetching neighbors for {vd.vrf.name}: {vd.error}
-              </Alert>
-            ) : vd.neighbors.length === 0 ? (
-              <Alert severity="info">No BGP neighbors found in this VRF.</Alert>
-            ) : (
-              <Table compact celled structured>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>Neighbor</Table.HeaderCell>
-                    <Table.HeaderCell>Description</Table.HeaderCell>
-                    <Table.HeaderCell>Peer AS</Table.HeaderCell>
-                    <Table.HeaderCell>Session State</Table.HeaderCell>
-                    <Table.HeaderCell>AFI</Table.HeaderCell>
-                    <Table.HeaderCell>Installed</Table.HeaderCell>
-                    <Table.HeaderCell>Received</Table.HeaderCell>
-                    <Table.HeaderCell>Recv Pre-Policy</Table.HeaderCell>
-                    <Table.HeaderCell>Sent</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {vd.neighbors.map((n) => (
-                    <Table.Row key={n.neighborAddress}>
-                      <Table.Cell>{n.neighborAddress}</Table.Cell>
-                      <Table.Cell>{n.description}</Table.Cell>
-                      <Table.Cell>{renderValue(n.peerAs)}</Table.Cell>
-                      <Table.Cell>
-                        <Tooltip
-                          placement="right"
-                          title={
-                            <div>
-                              <p>
-                                <strong>Last established:</strong>{" "}
-                                {formatNsTimestamp(
-                                  n.sessionDetails.lastEstablished,
-                                )}
-                              </p>
-                              {n.sessionDetails.lastNotificationCode && (
-                                <>
-                                  <p>
-                                    <strong>Last notification:</strong>{" "}
-                                    {stripOcPrefix(
-                                      n.sessionDetails.lastNotificationCode,
-                                    )}
-                                    {n.sessionDetails.lastNotificationSubcode &&
-                                      ` / ${stripOcPrefix(n.sessionDetails.lastNotificationSubcode)}`}
-                                  </p>
-                                  <p>
-                                    <strong>Notification time:</strong>{" "}
-                                    {formatNsTimestamp(
-                                      n.sessionDetails.lastNotificationTime,
-                                    )}
-                                  </p>
-                                </>
+    return (
+      <TableContainer component={Paper} variant="outlined">
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Neighbor</TableCell>
+              <TableCell>Description</TableCell>
+              <TableCell>Peer AS</TableCell>
+              <TableCell>Session State</TableCell>
+              <TableCell>AFI</TableCell>
+              <TableCell>Installed</TableCell>
+              <TableCell>Received</TableCell>
+              <TableCell>Recv Pre-Policy</TableCell>
+              <TableCell>Sent</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {vd.neighbors.map((n) => (
+              <TableRow key={n.neighborAddress}>
+                <TableCell>{n.neighborAddress}</TableCell>
+                <TableCell>{n.description}</TableCell>
+                <TableCell>{renderValue(n.peerAs)}</TableCell>
+                <TableCell>
+                  <Tooltip
+                    placement="right"
+                    title={
+                      <div>
+                        <p>
+                          <strong>Last established:</strong>{" "}
+                          {formatNsTimestamp(n.sessionDetails.lastEstablished)}
+                        </p>
+                        {n.sessionDetails.lastNotificationCode && (
+                          <>
+                            <p>
+                              <strong>Last notification:</strong>{" "}
+                              {stripOcPrefix(
+                                n.sessionDetails.lastNotificationCode,
                               )}
-                            </div>
-                          }
-                        >
-                          <Chip
-                            label={n.sessionState}
-                            color={sessionStateColor(n.sessionState)}
-                            size="small"
-                            sx={{ cursor: "pointer" }}
-                          />
-                        </Tooltip>
-                      </Table.Cell>
-                      <Table.Cell>{n.afiSafi || "-"}</Table.Cell>
-                      <Table.Cell>
-                        {renderValue(n.prefixes.installed)}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {renderValue(n.prefixes.received)}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {renderValue(n.prefixes.receivedPrePolicy)}
-                      </Table.Cell>
-                      <Table.Cell>{renderValue(n.prefixes.sent)}</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
+                              {n.sessionDetails.lastNotificationSubcode &&
+                                ` / ${stripOcPrefix(n.sessionDetails.lastNotificationSubcode)}`}
+                            </p>
+                            <p>
+                              <strong>Notification time:</strong>{" "}
+                              {formatNsTimestamp(
+                                n.sessionDetails.lastNotificationTime,
+                              )}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    }
+                  >
+                    <Chip
+                      label={n.sessionState}
+                      color={sessionStateColor(n.sessionState)}
+                      size="small"
+                      sx={{ cursor: "pointer" }}
+                    />
+                  </Tooltip>
+                </TableCell>
+                <TableCell>{n.afiSafi || "-"}</TableCell>
+                <TableCell>{renderValue(n.prefixes.installed)}</TableCell>
+                <TableCell>{renderValue(n.prefixes.received)}</TableCell>
+                <TableCell>
+                  {renderValue(n.prefixes.receivedPrePolicy)}
+                </TableCell>
+                <TableCell>{renderValue(n.prefixes.sent)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  return (
+    <>
+      <Button
+        variant="contained"
+        endIcon={<SwapHorizIcon />}
+        onClick={handleOpen}
+      >
+        BGP Neighbors
+      </Button>
+      <Dialog
+        aria-labelledby="bgp-neighbor-dialog"
+        aria-describedby="bgp-neighbor-dialog-description"
+        open={open}
+        onClose={() => setOpen(false)}
+        fullScreen
+      >
+        <DialogTitle id="bgp-neighbor-dialog">
+          BGP Neighbors — {hostname} ({managementIp} - {platform})
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText
+            id="bgp-neighbor-dialog-description"
+            component="div"
+          >
+            {loadingPhase === "settings" && (
+              <p>
+                <CircularProgress size="1em" /> Fetching VRF settings...
+              </p>
             )}
-          </div>
-        ))}
-      </Modal.Content>
-      <Modal.Actions>
-        <Button
-          variant="contained"
-          onClick={loadData}
-          disabled={loadingPhase === "settings" || loadingPhase === "neighbors"}
-          startIcon={<RefreshIcon />}
-        >
-          Refresh
-        </Button>
-        <Button
-          variant="outlined"
-          color="inherit"
-          onClick={() => setOpen(false)}
-        >
-          Close
-        </Button>
-      </Modal.Actions>
-    </Modal>
+
+            {error && <Alert severity="error">{error}</Alert>}
+
+            {loadingPhase === "done" && !error && vrfData.length === 0 && (
+              <Alert severity="info">No BGP data loaded yet.</Alert>
+            )}
+
+            {vrfData.map((vd) => (
+              <div key={vd.vrf.name} style={{ marginBottom: "2em" }}>
+                <h3>
+                  VRF: {vd.vrf.name}
+                  <div style={{ fontWeight: "normal", fontSize: "0.9em" }}>
+                    Local AS: {vd.vrf.local_as}
+                  </div>
+                </h3>
+
+                {renderVrfBody(vd)}
+              </div>
+            ))}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            onClick={loadData}
+            disabled={
+              loadingPhase === "settings" || loadingPhase === "neighbors"
+            }
+            startIcon={<RefreshIcon />}
+          >
+            Refresh
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => setOpen(false)}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
