@@ -608,8 +608,15 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                     >
                       Save & commit...
                     </Button>
-                    <Dialog onClose={closeSaveModal} open={saveModalOpen}>
-                      <DialogTitle>Save & commit</DialogTitle>
+                    <Dialog
+                      aria-labelledby="interface-save-commit-dialog"
+                      aria-describedby="interface-save-commit-dialog-description"
+                      onClose={closeSaveModal}
+                      open={saveModalOpen}
+                    >
+                      <DialogTitle id="interface-save-commit-dialog">
+                        Save & commit
+                      </DialogTitle>
                       {commitModal}
                       <DialogActions>
                         <Button
