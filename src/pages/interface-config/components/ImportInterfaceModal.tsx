@@ -3,6 +3,7 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { useState } from "react";
 import { useNavigate } from "react-router";
@@ -62,26 +63,38 @@ export function ImportInterfaceModal({
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Import Interface Configuration for {hostname}</DialogTitle>
+    <Dialog
+      aria-labelledby="interface-import-dialog"
+      aria-describedby="interface-import-dialog-description"
+      open={open}
+      onClose={onClose}
+    >
+      <DialogTitle id="interface-import-dialog">
+        Import Interface Configuration for {hostname}
+      </DialogTitle>
       <DialogContent>
-        <p>Select a JSON file with interface configuration to import: </p>
-        <input
-          id="import-file"
-          type="file"
-          accept=".json"
-          onChange={() => {
-            handleUpload();
-          }}
-        />
-        {errorMessage !== null ? (
-          <Alert severity="error">{errorMessage}</Alert>
-        ) : (
-          ""
-        )}
-        <pre>
-          {fileContent !== null ? JSON.stringify(fileContent, null, 2) : ""}
-        </pre>
+        <DialogContentText
+          id="interface-import-dialog-description"
+          component="div"
+        >
+          <p>Select a JSON file with interface configuration to import: </p>
+          <input
+            id="import-file"
+            type="file"
+            accept=".json"
+            onChange={() => {
+              handleUpload();
+            }}
+          />
+          {errorMessage !== null ? (
+            <Alert severity="error">{errorMessage}</Alert>
+          ) : (
+            ""
+          )}
+          <pre>
+            {fileContent !== null ? JSON.stringify(fileContent, null, 2) : ""}
+          </pre>
+        </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button
