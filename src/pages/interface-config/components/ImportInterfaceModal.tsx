@@ -1,9 +1,14 @@
-import { Modal } from "semantic-ui-react";
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { importInterfaces } from "../api/deviceApi";
+
 import { useAuthToken } from "../../../stores/AuthTokenContext";
+import { importInterfaces } from "../api/deviceApi";
 
 type ImportInterfaceModalProps = {
   readonly open: boolean;
@@ -57,32 +62,28 @@ export function ImportInterfaceModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Modal.Header>Import Interface Configuration for {hostname}</Modal.Header>
-      <Modal.Content scrolling>
-        <Modal.Description>
-          <p>Select a JSON file with interface configuration to import: </p>
-          <input
-            id="import-file"
-            type="file"
-            accept=".json"
-            onChange={() => {
-              handleUpload();
-            }}
-          />
-          {errorMessage !== null ? (
-            <p>
-              <span style={{ color: "red" }}>{errorMessage}</span>
-            </p>
-          ) : (
-            ""
-          )}
-          <pre>
-            {fileContent !== null ? JSON.stringify(fileContent, null, 2) : ""}
-          </pre>
-        </Modal.Description>
-      </Modal.Content>
-      <Modal.Actions>
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Import Interface Configuration for {hostname}</DialogTitle>
+      <DialogContent>
+        <p>Select a JSON file with interface configuration to import: </p>
+        <input
+          id="import-file"
+          type="file"
+          accept=".json"
+          onChange={() => {
+            handleUpload();
+          }}
+        />
+        {errorMessage !== null ? (
+          <Alert severity="error">{errorMessage}</Alert>
+        ) : (
+          ""
+        )}
+        <pre>
+          {fileContent !== null ? JSON.stringify(fileContent, null, 2) : ""}
+        </pre>
+      </DialogContent>
+      <DialogActions>
         <Button
           key="close"
           variant="outlined"
@@ -125,7 +126,7 @@ export function ImportInterfaceModal({
         >
           Save and dry run...
         </Button>
-      </Modal.Actions>
-    </Modal>
+      </DialogActions>
+    </Dialog>
   );
 }
