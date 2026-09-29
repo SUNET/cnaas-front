@@ -1,8 +1,9 @@
 import { type ReactNode } from "react";
-import { Modal } from "semantic-ui-react";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
 import IconButton from "@mui/material/IconButton";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -25,8 +26,11 @@ export function CommitModalAccess({
   interfaceDataUpdatedJSON,
 }: CommitModalAccessProps) {
   return (
-    <Modal.Content>
-      <Modal.Description>
+    <DialogContent>
+      <DialogContentText
+        id="interface-save-commit-dialog-description"
+        component="div"
+      >
         <Accordion
           expanded={accordionActiveIndex === 1}
           onChange={() => onAccordionChange(1)}
@@ -60,8 +64,8 @@ export function CommitModalAccess({
             <ul>{autoPushJobsHTML}</ul>
           </AccordionDetails>
         </Accordion>
-      </Modal.Description>
-    </Modal.Content>
+      </DialogContentText>
+    </DialogContent>
   );
 }
 
@@ -79,8 +83,11 @@ export function CommitModalDist({
   const yaml = YAML.stringify(ifDataYaml, { indent: 2 });
 
   return (
-    <Modal.Content>
-      <Modal.Description>
+    <DialogContent>
+      <DialogContentText
+        id="interface-save-commit-dialog-description"
+        component="div"
+      >
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
             YAML:
@@ -90,6 +97,7 @@ export function CommitModalDist({
             <Tooltip title="Copy YAML" placement="bottom-end">
               <IconButton
                 size="small"
+                aria-label="Copy YAML"
                 onClick={() =>
                   navigator.clipboard.writeText(
                     yaml.split("\n").slice(1).join("\n"),
@@ -115,7 +123,7 @@ export function CommitModalDist({
             </p>
           </AccordionDetails>
         </Accordion>
-      </Modal.Description>
-    </Modal.Content>
+      </DialogContentText>
+    </DialogContent>
   );
 }
