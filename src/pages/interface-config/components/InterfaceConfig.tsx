@@ -37,7 +37,7 @@ import { BgpNeighborModal } from "./BgpNeighborModal/BgpNeighborModal";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
 import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
-import { NewInterface } from "./NewInterface";
+import { NewInterfaceModal } from "./NewInterface";
 
 // --- Constants ---
 
@@ -674,7 +674,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                       Verify linknets
                     </Button>
                     {deviceType === "DIST" && (
-                      <NewInterface
+                      <NewInterfaceModal
                         suggestedInterfaces={unusedInterfaces}
                         addNewInterface={addNewInterface}
                       />
