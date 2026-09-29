@@ -1,39 +1,43 @@
+import AddBoxIcon from "@mui/icons-material/AddBox";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckIcon from "@mui/icons-material/Check";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import LinkIcon from "@mui/icons-material/Link";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+import WarningIcon from "@mui/icons-material/Warning";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogTitle from "@mui/material/DialogTitle";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import IconButton from "@mui/material/IconButton";
+import Popover from "@mui/material/Popover";
+import { styled } from "@mui/material/styles";
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
-  useCallback,
-  type SyntheticEvent,
   type ReactNode,
+  type SyntheticEvent,
 } from "react";
 import { Link, useNavigate } from "react-router";
-import { Modal, Table } from "semantic-ui-react";
-import Popover from "@mui/material/Popover";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import IconButton from "@mui/material/IconButton";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import { styled } from "@mui/material/styles";
-import ViewColumnIcon from "@mui/icons-material/ViewColumn";
-import FileUploadIcon from "@mui/icons-material/FileUpload";
-import AddBoxIcon from "@mui/icons-material/AddBox";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import RefreshIcon from "@mui/icons-material/Refresh";
-import LinkIcon from "@mui/icons-material/Link";
-import CheckIcon from "@mui/icons-material/Check";
-import CancelIcon from "@mui/icons-material/Cancel";
-import WarningIcon from "@mui/icons-material/Warning";
+import { Table } from "semantic-ui-react";
+
+import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
 import { Tooltip } from "../../../components/Tooltip";
 import { showToast } from "../../../components/toast";
-import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
-import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
-import { NewInterface } from "./NewInterface";
+import { useInterfaceConfigSocket } from "../hooks/useInterfaceConfigSocket";
+import { useInterfaceConfig } from "../stores/InterfaceConfigContext";
+import { BgpNeighborModal } from "./BgpNeighborModal/BgpNeighborModal";
 import { CommitModalAccess, CommitModalDist } from "./CommitModal";
 import { ImportInterfaceModal } from "./ImportInterfaceModal";
-import { BgpNeighborModal } from "./BgpNeighborModal/BgpNeighborModal";
-import { useInterfaceConfig } from "../stores/InterfaceConfigContext";
-import { useInterfaceConfigSocket } from "../hooks/useInterfaceConfigSocket";
+import { InterfaceTableRow } from "./InterfaceTableRow/InterfaceTableRow";
+import { NewInterface } from "./NewInterface";
 
 // --- Constants ---
 
@@ -597,19 +601,17 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
               <Table.Row>
                 <Table.HeaderCell colSpan={3 + state.displayColumns.length}>
                   <FooterToolbar>
-                    <Modal
-                      onClose={closeSaveModal}
-                      onOpen={() => setSaveModalOpen(true)}
-                      open={saveModalOpen}
-                      trigger={
-                        <Button variant="contained" endIcon={<OpenInNewIcon />}>
-                          Save & commit...
-                        </Button>
-                      }
+                    <Button
+                      variant="contained"
+                      endIcon={<OpenInNewIcon />}
+                      onClick={() => setSaveModalOpen(true)}
                     >
-                      <Modal.Header>Save & commit</Modal.Header>
+                      Save & commit...
+                    </Button>
+                    <Dialog onClose={closeSaveModal} open={saveModalOpen}>
+                      <DialogTitle>Save & commit</DialogTitle>
                       {commitModal}
-                      <Modal.Actions>
+                      <DialogActions>
                         <Button
                           key="close"
                           variant="outlined"
@@ -648,8 +650,8 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                             Start dry run...
                           </Button>
                         )}
-                      </Modal.Actions>
-                    </Modal>
+                      </DialogActions>
+                    </Dialog>
                     <Button
                       variant="contained"
                       endIcon={<RefreshIcon />}
