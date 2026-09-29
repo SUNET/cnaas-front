@@ -137,35 +137,6 @@ footer {
   padding: var(--size-md);
 }
 
-table,
-thead,
-tbody {
-  display: flex;
-  flex-direction: column;
-}
-
-tr {
-  display: flex;
-  border-bottom: solid white 1px;
-}
-
-thead {
-  font-size: var(--size-md);
-  font-weight: bold;
-}
-
-tbody {
-  font-size: var(--size-md);
-  font-weight: normal;
-}
-
-th,
-td {
-  display: flex;
-  flex: 1;
-  padding: var(--size-md);
-}
-
 .table_options_button {
   float: right;
 }
@@ -224,11 +195,6 @@ progress::-moz-progress-bar {
 #device_list tr.device_details_row td:last-child {
   min-width: 20em;
   max-width: 100%;
-}
-
-#data {
-  margin: var(--size-md) 0;
-  background: lightgray;
 }
 
 #data .device_details_row {
