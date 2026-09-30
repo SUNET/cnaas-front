@@ -1,9 +1,10 @@
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import { Stack } from "@mui/material";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import Stack from "@mui/material/Stack";
 import { useState } from "react";
+
 import { Task } from "../../../../components/Task";
 import { Tooltip } from "../../../../components/Tooltip";
 import type { Job } from "../../../../types/job";
