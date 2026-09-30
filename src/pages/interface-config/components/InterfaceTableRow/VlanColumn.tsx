@@ -37,7 +37,7 @@ function rangeToOption(range: string): VlanDropdownOption {
 
 // Escapes RegExp special characters, mirroring lodash's escapeRegExp.
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 // Shared search filter for VLAN dropdowns — searches both text and description

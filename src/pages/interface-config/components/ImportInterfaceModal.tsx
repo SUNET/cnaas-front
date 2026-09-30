@@ -83,7 +83,7 @@ export function ImportInterfaceModal({
             type="file"
             accept=".json"
             onChange={() => {
-              handleUpload();
+              void handleUpload();
             }}
           />
           {errorMessage !== null ? (
@@ -130,7 +130,7 @@ export function ImportInterfaceModal({
           onClick={async () => {
             const success = await sendInterfaceData();
             if (success) {
-              navigate(
+              void navigate(
                 `/config-change?hostname=${hostname}&scrollTo=refreshrepo`,
               );
             }

@@ -81,15 +81,14 @@ export function PortTypeCellDist({
                 ` - ${portTemplateDescriptions.get(name)}`}
             </li>
           )}
-          onChange={(e, newValue) => {
-            const value = newValue ?? "";
+          onChange={(e, newValue = "") => {
             addPortTemplateOption(e, {
               name: `port_template|${item.name}`,
-              value,
+              value: newValue,
             });
             updateFieldData(e, {
               name: `port_template|${item.name}`,
-              value,
+              value: newValue,
             });
           }}
           renderInput={(params) => (

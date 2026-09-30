@@ -22,7 +22,7 @@ const TwoColGrid = styled("div")(({ theme }) => ({
 }));
 
 const REPO_DATA_REGEX =
-  /Commit (?<commit_id>\w+) (?<branch>[-a-zA-Z0-9._]+) by (?<name>.+) at (?<date>[0-9- :]+)/;
+  /Commit \w+ (?<branch>[-a-zA-Z0-9._]+) by (?<name>.+) at (?<date>[0-9- :]+)/;
 
 type RepoStatus = { branch: string; date: string; name: string };
 
@@ -97,14 +97,14 @@ export function Dashboard() {
     if (!token) return;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount effect; populating dashboard data is the point
-    getRepoStatus("settings");
-    getRepoStatus("templates");
-    getDeviceCount("managed", "filter[state]=MANAGED");
-    getDeviceCount(
+    void getRepoStatus("settings");
+    void getRepoStatus("templates");
+    void getDeviceCount("managed", "filter[state]=MANAGED");
+    void getDeviceCount(
       "unsynchronized",
       "filter[state]=MANAGED&filter[synchronized]=false",
     );
-    getSystemVersion();
+    void getSystemVersion();
   }, [token]);
 
   return (
