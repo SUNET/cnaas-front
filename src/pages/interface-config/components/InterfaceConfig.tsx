@@ -17,6 +17,13 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
 import { styled } from "@mui/material/styles";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableFooter from "@mui/material/TableFooter";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import {
   useCallback,
   useEffect,
@@ -26,7 +33,6 @@ import {
   type SyntheticEvent,
 } from "react";
 import { Link, useNavigate } from "react-router";
-import { Table } from "semantic-ui-react";
 
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
 import { Tooltip } from "../../../components/Tooltip";
@@ -68,14 +74,6 @@ const ALLOWED_COLUMNS_DIST: Record<string, string> = {
 const ALLOWED_COLUMNS_MAP: Record<string, Record<string, string>> = {
   ACCESS: ALLOWED_COLUMNS_ACCESS,
   DIST: ALLOWED_COLUMNS_DIST,
-};
-
-const COLUMN_WIDTHS: Record<string, number> = {
-  vlans: 4,
-  tags: 3,
-  json: 1,
-  aggregate_id: 3,
-  bpdu_filter: 1,
 };
 
 // --- Props ---
@@ -172,7 +170,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   // --- Callbacks ---
 
   const handleUpdateFieldData = useCallback(
-    (_e: SyntheticEvent, data: Record<string, unknown>) => {
+    (_e: SyntheticEvent | Event, data: Record<string, unknown>) => {
       const nameStr = data.name as string;
       const [field, interfaceName] = nameStr.split("|", 2);
       const defaultValue =
@@ -388,12 +386,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
     : [];
 
   const columnHeaders = state.displayColumns.map((col) => (
-    <Table.HeaderCell
-      width={COLUMN_WIDTHS[col] as 1 | 2 | 3 | 4 | 5 | 6}
-      key={col}
-    >
-      {allowedColumns[col]}
-    </Table.HeaderCell>
+    <TableCell key={col}>{allowedColumns[col]}</TableCell>
   ));
 
   const columnSelectors = Object.keys(allowedColumns).map((col) => {
@@ -563,20 +556,20 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
           )}
         </div>
 
-        <div id="data">
-          <Table compact>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell width={3}>Name</Table.HeaderCell>
-                <Table.HeaderCell width={6}>Description</Table.HeaderCell>
-                <Table.HeaderCell width={3}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Name</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>
                   {deviceType === "DIST" ? "Interface class" : "Configtype"}
-                </Table.HeaderCell>
+                </TableCell>
                 {columnHeaders}
-              </Table.Row>
-            </Table.Header>
+              </TableRow>
+            </TableHead>
 
-            <Table.Body>
+            <TableBody>
               {state.interfaces.map((item, index) => (
                 <InterfaceTableRow
                   key={item.name}
@@ -595,11 +588,11 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                   untaggedClick={handleUntaggedClick}
                 />
               ))}
-            </Table.Body>
+            </TableBody>
 
-            <Table.Footer fullWidth>
-              <Table.Row>
-                <Table.HeaderCell colSpan={3 + state.displayColumns.length}>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={3 + state.displayColumns.length}>
                   <FooterToolbar>
                     <Button
                       variant="contained"
@@ -633,7 +626,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                             onClick={saveAndCommitChanges}
                             disabled={commitAutopushDisabled}
                             variant="contained"
-                            color="warning"
+                            color="secondary"
                           >
                             Save and commit now
                           </Button>,
@@ -680,18 +673,18 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
                       />
                     )}
                   </FooterToolbar>
-                </Table.HeaderCell>
-              </Table.Row>
-            </Table.Footer>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
           </Table>
+        </TableContainer>
 
-          <ImportInterfaceModal
-            open={importModalOpen}
-            onClose={() => setImportModalOpen(false)}
-            hostname={hostname}
-            getInterfaceData={loadInterfaces}
-          />
-        </div>
+        <ImportInterfaceModal
+          open={importModalOpen}
+          onClose={() => setImportModalOpen(false)}
+          hostname={hostname}
+          getInterfaceData={loadInterfaces}
+        />
       </div>
     </section>
   );

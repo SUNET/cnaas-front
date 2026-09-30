@@ -1,9 +1,16 @@
-import { type SyntheticEvent } from "react";
-import { Dropdown, Table } from "semantic-ui-react";
 import Checkbox from "@mui/material/Checkbox";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import TableCell from "@mui/material/TableCell";
+import { type SyntheticEvent } from "react";
+
 import { Tooltip } from "../../../../components/Tooltip";
 
-const CONFIG_TYPE_OPTIONS = [
+const CONFIG_TYPE_OPTIONS: {
+  value: string;
+  text: string;
+  disabled?: boolean;
+}[] = [
   { value: "ACCESS_AUTO", text: "Auto/dot1x" },
   { value: "ACCESS_UNTAGGED", text: "Untagged/access" },
   { value: "ACCESS_TAGGED", text: "Tagged/trunk" },
@@ -24,21 +31,31 @@ export function PortTypeCellAccess({
   readonly fields: Record<string, unknown>;
   readonly editDisabled: boolean;
   readonly updateFieldData: (
-    e: SyntheticEvent,
+    e: SyntheticEvent | Event,
     data: Record<string, unknown>,
   ) => void;
 }) {
   return (
-    <Table.Cell>
-      <Dropdown
+    <TableCell>
+      <Select
         key={`configtype|${item.name}`}
         name={`configtype|${item.name}`}
-        selection
-        options={CONFIG_TYPE_OPTIONS}
-        defaultValue={item.configtype as string | undefined}
+        size="small"
+        defaultValue={(item.configtype as string | undefined) ?? ""}
         disabled={editDisabled}
-        onChange={updateFieldData}
-      />
+        onChange={(e: SelectChangeEvent) =>
+          updateFieldData(e, {
+            name: `configtype|${item.name}`,
+            value: e.target.value,
+          })
+        }
+      >
+        {CONFIG_TYPE_OPTIONS.map((opt) => (
+          <MenuItem key={opt.value} value={opt.value} disabled={opt.disabled}>
+            {opt.text}
+          </MenuItem>
+        ))}
+      </Select>
 
       {currentConfigtype === "ACCESS_DOWNLINK" && (
         <Tooltip
@@ -66,6 +83,6 @@ export function PortTypeCellAccess({
           </span>
         </Tooltip>
       )}
-    </Table.Cell>
+    </TableCell>
   );
 }
