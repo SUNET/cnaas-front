@@ -16,11 +16,11 @@ import {
 
 // Responsive grid of interface status cards (replaces Semantic UI
 // `<Grid columns={3} stackable>`).
-const InterfaceGrid = styled("div")({
+const InterfaceGrid = styled("div")(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))",
-  gap: "var(--size-md)",
-});
+  gap: theme.spacing(2),
+}));
 
 type DeviceRef = { readonly id: number; readonly name: string };
 

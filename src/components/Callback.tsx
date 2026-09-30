@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
+import Typography from "@mui/material/Typography";
 import { useAuthToken } from "../stores/AuthTokenContext";
 import { usePermissions } from "../stores/PermissionsContext";
 import { getData } from "../utils/getData";
@@ -59,5 +60,5 @@ export function Callback() {
 
   if (!errorMessage) return null;
 
-  return <p className="title error">{errorMessage}</p>;
+  return <Typography color="error">{errorMessage}</Typography>;
 }

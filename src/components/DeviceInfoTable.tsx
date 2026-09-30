@@ -13,14 +13,14 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import { styled } from "@mui/material/styles";
 
-const StripedTable = styled(Table)(() => ({
+const StripedTable = styled(Table)(({ theme }) => ({
   "& tbody tr:nth-of-type(even)": {
-    backgroundColor: "var(--color-surface)",
+    backgroundColor: theme.palette.grey[100],
   },
 }));
 
-const TableContainerBordered = styled(TableContainer)(() => ({
-  border: "1px solid var(--color-divider)",
+const TableContainerBordered = styled(TableContainer)(({ theme }) => ({
+  border: `1px solid ${theme.palette.divider}`,
 }));
 
 function ManagementIP({ ip }: { readonly ip: string | null }) {

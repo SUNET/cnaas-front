@@ -1,5 +1,3 @@
-@import "./variables.css";
-
 html,
 body,
 #root,
@@ -8,10 +6,10 @@ body,
 }
 
 body {
-  background: var(--color-background);
+  background: #ffffff;
   font-family: "Karla", sans-serif;
-  font-size: var(--size-sm);
-  color: var(--color-primary);
+  font-size: 0.875rem;
+  color: #003049;
   font-weight: 700;
   line-height: 1.2;
   overflow-x: scroll;
@@ -23,7 +21,7 @@ body {
 }
 
 header {
-  border-bottom: var(--color-secondary) solid 1px;
+  border-bottom: #ff4500 solid 1px;
   display: flex;
 }
 
@@ -45,15 +43,15 @@ nav ul {
 }
 
 nav li {
-  margin-right: var(--size-xxs);
-  margin-left: var(--size-xxs);
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
   display: flex;
   align-items: center;
   height: 100%;
 }
 
 a {
-  color: var(--color-primary);
+  color: #003049;
   text-decoration: underline;
 }
 
@@ -62,59 +60,26 @@ nav a {
 }
 
 nav a.active {
-  color: var(--color-secondary);
+  color: #ff4500;
   text-decoration: underline;
 }
 
 h1,
 h2 {
-  font-size: var(--size-lg);
-  margin: var(--size-xl) 0;
+  font-size: 1.5rem;
+  margin: 2rem 0;
   line-height: 1.2;
 }
 
 h2:first-child {
-  margin-top: var(--size-xl);
+  margin-top: 2rem;
 }
 
 p {
-  font-size: var(--size-md);
-  margin: var(--size-md) 0;
+  font-size: 1rem;
+  margin: 1rem 0;
   line-height: 1.2;
   font-weight: 400;
-}
-
-/* p:first-child {
-  margin-top: 16px;
-} */
-
-/* :not(.MuiButtonBase-root) excludes MUI buttons (Button, IconButton, etc.)
-   from these classless styles. MUI wins on properties it sets, but leaves
-   others (e.g. hover border) unset, so main.css would otherwise bleed through
-   and cause artifacts like the hover size-jump. */
-button:not(.MuiButtonBase-root) {
-  background: var(--color-secondary);
-  font-family: "Montserrat", sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-background);
-  letter-spacing: 1px;
-
-  border: transparent solid 1px;
-  border-radius: var(--size-lg);
-
-  padding: var(--size-md) var(--size-xl);
-  margin: var(--size-md);
-}
-
-button:not(.MuiButtonBase-root):hover {
-  border: var(--color-secondary) solid 1px;
-  background: var(--color-surface);
-  color: var(--color-secondary);
-}
-
-button:not(.MuiButtonBase-root):disabled {
-  background: var(--color-disabled-bg);
 }
 
 section {
@@ -123,99 +88,36 @@ section {
   flex-direction: column;
 }
 
-/* long-term maybe panel can be removed */
-#panel {
-  padding: var(--size-md);
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-}
-
 footer {
-  border-top: var(--color-secondary) solid 1px;
+  border-top: #ff4500 solid 1px;
   display: flex;
-  padding: var(--size-md);
+  padding: 1rem;
 }
 
 .table_options_button {
   float: right;
 }
 
-/* progress bar styles */
-
 #progressbar {
-  margin: var(--size-md);
-}
-
-progress {
-  display: flex;
-  width: 100%;
-  border-radius: 10px;
-
-  /* Reset the default appearance */
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-
-  /* Get rid of default border in Firefox. */
-  border: none;
-}
-
-progress::-webkit-progress-bar {
-  background-color: var(--color-surface);
-}
-progress::-webkit-progress-value {
-  background-color: var(--color-secondary);
-}
-progress::-moz-progress-bar {
-  background-color: var(--color-secondary);
-}
-
-/* DeviceList styles */
-
-#search {
-  padding: var(--size-md) 0;
-}
-
-#data .device_details_row {
-  background: white;
-}
-
-#data .device_details_row td {
-  display: flex;
-  flex-direction: column;
-}
-
-#data .device_details_row a {
-  width: fit-content;
-}
-
-/* error styles */
-.error {
-  color: var(--color-secondary);
+  margin: 1rem;
 }
 
 /* diff box styles */
 .diff-box pre.exception {
   white-space: pre-wrap;
-  color: var(--color-secondary);
+  color: #ff4500;
 }
 
 .diff-box pre.traceback {
   white-space: pre-wrap;
-  color: var(--color-black);
-  font-size: var(--size-sm);
+  color: #000000;
+  font-size: 0.875rem;
   max-height: 15rem;
   overflow-y: auto;
 }
 
 .fullconfig {
   overflow-x: scroll;
-}
-
-.table-button-compact.button {
-  max-height: min-content;
-  padding: 0.35em var(--size-md) 0.35em;
 }
 
 /* log output styles */
@@ -229,7 +131,7 @@ progress::-moz-progress-bar {
 .div-inline-log-viewer {
   position: relative;
   max-height: 10rem;
-  margin: var(--size-md);
+  margin: 1rem;
 }
 
 .language-log.expand-log-viewer {

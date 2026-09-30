@@ -1,6 +1,7 @@
 import { type SyntheticEvent, useState, type MouseEvent } from "react";
 import Popover from "@mui/material/Popover";
 import IconButton from "@mui/material/IconButton";
+import Box from "@mui/material/Box";
 import ExpandCircleDownOutlinedIcon from "@mui/icons-material/ExpandCircleDownOutlined";
 import { InterfaceCurrentConfig } from "./InterfaceCurrentConfig";
 
@@ -56,13 +57,13 @@ export function ConfigColumn({
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
         transformOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <div style={{ padding: "var(--size-md)" }}>
+        <Box sx={{ p: 2 }}>
           <p>Current running config:</p>
           <InterfaceCurrentConfig
             hostname={hostname}
             interface={interfaceName}
           />
-        </div>
+        </Box>
       </Popover>
     </>
   );

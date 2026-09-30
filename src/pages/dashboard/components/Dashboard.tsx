@@ -15,11 +15,11 @@ import { DashboardNetboxTenant } from "./DashboardNetboxTenant";
 
 // Two-column dashboard layout that stacks on narrow viewports (replaces
 // Semantic UI `<Grid columns={2}>`).
-const TwoColGrid = styled("div")({
+const TwoColGrid = styled("div")(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
-  gap: "var(--size-md)",
-});
+  gap: theme.spacing(2),
+}));
 
 const REPO_DATA_REGEX =
   /Commit (?<commit_id>\w+) (?<branch>[-a-zA-Z0-9._]+) by (?<name>.+) at (?<date>[0-9- :]+)/;

@@ -1,3 +1,5 @@
+import Typography from "@mui/material/Typography";
+
 type FirmwareErrorProps = {
   readonly devices: Readonly<Record<string, { readonly failed?: boolean }>>;
 };
@@ -12,7 +14,7 @@ export function FirmwareError({ devices }: FirmwareErrorProps) {
       <ul>
         {failedDeviceNames.map((name) => (
           <li key={name}>
-            <p className="error">{name}</p>
+            <Typography color="error">{name}</Typography>
           </li>
         ))}
       </ul>

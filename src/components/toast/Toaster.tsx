@@ -7,11 +7,11 @@ import { dismissToast, getSnapshot, subscribe } from "./toastStore";
 
 const ToastStack = styled(Stack)(({ theme }) => ({
   position: "fixed",
-  top: "var(--size-md)",
-  right: "var(--size-md)",
+  top: theme.spacing(2),
+  right: theme.spacing(2),
   zIndex: theme.zIndex.snackbar,
-  width: "calc(100% - 2 * var(--size-md))",
-  maxWidth: "calc(100% - 2 * var(--size-md))",
+  width: `calc(100% - ${theme.spacing(4)})`,
+  maxWidth: `calc(100% - ${theme.spacing(4)})`,
   [theme.breakpoints.up("sm")]: {
     width: 400,
   },
