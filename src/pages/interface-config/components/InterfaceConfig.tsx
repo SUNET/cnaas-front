@@ -16,6 +16,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
+import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -35,8 +36,8 @@ import {
 import { Link, useNavigate } from "react-router";
 
 import { DeviceInfoTable } from "../../../components/DeviceInfoTable";
-import { Tooltip } from "../../../components/Tooltip";
 import { showToast } from "../../../components/toast";
+import { Tooltip } from "../../../components/Tooltip";
 import { useInterfaceConfigSocket } from "../hooks/useInterfaceConfigSocket";
 import { useInterfaceConfig } from "../stores/InterfaceConfigContext";
 import { BgpNeighborModal } from "./BgpNeighborModal/BgpNeighborModal";
@@ -332,7 +333,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   const saveAndCommitChanges = async () => {
     const { success, error } = await saveInterfaces(prepareSendJson());
     if (success) {
-      startAutoPush();
+      void startAutoPush();
       setAccordionActiveIndex(3);
     } else {
       setErrorMessage(error ?? null);
@@ -343,7 +344,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   const saveChanges = async () => {
     const { success, error } = await saveInterfaces(prepareSendJson());
     if (success) {
-      navigate(
+      void navigate(
         `/config-change?hostname=${hostname}&scrollTo=dry_run&autoDryRun=true`,
       );
     } else {
@@ -353,7 +354,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   };
 
   const gotoConfigChange = () => {
-    navigate(`/config-change?hostname=${hostname}&scrollTo=refreshrepo`);
+    void navigate(`/config-change?hostname=${hostname}&scrollTo=refreshrepo`);
   };
 
   // --- Render helpers ---
@@ -437,7 +438,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
   return (
     <section>
       <div id="device_list">
-        <h2>Interface configuration</h2>
+        <h2>Interface configuration for {hostname}</h2>
 
         {device && (
           <details>
@@ -459,14 +460,14 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
           </p>
         )}
 
-        <p>
-          Sync state:{" "}
+        <Stack direction="row" sx={{ alignItems: "center", gap: 0.5 }}>
+          Sync state:
           {synchronized ? (
             <CheckIcon sx={{ color: "success.main" }} />
           ) : (
             <CancelIcon sx={{ color: "error.main" }} />
           )}
-        </p>
+        </Stack>
 
         {!synchronized && (
           <p>
