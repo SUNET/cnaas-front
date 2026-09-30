@@ -86,13 +86,13 @@ export function DashboardInterfaceStatus() {
       }));
       setIsLoading(false);
     }
-    loadStatuses();
+    void loadStatuses();
   }, [netboxDeviceObjects]);
 
   useEffect(() => {
     // Legitimate one-time initial fetch into component state on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    getNetboxObjects();
+    void getNetboxObjects();
   }, []);
 
   const interfaceList = [];

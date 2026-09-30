@@ -51,7 +51,7 @@ export function Callback() {
       }
       const newToken = searchParams.get("token");
       putToken(newToken);
-      getPermissions(newToken);
+      void getPermissions(newToken);
     } else if (token) {
       // No URL params — if already logged in, redirect home
       redirectTo("/");

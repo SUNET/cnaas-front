@@ -54,7 +54,7 @@ export function DashboardNetboxTenant() {
 
   useEffect(() => {
     // Legitimate one-time initial fetch into component state on mount.
-    getNetboxObjects();
+    void getNetboxObjects();
   }, []);
 
   if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {

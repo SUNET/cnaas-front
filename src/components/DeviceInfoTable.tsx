@@ -36,7 +36,7 @@ function ManagementIP({ ip }: { readonly ip: string | null }) {
         size="small"
         title={ip}
         onClick={() => {
-          navigator.clipboard.writeText(ip);
+          void navigator.clipboard.writeText(ip);
         }}
       >
         <ContentCopyIcon />
