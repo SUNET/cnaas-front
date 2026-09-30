@@ -1,6 +1,9 @@
 {
   "name": "cnaas-front",
   "version": "1.9.0",
+  "@parcel/resolver-default": {
+    "packageExports": true
+  },
   "engines": {
     "node": ">=24.x"
   },
