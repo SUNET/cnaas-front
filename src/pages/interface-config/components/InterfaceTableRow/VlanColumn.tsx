@@ -1,16 +1,14 @@
-import _ from "lodash";
-import {
-  type SyntheticEvent,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { Dropdown } from "semantic-ui-react";
+import { type SyntheticEvent, useMemo, useRef, useState } from "react";
+import Autocomplete from "@mui/material/Autocomplete";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Stack from "@mui/material/Stack";
+
 import { Tooltip } from "../../../../components/Tooltip";
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import { actions } from "../../stores/interfaceConfigReducer";
@@ -19,32 +17,43 @@ import type { Vlan } from "../../types/vlan";
 const VLAN_RANGE_RE = /^\d+-\d+$/;
 
 type VlanDropdownOption = {
-  key?: string | number;
   text: string;
-  value: string | null;
+  value: string;
   description?: string | number;
 };
 
+type UntaggedVlanOption = {
+  text: string;
+  value: string | null;
+};
+
 function vlanToOption(v: Vlan): VlanDropdownOption {
-  return { key: v.vni, text: v.name, value: v.name, description: v.id };
+  return { text: v.name, value: v.name, description: v.id };
 }
 
 function rangeToOption(range: string): VlanDropdownOption {
   return { text: `R:${range}`, value: range, description: range };
 }
 
+// Escapes RegExp special characters, mirroring lodash's escapeRegExp.
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // Shared search filter for VLAN dropdowns — searches both text and description
-const vlanSearchFilter = ((
-  filteredOptions: Array<{ text: string; description?: unknown }>,
-  searchQuery: string,
+const vlanSearchFilter = (
+  options: string[],
+  optionsByValue: Map<string, VlanDropdownOption>,
+  inputValue: string,
 ) => {
-  const re = new RegExp(_.escapeRegExp(searchQuery), "i");
-  return _.filter(
-    filteredOptions,
-    (opt) => re.test(opt.text) || re.test(opt.description?.toString() ?? ""),
-  );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}) as any;
+  const re = new RegExp(escapeRegExp(inputValue), "i");
+  return options.filter((value) => {
+    const opt = optionsByValue.get(value);
+    return (
+      re.test(opt?.text ?? value) || re.test(String(opt?.description ?? ""))
+    );
+  });
+};
 
 type VlanColumnProps = {
   readonly interfaceName: string;
@@ -54,7 +63,7 @@ type VlanColumnProps = {
   readonly taggedVlanList: unknown;
   readonly untaggedVlan: unknown;
   readonly updateFieldData: (
-    e: SyntheticEvent,
+    e: SyntheticEvent | Event,
     data: Record<string, unknown>,
   ) => void;
   readonly untaggedClick: (
@@ -85,7 +94,7 @@ export function VlanColumn({
     [vlans, vlanRanges],
   );
 
-  const untaggedVlanOptions = useMemo<VlanDropdownOption[]>(
+  const untaggedVlanOptions = useMemo<UntaggedVlanOption[]>(
     () => [{ value: null, text: "None" }, ...vlans.map(vlanToOption)],
     [vlans],
   );
@@ -93,45 +102,18 @@ export function VlanColumn({
   const [rangeError, setRangeError] = useState<string | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showRangeError = useCallback((msg: string) => {
+  const showRangeError = (msg: string) => {
     if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
     setRangeError(null);
     queueMicrotask(() => {
       setRangeError(msg);
       errorTimerRef.current = setTimeout(() => setRangeError(null), 5000);
     });
-  }, []);
+  };
 
-  const handleAddVlanRange = useCallback(
-    (_e: SyntheticEvent, data: Record<string, unknown>) => {
-      const value = String(data.value);
-      if (!VLAN_RANGE_RE.test(value)) {
-        showRangeError("Only VLAN ranges (e.g. 100-200) can be added manually");
-        return;
-      }
-      dispatch({ type: actions.ADD_VLAN_RANGE_OPTION, range: value });
-    },
-    [dispatch, showRangeError],
-  );
-
-  const handleTaggedChange = useCallback(
-    (e: SyntheticEvent, data: Record<string, unknown>) => {
-      if (Array.isArray(data.value)) {
-        const validValues = new Set(
-          (data.options as Array<{ value: unknown }>).map((o) => o.value),
-        );
-        const filtered = (data.value as unknown[]).filter(
-          (v) =>
-            validValues.has(v) ||
-            (typeof v === "string" && VLAN_RANGE_RE.test(v)),
-        );
-        updateFieldData(e, { ...data, value: filtered });
-      } else {
-        updateFieldData(e, data);
-      }
-    },
-    [updateFieldData],
-  );
+  const handleAddVlanRange = (range: string) => {
+    dispatch({ type: actions.ADD_VLAN_RANGE_OPTION, range });
+  };
 
   if (!settings) {
     return <CircularProgress />;
@@ -146,37 +128,24 @@ export function VlanColumn({
   }
 
   return (
-    <>
+    <Stack direction="row">
       {displayVlanTagged ? (
-        <Tooltip
-          open={rangeError !== null}
-          title={rangeError ? <Chip label={rangeError} color="error" /> : ""}
-          placement="top"
-        >
-          <Dropdown
-            key={`tagged_vlan_list|${interfaceName}`}
-            name={`tagged_vlan_list|${interfaceName}`}
-            fluid
-            multiple
-            selection
-            allowAdditions={device?.device_type === "DIST"}
-            onAddItem={handleAddVlanRange}
-            search={vlanSearchFilter}
-            options={vlanOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-            defaultValue={taggedVlanList as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-            onChange={handleTaggedChange}
-          />
-        </Tooltip>
+        <TaggedVlanSelect
+          interfaceName={interfaceName}
+          vlanOptions={vlanOptions}
+          taggedVlanList={taggedVlanList}
+          allowFreeSolo={device?.device_type === "DIST"}
+          rangeError={rangeError}
+          onAddVlanRange={handleAddVlanRange}
+          showRangeError={showRangeError}
+          updateFieldData={updateFieldData}
+        />
       ) : (
-        <Dropdown
-          key={`untagged_vlan|${interfaceName}`}
-          name={`untagged_vlan|${interfaceName}`}
-          fluid
-          selection
-          search={vlanSearchFilter}
-          options={untaggedVlanOptions as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-          defaultValue={untaggedVlan as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-          onChange={updateFieldData}
+        <UntaggedVlanSelect
+          interfaceName={interfaceName}
+          options={untaggedVlanOptions}
+          untaggedVlan={untaggedVlan}
+          updateFieldData={updateFieldData}
         />
       )}
       {displayTaggedToggle && (
@@ -186,7 +155,136 @@ export function VlanColumn({
           untaggedClick={untaggedClick}
         />
       )}
-    </>
+    </Stack>
+  );
+}
+
+// --- Tagged VLAN multi-select (supports typing new VLAN ranges on DIST) ---
+
+type TaggedVlanSelectProps = {
+  readonly interfaceName: string;
+  readonly vlanOptions: VlanDropdownOption[];
+  readonly taggedVlanList: unknown;
+  readonly allowFreeSolo: boolean;
+  readonly rangeError: string | null;
+  readonly onAddVlanRange: (range: string) => void;
+  readonly showRangeError: (msg: string) => void;
+  readonly updateFieldData: (
+    e: SyntheticEvent | Event,
+    data: Record<string, unknown>,
+  ) => void;
+};
+
+function TaggedVlanSelect({
+  interfaceName,
+  vlanOptions,
+  taggedVlanList,
+  allowFreeSolo,
+  rangeError,
+  onAddVlanRange,
+  showRangeError,
+  updateFieldData,
+}: TaggedVlanSelectProps) {
+  const vlanOptionsByValue = useMemo(
+    () => new Map(vlanOptions.map((o) => [o.value, o])),
+    [vlanOptions],
+  );
+
+  const filterVlanOptions = (
+    options: string[],
+    filterState: { inputValue: string },
+  ) => vlanSearchFilter(options, vlanOptionsByValue, filterState.inputValue);
+
+  const normalizedTaggedVlanList = useMemo(
+    () => (Array.isArray(taggedVlanList) ? taggedVlanList.map(String) : []),
+    [taggedVlanList],
+  );
+
+  const handleChange = (e: SyntheticEvent, newValue: string[]) => {
+    const filtered = newValue.filter((v) => {
+      // Already-present values (e.g. VLAN IDs stored for DIST devices) are
+      // kept as-is; only newly typed/selected entries need validating.
+      if (normalizedTaggedVlanList.includes(v)) return true;
+      if (vlanOptionsByValue.has(v)) return true;
+      if (VLAN_RANGE_RE.test(v)) {
+        onAddVlanRange(v);
+        return true;
+      }
+      showRangeError("Only VLAN ranges (e.g. 100-200) can be added manually");
+      return false;
+    });
+    updateFieldData(e, {
+      name: `tagged_vlan_list|${interfaceName}`,
+      value: filtered,
+      options: vlanOptions,
+    });
+  };
+
+  return (
+    <Tooltip
+      open={rangeError !== null}
+      title={rangeError ? <Chip label={rangeError} color="error" /> : ""}
+      placement="top"
+    >
+      <Autocomplete
+        multiple
+        freeSolo={allowFreeSolo}
+        size="small"
+        fullWidth
+        options={vlanOptions.map((o) => o.value)}
+        value={normalizedTaggedVlanList}
+        getOptionLabel={(value) => vlanOptionsByValue.get(value)?.text ?? value}
+        filterOptions={filterVlanOptions}
+        onChange={(e, newValue) => handleChange(e, newValue)}
+        renderInput={(params) => (
+          <TextField {...params} name={`tagged_vlan_list|${interfaceName}`} />
+        )}
+      />
+    </Tooltip>
+  );
+}
+
+// --- Untagged VLAN single select ---
+
+type UntaggedVlanSelectProps = {
+  readonly interfaceName: string;
+  readonly options: UntaggedVlanOption[];
+  readonly untaggedVlan: unknown;
+  readonly updateFieldData: (
+    e: SyntheticEvent | Event,
+    data: Record<string, unknown>,
+  ) => void;
+};
+
+function UntaggedVlanSelect({
+  interfaceName,
+  options,
+  untaggedVlan,
+  updateFieldData,
+}: UntaggedVlanSelectProps) {
+  const normalizedUntaggedVlan =
+    typeof untaggedVlan === "string" ? untaggedVlan : "";
+
+  return (
+    <Select
+      name={`untagged_vlan|${interfaceName}`}
+      size="small"
+      fullWidth
+      value={normalizedUntaggedVlan}
+      onChange={(e: SelectChangeEvent) =>
+        updateFieldData(e, {
+          name: `untagged_vlan|${interfaceName}`,
+          value: e.target.value === "" ? null : e.target.value,
+          options,
+        })
+      }
+    >
+      {options.map((option) => (
+        <MenuItem key={option.value ?? "none"} value={option.value ?? ""}>
+          {option.text}
+        </MenuItem>
+      ))}
+    </Select>
   );
 }
 
