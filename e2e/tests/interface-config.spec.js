@@ -124,9 +124,9 @@ test.describe("Interface config page", () => {
     });
     await saveButton.click();
 
-    const modal = page.locator(".ui.modal.visible.active");
-    await expect(modal).toBeVisible({ timeout: 5000 });
-    await expect(modal.getByText("Save & commit")).toBeVisible();
+    const saveModal = page.getByRole("dialog");
+    await expect(saveModal).toBeVisible({ timeout: 5000 });
+    await expect(saveModal.getByText("Save & commit")).toBeVisible();
 
     await testInfo.attach("commit-modal", {
       body: await page.screenshot(),
@@ -134,7 +134,9 @@ test.describe("Interface config page", () => {
     });
 
     // Click "Save and dry run..." (works even when device is unsynchronized)
-    await modal.getByRole("button", { name: "Save and dry run..." }).click();
+    await saveModal
+      .getByRole("button", { name: "Save and dry run..." })
+      .click();
 
     // Should navigate to config-change page
     await expect(page).toHaveURL(/\/config-change/, { timeout: 10000 });
