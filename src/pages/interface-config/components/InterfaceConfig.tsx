@@ -77,6 +77,21 @@ const ALLOWED_COLUMNS_MAP: Record<string, Record<string, string>> = {
   DIST: ALLOWED_COLUMNS_DIST,
 };
 
+// Fixed column widths, paired with `table-layout: fixed` on the table below,
+// so a row's content (e.g. VLAN chips collapsing/expanding) never causes
+// other columns to visibly resize.
+const COLUMN_WIDTHS: Record<string, string> = {
+  name: "9%",
+  description: "18%",
+  ifclass: "18%",
+  vlans: "28%",
+  tags: "18%",
+  json: "4%",
+  aggregate_id: "13%",
+  bpdu_filter: "9%",
+  config: "18%",
+};
+
 // --- Props ---
 
 type InterfaceConfigProps = {
@@ -387,7 +402,9 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
     : [];
 
   const columnHeaders = state.displayColumns.map((col) => (
-    <TableCell key={col}>{allowedColumns[col]}</TableCell>
+    <TableCell key={col} sx={{ width: COLUMN_WIDTHS[col] }}>
+      {allowedColumns[col]}
+    </TableCell>
   ));
 
   const columnSelectors = Object.keys(allowedColumns).map((col) => {
@@ -558,12 +575,18 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         </div>
 
         <TableContainer>
-          <Table size="small">
+          <Table size="small" sx={{ tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ whiteSpace: "nowrap" }}>Name</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>
+                <TableCell
+                  sx={{ whiteSpace: "nowrap", width: COLUMN_WIDTHS.name }}
+                >
+                  Name
+                </TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTHS.description }}>
+                  Description
+                </TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTHS.ifclass }}>
                   {deviceType === "DIST" ? "Interface class" : "Configtype"}
                 </TableCell>
                 {columnHeaders}

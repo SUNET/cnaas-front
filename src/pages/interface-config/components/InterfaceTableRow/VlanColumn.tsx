@@ -230,7 +230,8 @@ function TaggedVlanSelect({
         multiple
         freeSolo={allowFreeSolo}
         size="small"
-        fullWidth
+        limitTags={3}
+        sx={{ width: 280 }}
         options={vlanOptions.map((o) => o.value)}
         value={normalizedTaggedVlanList}
         getOptionLabel={(value) => vlanOptionsByValue.get(value)?.text ?? value}
@@ -269,7 +270,7 @@ function UntaggedVlanSelect({
     <Select
       name={`untagged_vlan|${interfaceName}`}
       size="small"
-      fullWidth
+      sx={{ width: 280 }}
       value={normalizedUntaggedVlan}
       onChange={(e: SelectChangeEvent) =>
         updateFieldData(e, {
