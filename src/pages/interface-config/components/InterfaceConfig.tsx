@@ -7,6 +7,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import WarningIcon from "@mui/icons-material/Warning";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -454,7 +455,14 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
 
   return (
     <section>
-      <div id="device_list">
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          py: 2,
+        }}
+      >
         <h2>Interface configuration for {hostname}</h2>
 
         {device && (
@@ -709,7 +717,7 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
           hostname={hostname}
           getInterfaceData={loadInterfaces}
         />
-      </div>
+      </Box>
     </section>
   );
 }

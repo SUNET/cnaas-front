@@ -177,26 +177,6 @@ progress::-moz-progress-bar {
   padding: var(--size-md) 0;
 }
 
-#device_list {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding: var(--size-md) 0;
-}
-
-/* make ID column small */
-#device_list .device_list tr td:last-child,
-#device_list .device_list tr th:last-child {
-  min-width: 5em;
-  max-width: 5em;
-}
-
-#device_list tr.device_details_row td:last-child,
-#device_list tr.device_details_row td:last-child {
-  min-width: 20em;
-  max-width: 100%;
-}
-
 #data .device_details_row {
   background: white;
 }
