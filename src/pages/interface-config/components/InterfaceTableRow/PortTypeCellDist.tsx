@@ -47,6 +47,7 @@ export function PortTypeCellDist({
         key={`ifclass|${item.name}`}
         name={`ifclass|${item.name}`}
         size="small"
+        fullWidth
         defaultValue={currentIfClass ?? ""}
         disabled={editDisabled}
         onChange={(e: SelectChangeEvent) =>
@@ -66,6 +67,7 @@ export function PortTypeCellDist({
         <Autocomplete
           key={`port_template|${item.name}`}
           size="small"
+          fullWidth
           freeSolo
           disabled={editDisabled}
           options={portTemplateOptions}
