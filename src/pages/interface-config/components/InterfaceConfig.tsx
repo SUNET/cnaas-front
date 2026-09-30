@@ -51,12 +51,12 @@ import { NewInterfaceModal } from "./NewInterface";
 
 // Footer toolbar: spaces the save/refresh/verify action buttons and wraps
 // them on narrow viewports.
-const FooterToolbar = styled("div")({
+const FooterToolbar = styled("div")(({ theme }) => ({
   display: "flex",
   flexWrap: "wrap",
-  gap: "var(--size-sm)",
+  gap: theme.spacing(1.75),
   alignItems: "center",
-});
+}));
 
 const ALLOWED_COLUMNS_ACCESS: Record<string, string> = {
   vlans: "VLANs",
@@ -542,10 +542,10 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
-            <div style={{ padding: "var(--size-md)" }}>
+            <Box sx={{ p: 2 }}>
               <p>Show extra columns:</p>
               <ul>{columnSelectors}</ul>
-            </div>
+            </Box>
           </Popover>
 
           {deviceType === "ACCESS" && (

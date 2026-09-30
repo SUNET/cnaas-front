@@ -11,12 +11,12 @@ import { formatISODate } from "../../../utils/formatters";
 import { JobDetails } from "./JobDetails";
 import type { Job } from "../../../types/job";
 
-const DetailLayout = styled("div")({
+const DetailLayout = styled("div")(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "repeat(2, 1fr)",
-  gap: "var(--size-md)",
-  padding: "var(--size-sm) 0",
-});
+  gap: theme.spacing(2),
+  padding: `${theme.spacing(1.75)} 0`,
+}));
 
 type JobRowProps = {
   readonly job: Job;
@@ -37,7 +37,7 @@ export function JobRow({ job, isExpanded, onToggle }: JobRowProps) {
         sx={{
           cursor: "pointer",
           "& > .MuiTableCell-root": { borderBottom: "unset" },
-          "&:hover": { backgroundColor: "var(--color-surface)" },
+          "&:hover": { backgroundColor: (theme) => theme.palette.grey[100] },
         }}
       >
         <TableCell>
@@ -106,9 +106,12 @@ function JobMetadataTable({
     <Table
       size="small"
       sx={{
-        "& td": { border: 0, fontSize: "var(--size-md)" },
+        "& td": {
+          border: 0,
+          fontSize: (theme) => theme.typography.body1.fontSize,
+        },
         "& tbody tr:nth-of-type(even)": {
-          backgroundColor: "var(--color-surface)",
+          backgroundColor: (theme) => theme.palette.grey[100],
         },
       }}
     >

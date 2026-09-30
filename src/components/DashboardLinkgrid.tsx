@@ -4,13 +4,13 @@ import { Tooltip } from "./Tooltip";
 
 // Responsive card grid: as many ~14rem columns as fit, wrapping on narrow
 // viewports (replaces Semantic UI `<Grid columns stackable>`).
-const CardGrid = styled("div")({
+const CardGrid = styled("div")(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))",
-  gap: "var(--size-md)",
+  gap: theme.spacing(2),
   justifyItems: "center",
   textAlign: "center",
-});
+}));
 
 const gitlogo = new URL("../assets/gitlogo.svg", import.meta.url).href;
 const navlogo = new URL("../assets/navlogo.svg", import.meta.url).href;

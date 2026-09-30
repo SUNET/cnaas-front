@@ -1,6 +1,7 @@
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import Typography from "@mui/material/Typography";
 
 import { useAuthToken } from "../../stores/AuthTokenContext";
 import { usePermissions } from "../../stores/PermissionsContext";
@@ -30,13 +31,8 @@ function Login() {
   if (loggedIn && !permissionsLoading) {
     return (
       <div>
-        <p className="title error">{permissionsErrorMsg}</p>
-        <Button
-          type="button"
-          variant="contained"
-          className="logout"
-          onClick={logout}
-        >
+        <Typography color="error">{permissionsErrorMsg}</Typography>
+        <Button type="button" variant="contained" onClick={logout}>
           Logout
         </Button>
       </div>

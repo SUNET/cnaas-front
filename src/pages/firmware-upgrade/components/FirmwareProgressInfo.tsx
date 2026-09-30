@@ -1,5 +1,6 @@
 import LogViewer from "../../../components/LogViewer";
 import { matchesJobId, type Job } from "../../../types/job";
+import Typography from "@mui/material/Typography";
 
 type FirmwareProgressInfoProps = {
   readonly jobStatus?: string | null;
@@ -24,7 +25,7 @@ export function FirmwareProgressInfo({
       <p>
         status: {jobStatus} (job #{jobId})
       </p>
-      <p className="error">{exceptionMessage}</p>
+      <Typography color="error">{exceptionMessage}</Typography>
       <p>start time: {jobStartTime}</p>
       <p>finish time: {jobFinishTime}</p>
       <LogViewer

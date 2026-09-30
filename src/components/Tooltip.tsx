@@ -15,8 +15,8 @@ import { styled } from "@mui/material/styles";
  *
  *   - `maxWidth: none` mirrors SUIR Popup's `wide` behaviour (MUI's default
  *     300px cap otherwise truncates our rich content).
- *   - Padding + font size (`--size-*` tokens) give comfortable, readable
- *     tooltips matching the old SUIR popups. This is why the child of a
+ *   - Padding + font size (theme spacing/typography) give comfortable,
+ *     readable tooltips matching the old SUIR popups. This is why the child of a
  *     tooltip should NOT set its own `slotProps.tooltip.sx` — keep the look
  *     uniform; extend it here if a genuinely global change is needed.
  *
@@ -35,10 +35,10 @@ export const Tooltip = styled(
       <span>{children}</span>
     </MuiTooltip>
   ),
-)({
+)(({ theme }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     maxWidth: "none",
-    padding: "var(--size-sm) var(--size-md)",
-    fontSize: "var(--size-md)",
+    padding: `${theme.spacing(1.75)} ${theme.spacing(2)}`,
+    fontSize: theme.typography.body1.fontSize,
   },
-});
+}));

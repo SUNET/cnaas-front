@@ -56,8 +56,8 @@ export function JobList() {
         <TableRow>
           <TableCell colSpan={COLUMNS.length}>
             <CircularProgress
-              size="var(--size-md)"
-              sx={{ marginRight: "var(--size-xxs)", verticalAlign: "middle" }}
+              size={16}
+              sx={{ mr: 1, verticalAlign: "middle" }}
             />
             Loading jobs...
           </TableCell>
@@ -127,7 +127,7 @@ export function JobList() {
         count={totalPages}
         page={state.activePage}
         onChange={(_event, page) => setPage(page)}
-        sx={{ marginTop: "var(--size-md)" }}
+        sx={{ mt: 2 }}
       />
     </section>
   );

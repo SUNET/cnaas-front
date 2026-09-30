@@ -5,11 +5,11 @@ import { Task } from "../../../components/Task";
 import { useFirmwareUpgrade } from "../stores/FirmwareUpgradeContext";
 import type { TargetDeviceUpgradeInfo } from "../stores/firmwareUpgradeReducer";
 
-const VersionGroups = styled("dl")({
+const VersionGroups = styled("dl")(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "repeat(auto-fill, minmax(12rem, 1fr))",
-  gap: "var(--size-md)",
-});
+  gap: theme.spacing(2),
+}));
 
 function renderHostname(host: TargetDeviceUpgradeInfo) {
   return (

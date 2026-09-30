@@ -41,7 +41,6 @@ const router = createBrowserRouter([
   },
 ]);
 
-// Palette mirrors the design tokens in src/styles/variables.css which are deprecated
 const theme = createTheme({
   palette: {
     primary: { main: "#003049" }, // --color-primary

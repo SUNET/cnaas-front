@@ -19,11 +19,11 @@ import {
 
 // Two-column layout that stacks on narrow viewports (replaces Semantic UI
 // `<Grid columns={2} stackable>`).
-const TwoColGrid = styled("div")({
+const TwoColGrid = styled("div")(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
-  gap: "var(--size-md)",
-});
+  gap: theme.spacing(2),
+}));
 
 export function DashboardNetboxTenant() {
   const { token } = useAuthToken();
