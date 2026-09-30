@@ -5,6 +5,7 @@ import TableCell from "@mui/material/TableCell";
 import { type SyntheticEvent } from "react";
 
 import { Tooltip } from "../../../../components/Tooltip";
+import type { AccessInterfaceItem } from "../../types/interfaces";
 
 const CONFIG_TYPE_OPTIONS: {
   value: string;
@@ -26,7 +27,7 @@ export function PortTypeCellAccess({
   item,
   updateFieldData,
 }: {
-  readonly item: Record<string, unknown>;
+  readonly item: AccessInterfaceItem;
   readonly currentConfigtype: string | null;
   readonly fields: Record<string, unknown>;
   readonly editDisabled: boolean;
@@ -41,7 +42,7 @@ export function PortTypeCellAccess({
         key={`configtype|${item.name}`}
         name={`configtype|${item.name}`}
         size="small"
-        defaultValue={(item.configtype as string | undefined) ?? ""}
+        defaultValue={item.configtype ?? ""}
         disabled={editDisabled}
         onChange={(e: SelectChangeEvent) =>
           updateFieldData(e, {

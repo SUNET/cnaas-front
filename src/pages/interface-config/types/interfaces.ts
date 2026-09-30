@@ -45,3 +45,17 @@ export type DistInterfaceItem = {
   peer_hostname?: string; // only on ifclass === "fabric"
   data?: Record<string, unknown>; // only on ifclass === "downlink"
 };
+
+// ----- Predicate helpers (type guards) ------------------------------------
+
+export function isAccessInterfaceItem(
+  item: AccessInterfaceItem | DistInterfaceItem,
+): item is AccessInterfaceItem {
+  return "configtype" in item;
+}
+
+export function isDistInterfaceItem(
+  item: AccessInterfaceItem | DistInterfaceItem,
+): item is DistInterfaceItem {
+  return "ifclass" in item;
+}

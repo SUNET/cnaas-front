@@ -6,6 +6,7 @@ import TextField from "@mui/material/TextField";
 import { type SyntheticEvent } from "react";
 
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
+import type { DistInterfaceItem } from "../../types/interfaces";
 
 const IF_CLASS_OPTIONS = [
   { value: "downlink", text: "Downlink" },
@@ -22,7 +23,7 @@ export function PortTypeCellDist({
   portTemplate,
   updateFieldData,
 }: {
-  readonly item: Record<string, unknown>;
+  readonly item: DistInterfaceItem;
   readonly currentIfClass: string | null;
   readonly portTemplate: string | null;
   readonly editDisabled: boolean;

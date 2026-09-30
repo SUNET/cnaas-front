@@ -1,17 +1,19 @@
 import ButtonGroup from "@mui/material/ButtonGroup";
 import CircularProgress from "@mui/material/CircularProgress";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import { alpha } from "@mui/material/styles";
 import Switch from "@mui/material/Switch";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
-import { alpha } from "@mui/material/styles";
 import { type ReactNode, type SyntheticEvent } from "react";
 
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
-import type {
-  AccessInterfaceItem,
-  DistInterfaceItem,
+import {
+  isAccessInterfaceItem,
+  isDistInterfaceItem,
+  type AccessInterfaceItem,
+  type DistInterfaceItem,
 } from "../../types/interfaces";
 import type { Vlan } from "../../types/vlan";
 import { BounceInterfaceButton } from "./BounceInterfaceButton";
@@ -220,9 +222,8 @@ export function InterfaceTableRow({
   const deviceType = device?.device_type;
 
   // Narrow item type based on device type
-  const accessItem =
-    deviceType === "ACCESS" ? (item as AccessInterfaceItem) : null;
-  const distItem = deviceType === "DIST" ? (item as DistInterfaceItem) : null;
+  const accessItem = isAccessInterfaceItem(item) ? item : null;
+  const distItem = isDistInterfaceItem(item) ? item : null;
 
   const ifDataUpdated =
     item.name in interfaceDataUpdated ? interfaceDataUpdated[item.name] : null;
@@ -552,13 +553,11 @@ export function InterfaceTableRow({
   }
 
   const descriptionDetails = (
-    <div>
-      <ButtonGroup size="small" orientation="vertical">
-        {netboxInterfacePopup}
-        {lldpNeighborPopup}
-        {linknetWarningPopup}
-      </ButtonGroup>
-    </div>
+    <ButtonGroup size="small" orientation="vertical">
+      {netboxInterfacePopup}
+      {lldpNeighborPopup}
+      {linknetWarningPopup}
+    </ButtonGroup>
   );
 
   return (
@@ -591,18 +590,18 @@ export function InterfaceTableRow({
         />
         {descriptionDetails}
       </TableCell>
-      {deviceType === "ACCESS" && (
+      {accessItem && (
         <PortTypeCellAccess
-          item={item as unknown as Record<string, unknown>}
+          item={accessItem}
           currentConfigtype={currentConfigtype}
           fields={fields}
           editDisabled={editDisabled}
           updateFieldData={updateFieldData}
         />
       )}
-      {deviceType === "DIST" && (
+      {distItem && (
         <PortTypeCellDist
-          item={item as unknown as Record<string, unknown>}
+          item={distItem}
           currentIfClass={currentIfClass}
           portTemplate={portTemplate}
           editDisabled={editDisabled}
