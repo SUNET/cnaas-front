@@ -1,32 +1,35 @@
-import { type SyntheticEvent, type ReactNode } from "react";
-import { ButtonGroup, Input, Table } from "semantic-ui-react";
 import CircularProgress from "@mui/material/CircularProgress";
-import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { VlanColumn } from "./VlanColumn";
-import {
-  TagsColumn,
-  JsonColumn,
-  AggregateIdColumn,
-  BpduFilterColumn,
-} from "./columns";
-import { ConfigColumn } from "./ConfigColumn";
-import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
-import { LldpNeighborPopup } from "./LldpNeighborPopup";
-import { LinknetWarningPopup } from "./LinknetWarningPopup";
-import { LinknetOkButton } from "./LinknetOkButton";
-import { InterfaceStatusUp } from "./InterfaceStatusUp";
-import { InterfaceStatusAdminDisabled } from "./InterfaceStatusAdminDisabled";
-import { InterfaceStatusDown } from "./InterfaceStatusDown";
-import { BounceInterfaceButton } from "./BounceInterfaceButton";
-import { PortTypeCellAccess } from "./PortTypeCellAccess";
-import { PortTypeCellDist } from "./PortTypeCellDist";
+import Switch from "@mui/material/Switch";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
+import { type ReactNode, type SyntheticEvent } from "react";
+import { ButtonGroup, Input } from "semantic-ui-react";
+
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import type {
   AccessInterfaceItem,
   DistInterfaceItem,
 } from "../../types/interfaces";
 import type { Vlan } from "../../types/vlan";
+import { BounceInterfaceButton } from "./BounceInterfaceButton";
+import {
+  AggregateIdColumn,
+  BpduFilterColumn,
+  JsonColumn,
+  TagsColumn,
+} from "./columns";
+import { ConfigColumn } from "./ConfigColumn";
+import { InterfaceStatusAdminDisabled } from "./InterfaceStatusAdminDisabled";
+import { InterfaceStatusDown } from "./InterfaceStatusDown";
+import { InterfaceStatusUp } from "./InterfaceStatusUp";
+import { LinknetOkButton } from "./LinknetOkButton";
+import { LinknetWarningPopup } from "./LinknetWarningPopup";
+import { LldpNeighborPopup } from "./LldpNeighborPopup";
+import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
+import { PortTypeCellAccess } from "./PortTypeCellAccess";
+import { PortTypeCellDist } from "./PortTypeCellDist";
+import { VlanColumn } from "./VlanColumn";
 
 const CONFIG_TYPES_ENABLED = new Set([
   "ACCESS_AUTO",
@@ -157,7 +160,7 @@ type InterfaceTableRowProps = {
   readonly item: AccessInterfaceItem | DistInterfaceItem;
   readonly index: number;
   readonly updateFieldData: (
-    e: SyntheticEvent,
+    e: SyntheticEvent | Event,
     data: Record<string, unknown>,
   ) => void;
   readonly addTagOption: (
@@ -183,8 +186,7 @@ type InterfaceTableRowProps = {
  *
  * Also receives callback props that are pre-bound or adapter-shaped
  * from the parent: `updateFieldData`, `addTagOption`, `addPortTemplateOption`,
- * `submitBounce`, `untaggedClick`. These adapt the Semantic UI callback
- * signatures to the context's named actions.
+ * `submitBounce`, `untaggedClick`.
  */
 export function InterfaceTableRow({
   item,
@@ -407,7 +409,7 @@ export function InterfaceTableRow({
 
   // Render optional columns
   const optionalColumns = displayColumns.map((columnName) => (
-    <Table.Cell collapsing key={columnName}>
+    <TableCell key={columnName}>
       <OptionalColumn
         columnName={columnName}
         interfaceName={item.name}
@@ -424,7 +426,7 @@ export function InterfaceTableRow({
         addTagOption={addTagOption}
         untaggedClick={untaggedClick}
       />
-    </Table.Cell>
+    </TableCell>
   ));
 
   // Render status icon
@@ -556,11 +558,14 @@ export function InterfaceTableRow({
   );
 
   return (
-    <Table.Row key={`tr_${index}`} warning={updated}>
-      <Table.Cell>
+    <TableRow
+      key={`tr_${index}`}
+      sx={updated ? { bgcolor: "warning.light" } : undefined}
+    >
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
         {statusIcon} {item.name}
-      </Table.Cell>
-      <Table.Cell>
+      </TableCell>
+      <TableCell>
         <Input
           key={`description|${item.name}|${fields.description}`}
           name={`description|${item.name}`}
@@ -569,7 +574,7 @@ export function InterfaceTableRow({
           onChange={updateFieldData}
         />
         {descriptionDetails}
-      </Table.Cell>
+      </TableCell>
       {deviceType === "ACCESS" && (
         <PortTypeCellAccess
           item={item as unknown as Record<string, unknown>}
@@ -590,6 +595,6 @@ export function InterfaceTableRow({
         />
       )}
       {optionalColumns}
-    </Table.Row>
+    </TableRow>
   );
 }

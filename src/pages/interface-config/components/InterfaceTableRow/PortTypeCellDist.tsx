@@ -1,5 +1,10 @@
+import Autocomplete from "@mui/material/Autocomplete";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import TableCell from "@mui/material/TableCell";
+import TextField from "@mui/material/TextField";
 import { type SyntheticEvent } from "react";
-import { Dropdown, Table } from "semantic-ui-react";
+
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 
 const IF_CLASS_OPTIONS = [
@@ -22,7 +27,7 @@ export function PortTypeCellDist({
   readonly portTemplate: string | null;
   readonly editDisabled: boolean;
   readonly updateFieldData: (
-    e: SyntheticEvent,
+    e: SyntheticEvent | Event,
     data: Record<string, unknown>,
   ) => void;
   readonly addPortTemplateOption: (
@@ -31,38 +36,64 @@ export function PortTypeCellDist({
   ) => void;
 }) {
   const { state } = useInterfaceConfig();
-  const portTemplateOptions = state.portTemplates.map((pt) => ({
-    text: pt.name,
-    value: pt.name,
-    description: pt.description,
-  }));
+  const portTemplateOptions = state.portTemplates.map((pt) => pt.name);
+  const portTemplateDescriptions = new Map(
+    state.portTemplates.map((pt) => [pt.name, pt.description]),
+  );
 
   return (
-    <Table.Cell>
-      <Dropdown
+    <TableCell>
+      <Select
         key={`ifclass|${item.name}`}
         name={`ifclass|${item.name}`}
-        selection
-        options={IF_CLASS_OPTIONS}
-        defaultValue={currentIfClass ?? undefined}
+        size="small"
+        defaultValue={currentIfClass ?? ""}
         disabled={editDisabled}
-        onChange={updateFieldData}
-      />
+        onChange={(e: SelectChangeEvent) =>
+          updateFieldData(e, {
+            name: `ifclass|${item.name}`,
+            value: e.target.value,
+          })
+        }
+      >
+        {IF_CLASS_OPTIONS.map((opt) => (
+          <MenuItem key={opt.value} value={opt.value}>
+            {opt.text}
+          </MenuItem>
+        ))}
+      </Select>
       {currentIfClass === "port_template" && (
-        <Dropdown
+        <Autocomplete
           key={`port_template|${item.name}`}
-          name={`port_template|${item.name}`}
-          fluid
-          selection
-          search
-          allowAdditions
+          size="small"
+          freeSolo
+          disabled={editDisabled}
           options={portTemplateOptions}
           defaultValue={portTemplate ?? undefined}
-          disabled={editDisabled}
-          onAddItem={addPortTemplateOption}
-          onChange={updateFieldData}
+          getOptionLabel={(name) => name}
+          renderOption={(props, name) => (
+            <li {...props} key={name}>
+              {name}
+              {portTemplateDescriptions.get(name) &&
+                ` - ${portTemplateDescriptions.get(name)}`}
+            </li>
+          )}
+          onChange={(e, newValue) => {
+            const value = newValue ?? "";
+            addPortTemplateOption(e, {
+              name: `port_template|${item.name}`,
+              value,
+            });
+            updateFieldData(e, {
+              name: `port_template|${item.name}`,
+              value,
+            });
+          }}
+          renderInput={(params) => (
+            <TextField {...params} name={`port_template|${item.name}`} />
+          )}
         />
       )}
-    </Table.Cell>
+    </TableCell>
   );
 }
