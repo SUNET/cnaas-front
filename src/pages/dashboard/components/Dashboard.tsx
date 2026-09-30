@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
 import Container from "@mui/material/Container";
+import Skeleton from "@mui/material/Skeleton";
 import { styled } from "@mui/material/styles";
+import { useEffect, useState } from "react";
+
+import { DashboardLinkgrid } from "../../../components/DashboardLinkgrid";
 import { Tooltip } from "../../../components/Tooltip";
 import { useAuthToken } from "../../../stores/AuthTokenContext";
-import { DashboardLinkgrid } from "../../../components/DashboardLinkgrid";
 import {
-  fetchRepoStatus,
   fetchDeviceCount,
+  fetchRepoStatus,
   fetchSystemVersion,
   type SystemVersion,
 } from "../api/dashboardApi";
@@ -66,6 +68,7 @@ export function Dashboard() {
   const [commitInfo, setCommitInfo] = useState<Record<string, string>>({});
   const [deviceCount, setDeviceCount] = useState<Record<string, number>>({});
   const [systemVersion, setSystemVersion] = useState<SystemVersion>({});
+  const [loading, setLoading] = useState(true);
 
   const getRepoStatus = async (repoName: string) => {
     try {
@@ -96,15 +99,22 @@ export function Dashboard() {
   useEffect(() => {
     if (!token) return;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount effect; populating dashboard data is the point
-    void getRepoStatus("settings");
-    void getRepoStatus("templates");
-    void getDeviceCount("managed", "filter[state]=MANAGED");
-    void getDeviceCount(
-      "unsynchronized",
-      "filter[state]=MANAGED&filter[synchronized]=false",
-    );
-    void getSystemVersion();
+    const loadDashboardData = async () => {
+      await Promise.allSettled([
+        getRepoStatus("settings"),
+        getRepoStatus("templates"),
+        getDeviceCount("managed", "filter[state]=MANAGED"),
+        getDeviceCount(
+          "unsynchronized",
+          "filter[state]=MANAGED&filter[synchronized]=false",
+        ),
+        getSystemVersion(),
+      ]);
+
+      setLoading(false);
+    };
+
+    void loadDashboardData();
   }, [token]);
 
   return (
@@ -112,50 +122,84 @@ export function Dashboard() {
       <Container>
         <TwoColGrid>
           <div>
-            <p>
-              <RepoInfo
-                label="Settings"
-                commit={commitInfo.settings}
-                webUrl={process.env.SETTINGS_WEB_URL}
-              />
-            </p>
-            <p>
-              <RepoInfo
-                label="Templates"
-                commit={commitInfo.templates}
-                webUrl={process.env.TEMPLATES_WEB_URL}
-              />
-            </p>
+            {loading ? (
+              <>
+                <p>
+                  <Skeleton variant="text" width="60%" />
+                </p>
+                <p>
+                  <Skeleton variant="text" width="60%" />
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  <RepoInfo
+                    label="Settings"
+                    commit={commitInfo.settings}
+                    webUrl={process.env.SETTINGS_WEB_URL}
+                  />
+                </p>
+                <p>
+                  <RepoInfo
+                    label="Templates"
+                    commit={commitInfo.templates}
+                    webUrl={process.env.TEMPLATES_WEB_URL}
+                  />
+                </p>
+              </>
+            )}
           </div>
           <div>
-            <p>
-              Managed devices:{" "}
-              <a href="/devices?filter[state]=MANAGED">{deviceCount.managed}</a>
-            </p>
-            <p>
-              Unsynchronized devices:{" "}
-              <a href="/devices?filter[synchronized]=false&filter[state]=MANAGED">
-                {deviceCount.unsynchronized}
-              </a>
-            </p>
-          </div>
-          <div>
-            <p>
-              <Tooltip
-                title={`Detailed git commit version: ${systemVersion.git_version}`}
-                placement="top-start"
-              >
-                <span>
-                  <a
-                    href="https://github.com/SUNET/cnaas-nms/releases"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    CNaaS-NMS version: {systemVersion.version}
+            {loading ? (
+              <>
+                <p>
+                  <Skeleton variant="text" width="40%" />
+                </p>
+                <p>
+                  <Skeleton variant="text" width="40%" />
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  Managed devices:{" "}
+                  <a href="/devices?filter[state]=MANAGED">
+                    {deviceCount.managed}
                   </a>
-                </span>
-              </Tooltip>
-            </p>
+                </p>
+                <p>
+                  Unsynchronized devices:{" "}
+                  <a href="/devices?filter[synchronized]=false&filter[state]=MANAGED">
+                    {deviceCount.unsynchronized}
+                  </a>
+                </p>
+              </>
+            )}
+          </div>
+          <div>
+            {loading ? (
+              <p>
+                <Skeleton variant="text" width="50%" />
+              </p>
+            ) : (
+              <p>
+                <Tooltip
+                  title={`Detailed git commit version: ${systemVersion.git_version}`}
+                  placement="top-start"
+                >
+                  <span>
+                    <a
+                      href="https://github.com/SUNET/cnaas-nms/releases"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      CNaaS-NMS version: {systemVersion.version}
+                    </a>
+                  </span>
+                </Tooltip>
+              </p>
+            )}
           </div>
         </TwoColGrid>
         {process.env.NETBOX_API_URL && process.env.NETBOX_TENANT_ID && (
