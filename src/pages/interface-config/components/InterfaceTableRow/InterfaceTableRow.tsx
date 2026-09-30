@@ -1,11 +1,12 @@
+import ButtonGroup from "@mui/material/ButtonGroup";
 import CircularProgress from "@mui/material/CircularProgress";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
+import TextField from "@mui/material/TextField";
 import { alpha } from "@mui/material/styles";
 import { type ReactNode, type SyntheticEvent } from "react";
-import { ButtonGroup, Input } from "semantic-ui-react";
 
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
 import type {
@@ -552,7 +553,7 @@ export function InterfaceTableRow({
 
   const descriptionDetails = (
     <div>
-      <ButtonGroup size="mini" vertical>
+      <ButtonGroup size="small" orientation="vertical">
         {netboxInterfacePopup}
         {lldpNeighborPopup}
         {linknetWarningPopup}
@@ -575,12 +576,18 @@ export function InterfaceTableRow({
         {statusIcon} {item.name}
       </TableCell>
       <TableCell>
-        <Input
+        <TextField
           key={`description|${item.name}|${fields.description}`}
           name={`description|${item.name}`}
+          size="small"
           defaultValue={fields.description}
           disabled={editDisabled}
-          onChange={updateFieldData}
+          onChange={(e) =>
+            updateFieldData(e, {
+              name: `description|${item.name}`,
+              value: e.target.value,
+            })
+          }
         />
         {descriptionDetails}
       </TableCell>
