@@ -3,6 +3,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
+import { alpha } from "@mui/material/styles";
 import { type ReactNode, type SyntheticEvent } from "react";
 import { ButtonGroup, Input } from "semantic-ui-react";
 
@@ -63,7 +64,7 @@ type OptionalColumnProps = {
   readonly data: Record<string, unknown> | undefined;
   readonly currentIfClass: string | null;
   readonly updateFieldData: (
-    e: SyntheticEvent,
+    e: SyntheticEvent | Event,
     data: Record<string, unknown>,
   ) => void;
   readonly addTagOption: (
@@ -305,13 +306,15 @@ export function InterfaceTableRow({
     });
 
     if (ifDataUpdated?.untagged_vlan !== undefined) {
-      fields.untagged_vlan = ifDataUpdated.untagged_vlan;
+      fields.untagged_vlan = mapVlanToName(ifDataUpdated.untagged_vlan, vlans);
     } else if (ifData.untagged_vlan !== undefined) {
       fields.untagged_vlan = mapVlanToName(ifData.untagged_vlan, vlans);
     }
 
     if (ifDataUpdated?.tagged_vlan_list !== undefined) {
-      fields.tagged_vlan_list = ifDataUpdated.tagged_vlan_list;
+      fields.tagged_vlan_list = (
+        ifDataUpdated.tagged_vlan_list as unknown[]
+      ).map((vlanItem) => mapVlanToName(vlanItem, vlans));
     } else if (ifData.tagged_vlan_list) {
       fields.tagged_vlan_list = (ifData.tagged_vlan_list as unknown[]).map(
         (vlanItem) => {
@@ -560,7 +563,13 @@ export function InterfaceTableRow({
   return (
     <TableRow
       key={`tr_${index}`}
-      sx={updated ? { bgcolor: "warning.light" } : undefined}
+      sx={
+        updated
+          ? {
+              bgcolor: (theme) => alpha(theme.palette.secondary.main, 0.2),
+            }
+          : undefined
+      }
     >
       <TableCell sx={{ whiteSpace: "nowrap" }}>
         {statusIcon} {item.name}
