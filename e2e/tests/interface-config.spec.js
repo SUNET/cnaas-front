@@ -27,7 +27,9 @@ test.describe("Interface config page", () => {
     // Device info table shows hostname
     const deviceDetails = page.getByText("Device details");
     await deviceDetails.click();
-    await expect(page.getByText("eosaccess")).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "eosaccess", exact: true }),
+    ).toBeVisible();
 
     // "Configtype" column proves this is an ACCESS device (DIST shows "Interface class")
     await expect(
