@@ -1,8 +1,9 @@
-import { type SyntheticEvent } from "react";
-import { Dropdown, Input } from "semantic-ui-react";
-import Checkbox from "@mui/material/Checkbox";
-import { Tooltip } from "../../../../components/Tooltip";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import Autocomplete from "@mui/material/Autocomplete";
+import Checkbox from "@mui/material/Checkbox";
+import TextField from "@mui/material/TextField";
+import { type SyntheticEvent } from "react";
+import { Tooltip } from "../../../../components/Tooltip";
 
 // --- Tags column ---
 
@@ -29,20 +30,31 @@ export function TagsColumn({
   updateFieldData,
   addTagOption,
 }: TagsColumnProps) {
-  const options = tagOptions.map((tag) => ({ text: tag, value: tag }));
+  const handleChange = (e: SyntheticEvent, newValue: string[]) => {
+    newValue.forEach((tag) => {
+      if (!tagOptions.includes(tag)) {
+        addTagOption(e, { name: `tags|${interfaceName}`, value: tag });
+      }
+    });
+    updateFieldData(e, {
+      name: `tags|${interfaceName}`,
+      value: newValue,
+    });
+  };
+
   return (
-    <Dropdown
-      name={`tags|${interfaceName}`}
-      fluid
+    <Autocomplete
       multiple
-      selection
-      search
-      allowAdditions
-      options={options}
-      defaultValue={tags}
-      onAddItem={addTagOption}
-      onChange={updateFieldData}
+      freeSolo
+      size="small"
+      fullWidth
+      options={tagOptions}
+      value={tags}
       disabled={editDisabled}
+      onChange={(e, newValue) => handleChange(e, newValue)}
+      renderInput={(params) => (
+        <TextField {...params} name={`tags|${interfaceName}`} />
+      )}
     />
   );
 }
@@ -91,12 +103,24 @@ export function AggregateIdColumn({
   editDisabled,
   updateFieldData,
 }: AggregateIdColumnProps) {
+  const normalizedAggregateId =
+    typeof aggregateId === "number" || typeof aggregateId === "string"
+      ? aggregateId
+      : "";
+
   return (
-    <Input
+    <TextField
+      key={`aggregate_id|${interfaceName}|${normalizedAggregateId}`}
       name={`aggregate_id|${interfaceName}`}
-      defaultValue={aggregateId}
+      size="small"
+      defaultValue={normalizedAggregateId}
       disabled={editDisabled}
-      onChange={updateFieldData}
+      onChange={(e) =>
+        updateFieldData(e, {
+          name: `aggregate_id|${interfaceName}`,
+          value: e.target.value,
+        })
+      }
     />
   );
 }

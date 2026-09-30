@@ -17,12 +17,6 @@ import {
 } from "../../types/interfaces";
 import type { Vlan } from "../../types/vlan";
 import { BounceInterfaceButton } from "./BounceInterfaceButton";
-import {
-  AggregateIdColumn,
-  BpduFilterColumn,
-  JsonColumn,
-  TagsColumn,
-} from "./columns";
 import { ConfigColumn } from "./ConfigColumn";
 import { InterfaceStatusAdminDisabled } from "./InterfaceStatusAdminDisabled";
 import { InterfaceStatusDown } from "./InterfaceStatusDown";
@@ -30,6 +24,12 @@ import { InterfaceStatusUp } from "./InterfaceStatusUp";
 import { LinknetOkButton } from "./LinknetOkButton";
 import { LinknetWarningPopup } from "./LinknetWarningPopup";
 import { LldpNeighborPopup } from "./LldpNeighborPopup";
+import {
+  AggregateIdColumn,
+  BpduFilterColumn,
+  JsonColumn,
+  TagsColumn,
+} from "./MiscColumns";
 import { NetboxInterfacePopup } from "./NetboxInterfacePopup";
 import { PortTypeCellAccess } from "./PortTypeCellAccess";
 import { PortTypeCellDist } from "./PortTypeCellDist";
