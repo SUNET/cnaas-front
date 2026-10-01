@@ -98,9 +98,7 @@ test("click refresh settings success", async () => {
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(
-    await screen.findByText("✓ Refreshed successfully"),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Refreshed successfully")).toBeInTheDocument();
   expect(screen.getByText("repo name mock")).toBeInTheDocument();
 });
 
@@ -116,8 +114,32 @@ test("click refresh settings not success", async () => {
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(await screen.findByText("✗ Refresh failed")).toBeInTheDocument();
+  expect(await screen.findByText("Refresh failed")).toBeInTheDocument();
   expect(screen.getByText("A message recieved")).toBeInTheDocument();
+});
+
+test("click refresh settings rejected with lock-contention error", async () => {
+  // Mirrors checkJsonResponse rejecting with the parsed JSON body (plain
+  // object, not an Error) when the backend returns a non-2xx status, e.g.
+  // a lock-contention error from a concurrent refresh in another tab.
+  mockPutData.mockRejectedValueOnce({
+    status: "error",
+    message:
+      "Another job is locking configuration of devices, try again later (Unable to acquire lock for configuring devices)",
+  });
+  renderStep1();
+
+  const refreshSettingsButton = await screen.findByRole("button", {
+    name: "Refresh settings",
+  });
+  await userEvent.click(refreshSettingsButton);
+
+  expect(await screen.findByText("Refresh failed")).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      "Another job is locking configuration of devices, try again later (Unable to acquire lock for configuring devices)",
+    ),
+  ).toBeInTheDocument();
 });
 
 test("click refresh settings runs dry run automatically by default", async () => {
@@ -133,9 +155,7 @@ test("click refresh settings runs dry run automatically by default", async () =>
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(
-    await screen.findByText("✓ Refreshed successfully"),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Refreshed successfully")).toBeInTheDocument();
   expect(screen.getByText("repo name mock")).toBeInTheDocument();
   expect(onDryRunReady).toHaveBeenCalledTimes(1);
 });
@@ -160,9 +180,7 @@ test("unchecking auto dry run prevents dry run after refresh settings", async ()
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(
-    await screen.findByText("✓ Refreshed successfully"),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Refreshed successfully")).toBeInTheDocument();
   expect(screen.getByText("repo name mock")).toBeInTheDocument();
   expect(onDryRunReady).not.toHaveBeenCalled();
 });
@@ -179,8 +197,6 @@ test("click refresh templates", async () => {
   });
   await userEvent.click(refreshTemplatesButton);
 
-  expect(
-    await screen.findByText("✓ Refreshed successfully"),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Refreshed successfully")).toBeInTheDocument();
   expect(screen.getByText("repo name mock")).toBeInTheDocument();
 });
