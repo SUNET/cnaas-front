@@ -102,6 +102,19 @@ export function showAnotherSessionDidRefreshToast(jobId: number): void {
   });
 }
 
+// --- Repo refresh error toast ---
+
+export function showRefreshRepoErrorToast(
+  repoName: string,
+  message: string,
+): void {
+  showToast({
+    severity: "error",
+    title: `Refresh ${repoName} failed`,
+    message,
+  });
+}
+
 // --- Cleanup ---
 
 export function clearToastTimers(): void {
