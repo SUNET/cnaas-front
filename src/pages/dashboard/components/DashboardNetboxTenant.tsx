@@ -31,30 +31,32 @@ export function DashboardNetboxTenant() {
   const [netboxContacts, setNetboxContacts] = useState<NetboxContact[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const getNetboxObjects = async () => {
-    if (netboxTenant) return;
+  useEffect(() => {
     if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) return;
 
-    try {
-      const tenant = toNetboxTenant(await fetchNetboxTenant(token));
-      if (tenant) setNetboxTenant(tenant);
+    let cancelled = false;
+    async function getNetboxObjects() {
+      try {
+        const tenant = toNetboxTenant(await fetchNetboxTenant(token));
+        if (!cancelled && tenant) setNetboxTenant(tenant);
 
-      const rawContacts = await fetchNetboxTenantContacts(token);
-      const contacts = rawContacts.flatMap((c) => {
-        const parsed = toNetboxContact(c);
-        return parsed ? [parsed] : [];
-      });
-      if (contacts.length > 0) setNetboxContacts(contacts);
-    } catch (error) {
-      console.error("Failed to load NetBox tenant data:", error);
-    } finally {
-      setLoading(false);
+        const rawContacts = await fetchNetboxTenantContacts(token);
+        const contacts = rawContacts.flatMap((c) => {
+          const parsed = toNetboxContact(c);
+          return parsed ? [parsed] : [];
+        });
+        if (!cancelled && contacts.length > 0) setNetboxContacts(contacts);
+      } catch (error) {
+        console.error("Failed to load NetBox tenant data:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  };
 
-  useEffect(() => {
-    // Legitimate one-time initial fetch into component state on mount.
     void getNetboxObjects();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (!process.env.NETBOX_API_URL || !process.env.NETBOX_TENANT_ID) {

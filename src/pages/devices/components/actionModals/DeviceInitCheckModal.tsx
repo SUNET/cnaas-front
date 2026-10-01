@@ -93,32 +93,48 @@ export function DeviceInitCheckModal({
   let initcheckHtml: ReactNode = <CircularProgress />;
   let initcheckOk = false;
   if (initcheckOutput !== null && typeof initcheckOutput !== "string") {
+    // Extract all data (and catch malformed-response errors) here, without
+    // constructing any JSX: React doesn't render synchronously, so errors
+    // thrown while building elements wouldn't be caught by try/catch anyway.
+    let parseError = false;
+    let compatibleLinknets = 0;
+    let linknetsJson: string | null = null;
+    let linknetsErrorText: string | undefined;
+    let compatibleNeighbors = 0;
+    let neighborsJson: string | null = null;
+    let neighborsErrorText: string | undefined;
+
     try {
       initcheckOk = Boolean(initcheckOutput.compatible);
-      let compatibleLinknets = 0;
-      let linknets: ReactNode = "";
+
       try {
         compatibleLinknets = initcheckOutput.linknets?.length ?? 0;
-        linknets = (
-          <pre>{JSON.stringify(initcheckOutput.linknets, null, 2)}</pre>
-        );
+        linknetsJson = JSON.stringify(initcheckOutput.linknets, null, 2);
       } catch {
-        if (initcheckOutput.linknets_error) {
-          linknets = initcheckOutput.linknets_error;
-        }
+        linknetsErrorText = initcheckOutput.linknets_error;
       }
-      let compatibleNeighbors = 0;
-      let neighbors: ReactNode = "";
+
       try {
         compatibleNeighbors = initcheckOutput.neighbors?.length ?? 0;
-        neighbors = (
-          <pre>{JSON.stringify(initcheckOutput.neighbors, null, 2)}</pre>
-        );
+        neighborsJson = JSON.stringify(initcheckOutput.neighbors, null, 2);
       } catch {
-        if (initcheckOutput.neighbors_error) {
-          neighbors = initcheckOutput.neighbors_error;
-        }
+        neighborsErrorText = initcheckOutput.neighbors_error;
       }
+    } catch {
+      parseError = true;
+    }
+
+    if (parseError) {
+      initcheckHtml = <pre>{JSON.stringify(initcheckOutput, null, 2)}</pre>;
+    } else {
+      const linknets: ReactNode =
+        linknetsJson !== null ? <pre>{linknetsJson}</pre> : linknetsErrorText;
+      const neighbors: ReactNode =
+        neighborsJson !== null ? (
+          <pre>{neighborsJson}</pre>
+        ) : (
+          neighborsErrorText
+        );
 
       initcheckHtml = (
         <>
@@ -163,8 +179,6 @@ export function DeviceInitCheckModal({
           </Accordion>
         </>
       );
-    } catch {
-      initcheckHtml = <pre>{JSON.stringify(initcheckOutput, null, 2)}</pre>;
     }
   } else if (typeof initcheckOutput === "string") {
     initcheckHtml = <pre>{initcheckOutput}</pre>;
