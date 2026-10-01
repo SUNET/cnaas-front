@@ -1,13 +1,20 @@
-import { type SyntheticEvent, useMemo, useRef, useState } from "react";
+import {
+  type HTMLAttributes,
+  type Key,
+  type SyntheticEvent,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Autocomplete from "@mui/material/Autocomplete";
+import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
-import MenuItem from "@mui/material/MenuItem";
-import Select, { type SelectChangeEvent } from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 
 import { Tooltip } from "../../../../components/Tooltip";
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
@@ -25,6 +32,7 @@ type VlanDropdownOption = {
 type UntaggedVlanOption = {
   text: string;
   value: string | null;
+  description?: string | number;
 };
 
 function vlanToOption(v: Vlan): VlanDropdownOption {
@@ -40,10 +48,34 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
-// Shared search filter for VLAN dropdowns — searches both text and description
-const vlanSearchFilter = (
+// Shared option row layout for VLAN dropdowns: name on the left, VLAN ID
+// (or range) right-aligned in muted gray — mirrors the old Semantic UI
+// Dropdown's `description` field rendering.
+//
+// Note: MUI's own `.MuiAutocomplete-option` CSS sets `justifyContent:
+// flex-start` via a compound selector that outweighs a plain `sx` override
+// on specificity, so instead of fighting that we make the name span grow to
+// fill the row, which pushes the description to the end regardless.
+function renderVlanOptionRow(
+  props: HTMLAttributes<HTMLLIElement> & { key: Key },
+  text: string,
+  description?: string | number,
+) {
+  const { key, ...rest } = props;
+  return (
+    <li key={key} {...rest}>
+      <span style={{ flexGrow: 1 }}>{text}</span>
+      {description !== undefined && (
+        <Typography color="text.secondary">{description}</Typography>
+      )}
+    </li>
+  );
+}
+const vlanSearchFilter = <
+  T extends { text: string; description?: string | number },
+>(
   options: string[],
-  optionsByValue: Map<string, VlanDropdownOption>,
+  optionsByValue: Map<string, T>,
   inputValue: string,
 ) => {
   const re = new RegExp(escapeRegExp(inputValue), "i");
@@ -128,26 +160,28 @@ export function VlanColumn({
   }
 
   return (
-    <Stack direction="row">
-      {displayVlanTagged ? (
-        <TaggedVlanSelect
-          interfaceName={interfaceName}
-          vlanOptions={vlanOptions}
-          taggedVlanList={taggedVlanList}
-          allowFreeSolo={device?.device_type === "DIST"}
-          rangeError={rangeError}
-          onAddVlanRange={handleAddVlanRange}
-          showRangeError={showRangeError}
-          updateFieldData={updateFieldData}
-        />
-      ) : (
-        <UntaggedVlanSelect
-          interfaceName={interfaceName}
-          options={untaggedVlanOptions}
-          untaggedVlan={untaggedVlan}
-          updateFieldData={updateFieldData}
-        />
-      )}
+    <Stack direction="row" sx={{ width: "100%", minWidth: 0 }}>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        {displayVlanTagged ? (
+          <TaggedVlanSelect
+            interfaceName={interfaceName}
+            vlanOptions={vlanOptions}
+            taggedVlanList={taggedVlanList}
+            allowFreeSolo={device?.device_type === "DIST"}
+            rangeError={rangeError}
+            onAddVlanRange={handleAddVlanRange}
+            showRangeError={showRangeError}
+            updateFieldData={updateFieldData}
+          />
+        ) : (
+          <UntaggedVlanSelect
+            interfaceName={interfaceName}
+            options={untaggedVlanOptions}
+            untaggedVlan={untaggedVlan}
+            updateFieldData={updateFieldData}
+          />
+        )}
+      </Box>
       {displayTaggedToggle && (
         <TaggedToggle
           interfaceName={interfaceName}
@@ -231,12 +265,20 @@ function TaggedVlanSelect({
         freeSolo={allowFreeSolo}
         size="small"
         limitTags={3}
-        sx={{ width: 280 }}
+        sx={{ width: "100%", minWidth: 0 }}
         options={vlanOptions.map((o) => o.value)}
         value={normalizedTaggedVlanList}
         getOptionLabel={(value) => vlanOptionsByValue.get(value)?.text ?? value}
         filterOptions={filterVlanOptions}
         onChange={(e, newValue) => handleChange(e, newValue)}
+        renderOption={(props, value) => {
+          const opt = vlanOptionsByValue.get(value);
+          return renderVlanOptionRow(
+            props,
+            opt?.text ?? value,
+            opt?.description,
+          );
+        }}
         renderInput={(params) => (
           <TextField {...params} name={`tagged_vlan_list|${interfaceName}`} />
         )}
@@ -265,27 +307,44 @@ function UntaggedVlanSelect({
 }: UntaggedVlanSelectProps) {
   const normalizedUntaggedVlan =
     typeof untaggedVlan === "string" ? untaggedVlan : "";
+  const optionsByValue = useMemo(
+    () => new Map(options.map((o) => [o.value ?? "", o])),
+    [options],
+  );
+  const optionValues = useMemo(
+    () => options.map((o) => o.value ?? ""),
+    [options],
+  );
+
+  const filterUntaggedOptions = (
+    opts: string[],
+    filterState: { inputValue: string },
+  ) => vlanSearchFilter(opts, optionsByValue, filterState.inputValue);
 
   return (
-    <Select
-      name={`untagged_vlan|${interfaceName}`}
+    <Autocomplete
+      disableClearable
       size="small"
-      sx={{ width: 280 }}
+      sx={{ width: "100%", minWidth: 0 }}
+      options={optionValues}
       value={normalizedUntaggedVlan}
-      onChange={(e: SelectChangeEvent) =>
+      getOptionLabel={(value) => optionsByValue.get(value)?.text ?? value}
+      filterOptions={filterUntaggedOptions}
+      renderOption={(props, value) => {
+        const opt = optionsByValue.get(value);
+        return renderVlanOptionRow(props, opt?.text ?? value, opt?.description);
+      }}
+      onChange={(e, newValue) =>
         updateFieldData(e, {
           name: `untagged_vlan|${interfaceName}`,
-          value: e.target.value === "" ? null : e.target.value,
+          value: newValue === "" ? null : newValue,
           options,
         })
       }
-    >
-      {options.map((option) => (
-        <MenuItem key={option.value ?? "none"} value={option.value ?? ""}>
-          {option.text}
-        </MenuItem>
-      ))}
-    </Select>
+      renderInput={(params) => (
+        <TextField {...params} name={`untagged_vlan|${interfaceName}`} />
+      )}
+    />
   );
 }
 
