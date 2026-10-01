@@ -50,11 +50,15 @@ export function DeviceTableHeaderFilter({
   const { handleFilterChange } = useDeviceListPageActions();
   const { filterData } = state;
   const [localFilter, setLocalFilter] = useState<FilterData>(filterData);
-  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
+  // Track the last filterData we've synced from, so we can adjust local
+  // state during render (React's recommended pattern for syncing state from
+  // props) instead of via an effect, which would cause an extra render.
+  const [prevFilterData, setPrevFilterData] = useState(filterData);
+  if (filterData !== prevFilterData) {
+    setPrevFilterData(filterData);
     setLocalFilter(filterData);
-  }, [filterData]);
+  }
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
     () => () => {

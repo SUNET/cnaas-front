@@ -98,20 +98,25 @@ function GroupTableBody() {
 
   const { token } = useAuthToken();
 
-  const getGroupsData = async () => {
-    try {
-      const data = await fetchGroups(token);
-      setGroupData(data.groups);
-    } catch (err) {
-      setGroupData({});
-      setError(extractErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    let cancelled = false;
+    async function getGroupsData() {
+      try {
+        const data = await fetchGroups(token);
+        if (!cancelled) setGroupData(data.groups);
+      } catch (err) {
+        if (!cancelled) {
+          setGroupData({});
+          setError(extractErrorMessage(err));
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
     getGroupsData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
