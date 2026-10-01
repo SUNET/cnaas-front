@@ -78,19 +78,21 @@ const ALLOWED_COLUMNS_MAP: Record<string, Record<string, string>> = {
   DIST: ALLOWED_COLUMNS_DIST,
 };
 
-// Fixed column widths, paired with `table-layout: fixed` on the table below,
-// so a row's content (e.g. VLAN chips collapsing/expanding) never causes
-// other columns to visibly resize.
-const COLUMN_WIDTHS: Record<string, string> = {
-  name: "9%",
-  description: "18%",
-  ifclass: "18%",
-  vlans: "28%",
-  tags: "18%",
-  json: "4%",
-  aggregate_id: "13%",
-  bpdu_filter: "9%",
-  config: "18%",
+// Column widths, in theme spacing units, used as both `width` and
+// `minWidth` on every cell. With `table-layout: fixed`, sharing one value
+// for both keeps column proportions consistent from a wide viewport down
+// to the table's floor width, where TableContainer's horizontal scrollbar
+// takes over instead of squeezing/overlapping column content.
+const COLUMN_WIDTHS: Record<string, number> = {
+  name: 14,
+  description: 18,
+  ifclass: 20,
+  vlans: 34,
+  tags: 20,
+  json: 7,
+  aggregate_id: 12,
+  bpdu_filter: 9,
+  config: 20,
 };
 
 // --- Props ---
@@ -402,8 +404,27 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
       )
     : [];
 
+  // Sum of this table's min-widths (name/description/ifclass are always
+  // shown, plus whichever optional columns are currently toggled on). Used
+  // to give the <Table> itself a true floor: table-layout: fixed columns
+  // can only be squeezed down to their own min-width while the table as a
+  // whole still fits its container, so without this the table keeps
+  // shrinking past every column's min-width once the viewport narrows,
+  // overlapping their contents instead of letting TableContainer scroll.
+  const tableMinWidthUnits =
+    COLUMN_WIDTHS.name +
+    COLUMN_WIDTHS.description +
+    COLUMN_WIDTHS.ifclass +
+    state.displayColumns.reduce(
+      (sum, col) => sum + (COLUMN_WIDTHS[col] ?? 0),
+      0,
+    );
+
   const columnHeaders = state.displayColumns.map((col) => (
-    <TableCell key={col} sx={{ width: COLUMN_WIDTHS[col] }}>
+    <TableCell
+      key={col}
+      sx={(theme) => ({ width: theme.spacing(COLUMN_WIDTHS[col] ?? 0) })}
+    >
       {allowedColumns[col]}
     </TableCell>
   ));
@@ -583,18 +604,35 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         </div>
 
         <TableContainer>
-          <Table size="small" sx={{ tableLayout: "fixed" }}>
+          <Table
+            size="small"
+            sx={(theme) => ({
+              tableLayout: "fixed",
+              minWidth: theme.spacing(tableMinWidthUnits),
+            })}
+          >
             <TableHead>
               <TableRow>
                 <TableCell
-                  sx={{ whiteSpace: "nowrap", width: COLUMN_WIDTHS.name }}
+                  sx={(theme) => ({
+                    whiteSpace: "nowrap",
+                    width: theme.spacing(COLUMN_WIDTHS.name),
+                  })}
                 >
                   Name
                 </TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTHS.description }}>
+                <TableCell
+                  sx={(theme) => ({
+                    width: theme.spacing(COLUMN_WIDTHS.description),
+                  })}
+                >
                   Description
                 </TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTHS.ifclass }}>
+                <TableCell
+                  sx={(theme) => ({
+                    width: theme.spacing(COLUMN_WIDTHS.ifclass),
+                  })}
+                >
                   {deviceType === "DIST" ? "Interface class" : "Configtype"}
                 </TableCell>
                 {columnHeaders}
