@@ -53,18 +53,6 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
     string[] | null
   >(null);
 
-  const deviceNames = useMemo(
-    () => Array.from(new Set(devices.map(({ name }) => name))).sort(),
-    [devices],
-  );
-
-  const selectedNames = useMemo(() => {
-    if (selectedDeviceNames === null) return deviceNames;
-
-    const selected = new Set(selectedDeviceNames);
-    return deviceNames.filter((name) => selected.has(name));
-  }, [deviceNames, selectedDeviceNames]);
-
   const deviceDiffGroups: DeviceDiffGroup[] = useMemo(() => {
     // Group by exact diff string.
     const groups = new Map<string, string[]>();
@@ -91,6 +79,21 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
       diff,
     }));
   }, [devices]);
+
+  const deviceNames = useMemo(
+    () =>
+      Array.from(
+        new Set(deviceDiffGroups.flatMap((group) => group.names)),
+      ).sort(),
+    [deviceDiffGroups],
+  );
+
+  const selectedNames = useMemo(() => {
+    if (selectedDeviceNames === null) return deviceNames;
+
+    const selected = new Set(selectedDeviceNames);
+    return deviceNames.filter((name) => selected.has(name));
+  }, [deviceNames, selectedDeviceNames]);
 
   const visibleDiffGroups = useMemo(() => {
     const selected = new Set(selectedNames);
@@ -166,9 +169,9 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
             </>
           )}
 
-          {deviceNames.length === 0 ? (
-            ""
-          ) : selectedNames.length === 0 ? (
+          {deviceNames.length === 0 && visibleDiffGroups.length === 0 ? (
+            "" // No data yet
+          ) : selectedNames.length === 0 && deviceNames.length > 0 ? (
             <Typography color="text.secondary">
               Select devices to view their diffs.
             </Typography>
