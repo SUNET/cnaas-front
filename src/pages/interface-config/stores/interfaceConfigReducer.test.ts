@@ -231,13 +231,26 @@ describe("interfaceConfigReducer", () => {
   // --- Edit actions ---
 
   describe("UPDATE_FIELD", () => {
+    const accessInterface = {
+      name: "Ethernet1",
+      indexnum: 1,
+      configtype: "ACCESS_AUTO",
+      data: { description: "" },
+    };
+
+    const distInterface = {
+      name: "Ethernet1",
+      indexnum: 1,
+      ifclass: "port_template_tmpl1",
+    };
+
     test("adds a changed field", () => {
-      const result = reducer(initialState, {
+      const state = { ...initialState, interfaces: [accessInterface] };
+      const result = reducer(state, {
         type: actions.UPDATE_FIELD,
         interfaceName: "Ethernet1",
         field: "description",
         value: "uplink",
-        defaultValue: "",
       });
 
       expect(result.interfaceDataUpdated).toEqual({
@@ -248,6 +261,7 @@ describe("interfaceConfigReducer", () => {
     test("removes field when value matches default", () => {
       const state = {
         ...initialState,
+        interfaces: [accessInterface],
         interfaceDataUpdated: { Ethernet1: { description: "uplink" } },
       };
       const result = reducer(state, {
@@ -255,7 +269,6 @@ describe("interfaceConfigReducer", () => {
         interfaceName: "Ethernet1",
         field: "description",
         value: "",
-        defaultValue: "",
       });
 
       expect(result.interfaceDataUpdated).toEqual({});
@@ -264,6 +277,7 @@ describe("interfaceConfigReducer", () => {
     test("removes interface entry when last field is reverted", () => {
       const state = {
         ...initialState,
+        interfaces: [accessInterface],
         interfaceDataUpdated: { Ethernet1: { description: "uplink" } },
       };
       const result = reducer(state, {
@@ -271,7 +285,6 @@ describe("interfaceConfigReducer", () => {
         interfaceName: "Ethernet1",
         field: "description",
         value: "",
-        defaultValue: "",
       });
 
       expect(result.interfaceDataUpdated.Ethernet1).toBeUndefined();
@@ -280,6 +293,7 @@ describe("interfaceConfigReducer", () => {
     test("keeps other fields when one is reverted", () => {
       const state = {
         ...initialState,
+        interfaces: [accessInterface],
         interfaceDataUpdated: {
           Ethernet1: { description: "uplink", enabled: false },
         },
@@ -289,7 +303,6 @@ describe("interfaceConfigReducer", () => {
         interfaceName: "Ethernet1",
         field: "description",
         value: "",
-        defaultValue: "",
       });
 
       expect(result.interfaceDataUpdated).toEqual({
@@ -300,6 +313,7 @@ describe("interfaceConfigReducer", () => {
     test("clears port_template when ifclass changes away from port_template", () => {
       const state = {
         ...initialState,
+        interfaces: [distInterface],
         interfaceDataUpdated: {
           Ethernet1: { ifclass: "port_template", port_template: "tmpl1" },
         },
@@ -309,13 +323,44 @@ describe("interfaceConfigReducer", () => {
         interfaceName: "Ethernet1",
         field: "ifclass",
         value: "custom",
-        defaultValue: "port_template",
       });
 
       expect(
         result.interfaceDataUpdated.Ethernet1.port_template,
       ).toBeUndefined();
       expect(result.interfaceDataUpdated.Ethernet1.ifclass).toBe("custom");
+    });
+
+    test("re-adds a reverted field when it is edited away again", () => {
+      const state = { ...initialState, interfaces: [accessInterface] };
+      const result = reducer(state, {
+        type: actions.UPDATE_FIELD,
+        interfaceName: "Ethernet1",
+        field: "untagged_vlan",
+        value: 100,
+      });
+
+      expect(result.interfaceDataUpdated).toEqual({
+        Ethernet1: { untagged_vlan: 100 },
+      });
+    });
+
+    test("derives the original value from state.interfaces without a caller-supplied defaultValue", () => {
+      const state = {
+        ...initialState,
+        interfaces: [
+          { ...accessInterface, data: { description: "uplink to sw2" } },
+        ],
+        interfaceDataUpdated: { Ethernet1: { description: "edited" } },
+      };
+      const result = reducer(state, {
+        type: actions.UPDATE_FIELD,
+        interfaceName: "Ethernet1",
+        field: "description",
+        value: "uplink to sw2",
+      });
+
+      expect(result.interfaceDataUpdated).toEqual({});
     });
   });
 

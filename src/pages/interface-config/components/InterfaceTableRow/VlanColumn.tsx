@@ -236,8 +236,9 @@ function TaggedVlanSelect({
 
   const handleChange = (e: SyntheticEvent, newValue: string[]) => {
     const filtered = newValue.filter((v) => {
-      // Already-present values (e.g. VLAN IDs stored for DIST devices) are
-      // kept as-is; only newly typed/selected entries need validating.
+      // Already-present values (VLAN ids from the loaded/edited interface
+      // data) are kept as-is; only newly typed/selected entries need
+      // validating.
       if (normalizedTaggedVlanList.includes(v)) return true;
       if (vlanOptionsByValue.has(v)) return true;
       if (VLAN_RANGE_RE.test(v)) {
