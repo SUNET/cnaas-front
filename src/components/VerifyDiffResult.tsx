@@ -143,7 +143,6 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
     !hasEmptyDiffs
   ) {
     // No data yet: display nothing.
-    diffMessage = null;
   } else if (selectedNames.length === 0 && deviceNames.length > 0) {
     diffMessage = "Select devices to view their diffs.";
   } else if (showEmptyDiffsMessage) {
