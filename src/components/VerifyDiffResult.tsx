@@ -47,6 +47,10 @@ function resultAsString(result: unknown): string | undefined {
   return typeof result === "string" ? result : undefined;
 }
 
+function compareNames(a: string, b: string): number {
+  return a.localeCompare(b);
+}
+
 export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
   // null means "all devices", including devices added later.
   const [selectedDeviceNames, setSelectedDeviceNames] = useState<
@@ -74,8 +78,8 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
     }
 
     return Array.from(groups, ([diff, names]) => ({
-      key: JSON.stringify([...names].sort()),
-      names: [...names].sort(),
+      key: JSON.stringify([...names].sort(compareNames)),
+      names: [...names].sort(compareNames),
       diff,
     }));
   }, [devices]);
@@ -84,7 +88,7 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
     () =>
       Array.from(
         new Set(deviceDiffGroups.flatMap((group) => group.names)),
-      ).sort(),
+      ).sort(compareNames),
     [deviceDiffGroups],
   );
 
@@ -131,6 +135,23 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
   const hasFailures = deviceExceptions.length > 0;
   const showEmptyDiffsMessage = hasEmptyDiffs && !hasFailures;
 
+  let diffMessage: string | null = null;
+
+  if (
+    deviceNames.length === 0 &&
+    visibleDiffGroups.length === 0 &&
+    !hasEmptyDiffs
+  ) {
+    // No data yet: display nothing.
+    diffMessage = null;
+  } else if (selectedNames.length === 0 && deviceNames.length > 0) {
+    diffMessage = "Select devices to view their diffs.";
+  } else if (showEmptyDiffsMessage) {
+    diffMessage = "All devices returned empty diffs";
+  } else if (visibleDiffGroups.length === 0) {
+    diffMessage = "No non-empty diffs for the selected devices.";
+  }
+
   return (
     <div>
       <section className="diff-box">
@@ -169,56 +190,44 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
             </>
           )}
 
-          {deviceNames.length === 0 &&
-          visibleDiffGroups.length === 0 &&
-          !hasEmptyDiffs ? (
-            "" // No data yet
-          ) : selectedNames.length === 0 && deviceNames.length > 0 ? (
-            <Typography color="text.secondary">
-              Select devices to view their diffs.
-            </Typography>
-          ) : showEmptyDiffsMessage ? (
-            <Typography>All devices returned empty diffs</Typography>
-          ) : visibleDiffGroups.length === 0 ? (
-            <Typography color="text.secondary">
-              No non-empty diffs for the selected devices.
-            </Typography>
-          ) : (
-            visibleDiffGroups.map((group, i) => (
-              <Paper key={group.key} variant="outlined" sx={{ p: 2 }}>
-                <Stack spacing={1.5}>
-                  <Typography variant="subtitle2">
-                    {group.names.length === 1
-                      ? "Device diff"
-                      : `Identical diff across ${group.names.length} devices`}
-                  </Typography>
-
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    useFlexGap
-                    sx={{ flexWrap: "wrap" }}
-                  >
-                    {group.names.map((name) => (
-                      <Chip
-                        key={name}
-                        label={name}
-                        size="small"
-                        variant="outlined"
-                      />
-                    ))}
-                  </Stack>
-
-                  <Box sx={{ minWidth: 0, overflowX: "auto" }}>
-                    <SyntaxHighlight
-                      syntaxLanguage="language-diff diff-highlight"
-                      code={group.diff}
-                    />
-                  </Box>
-                </Stack>
-              </Paper>
-            ))
+          {diffMessage !== null && (
+            <Typography color="text.secondary">{diffMessage}</Typography>
           )}
+
+          {visibleDiffGroups.map((group) => (
+            <Paper key={group.key} variant="outlined" sx={{ p: 2 }}>
+              <Stack spacing={1.5}>
+                <Typography variant="subtitle2">
+                  {group.names.length === 1
+                    ? "Device diff"
+                    : `Identical diff across ${group.names.length} devices`}
+                </Typography>
+
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  useFlexGap
+                  sx={{ flexWrap: "wrap" }}
+                >
+                  {group.names.map((name) => (
+                    <Chip
+                      key={name}
+                      label={name}
+                      size="small"
+                      variant="outlined"
+                    />
+                  ))}
+                </Stack>
+
+                <Box sx={{ minWidth: 0, overflowX: "auto" }}>
+                  <SyntaxHighlight
+                    syntaxLanguage="language-diff diff-highlight"
+                    code={group.diff}
+                  />
+                </Box>
+              </Stack>
+            </Paper>
+          ))}
         </Stack>
       </section>
 
