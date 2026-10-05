@@ -51,12 +51,7 @@ export type InterfaceConfigContextValue = {
   refreshInterfaceStatus: () => void;
   loadInterfaces: () => Promise<void>;
 
-  updateField: (
-    interfaceName: string,
-    field: string,
-    value: unknown,
-    defaultValue: unknown,
-  ) => void;
+  updateField: (interfaceName: string, field: string, value: unknown) => void;
   toggleUntagged: (interfaceName: string, untagged: boolean) => void;
   addTagOption: (tag: string) => void;
   addPortTemplateOption: (template: string) => void;
@@ -277,18 +272,12 @@ export function InterfaceConfigProvider({
   }, [loadInterfaceStatus, loadLldpNeighbors]);
 
   const updateField = useCallback(
-    (
-      interfaceName: string,
-      field: string,
-      value: unknown,
-      defaultValue: unknown,
-    ) => {
+    (interfaceName: string, field: string, value: unknown) => {
       dispatch({
         type: actions.UPDATE_FIELD,
         interfaceName,
         field,
         value,
-        defaultValue,
       });
     },
     [],
