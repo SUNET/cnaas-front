@@ -169,7 +169,9 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
             </>
           )}
 
-          {deviceNames.length === 0 && visibleDiffGroups.length === 0 ? (
+          {deviceNames.length === 0 &&
+          visibleDiffGroups.length === 0 &&
+          !hasEmptyDiffs ? (
             "" // No data yet
           ) : selectedNames.length === 0 && deviceNames.length > 0 ? (
             <Typography color="text.secondary">
