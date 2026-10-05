@@ -211,7 +211,6 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
 
                   <Box sx={{ minWidth: 0, overflowX: "auto" }}>
                     <SyntaxHighlight
-                      index={i}
                       syntaxLanguage="language-diff diff-highlight"
                       code={group.diff}
                     />

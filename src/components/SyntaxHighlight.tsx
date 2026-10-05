@@ -3,7 +3,6 @@ import Prism from "prismjs";
 import "prismjs/components/prism-diff";
 
 type SyntaxHighlightProps = {
-  readonly index?: number; // kept for API compatibility; no longer needed
   readonly syntaxLanguage: string; // e.g. "language-diff diff-highlight"
   readonly code: string;
 };
