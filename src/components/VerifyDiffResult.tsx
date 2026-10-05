@@ -1,14 +1,14 @@
 import { useMemo, useState } from "react";
-import {
-  Autocomplete,
-  Box,
-  Button,
-  Chip,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+
+import Autocomplete from "@mui/material/Autocomplete";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+
 import SyntaxHighlight from "./SyntaxHighlight";
 import type { DeviceTaskResult } from "../types/job";
 
