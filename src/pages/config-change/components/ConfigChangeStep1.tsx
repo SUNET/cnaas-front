@@ -1,10 +1,11 @@
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import Alert from "@mui/material/Alert";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Stack from "@mui/material/Stack";
+import Skeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
+
 import { BadgeButton } from "../../../components/BadgeButton";
 import LogViewer from "../../../components/LogViewer";
 import { Task } from "../../../components/Task";
@@ -20,7 +21,10 @@ import {
   useConfigChangeDispatch,
 } from "../stores/ConfigChangeContext";
 import { actions, type RepoName } from "../stores/configChangeReducer";
-import { showRefreshRepoErrorToast } from "../stores/toasts";
+import {
+  showRefreshRepoErrorToast,
+  showRefreshRepoSuccessToast,
+} from "../stores/toasts";
 
 function filterLogLinesByJobIds(jobIds: number[]) {
   const matchers = jobIds.map((id) => matchesJobId(id));
@@ -38,8 +42,14 @@ type ConfigChangeStep1Props = {
 };
 
 function PrettyCommit({ commitStr }: { readonly commitStr: unknown }) {
+  if (commitStr == null) {
+    return (
+      <Typography component="div">
+        <Skeleton width="60%" />
+      </Typography>
+    );
+  }
   if (typeof commitStr !== "string") {
-    if (commitStr == null) return null;
     return <Typography component="div">{JSON.stringify(commitStr)}</Typography>;
   }
 
@@ -69,12 +79,6 @@ export function ConfigChangeStep1({
 }: ConfigChangeStep1Props) {
   const [commitInfo, setCommitInfo] = useState<Record<string, unknown>>({});
   const [commitUpdateInfo, setCommitUpdateInfo] = useState<
-    Record<string, string | null>
-  >({
-    settings: null,
-    templates: null,
-  });
-  const [refreshErrorInfo, setRefreshErrorInfo] = useState<
     Record<string, string | null>
   >({
     settings: null,
@@ -121,7 +125,6 @@ export function ConfigChangeStep1({
 
   async function refreshRepo(repoName: RepoName) {
     setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "updating..." }));
-    setRefreshErrorInfo((prev) => ({ ...prev, [repoName]: null }));
     setRepoWorking(true);
 
     const url = `${process.env.API_URL}/api/v1.0/repository/${repoName}`;
@@ -135,9 +138,9 @@ export function ConfigChangeStep1({
       // from a concurrent refresh in another tab/session).
       if (success) {
         setCommitInfo((prev) => ({ ...prev, [repoName]: data.data }));
+        showRefreshRepoSuccessToast(repoName);
       } else {
         const message = extractErrorMessage(data);
-        setRefreshErrorInfo((prev) => ({ ...prev, [repoName]: message }));
         showRefreshRepoErrorToast(repoName, message);
       }
       setCommitUpdateInfo((prev) => ({
@@ -152,7 +155,6 @@ export function ConfigChangeStep1({
       return success;
     } catch (error: unknown) {
       const message = extractErrorMessage(error);
-      setRefreshErrorInfo((prev) => ({ ...prev, [repoName]: message }));
       setCommitUpdateInfo((prev) => ({ ...prev, [repoName]: "error" }));
       showRefreshRepoErrorToast(repoName, message);
       return false;
@@ -163,9 +165,8 @@ export function ConfigChangeStep1({
 
   async function handleRefreshAndDryRun(repoName: RepoName) {
     const success = await refreshRepo(repoName);
-    // On failure, refreshRepo already surfaces the error via commitUpdateInfo
-    // ("✗ Refresh failed") and commitInfo (the actual error message), so
-    // there's nothing more to do here than skip starting the dry run.
+    // On failure, refreshRepo already surfaces the error via a persistent
+    // toast, so there's nothing more to do here than skip the dry run.
     if (success) {
       onDryRunReady();
     }
@@ -179,23 +180,9 @@ export function ConfigChangeStep1({
     }
   }
 
-  function renderUpdateStatus(
-    status: string | null,
-    errorMessage: string | null,
-  ) {
+  function renderUpdateStatus(status: string | null) {
     if (status === "updating...") {
       return <Typography color="text.secondary">Updating…</Typography>;
-    }
-    if (status === "success") {
-      return <Alert severity="success">Refreshed successfully</Alert>;
-    }
-    if (status === "error") {
-      return (
-        <Alert severity="error">
-          Refresh failed
-          {errorMessage ? <div>{errorMessage}</div> : null}
-        </Alert>
-      );
     }
     return null;
   }
@@ -252,10 +239,7 @@ export function ConfigChangeStep1({
             label="Auto dry run after refresh settings"
           />
         </Stack>
-        {renderUpdateStatus(
-          commitUpdateInfo.settings,
-          refreshErrorInfo.settings,
-        )}
+        {renderUpdateStatus(commitUpdateInfo.settings)}
 
         <BadgeButton
           badgeCount={templatesCommitsBehind}
@@ -265,10 +249,7 @@ export function ConfigChangeStep1({
         >
           Refresh templates
         </BadgeButton>
-        {renderUpdateStatus(
-          commitUpdateInfo.templates,
-          refreshErrorInfo.templates,
-        )}
+        {renderUpdateStatus(commitUpdateInfo.templates)}
       </Stack>
       <LogViewer logs={logLines.filter(filterLogLinesByJobIds(repoJobs))} />
     </Task>

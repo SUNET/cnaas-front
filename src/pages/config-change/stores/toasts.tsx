@@ -102,12 +102,21 @@ export function showAnotherSessionDidRefreshToast(jobId: number): void {
   });
 }
 
-// --- Repo refresh error toast ---
+// --- Repo refresh toasts ---
+
+export function showRefreshRepoSuccessToast(repoName: string): void {
+  showToast({
+    severity: "success",
+    title: `Refreshed ${repoName}`,
+    duration: 3000,
+  });
+}
 
 export function showRefreshRepoErrorToast(
   repoName: string,
   message: string,
 ): void {
+  // No `duration`: errors stay until the user dismisses them.
   showToast({
     severity: "error",
     title: `Refresh ${repoName} failed`,

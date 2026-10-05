@@ -5,6 +5,7 @@ import { createMemoryRouter, RouterProvider } from "react-router";
 
 import { ConfigChangeStep1 } from "./ConfigChangeStep1";
 import { ConfigChangeProvider } from "../stores/ConfigChangeContext";
+import { dismissAllToasts, Toaster } from "../../../components/toast";
 
 import { getData as getDataImport } from "../../../utils/getData";
 import { putData as putDataImport } from "../../../utils/sendData";
@@ -36,6 +37,7 @@ const mockPutData = putDataImport as jest.MockedFunction<typeof putDataImport>;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  dismissAllToasts();
   mockGetData.mockImplementation((url: string) => {
     if (url.includes("/device_synchistory")) {
       return Promise.resolve({ data: { hostnames: {} } });
@@ -67,6 +69,7 @@ function renderStep1(
               onDryRunReady={props.onDryRunReady ?? jest.fn()}
               setRepoWorking={props.setRepoWorking ?? jest.fn()}
             />
+            <Toaster />
           </ConfigChangeProvider>
         ),
       },
@@ -98,7 +101,7 @@ test("click refresh settings success", async () => {
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(await screen.findByText("Refreshed successfully")).toBeInTheDocument();
+  expect(await screen.findByText("Refreshed settings")).toBeInTheDocument();
   expect(screen.getByText("repo name mock")).toBeInTheDocument();
 });
 
@@ -114,7 +117,9 @@ test("click refresh settings not success", async () => {
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(await screen.findByText("Refresh failed")).toBeInTheDocument();
+  expect(
+    await screen.findByText("Refresh settings failed"),
+  ).toBeInTheDocument();
   expect(screen.getByText("A message recieved")).toBeInTheDocument();
 });
 
@@ -134,7 +139,9 @@ test("click refresh settings rejected with lock-contention error", async () => {
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(await screen.findByText("Refresh failed")).toBeInTheDocument();
+  expect(
+    await screen.findByText("Refresh settings failed"),
+  ).toBeInTheDocument();
   expect(
     screen.getByText(
       "Another job is locking configuration of devices, try again later (Unable to acquire lock for configuring devices)",
@@ -155,7 +162,7 @@ test("click refresh settings runs dry run automatically by default", async () =>
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(await screen.findByText("Refreshed successfully")).toBeInTheDocument();
+  expect(await screen.findByText("Refreshed settings")).toBeInTheDocument();
   expect(screen.getByText("repo name mock")).toBeInTheDocument();
   expect(onDryRunReady).toHaveBeenCalledTimes(1);
 });
@@ -180,7 +187,7 @@ test("unchecking auto dry run prevents dry run after refresh settings", async ()
   });
   await userEvent.click(refreshSettingsButton);
 
-  expect(await screen.findByText("Refreshed successfully")).toBeInTheDocument();
+  expect(await screen.findByText("Refreshed settings")).toBeInTheDocument();
   expect(screen.getByText("repo name mock")).toBeInTheDocument();
   expect(onDryRunReady).not.toHaveBeenCalled();
 });
@@ -197,6 +204,6 @@ test("click refresh templates", async () => {
   });
   await userEvent.click(refreshTemplatesButton);
 
-  expect(await screen.findByText("Refreshed successfully")).toBeInTheDocument();
+  expect(await screen.findByText("Refreshed templates")).toBeInTheDocument();
   expect(screen.getByText("repo name mock")).toBeInTheDocument();
 });
