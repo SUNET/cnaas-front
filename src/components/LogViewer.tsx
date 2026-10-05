@@ -1,5 +1,7 @@
 import Prism from "prismjs";
 import "prismjs/components/prism-log.js";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
@@ -30,7 +32,7 @@ type ExpandedLogViewerProps = {
 function ExpanedLogViewer({ logs, open, setOpen }: ExpandedLogViewerProps) {
   const [filter, setFilter] = useState("");
   const [activeFilter, setActiveFilter] = useState("");
-
+  const [autoScroll, setAutoScroll] = useState(true);
   const codeRef = useRef<HTMLPreElement>(null);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -41,10 +43,10 @@ function ExpanedLogViewer({ logs, open, setOpen }: ExpandedLogViewerProps) {
   }, [safeLogs, activeFilter]);
 
   useEffect(() => {
-    if (codeRef.current) {
+    if (codeRef.current && autoScroll) {
       codeRef.current.scrollTop = codeRef.current.scrollHeight;
     }
-  }, [open, filteredHtml]);
+  }, [open, autoScroll, filteredHtml]);
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xl" fullWidth>
@@ -55,27 +57,39 @@ function ExpanedLogViewer({ logs, open, setOpen }: ExpandedLogViewerProps) {
           sx={{ justifyContent: "space-between", alignItems: "center" }}
         >
           <span>Logs</span>
-          <TextField
-            onChange={(e) => {
-              //Set filter directly
-              setFilter(e.target.value);
-              // Clear previous debounce
-              if (debounceTimeout.current)
-                clearTimeout(debounceTimeout.current);
+          <Stack direction="row">
+            <FormControlLabel
+              control={<Checkbox />}
+              checked={autoScroll}
+              onChange={() => setAutoScroll((prev) => !prev)}
+              label="Autoscroll"
+            />
+            <TextField
+              onChange={(e) => {
+                //Set filter directly
+                setFilter(e.target.value);
+                // Clear previous debounce
+                if (debounceTimeout.current)
+                  clearTimeout(debounceTimeout.current);
 
-              // Set new debounce
-              debounceTimeout.current = setTimeout(() => {
-                setActiveFilter(e.target.value);
-              }, 250);
-            }}
-            value={filter}
-            placeholder="Filter"
-            size="small"
-          />
+                // Set new debounce
+                debounceTimeout.current = setTimeout(() => {
+                  setActiveFilter(e.target.value);
+                }, 250);
+              }}
+              value={filter}
+              placeholder="Filter"
+              size="small"
+            />
+          </Stack>
         </Stack>
       </DialogTitle>
-      <DialogContent className="log-viewer-modal-content" dividers>
-        <pre ref={codeRef} className="language-log expand-log-viewer">
+      <DialogContent
+        className="log-viewer-modal-content"
+        dividers
+        ref={codeRef}
+      >
+        <pre className="language-log expand-log-viewer">
           <code
             className="language-log text-wrap"
             dangerouslySetInnerHTML={{ __html: filteredHtml }}
