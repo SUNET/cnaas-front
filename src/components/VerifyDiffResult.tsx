@@ -1,4 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+
+import Autocomplete from "@mui/material/Autocomplete";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+
 import SyntaxHighlight from "./SyntaxHighlight";
 import type { DeviceTaskResult } from "../types/job";
 
@@ -13,8 +23,9 @@ type VerifyDiffResultProps = {
 
 const ignoreTaskNames = new Set(["push_sync_device"]);
 
-type DeviceDiff = {
-  readonly name: string;
+type DeviceDiffGroup = {
+  readonly key: string;
+  readonly names: readonly string[];
   readonly diff: string;
 };
 
@@ -36,20 +47,68 @@ function resultAsString(result: unknown): string | undefined {
   return typeof result === "string" ? result : undefined;
 }
 
+function compareNames(a: string, b: string): number {
+  return a.localeCompare(b);
+}
+
 export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
-  const deviceDiffs: DeviceDiff[] = useMemo(
+  // null means "all devices", including devices added later.
+  const [selectedDeviceNames, setSelectedDeviceNames] = useState<
+    string[] | null
+  >(null);
+
+  const deviceDiffGroups: DeviceDiffGroup[] = useMemo(() => {
+    // Group by exact diff string.
+    const groups = new Map<string, string[]>();
+
+    for (const { name, jobTasks } of devices) {
+      const diff = jobTasks
+        .map((task) => diffAsString(task.diff))
+        .filter((d) => d !== "")
+        .join("");
+
+      if (diff === "") continue;
+
+      const names = groups.get(diff);
+      if (names) {
+        names.push(name);
+      } else {
+        groups.set(diff, [name]);
+      }
+    }
+
+    return Array.from(groups, ([diff, names]) => ({
+      key: JSON.stringify([...names].sort(compareNames)),
+      names: [...names].sort(compareNames),
+      diff,
+    }));
+  }, [devices]);
+
+  const deviceNames = useMemo(
     () =>
-      devices
-        .map(({ name, jobTasks }) => {
-          const diff = jobTasks
-            .map((task) => diffAsString(task.diff))
-            .filter((d) => d !== "")
-            .join("");
-          return diff ? { name, diff } : null;
-        })
-        .filter((d): d is DeviceDiff => d !== null),
-    [devices],
+      Array.from(
+        new Set(deviceDiffGroups.flatMap((group) => group.names)),
+      ).sort(compareNames),
+    [deviceDiffGroups],
   );
+
+  const selectedNames = useMemo(() => {
+    if (selectedDeviceNames === null) return deviceNames;
+
+    const selected = new Set(selectedDeviceNames);
+    return deviceNames.filter((name) => selected.has(name));
+  }, [deviceNames, selectedDeviceNames]);
+
+  const visibleDiffGroups = useMemo(() => {
+    const selected = new Set(selectedNames);
+
+    return deviceDiffGroups
+      .map((group) => ({
+        ...group,
+        names: group.names.filter((name) => selected.has(name)),
+      }))
+      .filter((group) => group.names.length > 0);
+  }, [deviceDiffGroups, selectedNames]);
 
   const deviceExceptions: DeviceException[] = useMemo(
     () =>
@@ -72,31 +131,103 @@ export function VerifyDiffResult({ devices }: VerifyDiffResultProps) {
     [devices],
   );
 
-  const hasEmptyDiffs = devices.length > 0 && deviceDiffs.length === 0;
+  const hasEmptyDiffs = devices.length > 0 && deviceDiffGroups.length === 0;
   const hasFailures = deviceExceptions.length > 0;
   const showEmptyDiffsMessage = hasEmptyDiffs && !hasFailures;
+
+  let diffMessage: string | null = null;
+
+  if (
+    deviceNames.length === 0 &&
+    visibleDiffGroups.length === 0 &&
+    !hasEmptyDiffs
+  ) {
+    // No data yet: display nothing.
+  } else if (selectedNames.length === 0 && deviceNames.length > 0) {
+    diffMessage = "Select devices to view their diffs.";
+  } else if (showEmptyDiffsMessage) {
+    diffMessage = "All devices returned empty diffs";
+  } else if (visibleDiffGroups.length === 0) {
+    diffMessage = "No non-empty diffs for the selected devices.";
+  }
 
   return (
     <div>
       <section className="diff-box">
-        <ul>
-          {showEmptyDiffsMessage ? (
-            <li>
-              <p>All devices returned empty diffs</p>
-            </li>
-          ) : (
-            deviceDiffs.map((device, i) => (
-              <li key={device.name}>
-                <p className="device-name">{device.name} diffs</p>
-                <SyntaxHighlight
-                  index={i}
-                  syntaxLanguage="language-diff diff-highlight"
-                  code={device.diff}
-                />
-              </li>
-            ))
+        <Stack spacing={2}>
+          {/* Only when deviceNames.length > 1 */}
+          {deviceNames.length > 1 && (
+            <>
+              <Autocomplete
+                multiple
+                disableCloseOnSelect
+                limitTags={5}
+                options={deviceNames}
+                value={selectedNames}
+                onChange={(_, names) => setSelectedDeviceNames(names)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Devices"
+                    placeholder="Search devices"
+                    helperText={`${selectedNames.length} of ${deviceNames.length} devices selected`}
+                  />
+                )}
+              />
+
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  onClick={() => setSelectedDeviceNames(null)}
+                >
+                  Select all
+                </Button>
+                <Button size="small" onClick={() => setSelectedDeviceNames([])}>
+                  Clear selection
+                </Button>
+              </Stack>
+            </>
           )}
-        </ul>
+
+          {diffMessage !== null && (
+            <Typography color="text.secondary">{diffMessage}</Typography>
+          )}
+
+          {visibleDiffGroups.map((group) => (
+            <Paper key={group.key} variant="outlined" sx={{ p: 2 }}>
+              <Stack spacing={1.5}>
+                <Typography variant="subtitle2">
+                  {group.names.length === 1
+                    ? "Device diff"
+                    : `Identical diff across ${group.names.length} devices`}
+                </Typography>
+
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  useFlexGap
+                  sx={{ flexWrap: "wrap" }}
+                >
+                  {group.names.map((name) => (
+                    <Chip
+                      key={name}
+                      label={name}
+                      size="small"
+                      variant="outlined"
+                    />
+                  ))}
+                </Stack>
+
+                <Box sx={{ minWidth: 0, overflowX: "auto" }}>
+                  <SyntaxHighlight
+                    syntaxLanguage="language-diff diff-highlight"
+                    code={group.diff}
+                  />
+                </Box>
+              </Stack>
+            </Paper>
+          ))}
+        </Stack>
       </section>
 
       <section className="diff-box">
