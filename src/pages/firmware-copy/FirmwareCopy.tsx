@@ -154,7 +154,6 @@ function FirmwareTableRow({
         sx={{
           cursor: "pointer",
           "& > .MuiTableCell-root": { borderBottom: "unset" },
-          // "&:hover": { backgroundColor: "action.selected" },
         }}
       >
         <TableCell>
