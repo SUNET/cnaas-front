@@ -1,4 +1,12 @@
 import { useEffect, useState } from "react";
+import { getTableSize } from "../../utils/tableSize";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import Collapse from "@mui/material/Collapse";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -49,6 +57,89 @@ function GroupEmptyResult() {
   );
 }
 
+function GroupRow({
+  group,
+  groupData,
+}: {
+  readonly group: string;
+  readonly groupData: Record<string, string[]>;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <TableRow key={group} onClick={() => setOpen((prev) => !prev)}>
+        <TableCell>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: "space-between", alignItems: "center" }}
+          >
+            <label>
+              {open ? (
+                <KeyboardArrowDownIcon sx={{ verticalAlign: "middle" }} />
+              ) : (
+                <KeyboardArrowRightIcon sx={{ verticalAlign: "middle" }} />
+              )}
+              {group}
+            </label>
+            <Stack direction="row">
+              {permissionsCheck("Config change", "write") && (
+                <a
+                  href={`/config-change?group=${group}`}
+                  title="Go to config change/sync page"
+                >
+                  <SyncIcon sx={{ verticalAlign: "middle" }} /> Sync...
+                </a>
+              )}
+              {permissionsCheck("Firmware", "write") && (
+                <a
+                  href={`/firmware-upgrade?group=${group}`}
+                  title="Go to firmware upgrade page"
+                >
+                  <MemoryIcon sx={{ verticalAlign: "middle" }} /> Firmware
+                  upgrade...
+                </a>
+              )}
+            </Stack>
+          </Stack>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell
+          colSpan={3}
+          sx={{
+            py: 0,
+            borderBottom: open ? undefined : 0,
+          }}
+        >
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box
+              sx={{
+                my: 1.5,
+              }}
+            >
+              <Typography variant="overline">Group members</Typography>
+              <Box>
+                {(groupData[group] ?? []).map((member) => (
+                  <Chip
+                    key={member}
+                    label={member}
+                    size="small"
+                    variant="outlined"
+                    component="a"
+                    href={`/devices?filter[hostname]=${member}`}
+                    clickable
+                  />
+                ))}
+              </Box>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
+}
+
 function GroupResult({
   groupData,
 }: {
@@ -56,36 +147,8 @@ function GroupResult({
 }) {
   return (
     <TableBody>
-      {Object.entries(groupData).map(([group, devices]) => (
-        <TableRow key={group}>
-          <TableCell>{group}</TableCell>
-          <TableCell>{devices.join(", ")}</TableCell>
-
-          {permissionsCheck("Groups", "read") && (
-            <TableCell>
-              <div>
-                {permissionsCheck("Config change", "write") && (
-                  <a
-                    href={`/config-change?group=${group}`}
-                    title="Go to config change/sync page"
-                  >
-                    <SyncIcon sx={{ verticalAlign: "middle" }} /> Sync...
-                  </a>
-                )}
-                <br />
-                {permissionsCheck("Firmware", "write") && (
-                  <a
-                    href={`/firmware-upgrade?group=${group}`}
-                    title="Go to firmware upgrade page"
-                  >
-                    <MemoryIcon sx={{ verticalAlign: "middle" }} /> Firmware
-                    upgrade...
-                  </a>
-                )}
-              </div>
-            </TableCell>
-          )}
-        </TableRow>
+      {Object.entries(groupData).map(([group]) => (
+        <GroupRow key={group} group={group} groupData={groupData} />
       ))}
     </TableBody>
   );
@@ -139,14 +202,10 @@ export function GroupList() {
     <section>
       <h2>Groups</h2>
       <TableContainer>
-        <Table>
+        <Table aria-label="Groups" size={getTableSize()}>
           <TableHead>
             <TableRow>
               <TableCell>Group name</TableCell>
-              <TableCell>Group members</TableCell>
-              <TableCell hidden={!permissionsCheck("Groups", "read")}>
-                Actions
-              </TableCell>
             </TableRow>
           </TableHead>
           <GroupTableBody />
