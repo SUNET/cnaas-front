@@ -35,6 +35,7 @@ import { UpdateMgmtDomainModal } from "./actionModals/UpdateMgmtDomainModal";
 import { DeviceTableBody } from "./DeviceTableBody";
 import { DeviceTableButtonGroup } from "./DeviceTableButtonGroup";
 import { DeviceTableHeader } from "./DeviceTableHeader";
+import { getTableSize } from "../../../utils/tableSize";
 
 export function DeviceList() {
   const { token } = useAuthToken();
@@ -252,7 +253,7 @@ export function DeviceList() {
         </Box>
 
         <TableContainer>
-          <Table aria-label="Devices" size="medium">
+          <Table aria-label="Devices" size={getTableSize()}>
             <DeviceTableHeader />
             <DeviceTableBody />
           </Table>

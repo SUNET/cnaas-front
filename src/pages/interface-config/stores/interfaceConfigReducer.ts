@@ -8,9 +8,11 @@
 
 // --- Shared types ---
 
-import type {
-  AccessInterfaceItem,
-  DistInterfaceItem,
+import {
+  isAccessInterfaceItem,
+  isDistInterfaceItem,
+  type AccessInterfaceItem,
+  type DistInterfaceItem,
 } from "../types/interfaces";
 import type { LldpNeighbor } from "../types/lldp";
 import type { Vlan } from "../types/vlan";
@@ -135,7 +137,6 @@ export type Action =
       interfaceName: string;
       field: string;
       value: unknown;
-      defaultValue: unknown;
     }
   | {
       type: typeof actions.TOGGLE_UNTAGGED;
@@ -213,6 +214,110 @@ export const initialState: InterfaceConfigState = {
   linknetCheckedPorts: [],
 };
 
+// --- Original (loaded/backend) field values ---
+//
+// UPDATE_FIELD needs to know whether an edited value actually differs from
+// what was loaded, so it can drop the field from `interfaceDataUpdated`
+// (clearing the row's dirty/edited styling) when a user reverts an edit.
+// The reducer is the
+// single source of truth for what counts as "unchanged".
+//
+// `description`'s synthesized placeholder (e.g. "Uplink to X") is a
+// rendering-only concern of InterfaceTableRow and is intentionally not
+// reproduced here — we compare against the raw backend description.
+//
+// VLAN fields (untagged_vlan/tagged_vlan_list) are compared as raw VLAN
+// ids.
+
+// Fallback value per field when the backend didn't send that key at all.
+const ACCESS_FIELD_DEFAULTS: Record<string, unknown> = {
+  aggregate_id: null,
+  bpdu_filter: false,
+  description: "",
+  enabled: true,
+  redundant_link: true,
+  tagged_vlan_list: null,
+  tags: [],
+  untagged_vlan: null,
+};
+
+const DIST_FIELD_DEFAULTS: Record<string, unknown> = {
+  description: "",
+  enabled: true,
+  ifclass: null,
+  port_template: null,
+  redundant_link: true,
+  tagged_vlan_list: [],
+  tags: [],
+  untagged_vlan: null,
+};
+
+function getOriginalFieldValue(
+  interfaces: (AccessInterfaceItem | DistInterfaceItem)[],
+  interfaceName: string,
+  field: string,
+): unknown {
+  const item = interfaces.find((i) => i.name === interfaceName);
+  if (!item) return undefined;
+
+  if (field === "config") return item.config ?? ACCESS_FIELD_DEFAULTS.config;
+
+  if (isAccessInterfaceItem(item)) {
+    const data = item.data;
+    switch (field) {
+      case "configtype":
+        return item.configtype ?? null;
+      case "description":
+        return data?.description ?? ACCESS_FIELD_DEFAULTS.description;
+      case "untagged_vlan":
+        return data?.untagged_vlan ?? ACCESS_FIELD_DEFAULTS.untagged_vlan;
+      case "tagged_vlan_list":
+        return data?.tagged_vlan_list ?? ACCESS_FIELD_DEFAULTS.tagged_vlan_list;
+      case "tags":
+        return data?.tags ?? ACCESS_FIELD_DEFAULTS.tags;
+      case "enabled":
+        return data?.enabled ?? ACCESS_FIELD_DEFAULTS.enabled;
+      case "aggregate_id":
+        return data?.aggregate_id ?? ACCESS_FIELD_DEFAULTS.aggregate_id;
+      case "bpdu_filter":
+        return data?.bpdu_filter ?? ACCESS_FIELD_DEFAULTS.bpdu_filter;
+      case "redundant_link":
+        return data?.redundant_link ?? ACCESS_FIELD_DEFAULTS.redundant_link;
+      default:
+        return undefined;
+    }
+  }
+
+  if (isDistInterfaceItem(item)) {
+    switch (field) {
+      case "ifclass":
+        return item.ifclass?.startsWith("port_template")
+          ? "port_template"
+          : (item.ifclass ?? DIST_FIELD_DEFAULTS.ifclass);
+      case "port_template":
+        return item.ifclass?.startsWith("port_template")
+          ? item.ifclass.substring("port_template_".length)
+          : DIST_FIELD_DEFAULTS.port_template;
+      case "description":
+        return item.peer_hostname ?? DIST_FIELD_DEFAULTS.description;
+      case "tagged_vlan_list":
+        return item.tagged_vlan_list ?? DIST_FIELD_DEFAULTS.tagged_vlan_list;
+      case "tags":
+        return item.tags ?? DIST_FIELD_DEFAULTS.tags;
+      case "redundant_link":
+        return item.redundant_link ?? DIST_FIELD_DEFAULTS.redundant_link;
+      case "untagged_vlan":
+        return DIST_FIELD_DEFAULTS.untagged_vlan;
+      case "enabled":
+        return DIST_FIELD_DEFAULTS.enabled;
+      default:
+        return undefined;
+    }
+  }
+
+  return undefined;
+}
+
 // --- Reducer ---
 
 export function interfaceConfigReducer(
@@ -273,7 +378,12 @@ export function interfaceConfigReducer(
     // --- Edit actions ---
 
     case actions.UPDATE_FIELD: {
-      const { interfaceName, field, value, defaultValue } = action;
+      const { interfaceName, field, value } = action;
+      const defaultValue = getOriginalFieldValue(
+        state.interfaces,
+        interfaceName,
+        field,
+      );
       const updated = { ...state.interfaceDataUpdated };
 
       if (JSON.stringify(value) !== JSON.stringify(defaultValue)) {

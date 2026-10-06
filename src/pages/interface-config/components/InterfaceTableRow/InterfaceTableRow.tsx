@@ -9,13 +9,13 @@ import TextField from "@mui/material/TextField";
 import { type ReactNode, type SyntheticEvent } from "react";
 
 import { useInterfaceConfig } from "../../stores/InterfaceConfigContext";
+import { mapVlanIdToName } from "../../stores/vlanMapping";
 import {
   isAccessInterfaceItem,
   isDistInterfaceItem,
   type AccessInterfaceItem,
   type DistInterfaceItem,
 } from "../../types/interfaces";
-import type { Vlan } from "../../types/vlan";
 import { BounceInterfaceButton } from "./BounceInterfaceButton";
 import { ConfigColumn } from "./ConfigColumn";
 import { InterfaceStatusAdminDisabled } from "./InterfaceStatusAdminDisabled";
@@ -43,14 +43,6 @@ const CONFIG_TYPES_ENABLED = new Set([
 ]);
 
 const IF_CLASSES_ENABLED = new Set(["custom", "downlink"]);
-
-function mapVlanToName(vlan: unknown, vlans: Vlan[]): unknown {
-  if (typeof vlan === "number") {
-    const mapped = vlans.find((v) => v.id === vlan);
-    return mapped ? mapped.name : vlan;
-  }
-  return vlan;
-}
 
 // --- OptionalColumn dispatcher ---
 
@@ -284,7 +276,24 @@ export function InterfaceTableRow({
 
   // Populate fields from ifData
   if (ifData) {
-    if (ifData.description) {
+    const ifDataRecord = ifData as Record<string, unknown>;
+
+    // Prefer a pending edit (ifDataUpdated) over the loaded backend value
+    // (ifDataRecord) for a given field; leave the initFields() default in
+    // place if neither has a value.
+    const pickField = (fieldName: string): unknown => {
+      if (ifDataUpdated?.[fieldName] !== undefined) {
+        return ifDataUpdated[fieldName];
+      }
+      if (fieldName in ifDataRecord) {
+        return ifDataRecord[fieldName];
+      }
+      return fields[fieldName];
+    };
+
+    if (ifDataUpdated?.description !== undefined) {
+      fields.description = ifDataUpdated.description;
+    } else if (ifData.description) {
       fields.description = ifData.description;
     } else if (ifData.neighbor) {
       fields.description = `Uplink to ${String(ifData.neighbor)}`;
@@ -292,35 +301,29 @@ export function InterfaceTableRow({
       fields.description = "MLAG peer link";
     }
 
-    (
-      [
-        "aggregate_id",
-        "bpdu_filter",
-        "enabled",
-        "redundant_link",
-        "tags",
-      ] as const
-    ).forEach((fieldName) => {
-      const ifDataRecord = ifData as Record<string, unknown>;
-      if (fieldName in ifDataRecord) {
-        fields[fieldName] = ifDataRecord[fieldName];
-      }
-    });
+    fields.aggregate_id = pickField("aggregate_id");
+    fields.bpdu_filter = pickField("bpdu_filter");
+    fields.enabled = pickField("enabled");
+    fields.redundant_link = pickField("redundant_link");
+    fields.tags = pickField("tags");
 
     if (ifDataUpdated?.untagged_vlan !== undefined) {
-      fields.untagged_vlan = mapVlanToName(ifDataUpdated.untagged_vlan, vlans);
+      fields.untagged_vlan = mapVlanIdToName(
+        ifDataUpdated.untagged_vlan,
+        vlans,
+      );
     } else if (ifData.untagged_vlan !== undefined) {
-      fields.untagged_vlan = mapVlanToName(ifData.untagged_vlan, vlans);
+      fields.untagged_vlan = mapVlanIdToName(ifData.untagged_vlan, vlans);
     }
 
     if (ifDataUpdated?.tagged_vlan_list !== undefined) {
       fields.tagged_vlan_list = (
         ifDataUpdated.tagged_vlan_list as unknown[]
-      ).map((vlanItem) => mapVlanToName(vlanItem, vlans));
+      ).map((vlanItem) => mapVlanIdToName(vlanItem, vlans));
     } else if (ifData.tagged_vlan_list) {
       fields.tagged_vlan_list = (ifData.tagged_vlan_list as unknown[]).map(
         (vlanItem) => {
-          return mapVlanToName(vlanItem, vlans);
+          return mapVlanIdToName(vlanItem, vlans);
         },
       );
     }

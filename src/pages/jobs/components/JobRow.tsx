@@ -108,7 +108,6 @@ function JobMetadataTable({
       sx={{
         "& td": {
           border: 0,
-          fontSize: (theme) => theme.typography.body1.fontSize,
         },
         "& tbody tr:nth-of-type(even)": {
           backgroundColor: (theme) => theme.palette.grey[100],

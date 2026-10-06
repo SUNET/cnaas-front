@@ -192,31 +192,21 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
     (_e: SyntheticEvent | Event, data: Record<string, unknown>) => {
       const nameStr = data.name as string;
       const [field, interfaceName] = nameStr.split("|", 2);
-      const defaultValue =
-        "defaultChecked" in data ? data.defaultChecked : data.defaultValue;
       let val: unknown = "defaultChecked" in data ? data.checked : data.value;
 
-      if (
-        deviceType === "DIST" &&
-        ["untagged_vlan", "tagged_vlan_list"].includes(field)
-      ) {
-        if (Array.isArray(data.value)) {
-          val = (data.value as string[]).map((opt) => {
-            const options = data.options as Array<{
-              value: string;
-              description: string;
-            }>;
-            const found = options.find((e) => e.value === opt);
-            return found ? found.description : opt;
-          });
-        } else {
-          const options = data.options as Array<{
-            value: string;
-            description: string;
-          }>;
-          const found = options.find((e) => e.value === data.value);
-          val = found ? found.description : data.value;
-        }
+      if (["untagged_vlan", "tagged_vlan_list"].includes(field)) {
+        const options = data.options as Array<{
+          value: string;
+          description: string;
+        }>;
+        const toId = (opt: unknown): unknown => {
+          if (opt === null) return null;
+          const found = options.find((e) => e.value === opt);
+          return found ? found.description : opt;
+        };
+        val = Array.isArray(data.value)
+          ? (data.value as unknown[]).map(toId)
+          : toId(data.value);
       }
 
       if (field === "aggregate_id") {
@@ -224,9 +214,9 @@ export function InterfaceConfig({ hostname }: InterfaceConfigProps) {
         if (Number.isNaN(val as number)) val = null;
       }
 
-      updateField(interfaceName, field, val, defaultValue);
+      updateField(interfaceName, field, val);
     },
-    [deviceType, updateField],
+    [updateField],
   );
 
   const handleUntaggedClick = useCallback(
