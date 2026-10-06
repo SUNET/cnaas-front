@@ -49,7 +49,8 @@ test("displays device diffs when devices have diff content", () => {
 
   renderComponent({ devices });
 
-  expect(screen.getByText("switch-01 diffs")).toBeInTheDocument();
+  expect(screen.getByText("Device diff")).toBeInTheDocument();
+  expect(screen.getByText("switch-01")).toBeInTheDocument();
   expect(screen.getByTestId("syntax-highlight")).toHaveTextContent(
     "+new config line",
   );
