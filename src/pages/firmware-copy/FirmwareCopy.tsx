@@ -27,6 +27,7 @@ import {
 } from "./firmwareCopyApi";
 import type { FirmwareFile } from "./types/firmware";
 import { useFirmwareCopySocket } from "./useFirmwareCopySocket";
+import { getTableSize } from "../../utils/tableSize";
 
 function PopupPresentInRepo() {
   return (
@@ -153,7 +154,6 @@ function FirmwareTableRow({
         sx={{
           cursor: "pointer",
           "& > .MuiTableCell-root": { borderBottom: "unset" },
-          "&:hover": { backgroundColor: "action.selected" },
         }}
       >
         <TableCell>
@@ -222,27 +222,24 @@ export function FirmwareCopy() {
     <section>
       <div id="firmware_list">
         <h2>Firmware</h2>
-        {repoUpdated && <p>Firmware repository last updated: {repoUpdated}</p>}
+        {repoUpdated ? (
+          <p>Firmware repository last updated: {repoUpdated}</p>
+        ) : (
+          <p>Firmware repository is loading...</p>
+        )}
         <div id="data">
-          <TableContainer sx={{ backgroundColor: "grey.100" }}>
-            <Table aria-label="Firmwares" size="small">
+          <TableContainer>
+            <Table aria-label="Firmwares" size={getTableSize()}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>Firmwares</TableCell>
+                  <TableCell>Firmwares</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell>
-                      <CircularProgress
-                        size={16}
-                        sx={{
-                          marginRight: 1,
-                          verticalAlign: "middle",
-                        }}
-                      />
-                      Loading firmware...
+                    <TableCell align="center" colSpan={1}>
+                      <CircularProgress size="1em" /> Loading firmware...
                     </TableCell>
                   </TableRow>
                 ) : (

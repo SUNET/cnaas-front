@@ -14,6 +14,7 @@ import LogViewer from "../../../components/LogViewer";
 import { useJobList } from "../stores/JobListContext";
 import { JobRow } from "./JobRow";
 import { JobSearchForm } from "./JobSearchForm";
+import { getTableSize } from "../../../utils/tableSize";
 
 const COLUMNS = [
   { key: "id", label: "ID" },
@@ -54,12 +55,8 @@ export function JobList() {
     if (loading) {
       return (
         <TableRow>
-          <TableCell colSpan={COLUMNS.length}>
-            <CircularProgress
-              size={16}
-              sx={{ mr: 1, verticalAlign: "middle" }}
-            />
-            Loading jobs...
+          <TableCell align="center" colSpan={COLUMNS.length}>
+            <CircularProgress size="1em" /> Loading jobs...
           </TableCell>
         </TableRow>
       );
@@ -91,7 +88,7 @@ export function JobList() {
       <LogViewer logs={logLines} />
       <h2>Jobs</h2>
       <TableContainer>
-        <Table aria-label="Jobs" size="small">
+        <Table aria-label="Jobs" size={getTableSize()}>
           <TableHead>
             <TableRow>
               {COLUMNS.map((column) => (
@@ -101,11 +98,6 @@ export function JobList() {
                     sort.column === column.key ? sort.direction : false
                   }
                   onClick={() => sortByColumn(column.key)}
-                  sx={{
-                    cursor: "pointer",
-                    fontWeight: 700,
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   <TableSortLabel
                     active={sort.column === column.key}

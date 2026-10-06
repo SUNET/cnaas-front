@@ -13,9 +13,9 @@ export function DeviceTableBody() {
   if (loading) {
     return (
       <TableBody>
-        <TableRow>
-          <TableCell colSpan={activeColumns.length}>
-            <CircularProgress size="1em" /> Loading
+        <TableRow key="Loading">
+          <TableCell align="center" colSpan={activeColumns.length}>
+            <CircularProgress size="1em" /> Loading devices...
           </TableCell>
         </TableRow>
       </TableBody>

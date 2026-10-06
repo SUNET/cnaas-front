@@ -15,17 +15,19 @@ import { Tooltip } from "../../components/Tooltip";
 type SettingsForm = {
   netboxToken: string;
   distPortConfig: boolean;
+  tableSizeCompact: boolean;
 };
 
 export function Settings() {
   const [formData, setFormData] = useState<SettingsForm>({
     netboxToken: localStorage.getItem("netboxToken") ?? "",
     distPortConfig: localStorage.getItem("distPortConfig") === "true",
+    tableSizeCompact: localStorage.getItem("tableSizeCompact") === "true",
   });
   const [hasSavedNetboxToken, setHasSavedNetboxToken] = useState(
     Boolean(localStorage.getItem("netboxToken")),
   );
-  const { netboxToken, distPortConfig } = formData;
+  const { netboxToken, distPortConfig, tableSizeCompact } = formData;
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     setFormData((prev) => ({ ...prev, netboxToken: event.target.value }));
@@ -35,10 +37,15 @@ export function Settings() {
     setFormData((prev) => ({ ...prev, distPortConfig: checked }));
   }
 
+  function handleTableCompactChange(checked: boolean) {
+    setFormData((prev) => ({ ...prev, tableSizeCompact: checked }));
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     localStorage.setItem("netboxToken", netboxToken);
     localStorage.setItem("distPortConfig", String(distPortConfig));
+    localStorage.setItem("tableSizeCompact", String(tableSizeCompact));
     setHasSavedNetboxToken(Boolean(netboxToken));
   }
 
@@ -89,6 +96,16 @@ export function Settings() {
                 />
               }
               label='Enable experimental "configure ports" on DIST action dropdown menu'
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  name="tableSizeCompact"
+                  checked={tableSizeCompact}
+                  onChange={(e) => handleTableCompactChange(e.target.checked)}
+                />
+              }
+              label="Use compact table size"
             />
           </FormGroup>
 
