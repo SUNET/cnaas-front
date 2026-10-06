@@ -2,7 +2,7 @@
 # Jenkins pipeline for CNaaS
 #
 
-disabled: false
+disabled: true
 
 slack:
   room: "cnaas-builds"
